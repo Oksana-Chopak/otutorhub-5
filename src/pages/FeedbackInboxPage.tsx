@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { toast } from "sonner";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,7 @@ export default function FeedbackInboxPage() {
   const { t } = useTranslation();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [names, setNames] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<"all" | Status>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -46,6 +48,15 @@ export default function FeedbackInboxPage() {
       setLoading(false);
       return;
     }
+    // P4: ловилась лише «таблиці немає». Мережа чи RLS давали порожню скриньку —
+    // тобто брехню «звернень немає». Будь-яка інша помилка — окремий стан.
+    if (error) {
+      console.error("feedback inbox load failed", error);
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+    setLoadError(false);
     const list = (data ?? []) as Row[];
     setRows(list);
     const ids = [...new Set(list.map((r) => r.user_id).filter(Boolean))] as string[];
@@ -119,7 +130,9 @@ export default function FeedbackInboxPage() {
           })}
         </div>
 
-        {tableMissing ? (
+        {loadError ? (
+          <ErrorState onRetry={() => void load()} retrying={loading} />
+        ) : tableMissing ? (
           <div style={{ borderRadius: 18, border: "1px solid rgba(245,158,11,.4)", background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", padding: 18 }}>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16, color: "#7a5a14" }}>
               {t("feedbackInbox.tableMissingTitle")}

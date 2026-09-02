@@ -1152,7 +1152,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, roles, loading: authLoading } = useAuth();
-  const { settings, updateSettings, isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { settings, updateSettings, isIndependent, loading: wsLoading, roleReady } = useWorkspaceSettings();
 
   // Onboarding is for TUTORS — both independent and hub. Wait for auth roles AND
   // workspace settings to load so we don't bounce a not-yet-loaded tutor; managers and
@@ -1309,6 +1309,27 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     .ob-sheet  { animation: ob-sheet   .34s cubic-bezier(.32,.72,0,1) both; }
     @media (prefers-reduced-motion:reduce) { .ob-float,.ob-bounce,.ob-step-in,.ob-sheet { animation:none; } }
   `;
+
+  // P3: набір кроків залежить від персони (visibleSteps вище). Поки воркспейс не
+  // прочитаний, прапорець «незалежний» ще false — і перший кадр самостійного
+  // репетитора був ХАБОВИМ: без «Додай учня», «Створи урок», «Правила оплати»,
+  // «Фінанси», а TOTAL_XP стрибав. Це перший екран кожного нового репетитора.
+  // Гейт стоїть ПІСЛЯ всіх хуків і ДО першого рендер-рішення.
+  if (!roleReady || wsLoading || authLoading) {
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="ob-root" aria-busy="true" aria-live="polite">
+          <div className="animate-pulse" style={{ padding: 20, display: "grid", gap: 14 }}>
+            <div style={{ height: 22, width: "55%", borderRadius: 8, background: "rgba(0,0,0,.08)" }} />
+            <div style={{ height: 14, width: "80%", borderRadius: 8, background: "rgba(0,0,0,.06)" }} />
+            <div style={{ height: 120, borderRadius: 16, background: "rgba(0,0,0,.05)" }} />
+            <div style={{ height: 44, width: "60%", borderRadius: 12, background: "rgba(0,0,0,.08)" }} />
+          </div>
+        </div>
+      </>
+    );
+  }
 
   // ── CELEBRATION SCREEN ──────────────────────────────────────────────────────
   if (idx >= CORE.length) {

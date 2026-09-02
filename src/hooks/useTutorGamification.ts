@@ -44,6 +44,7 @@ export function useTutorGamification() {
   const [streak, setStreak] = useState<TutorStreak | null>(null);
   const [badges, setBadges] = useState<TutorBadge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user || !isTutor) {
@@ -56,9 +57,19 @@ export function useTutorGamification() {
       supabase.from("tutor_streaks").select("*").eq("tutor_id", user.id).maybeSingle(),
       supabase.from("tutor_badges").select("*").eq("tutor_id", user.id).order("awarded_at", { ascending: false }),
     ]);
-    if (levelRes.data) setLevel(levelRes.data as unknown as TutorLevel);
-    if (streakRes.data) setStreak(streakRes.data as TutorStreak);
-    if (badgesRes.data) setBadges(badgesRes.data as TutorBadge[]);
+    // P2: три `if (res.data)` мовчали на помилках — «0 бейджів, серія 0» на
+    // збої виглядало як правда. Тепер помилка — окремий стан для сторінок.
+    const err = levelRes.error ?? streakRes.error ?? badgesRes.error ?? null;
+    if (err) {
+      console.error("gamification load failed", err);
+      setError(err.message ?? "load_failed");
+      setLoading(false);
+      return;
+    }
+    setError(null);
+    setLevel((levelRes.data as unknown as TutorLevel) ?? null);
+    setStreak((streakRes.data as TutorStreak) ?? null);
+    setBadges((badgesRes.data as TutorBadge[]) ?? []);
     setLoading(false);
   }, [user?.id, isTutor]);
 
@@ -66,7 +77,7 @@ export function useTutorGamification() {
     load();
   }, [load]);
 
-  return { level, streak, badges, loading, refresh: load };
+  return { level, streak, badges, loading, error, refresh: load };
 }
 
 export function useMonthlySummary(year?: number, month?: number) {

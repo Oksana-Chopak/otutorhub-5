@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
@@ -63,15 +64,14 @@ function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) 
     lessons: { subject: string | null; starts_at: string; status: string; paid: boolean }[];
   } | null>(null);
   const [gifting, setGifting] = useState(false);
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("admin-stats", { body: { tutor_id: row.user_id } });
-        if (error || !data?.detail) { setSt("error"); return; }
-        setD(data.detail); setSt("ready");
-      } catch { setSt("error"); }
-    })();
-  }, [row.user_id]);
+  const loadDetail = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-stats", { body: { tutor_id: row.user_id } });
+      if (error || !data?.detail) { setSt("error"); return; }
+      setD(data.detail); setSt("ready");
+    } catch { setSt("error"); }
+  };
+  useEffect(() => { void loadDetail(); }, [row.user_id]); // eslint-disable-line react-hooks/exhaustive-deps
   const dt = (iso: string) => new Date(iso).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   const gift = async () => {
     setGifting(true);
@@ -104,7 +104,13 @@ function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) 
           </button>
         </div>
         {st === "loading" && <p className="mt-4 text-[14px] text-[var(--sub)]">…</p>}
-        {st === "error" && <p className="mt-4 text-[14px] text-[var(--sub)]">{t("admin.noData")}</p>}
+        {st === "error" && (
+          // P5: головна сторінка файлу вміє «Спробувати ще», а картка казала
+          // «Немає даних» без повтору — розбіжність усередині одного файлу.
+          <div className="mt-4">
+            <ErrorState onRetry={() => { setSt("loading"); void loadDetail(); }} retrying={st !== "error"} />
+          </div>
+        )}
         {st === "ready" && d && (
           <div className="mt-4 space-y-4">
             <section>

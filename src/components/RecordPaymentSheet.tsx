@@ -128,6 +128,7 @@ export function RecordPaymentSheet({
   };
 
   const handleTopUp = async () => {
+    if (busy) return; // P7: подвійний тап = гаманець на 20 уроків замість 10 (як у WalletDialog)
     if (!pickedPair) return;
     let lessonsDelta = 0;
     let amountDelta = 0;

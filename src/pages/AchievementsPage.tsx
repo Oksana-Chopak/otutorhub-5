@@ -1,4 +1,5 @@
 import { BackToProfile } from "@/components/BackToProfile";
+import { ErrorState } from "@/components/ErrorState";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
 import { useAwardBadges } from "@/hooks/useAwardBadges";
@@ -18,7 +19,7 @@ export default function AchievementsPage() {
   const { flags, ready: roleReady } = useRoleFlags();
   const canSeeMoney = canSee("moneySummary", flags);
   const gamification = useTutorGamification();
-  const { level, streak, badges, loading } = gamification;
+  const { level, streak, badges, loading, error } = gamification;
   // Перевірка 01.09: тост про бейдж веде саме сюди — сторінка мусить нараховувати
   // сама, інакше той, хто прийшов за тостом, бачить стару сітку.
   // Менеджер без ролі tutor отримає від RPC порожній результат — не кличемо.
@@ -52,6 +53,10 @@ export default function AchievementsPage() {
         </div>
       </>
     );
+  }
+  if (error) {
+    // P2: той, хто прийшов за тостом про новий бейдж, при збої бачив «0 бейджів».
+    return <ErrorState onRetry={() => void gamification.refresh()} retrying={loading} />;
   }
 
   return (

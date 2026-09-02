@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { DateField, TimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
@@ -107,6 +108,7 @@ export function AvailabilityManager() {
   const [overrides, setOverrides] = useState<OverrideRow[]>([]);
   const [requests, setRequests] = useState<AvailabilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false); // P1: збій ≠ порожня сітка
   const [showHint, setShowHint] = useState(false);
 
   // Dialogs
@@ -168,6 +170,15 @@ export function AvailabilityManager() {
         .order("slot_date")
         .order("start_minute"),
     ]);
+    // P1: раніше помилка не читалась — провал давав порожню сітку, і репетитор
+    // додавав слоти, які вже існують. Тепер збій — це стан із кнопкою «Спробувати ще».
+    if (wRes.error || oRes.error) {
+      console.error("availability load failed", wRes.error ?? oRes.error);
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+    setLoadError(false);
     setWeekly((wRes.data ?? []) as WeeklyRow[]);
     setOverrides((oRes.data ?? []) as OverrideRow[]);
     setLoading(false);
@@ -461,6 +472,8 @@ export function AvailabilityManager() {
         <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
           <Loader2 className="h-6 w-6 animate-spin" style={{ color: A.muted }} />
         </div>
+      ) : loadError ? (
+        <ErrorState onRetry={() => void loadAvailability()} retrying={loading} />
       ) : !tutorId ? (
         <p style={{ fontSize: 14, color: A.sub }}>{t("availabilityManagerExtra.noTutorSelected")}</p>
       ) : (

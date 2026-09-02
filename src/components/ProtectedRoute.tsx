@@ -1,10 +1,13 @@
 import { Navigate, useLocation } from "react-router-dom";
+import { useIsSuperadmin } from "@/hooks/useIsSuperadmin";
 import { ReactNode } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 
 interface Props {
   children: ReactNode;
   allowedRoles?: AppRole[];
+  /** P6: суперадмін платформи проходить незалежно від ролей (is_superadmin(), не manager). */
+  superadmin?: boolean;
 }
 
 function AppLoadingSkeleton() {
@@ -38,11 +41,12 @@ function AppLoadingSkeleton() {
   );
 }
 
-export function ProtectedRoute({ children, allowedRoles }: Props) {
+export function ProtectedRoute({ children, allowedRoles, superadmin }: Props) {
   const { user, checkRole, loading } = useAuth();
+  const { isSuperadmin, loading: saLoading } = useIsSuperadmin();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || (superadmin && saLoading)) {
     return <AppLoadingSkeleton />;
   }
 
@@ -51,7 +55,7 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasAccess = allowedRoles.some((r) => checkRole(r));
+    const hasAccess = allowedRoles.some((r) => checkRole(r)) || (superadmin === true && isSuperadmin);
     if (!hasAccess) {
       const isStudentOnly =
         checkRole("student") && !checkRole("manager") && !checkRole("tutor");

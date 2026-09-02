@@ -134,7 +134,9 @@ export function AppSidebar() {
   // server-side in the admin-stats edge function; this just shows/hides the entry.
   const [isSuperadmin, setIsSuperadmin] = useState(false);
   useEffect(() => {
-    if (!roles.includes("manager")) return;
+    // P6: суперадмін — платформний суб'єкт (platform_admins), НЕ роль manager.
+    // Гейт на роль ховав адмінку від суперадміна без цієї ролі.
+    if (!user) return;
     let active = true;
     // cast: is_superadmin enters generated types only after the migration is applied
     /* Аудит 02.09: без .catch відхилений проміс лишав пункт /admin схованим
@@ -144,10 +146,10 @@ export function AppSidebar() {
       .then(({ data }: { data: unknown }) => { if (active) setIsSuperadmin(data === true); })
       .catch(() => { if (active) setIsSuperadmin(false); });
     return () => { active = false; };
-  }, [roles]);
+  }, [user?.id]);
 
   const navItems = allNavItems.filter((item) => {
-    if (item.superadminOnly && !isSuperadmin) return false;
+    if (item.superadminOnly) return isSuperadmin; // видимість — лише платформний прапор
     if (!item.roles.some((r) => roles.includes(r))) return false;
     // Аудит 01.09: поки налаштування летять, прапор = false, тож пункти
     // «Мої учні» і «Гаманці» встигали блимнути і зникнути. Під час завантаження
