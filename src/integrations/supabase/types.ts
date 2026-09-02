@@ -528,6 +528,46 @@ export type Database = {
           },
         ]
       }
+      homework_done: {
+        Row: {
+          done_at: string
+          lesson_id: string
+          student_id: string
+        }
+        Insert: {
+          done_at?: string
+          lesson_id: string
+          student_id: string
+        }
+        Update: {
+          done_at?: string
+          lesson_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_done_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_done_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_done_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_attachments: {
         Row: {
           created_at: string
