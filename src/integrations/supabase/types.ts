@@ -2276,6 +2276,7 @@ export type Database = {
           custom_currencies: string[]
           daily_digest_enabled: boolean
           dismissed_tasks: Json
+          evening_summary_enabled: boolean
           free_reschedules_per_month: number
           independent_workspace: boolean
           liqpay_card_token: string | null
@@ -2309,6 +2310,7 @@ export type Database = {
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
           dismissed_tasks?: Json
+          evening_summary_enabled?: boolean
           free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
@@ -2342,6 +2344,7 @@ export type Database = {
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
           dismissed_tasks?: Json
+          evening_summary_enabled?: boolean
           free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
