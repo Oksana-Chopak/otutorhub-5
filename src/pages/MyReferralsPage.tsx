@@ -102,7 +102,7 @@ export default function MyReferralsPage() {
 
   const [code, setCode] = useState<string | null>(null);
   /* Аудит 02.09: жодне читання не перевіряло error — сторінка впевнено
-     показувала «0 запрошень · 0 ₴ заощаджено», а кнопка «Копіювати» вічно
+     показувала «0 запрошень · 0 заощаджено», а кнопка «Копіювати» вічно
      писала «посилання завантажується». */
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);

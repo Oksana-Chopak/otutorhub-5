@@ -1031,7 +1031,9 @@ export const uk = {
   
     mixedCurrencyProfit: "Різні валюти — одна цифра прибутку неможлива",
     exportKindPaidOut: "Виплачено",
-    exportKindNotPaidOut: "Не виплачено",},
+    exportKindNotPaidOut: "Не виплачено",
+    truncatedTitle: "Показано перші {{shown}} із {{total}} записів за рік — підсумки неповні",
+    truncatedBody: "Дохід, витрати та прибуток порахувані лише з показаної частини. Звузьте період, щоб бачити точні цифри.",},
 
   // Chats
   subjectSelect: {

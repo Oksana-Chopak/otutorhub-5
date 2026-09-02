@@ -64,6 +64,7 @@ interface LessonInfo {
   duration_minutes: number;
   student_price: number;
   status: string;
+  currency: string; // M4: з lessons_visible (валюта пари), не літерал
 }
 
 type ChargeChoice = "none" | "partial" | "full";
@@ -117,7 +118,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       // student_price via the masked lessons_visible view (GRANT-locked on lesson_details).
       const { data: lessonRows } = await supabase
         .from("lessons_visible")
-        .select("id, starts_at, subject, duration_minutes, status, student_price")
+        .select("id, starts_at, subject, duration_minutes, status, student_price, currency")
         .in("id", ids);
       const map: Record<string, LessonInfo> = {};
       for (const l of (lessonRows ?? []) as any[]) {
@@ -277,7 +278,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         title:
           active.kind === "cancel"
             ? feeApplied
-              ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: formatPrice((feeAmount), "UAH")})
+              ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: formatPrice(feeAmount, lesson.currency)})
               : t("tutorChangeRequestsExtra.cancelApprovedNotif")
             : t("tutorChangeRequestsExtra.rescheduleApprovedNotif", {
                 when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
@@ -474,12 +475,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                           {
                             value: "partial" as ChargeChoice,
                             title: t("tutorChangeRequestsExtra.partialPay"),
-                            desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: formatPrice(Number(activeLesson.student_price), (activeLesson as any).currency ?? "UAH") }),
+                            desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: formatPrice(Number(activeLesson.student_price), activeLesson.currency) }),
                           },
                           {
                             value: "full" as ChargeChoice,
                             title: t("tutorChangeRequestsExtra.fullPay"),
-                            desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: formatPrice(Number(activeLesson.student_price), (activeLesson as any).currency ?? "UAH") }),
+                            desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: formatPrice(Number(activeLesson.student_price), activeLesson.currency) }),
                           },
                         ].map((opt) => (
                           <label

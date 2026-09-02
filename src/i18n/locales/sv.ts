@@ -783,7 +783,9 @@ export const sv: LocaleTranslations = {
   
     mixedCurrencyProfit: "Blandade valutor — en enda vinstsiffra är omöjlig",
     exportKindPaidOut: "Utbetalt",
-    exportKindNotPaidOut: "Ej utbetalt",},
+    exportKindNotPaidOut: "Ej utbetalt",
+    truncatedTitle: "Visar de första {{shown}} av {{total}} poster i år — summorna är ofullständiga",
+    truncatedBody: "Intäkter, utgifter och vinst beräknas bara från den visade delen. Begränsa perioden för exakta siffror.",},
   subjectSelect: {
     removeItem: "Ta bort",
     customPlaceholder: "Eller skriv ett eget ämne…",

@@ -263,7 +263,7 @@ export default function PeoplePage() {
     const lastInteractionMap = new Map<string, string>();
     const studentStatsMap = new Map<
       string,
-      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
+      { unpaid_count: number; unpaid_total: number; unpaid_by_currency: Record<string, number> | null; last_lesson_at: string | null }
     >();
     const tutorHasLesson = new Set<string>();
     const tutorHasPaid = new Set<string>();
@@ -277,6 +277,7 @@ export default function PeoplePage() {
           studentStatsMap.set(r.user_id, {
             unpaid_count: Number(r.unpaid_count ?? 0),
             unpaid_total: Number(r.unpaid_total ?? 0),
+            unpaid_by_currency: (r.unpaid_by_currency as Record<string, number> | null) ?? null, // M3
             last_lesson_at: r.last_lesson_at ?? null,
           });
         }
@@ -337,6 +338,7 @@ export default function PeoplePage() {
         const s = studentStatsMap.get(sid) ?? {
           unpaid_count: 0,
           unpaid_total: 0,
+          unpaid_by_currency: null as Record<string, number> | null,
           last_lesson_at: null as string | null,
         };
         // PREPAYMENT model: an unpaid priced lesson is a debt whether it already
@@ -430,6 +432,7 @@ export default function PeoplePage() {
         last_interaction_at: lastInteractionMap.get(p.id) ?? null,
         unpaid_count: studentStatsMap.get(p.id)?.unpaid_count ?? 0,
         unpaid_total: studentStatsMap.get(p.id)?.unpaid_total ?? 0,
+        unpaid_by_currency: studentStatsMap.get(p.id)?.unpaid_by_currency ?? null, // M3
         last_lesson_at: studentStatsMap.get(p.id)?.last_lesson_at ?? null,
         created_at: p.created_at,
         has_student: tutorHasStudent.has(p.id),
@@ -953,6 +956,7 @@ export default function PeoplePage() {
         ? computeStudentStatus({
             unpaid_count: u.unpaid_count ?? 0,
             unpaid_total: u.unpaid_total ?? 0,
+            unpaid_by_currency: (u as any).unpaid_by_currency ?? null, // M3
             last_lesson_at: u.last_lesson_at ?? null,
           })
         : null;

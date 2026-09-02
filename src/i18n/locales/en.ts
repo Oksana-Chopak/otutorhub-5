@@ -1034,7 +1034,11 @@ export const en: LocaleTranslations = {
 
     exportKindPaidOut: "Paid out",
 
-    exportKindNotPaidOut: "Not paid out",},
+    exportKindNotPaidOut: "Not paid out",
+
+    truncatedTitle: "Showing the first {{shown}} of {{total}} records this year — totals are incomplete",
+
+    truncatedBody: "Income, expenses and profit are computed from the shown part only. Narrow the period to see exact figures.",},
 
   subjectSelect: {
     removeItem: "Remove",

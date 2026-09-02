@@ -186,6 +186,19 @@ const Tab = ({ active, onClick, label, count }: { active: boolean; onClick: () =
   </button>
 );
 
+
+/** M2: підсумки за рік неповні — кажемо це прямо, з точним числом. */
+function TruncatedYearBanner({ n }: { n: { lessons: number; groups: number; tx: number } }) {
+  const { t } = useTranslation();
+  const worst = Math.max(n.lessons, n.groups, n.tx);
+  return (
+    <div role="status" className="mb-4 rounded-[14px] border border-amber-300 bg-amber-50 px-4 py-3">
+      <p className="text-[14px] font-semibold text-amber-900">{t("finances.truncatedTitle", { shown: 500, total: worst })}</p>
+      <p className="mt-1 text-[14px] text-amber-900/85">{t("finances.truncatedBody")}</p>
+    </div>
+  );
+}
+
 export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
@@ -217,6 +230,9 @@ export default function FinancesPage() {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  // M2: три грошові запити мають .limit(500). Якщо за рік більше — підсумки
+  // неповні, і людина МУСИТЬ це побачити, а не звіряти з банком і не вірити продукту.
+  const [truncatedYear, setTruncatedYear] = useState<{ lessons: number; groups: number; tx: number } | null>(null);
   const [tutorFilter, setTutorFilter] = useState<string>("all");
   const [exportOpen, setExportOpen] = useState(false);
   const [exportTutor, setExportTutor] = useState("all");
@@ -417,6 +433,30 @@ export default function FinancesPage() {
       setLoadError(true);
       setLoading(false);
       return;
+    }
+
+    // M2: чесність підсумків — рахуємо, скільки рядків насправді за рік. Якщо
+    // будь-який із трьох масивів уперся в 500, показуємо банер із точним N.
+    {
+      const oneYearAgoC = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+      const countInd = (() => {
+        let q = supabase.from("lessons_visible").select("id", { count: "exact", head: true })
+          .not("student_id", "is", null).gte("starts_at", oneYearAgoC);
+        if (isManager) q = (q as any).neq("source", "independent");
+        return q;
+      })();
+      const countGrp = (() => {
+        let q = supabase.from("lessons").select("id", { count: "exact", head: true })
+          .not("group_id", "is", null).gte("starts_at", oneYearAgoC);
+        if (isManager) q = (q as any).neq("source", "independent");
+        return q;
+      })();
+      const countTx = (supabase.from("student_wallet_transactions" as any) as any)
+        .select("id", { count: "exact", head: true });
+      const [ci, cg, ct] = await Promise.all([countInd, countGrp, countTx]);
+      const n = { lessons: ci.count ?? 0, groups: cg.count ?? 0, tx: ct.count ?? 0 };
+      const hit = (lessonsData?.length ?? 0) >= 500 || (groupLessonsData?.length ?? 0) >= 500 || (txData?.length ?? 0) >= 500;
+      setTruncatedYear(hit && (n.lessons > 500 || n.groups > 500 || n.tx > 500) ? n : null);
     }
 
     // Fetch profiles for EVERY referenced user id (individual student/tutor +
@@ -1870,7 +1910,7 @@ export default function FinancesPage() {
   /* Аудит 02.09: скелет і стан помилки споживались ЛИШЕ в менеджерській гілці
      рендера — а обидві репетиторські повертаються РАНІШЕ (isHubTutor нижче,
      гілка самостійного ще нижче). Тобто головна персона релізу при збої
-     читання бачила впевнене «Отримано 0 ₴» і «Операцій за період немає».
+     читання бачила впевнене «Отримано 0» і «Операцій за період немає».
      Гейт піднято ВИЩЕ за розгалуження персон, щоб накривав усі три. */
   if (isTutor && !isManager) {
     /* Налаштування прочитались, а рядка немає: персона НЕ «хабовий», персона
@@ -1942,6 +1982,7 @@ export default function FinancesPage() {
           <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
           <p className="text-[14px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
         </div>
+        {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
 
         {/* Period pills */}
         <div role="radiogroup" aria-label={t("finances.periodFilterAria")} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
@@ -2668,6 +2709,7 @@ export default function FinancesPage() {
             {isIndependentTutor ? t("finances.pageSubtitleTutor") : t("finances.pageSubtitleManager")}
           </p>
         </div>
+        {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
@@ -2965,7 +3007,7 @@ export default function FinancesPage() {
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
                   <span className="text-[14px] text-muted-foreground">
-                    {formatPrice(profitSparkline.reduce((s, b) => s + b.profit, 0), "UAH")}
+                    {formatPrice(profitSparkline.reduce((s, b) => s + b.profit, 0), domCur)}
                   </span>
                 </div>
                 <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline cur={domCur} data={profitSparkline} /></Suspense>

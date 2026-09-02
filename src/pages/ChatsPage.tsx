@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useIsSuperadmin } from "@/hooks/useIsSuperadmin";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { sumByCurrency } from "@/lib/financials";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
@@ -65,6 +66,9 @@ interface ThreadContext {
   kind: "lesson" | "debt" | "new" | "none";
   text: string;
   amount?: number;
+  /** M4: сума по валютах уже відформатована («800 ₴ + 200 kr»); amount — домінантна. */
+  amountText?: string;
+  currency?: string;
   count?: number;
 }
 
@@ -273,7 +277,7 @@ export default function ChatsPage() {
       const studentIds = Array.from(new Set(list.map((t) => t.student_id)));
       const { data: rows } = await supabase
         .from("lessons_visible")
-        .select("tutor_id, student_id, starts_at, status, student_price, student_payment_status, source")
+        .select("tutor_id, student_id, starts_at, status, student_price, student_payment_status, source, currency")
         .in("tutor_id", tutorIds)
         .in("student_id", studentIds);
       const byPair = new Map<string, Array<{ starts_at: string; status: string | null; student_price: number | null; student_payment_status: string | null; source: string | null }>>();
@@ -292,8 +296,12 @@ export default function ChatsPage() {
         // must NEVER see what the student owes the hub — exclude hub-source lessons.
         const unpaid = isManager ? unpaidAll : unpaidAll.filter((l) => l.source !== "hub");
         if (unpaid.length > 0) {
-          const sum = unpaid.reduce((a, l) => a + (Number(l.student_price) || 0), 0);
-          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: formatPrice(sum, "UAH"), count: unpaid.length }), amount: sum, count: unpaid.length } };
+          // M4: борг по валютах, а не однією сумою — шведські й польські учні
+          // існують. Заголовок — домінантна валюта, решта суфіксом.
+          const byCur = sumByCurrency(unpaid, (l) => Number(l.student_price) || 0, (l) => (l as any).currency);
+          const amountText = byCur.map(([c, v]) => formatPrice(v, c)).join(" + ");
+          const sum = byCur[0]?.[1] ?? 0;
+          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: amountText, count: unpaid.length }), amount: sum, amountText, currency: byCur[0]?.[0] ?? "UAH", count: unpaid.length } };
         }
         const next = lessons
           .filter((l) => l.status !== "cancelled" && new Date(l.starts_at).getTime() >= now)
@@ -1393,7 +1401,7 @@ export default function ChatsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "var(--ds-txt,#0f0f1a)" }}>
                           {selectedThread.ctx.kind === "debt"
-                            ? t("chats.smartUnpaidTitle", { amount: formatPrice(selectedThread.ctx.amount ?? 0, "UAH")})
+                            ? t("chats.smartUnpaidTitle", { amount: selectedThread.ctx.amountText ?? formatPrice(selectedThread.ctx.amount ?? 0, selectedThread.ctx.currency ?? "UAH")})
                             : t("chats.smartCreateFirstLesson")}
                         </p>
                         <p className="text-[14px] truncate" style={{ color: "var(--sub,#666b82)" }}>
