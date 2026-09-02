@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { priceLabel, totalLabel, PRICE_TOTAL, PLAN_DISCOUNT } from "@/lib/pricing";
 import {
   Dialog,
   DialogContent,
@@ -28,11 +29,7 @@ interface Props {
   defaultBilling?: Billing;
 }
 
-const PRICE_MONTHLY = 7; // USD
-const usd = (n: number) => `$${n}`;
-// P0: єдине джерело цін — USD-сітка (жодних 199/2388 ₴).
-const PRICE_HALF_PM = 6.3;  const PRICE_HALF_TOTAL = 37.8;
-const PRICE_YEAR_PM = 5.95; const PRICE_YEAR_TOTAL = 71.4;
+// 02.09: єдине джерело цін — src/lib/pricing.ts, гривня.
 
 export function SubscriptionRequestDialog({
   open,
@@ -72,7 +69,7 @@ export function SubscriptionRequestDialog({
   }, [open, user?.id]);
 
   const planLabel = billing === "yearly" ? "pro_yearly" : billing === "halfyear" ? "pro_halfyear" : "pro_monthly";
-  const price = billing === "yearly" ? PRICE_YEAR_TOTAL : billing === "halfyear" ? PRICE_HALF_TOTAL : PRICE_MONTHLY;
+  const price = PRICE_TOTAL[billing];
 
   const submit = async () => {
     if (!user) return;
@@ -80,10 +77,10 @@ export function SubscriptionRequestDialog({
     try {
       const billingNote =
         billing === "yearly"
-          ? t("subscriptionDialog.yearlyPlan", { perMonth: usd(PRICE_YEAR_PM), total: usd(PRICE_YEAR_TOTAL) })
+          ? t("subscriptionDialog.yearlyPlan", { perMonth: priceLabel("yearly"), total: totalLabel("yearly") })
           : billing === "halfyear"
-          ? t("subscriptionDialog.halfyearPlan", { perMonth: usd(PRICE_HALF_PM), total: usd(PRICE_HALF_TOTAL) })
-          : t("subscriptionDialog.monthlyPlan", { price: usd(PRICE_MONTHLY) });
+          ? t("subscriptionDialog.halfyearPlan", { perMonth: priceLabel("halfyear"), total: totalLabel("halfyear") })
+          : t("subscriptionDialog.monthlyPlan", { price: priceLabel("monthly") });
       const fullMessage = message.trim()
         ? `${billingNote}\n\n${message.trim()}`
         : billingNote;
@@ -175,7 +172,7 @@ export function SubscriptionRequestDialog({
                       </span>
                     </div>
                     <p className="text-[14px] text-muted-foreground">
-                      {usd(PRICE_YEAR_PM)}/міс · {usd(PRICE_YEAR_TOTAL)} на рік (−15%)
+                      {t("subscriptionDialogExtra.planLine", { perMonth: priceLabel("yearly"), total: totalLabel("yearly"), off: PLAN_DISCOUNT.yearly })}
                     </p>
                   </div>
                 </label>
@@ -192,7 +189,7 @@ export function SubscriptionRequestDialog({
                   <div className="min-w-0">
                     <span className="font-medium text-foreground">{t("subscriptionDialog.halfyear")}</span>
                     <p className="text-[14px] text-muted-foreground">
-                      {usd(PRICE_HALF_PM)}/міс · {usd(PRICE_HALF_TOTAL)} разово
+                      {t("subscriptionDialogExtra.planLine", { perMonth: priceLabel("halfyear"), total: totalLabel("halfyear"), off: PLAN_DISCOUNT.halfyear })}
                     </p>
                   </div>
                 </label>
@@ -209,7 +206,7 @@ export function SubscriptionRequestDialog({
                   <div className="min-w-0">
                     <span className="font-medium text-foreground">{t("subscriptionDialog.monthly")}</span>
                     <p className="text-[14px] text-muted-foreground">
-                      {usd(PRICE_MONTHLY)}/міс
+                      {t("subscriptionDialogExtra.perMonth", { price: priceLabel("monthly") })}
                     </p>
                   </div>
                 </label>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { priceLabel, totalLabel } from "@/lib/pricing";
 import { logEvent } from "@/lib/analytics";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeApp, isIosApp } from "@/lib/platform";
@@ -28,10 +29,9 @@ import { LiqPayPayButton } from "@/components/LiqPayPayButton";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
-// USD-сітка (10.08): $7/міс · $42/6міс · $71.4/рік (−15%); списання в грн за курсом НБУ дня оплати.
-const PRO_PRICE_MONTHLY = "$7";
-const PRICE_LABEL = { monthly: "$7", halfyear: "$6.3", yearly: "$5.95" } as const;   // за місяць
-const TOTAL_LABEL = { halfyear: "$37.8", yearly: "$71.4" } as const;                  // разовий платіж
+// Гривнева сітка (рішення власниці 02.09): 299 / 269 / 249 ₴ за місяць.
+// Числа й обґрунтування — у src/lib/pricing.ts, це єдине джерело правди.
+// Курсу НБУ більше немає ніде: ціна фіксована в гривні (ст. 189 ГКУ).
 
 interface RequestRow {
   id: string;
@@ -332,7 +332,7 @@ export default function SubscriptionPage() {
     setRequestOpen(true);
   };
 
-  const proPrice = PRICE_LABEL[billing];
+  const proPrice = priceLabel(billing);
 
   const earlyBirdLeft =
     earlyBirdAudience && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT
@@ -405,13 +405,13 @@ export default function SubscriptionPage() {
                 <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
-                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: priceLabel("monthly") })}</div>
               </>
             ) : (
               <>
                 <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>{t("subscriptionPageExtra.heroFreeTitle")}</div>
-                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: priceLabel("monthly") })}</div>
               </>
             )}
           </div>
@@ -464,7 +464,7 @@ export default function SubscriptionPage() {
                 </span>
               </div>
               {billing !== "monthly" && (
-                <div style={{ fontSize: 14, color: S.sub, marginTop: 2 }}>{t("subscriptionPageExtra.totalNote", { total: TOTAL_LABEL[billing] })}</div>
+                <div style={{ fontSize: 14, color: S.sub, marginTop: 2 }}>{t("subscriptionPageExtra.totalNote", { total: totalLabel(billing) })}</div>
               )}
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
                 {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "halfyear" as const, l: t("subscriptionPageExtra.billingHalfyear") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearlyDiscount") }]).map((o) => {
@@ -497,7 +497,7 @@ export default function SubscriptionPage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15.5 }}>{t("subscriptionPageExtra.inviteTitle")}</div>
-                <div style={{ fontSize: 14, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{nativeApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
+                <div style={{ fontSize: 14, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{nativeApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: priceLabel("monthly") })}</b>.</>}</div>
               </div>
             </div>
             <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${S.teal}`, background: "var(--ds-surface,#fff)", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>

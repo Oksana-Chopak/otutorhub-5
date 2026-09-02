@@ -33,7 +33,7 @@ interface Stats {
   generatedAt: string;
   crm?: {
     funnel: { week: string; signed: number; onboarded: number; l1: number; l5: number; paying: number }[];
-    money: { active: number; trial: number; new_paid_month: number; churned_month: number; mrr_usd: number };
+    money: { active: number; trial: number; new_paid_month: number; churned_month: number; mrr_uah: number };
     tutors: {
       user_id: string; name: string; contact: { email?: string | null; telegram?: string | null } | null;
       type: "manager" | "independent" | "hub"; stage: string; onboarding_step?: string | null;
@@ -306,7 +306,7 @@ export default function AdminStatsPage() {
                       ["moneyTrial", stats.crm.money.trial],
                       ["moneyNewPaid", stats.crm.money.new_paid_month],
                       ["moneyChurned", stats.crm.money.churned_month],
-                      ["moneyMrr", `${stats.crm.money.mrr_usd} $`],
+                      ["moneyMrr", formatPrice(stats.crm.money.mrr_uah, "UAH")],
                     ] as [string, number | string][]).map(([k, v]) => (
                       <div key={k} className="rounded-[12px] bg-[var(--bg)] p-3 text-center">
                         <div className="text-[18px] font-extrabold">{v}</div>

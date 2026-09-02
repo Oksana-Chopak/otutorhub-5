@@ -310,7 +310,9 @@ Deno.serve(async (req) => {
       if (!b.last || tms > b.last) b.last = tms;
       completedByTutor.set(l.tutor_id, b);
     }
-    const PLAN_USD: Record<string, number> = { pro_monthly: 7, pro_halfyear: 6.3, pro_yearly: 5.95 };
+    // 02.09: MRR рахується в ГРИВНІ — та сама сітка, що й у src/lib/pricing.ts.
+    // Раніше тут були долари, тож цифра в адмінці не збігалася з жодним чеком.
+    const PLAN_UAH: Record<string, number> = { pro_monthly: 299, pro_halfyear: 269, pro_yearly: 249 };
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     let mrr = 0, activeN = 0, trialN = 0, newPaid = 0, churned = 0;
     const rows: Record<string, unknown>[] = [];
@@ -329,7 +331,7 @@ Deno.serve(async (req) => {
       else if (trialLeft !== null && trialLeft > 0) stage = trialLeft <= 5 ? "trial_ending" : "trial";
       else if (!w.onboarding_completed) stage = (nowMs - new Date(w.created_at).getTime() > 3 * day) ? "stuck_onboarding" : "new";
       else stage = activated ? "activated" : "new";
-      if (w.subscription_status === "active") { activeN++; mrr += PLAN_USD[w.current_plan ?? "pro_monthly"] ?? 7; }
+      if (w.subscription_status === "active") { activeN++; mrr += PLAN_UAH[w.current_plan ?? "pro_monthly"] ?? 299; }
       if (trialLeft !== null && trialLeft > 0) trialN++;
       const fp = firstPaidAt.get(w.user_id);
       if (fp && fp >= monthStart.getTime()) newPaid++;
@@ -382,7 +384,7 @@ Deno.serve(async (req) => {
       .map(([week, c]) => ({ week, ...c }));
     const crm = {
       funnel,
-      money: { active: activeN, trial: trialN, new_paid_month: newPaid, churned_month: churned, mrr_usd: Math.round(mrr * 100) / 100 },
+      money: { active: activeN, trial: trialN, new_paid_month: newPaid, churned_month: churned, mrr_uah: Math.round(mrr * 100) / 100 },
       tutors: rows,
     };
 

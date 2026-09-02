@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { priceLabel } from "@/lib/pricing";
 import { isNativeApp } from "@/lib/platform";
 import { Link } from "react-router-dom";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -47,7 +48,7 @@ export function TrialCountdownBanner() {
           </span>
           <Button size="sm" asChild className="rounded-full">
             <Link to="/subscription">
-              {t(native ? "trial.connectProNative" : "trial.connectPro")}
+              {t(native ? "trial.connectProNative" : "trial.connectPro", { price: priceLabel("monthly") })}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
@@ -79,7 +80,7 @@ export function TrialCountdownBanner() {
           className="rounded-full"
         >
           <Link to="/subscription">
-            {t(native ? "trial.connectProNative" : "trial.connectPro")}
+            {t(native ? "trial.connectProNative" : "trial.connectPro", { price: priceLabel("monthly") })}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>

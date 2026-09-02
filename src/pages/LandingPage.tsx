@@ -1,4 +1,6 @@
 import "@/styles/landing-fonts.css";
+import { priceLabel, totalLabel } from "@/lib/pricing";
+import { formatPrice } from "@/lib/currency";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { isNativeApp } from "@/lib/platform";
 import { openExternal } from "@/lib/openExternal";
@@ -528,10 +530,18 @@ const landingStyles = `
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation();
-  // Тарифи в USD (рішення власниці, 10.08): Founding $5 · Regular $7 · Enterprise на запит.
-  // Річна оплата = −15%: 5*12*0.85=51, 7*12*0.85=71.4 → $71 (знижка ≥15%).
+  // Тарифи у ГРИВНІ (рішення власниці 02.09; було в USD від 10.08).
+  // Regular — з єдиного джерела src/lib/pricing.ts. Founding лишається тим самим
+  // «мінус ~30% від звичайного», що й був ($5 проти $7), у круглому вигляді.
   const native = isNativeApp(); // М1: Play забороняє чужі прайси цифрових підписок
-  const PRICES = { founding: "$5", foundingY: "$51", regular: "$7", regularY: "$71" };
+  const FOUNDING_PER_MONTH = 199;
+  const FOUNDING_YEAR_TOTAL = 1990; // ≈ −17%, та сама драбинка, що й у Pro
+  const PRICES = {
+    founding: formatPrice(FOUNDING_PER_MONTH, "UAH"),
+    foundingY: formatPrice(FOUNDING_YEAR_TOTAL, "UAH"),
+    regular: priceLabel("monthly"),
+    regularY: totalLabel("yearly"),
+  };
   const [quizOpen, setQuizOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -856,7 +866,7 @@ export default function LandingPage() {
                 <li>✓ {t("landing.pricing.pro2")}</li>
                 <li>✓ {t("landing.pricing.pro3")}</li>
               </ul>
-              <Link to={signupHref} className="price-cta">{t(native ? "landing.pricing.ctaNative" : "landing.pricing.foundingCta")}</Link>
+              <Link to={signupHref} className="price-cta">{t(native ? "landing.pricing.ctaNative" : "landing.pricing.foundingCta", { price: PRICES.founding })}</Link>
               <div className="price-note">{t("landing.pricing.foundingNote")}</div>
             </div>
 
