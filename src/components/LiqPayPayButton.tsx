@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
+import { PRICE_TOTAL, type PlanKey } from "@/lib/pricing";
+import { formatPrice } from "@/lib/currency";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface LiqPayPayButtonProps {
@@ -19,6 +21,12 @@ interface LiqPayPayButtonProps {
  * 1. Викликає edge-функцію `liqpay-create-payment` → отримує підписані `data` + `signature`.
  * 2. Сабмітить форму POST на https://www.liqpay.ua/api/3/checkout у новій вкладці.
  * 3. LiqPay шле server-to-server callback → `liqpay-callback` активує підписку.
+ *
+ * Перевірка 02.09: edge-функції деплояться ОКРЕМО від фронтенду, тож після
+ * зміни цін на сторінці тарифів стояла нова ціна, а LiqPay виставляв стару —
+ * мовчки, бо клієнт суму не бачив. Тепер бачить: сума розшифровується з
+ * підписаного `data` і звіряється з src/lib/pricing.ts. Не збіглось — на
+ * LiqPay не йдемо взагалі.
  */
 export function LiqPayPayButton({
   plan,
@@ -51,6 +59,30 @@ export function LiqPayPayButton({
         console.error("LiqPay create error:", error, data);
         checkoutWindow?.close();
         toast.error(t("liqPay.createFailed"));
+        return;
+      }
+
+      // Звірка суми: `data.data` — це base64 від JSON параметрів LiqPay,
+      // тож суму видно без жодної довіри до сервера.
+      const expected = PRICE_TOTAL[plan as PlanKey];
+      let signedAmount: number | null = null;
+      try {
+        // TextDecoder, а не escape(): опис плану містить кирилицю.
+        const bytes = Uint8Array.from(atob(data.data as string), (c) => c.charCodeAt(0));
+        const parsed = JSON.parse(new TextDecoder().decode(bytes));
+        signedAmount = Number(parsed?.amount);
+      } catch {
+        signedAmount = null;
+      }
+      if (signedAmount != null && Number.isFinite(signedAmount) && signedAmount !== expected) {
+        console.error("LiqPay amount mismatch", { signedAmount, expected, plan });
+        checkoutWindow?.close();
+        toast.error(t("liqPay.amountMismatch"), {
+          description: t("liqPay.amountMismatchDesc", {
+            shown: formatPrice(expected, "UAH"),
+            actual: formatPrice(signedAmount, "UAH"),
+          }),
+        });
         return;
       }
 

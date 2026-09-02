@@ -106,7 +106,9 @@ Deno.serve(async (req) => {
     }
 
     const planConfig = PLANS[plan];
-    // Курс НБУ на момент оплати → сума в гривнях (ціле число грн).
+    /* Ціна фіксована в гривні (ст. 189 ГКУ). Конвертації за курсом на момент
+       списання більше немає: вона означала, що клієнт щоразу платить іншу
+       суму, ніж бачив на сторінці тарифів. */
     const amountUah = planConfig.uah;
     // LiqPay рекурент підтримує лише month/year — піврічний план завжди разовий.
     const rec = recurring && plan !== "halfyear";
@@ -165,7 +167,11 @@ Deno.serve(async (req) => {
     const signature = await sha1Base64(privateKey + dataB64 + privateKey);
 
     return new Response(
-      JSON.stringify({ data: dataB64, signature, order_id: orderId }),
+      /* `amount` повертаємо окремо, щоб клієнт міг звірити суму з
+         src/lib/pricing.ts і не відкривати LiqPay, якщо ця функція
+         задеплоєна старою версією (перевірка 02.09: саме так на сторінці
+         оплати опинилась ціна за старим тарифом). */
+      JSON.stringify({ data: dataB64, signature, order_id: orderId, amount: amountUah }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {

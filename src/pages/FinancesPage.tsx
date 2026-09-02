@@ -1802,29 +1802,6 @@ export default function FinancesPage() {
     }));
   }, [periodBillable]);
 
-  // 6-month stacked bars
-  const sixMonthBars = useMemo(() => {
-    const map = new Map<string, { earned: number; pending: number }>();
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleDateString(getLocale(), { month: "short" });
-      map.set(key, { earned: 0, pending: 0 });
-    }
-    billable.forEach(l => {
-      const d = new Date(l.starts_at);
-      if ((now.getTime() - d.getTime()) > 6 * 30 * 86400 * 1000) return;
-      const key = d.toLocaleDateString(getLocale(), { month: "short" });
-      if (!map.has(key)) return;
-      const entry = map.get(key)!;
-      if (l.student_payment_status === "paid") entry.earned += Number(l.student_price);
-      else if (l.status === "completed") entry.pending += Number(l.student_price);
-    });
-    const rows = Array.from(map.entries()).map(([month, v]) => ({ month, ...v }));
-    const maxVal = Math.max(...rows.map(r => r.earned + r.pending), 1);
-    return rows.map(r => ({ ...r, earnedPct: r.earned/maxVal*100, pendingPct: r.pending/maxVal*100 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [billable]);
 
   // Debt list (prepayment model): every unpaid priced lesson — future ones too.
   const debtList = useMemo(() =>
@@ -1852,6 +1829,39 @@ export default function FinancesPage() {
   const domPaidCount = periodBillable.filter(
     (l) => l.student_payment_status === "paid" && rowCurrency(l) === domCur).length;
   const avgLesson = domPaidCount > 0 ? Math.round((incomeByCur[0]?.[1] ?? 0) / domPaidCount) : 0;
+  // 6-month stacked bars
+  /* Перевірка 02.09: стовпчики були німі — висота є, числа немає, і натиснути
+     не можна, хоча рука тягнеться. Тепер над кожним стовпчиком стоїть сума, а
+     сам стовпчик — кнопка, що розкриває місяць: отримано, очікує, скільки
+     уроків. Ключ місяця став `YYYY-MM`: коротка назва повторюється через рік
+     і два різні місяці зливались в один стовпчик. І рахуємо лише домінантну
+     валюту — суму гривень з євро не можна класти в один стовпчик. */
+  const sixMonthBars = useMemo(() => {
+    const map = new Map<string, { earned: number; pending: number; count: number; label: string }>();
+    const now = new Date();
+    const keyOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      map.set(keyOf(d), {
+        earned: 0, pending: 0, count: 0,
+        label: d.toLocaleDateString(getLocale(), { month: "short" }),
+      });
+    }
+    billable.forEach(l => {
+      if (rowCurrency(l) !== domCur) return;
+      const d = new Date(l.starts_at);
+      const entry = map.get(keyOf(d));
+      if (!entry) return;
+      if (l.student_payment_status === "paid") { entry.earned += Number(l.student_price); entry.count += 1; }
+      else if (l.status === "completed") { entry.pending += Number(l.student_price); entry.count += 1; }
+    });
+    const rows = Array.from(map.entries()).map(([key, v]) => ({ key, ...v }));
+    const maxVal = Math.max(...rows.map(r => r.earned + r.pending), 1);
+    return rows.map(r => ({ ...r, earnedPct: r.earned/maxVal*100, pendingPct: r.pending/maxVal*100 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billable, domCur, pairCurrencies]);
+  const [openMonth, setOpenMonth] = useState<string | null>(null);
+
   const pendingByCur = sumByCurrency(
     periodStudentDebts,
     (l) => Number(l.student_price ?? 0), rowCurrency);
@@ -1927,6 +1937,11 @@ export default function FinancesPage() {
       .map(([subject, v]) => ({
         subject, ...v,
         perHour: v.minutes > 0 ? Math.round(v.amount / (v.minutes / 60)) : 0,
+        /* Перевірка 02.09: у рядку стояли лише сума і кількість уроків, тож
+           «1600 ₴ · 4 уроки» читалось як 400 ₴/год, а поруч писало 427 —
+           виглядало як помилка. Насправді ділиться на ГОДИНИ, а уроки різної
+           тривалості. Показуємо години, і число стає перевірним. */
+        hours: Math.round((v.minutes / 60) * 10) / 10,
       }))
       .sort((a, b) => b.perHour - a.perHour);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2577,8 +2592,22 @@ export default function FinancesPage() {
                   <div>
                     <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>{t("finances.income6Months")}</p>
                     <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:84 }}>
-                      {sixMonthBars.map(bar => (
-                        <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                      {sixMonthBars.map(bar => {
+                        const total = bar.earned + bar.pending;
+                        const open = openMonth === bar.key;
+                        return (
+                        <button key={bar.key} type="button"
+                          onClick={() => setOpenMonth(open ? null : bar.key)}
+                          aria-pressed={open}
+                          aria-label={t("finances.monthBarAria", { month: bar.label, sum: formatPrice(total, domCur) })}
+                          style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                            border:"none", background:"transparent", padding:0, cursor:"pointer",
+                            opacity: openMonth && !open ? 0.45 : 1, transition:"opacity .15s" }}>
+                          {/* Перевірка 02.09: висота без числа не читається — суму видно одразу */}
+                          <span style={{ fontFamily:F.display, fontSize:13, fontWeight:700, color: total > 0 ? F.txt : F.muted,
+                            fontVariantNumeric:"tabular-nums", whiteSpace:"nowrap" }}>
+                            {total > 0 ? formatPrice(total, domCur) : "—"}
+                          </span>
                           <div style={{ width:"100%", display:"flex", flexDirection:"column", justifyContent:"flex-end", height:64, gap:2 }}>
                             {bar.pendingPct > 0 && (
                               <div style={{ width:"100%", borderRadius:"3px 3px 0 0", height:`${bar.pendingPct}%`, minHeight:3, background:"rgba(245,158,11,.35)" }} />
@@ -2587,10 +2616,33 @@ export default function FinancesPage() {
                               <div style={{ width:"100%", borderRadius: bar.pendingPct>0?"0":"3px 3px 0 0", height:`${bar.earnedPct}%`, minHeight:bar.earned>0?4:0, background:F.teal }} />
                             )}
                           </div>
-                          <span style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted }}>{bar.month}</span>
-                        </div>
-                      ))}
+                          <span style={{ fontFamily:F.display, fontSize: 14, fontWeight: open ? 800 : 700, color: open ? F.txt : F.muted }}>{bar.label}</span>
+                        </button>
+                        );
+                      })}
                     </div>
+                    {/* Розкритий місяць: три числа, які й шукають у стовпчику */}
+                    {openMonth && (() => {
+                      const b = sixMonthBars.find((x) => x.key === openMonth);
+                      if (!b) return null;
+                      return (
+                        <div style={{ marginTop:10, borderRadius:12, border:`1px solid ${F.border}`, background:F.surface, padding:"10px 12px",
+                          display:"flex", flexWrap:"wrap", alignItems:"baseline", gap:"4px 14px" }}>
+                          <span style={{ fontFamily:F.display, fontWeight:800, fontSize:15, color:F.txt, textTransform:"capitalize" }}>{b.label}</span>
+                          <span style={{ fontFamily:F.body, fontSize:14, color:F.sub }}>
+                            {t("finances.received")}: <b style={{ color:F.txt, fontVariantNumeric:"tabular-nums" }}>{formatPrice(b.earned, domCur)}</b>
+                          </span>
+                          {b.pending > 0 && (
+                            <span style={{ fontFamily:F.body, fontSize:14, color:F.warnD }}>
+                              {t("finances.pendingLabel")}: <b style={{ fontVariantNumeric:"tabular-nums" }}>{formatPrice(b.pending, domCur)}</b>
+                            </span>
+                          )}
+                          <span style={{ fontFamily:F.body, fontSize:14, color:F.sub }}>
+                            {t("finances.monthBarLessons", { count: b.count })}
+                          </span>
+                        </div>
+                      );
+                    })()}
                     <div style={{ display:"flex", gap:14, marginTop:10 }}>
                       <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 14, color:F.sub }}>
                         <span style={{ width:9, height:9, borderRadius:2, background:F.teal }} /> {t("finances.received")}
@@ -2645,7 +2697,7 @@ export default function FinancesPage() {
                                 <div style={{ height:"100%", borderRadius:999, width:`${pct}%`, background:F.teal, transition:"width .4s ease" }} />
                               </div>
                               <p style={{ fontFamily:F.body, fontSize:13, color:F.sub, marginTop:3 }}>
-                                {t("finances.bySubjectRow", { sum: formatPrice(s.amount, analyticsStats.cur), count: s.count })}
+                                {t("finances.bySubjectRow", { sum: formatPrice(s.amount, analyticsStats.cur), count: s.count, hours: s.hours })}
                               </p>
                             </div>
                           );
