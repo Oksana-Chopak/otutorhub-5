@@ -238,7 +238,9 @@ export default function StudentPaymentsPage() {
           </div>
         )}
 
-        {currencyEntries.length === 0 ? (
+        {/* Аудит 02.09: картки «До сплати 0 · Оплачено 0» малювались ВИЩЕ за
+            стан помилки — учень бачив упевнений нуль там, де читання впало. */}
+        {loadError ? null : currencyEntries.length === 0 ? (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
               <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>

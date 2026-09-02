@@ -28,6 +28,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorState } from "@/components/ErrorState";
 import { enqueue, isOffline } from "@/lib/offlineQueue";
 import { useLocalDraft } from "@/hooks/useLocalDraft";
 import { cn } from "@/lib/utils";
@@ -121,6 +122,7 @@ export default function ChatsPage() {
   const myId = user?.id ?? null;
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [managerIds, setManagerIds] = useState<Set<string>>(new Set());
@@ -205,10 +207,14 @@ export default function ChatsPage() {
       .order("last_message_at", { ascending: false, nullsFirst: false });
 
     if (error) {
+      /* Аудит 02.09: раніше тут був тихий вихід — і сторінка малювала
+         «Чатів поки немає». Провал читання ≠ порожня скринька. */
       console.error(error);
+      setLoadError(true);
       setLoading(false);
       return;
     }
+    setLoadError(false);
 
     // 45/48: доступ до ЧУЖИХ переписок більше не належить ролі «менеджер»
     // (власник хабу — платний клієнт, не модератор платформи). Він належить
@@ -861,6 +867,8 @@ export default function ChatsPage() {
       )}
       {loading ? (
         <ChatsSkeleton />
+      ) : loadError ? (
+        <ErrorState onRetry={() => void loadThreads()} retrying={loading} />
       ) : threads.length === 0 && !loading ? (
         <div className="rounded-[16px] border border-dashed border-border bg-card p-10 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">

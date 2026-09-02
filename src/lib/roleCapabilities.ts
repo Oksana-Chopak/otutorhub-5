@@ -33,6 +33,8 @@ export type Feature =
   | "autoMark"       // auto-complete billing setting — manager's job for hub
   | "ownStudents"    // add / price own students — the manager assigns them for a hub
   | "moneySummary"   // «% оплат вчасно / зароблено за місяць» — для хабового це гроші ШКОЛИ
+  // ── Власник грошей: менеджер (гроші школи) АБО самостійний (свої гроші) ──
+  | "walletTopUp"    // поповнити гаманець учня передоплатою — хабовий не веде розрахунків
   // ── Every teaching tutor (independent AND hub) ──
   | "achievements"   // gamified level / streak / badges — every tutor teaches & earns
   | "setupGuide"     // onboarding guide — every tutor onboards (hub gets a lighter set)
@@ -59,6 +61,12 @@ const INDEPENDENT_ONLY: ReadonlySet<Feature> = new Set<Feature>([
   "moneySummary",
 ]);
 
+/** Хто РОЗПОРЯДЖАЄТЬСЯ грішми: менеджер у хабі, самостійний у себе. Хабовий
+ *  репетитор не веде розрахунків з учнем — це робота школи. */
+const MONEY_OWNER: ReadonlySet<Feature> = new Set<Feature>([
+  "walletTopUp",
+]);
+
 const ANY_TUTOR: ReadonlySet<Feature> = new Set<Feature>([
   "achievements",
   "setupGuide",
@@ -69,6 +77,7 @@ const ANY_TUTOR: ReadonlySet<Feature> = new Set<Feature>([
 /** Whether the given role (described by `flags`) should see `feature`. */
 export function canSee(feature: Feature, flags: RoleFlags): boolean {
   if (INDEPENDENT_ONLY.has(feature)) return isIndependentTutor(flags);
+  if (MONEY_OWNER.has(feature)) return flags.isManager || isIndependentTutor(flags);
   if (ANY_TUTOR.has(feature)) return isAnyTutor(flags);
   return false;
 }

@@ -1314,7 +1314,6 @@ export default function MyStudentsPage() {
           studentName={walletDialog.studentName}
           tutorName={walletDialog.tutorName}
           ratePerLesson={walletDialog.rate}
-          canTopUp={true}
         />
       )}
 

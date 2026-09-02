@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { ErrorState } from "@/components/ErrorState";
 
 interface MyTutor {
   id: string;
@@ -48,16 +49,24 @@ export default function StudentProfilePage() {
   const [weekly, setWeekly] = useState(0);
   const [weeklyRecord, setWeeklyRecord] = useState(0);
   const [tutors, setTutors] = useState<MyTutor[]>([]);
+  /* ⛔ Аудит 02.09: помилки читання ігнорувались, поля ставали "" — і кнопка
+     «Зберегти» ЗАПИСУВАЛА порожнє поверх справжнього імені й контактів учня.
+     Мережевий збій стирав дані. Тепер збій = стан помилки, форми немає. */
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: profile }, { data: contact }, { data: lessons }, { data: rates }] = await Promise.all([
+      setLoading(true);
+      const [{ data: profile, error: pErr }, { data: contact, error: cErr }, { data: lessons }, { data: rates }] = await Promise.all([
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("phone, telegram, instagram_url, facebook_url").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("starts_at, status, tutor_id, subject").or(await studentLessonsOrFilter(user.id)),
         supabase.from("student_rates").select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
       ]);
+      if (pErr || cErr) { setLoadError(true); setLoading(false); return; }
+      setLoadError(false);
       setFirstName(profile?.first_name ?? "");
       setLastName(profile?.last_name ?? "");
       setAvatarUrl((profile as { avatar_url?: string | null } | null)?.avatar_url ?? null);
@@ -115,7 +124,7 @@ export default function StudentProfilePage() {
       }
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, reloadKey]);
 
   const save = async () => {
     if (!user) return;
@@ -156,6 +165,8 @@ export default function StudentProfilePage() {
 
         {loading ? (
           <SkeletonList count={3} />
+        ) : loadError ? (
+          <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />
         ) : (
           <>
             {/* Identity card with avatar */}

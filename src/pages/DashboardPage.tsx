@@ -2684,7 +2684,6 @@ export default function DashboardPage() {
           studentId={walletPair.student_id}
           tutorName={walletPair.tutor_name}
           studentName={walletPair.student_name}
-          canTopUp={isManager}
           canDelete={isManager}
         />
       )}

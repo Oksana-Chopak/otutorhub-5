@@ -1081,9 +1081,13 @@ function GroupDetailsDialog({
                             {/* MON-2: group price = hub money — visible/editable only for
                                 hub-scoped managers and independent owner-tutors (server
                                 enforces via set_group_enrollment_price + column lock). */}
-                            {/* Аудит 01.09: без гейта на завантаження самостійний
-                                власник групи в першому кадрі не міг редагувати ціну. */}
-                            {(isManager || isIndependent || wsLoading) && (
+                            {/* Аудит 02.09: `|| wsLoading` розвертав гейт у небезпечний
+                                бік — поки летять налаштування, поле ціни бачив і
+                                ХАБОВИЙ репетитор (це ціна ШКОЛИ), а RPC потім
+                                відхиляв запис: кнопка, якої роль не має права
+                                натиснути. Правильний бік — не показувати, поки не
+                                знаємо; зразок поруч: GroupLessonParticipants.tsx. */}
+                            {(isManager || (!wsLoading && isIndependent)) && (
                               <PricePill
                                 value={e.price_per_lesson}
                                 currency={e.currency || "UAH"}

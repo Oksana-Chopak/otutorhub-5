@@ -190,7 +190,7 @@ export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
   const { roles } = useAuth();
-  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
@@ -1867,6 +1867,38 @@ export default function FinancesPage() {
     );
   }
 
+  /* Аудит 02.09: скелет і стан помилки споживались ЛИШЕ в менеджерській гілці
+     рендера — а обидві репетиторські повертаються РАНІШЕ (isHubTutor нижче,
+     гілка самостійного ще нижче). Тобто головна персона релізу при збої
+     читання бачила впевнене «Отримано 0 ₴» і «Операцій за період немає».
+     Гейт піднято ВИЩЕ за розгалуження персон, щоб накривав усі три. */
+  if (isTutor && !isManager) {
+    /* Налаштування прочитались, а рядка немає: персона НЕ «хабовий», персона
+       невідома. Без цієї гілки самостійного репетитора кидало в хабовий
+       кабінет із «До виплати від хабу» замість його власних грошей. */
+    if (workspaceUnknown) {
+      return (
+        <>
+          <ErrorState onRetry={() => void fetchData()} retrying={loading} />
+        </>
+      );
+    }
+    if (loading) {
+      return (
+        <>
+          <FinancesSkeleton />
+        </>
+      );
+    }
+    if (loadError) {
+      return (
+        <>
+          <ErrorState onRetry={() => void fetchData()} retrying={loading} />
+        </>
+      );
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // HUB TUTOR: payout-only view. NEVER shows student_price, hub margin, student→hub
   // debt, profit/margin analytics, or a student-payment toggle — a hub tutor is PAID
@@ -3052,7 +3084,6 @@ export default function FinancesPage() {
           tutorName={walletPair.tutor_name}
           studentName={walletPair.student_name}
           ratePerLesson={walletPair.rate}
-          canTopUp={canManagePrepay}
           canDelete={isManager}
         />
       )}

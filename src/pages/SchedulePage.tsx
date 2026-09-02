@@ -51,6 +51,7 @@ import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/SourceBadge";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
@@ -160,6 +161,7 @@ export default function SchedulePage() {
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
@@ -272,9 +274,16 @@ export default function SchedulePage() {
     ]);
 
     // Surface load failures instead of silently showing an empty schedule.
+    /* Аудит 02.09: тост зникав за секунди, а на екрані лишалось
+       «Уроків немає · Створи перший урок» — репетитор із повним розкладом
+       вірив порожньому календарю. Тепер стан помилки лишається на екрані. */
     if (lessonsRes.error) {
       toast.error(t("schedule.loadFailed"));
+      setLoadError(true);
+      setLoading(false);
+      return;
     }
+    setLoadError(false);
 
     const profiles = profilesRes.data ?? [];
     const pmap: Record<string, string> = {};
@@ -1511,7 +1520,9 @@ export default function SchedulePage() {
             </span>
           </div>
         )}
-        {grouped.length === 0 ? (
+        {loadError ? (
+          <ErrorState onRetry={() => void loadAll()} retrying={loading} />
+        ) : grouped.length === 0 ? (
         isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}

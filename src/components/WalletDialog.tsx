@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Wallet, Plus, History, Loader2, ArrowDownLeft, ArrowUpRight, Undo2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useStudentWallet } from "@/hooks/useStudentWallet";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { canSee } from "@/lib/roleCapabilities";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -29,7 +31,12 @@ interface WalletDialogProps {
   studentName?: string;
   tutorName?: string;
   /** дозволяє поповнення (manager або independent tutor свого учня) */
-  canTopUp: boolean;
+  /** Аудит 02.09: раніше це був ОБОВʼЯЗКОВИЙ проп — і шість місць викликy
+   *  передавали три різні значення. З дашборда самостійний репетитор
+   *  отримував canTopUp=false і бачив вкладку «Поповнити», яка не має вмісту.
+   *  Тепер право виводиться з матриці ролей; проп лишається лише як явне
+   *  звуження для окремого місця. */
+  canTopUp?: boolean;
   /** ставка за урок (для зручного перерахунку) */
   ratePerLesson?: number;
   /** дозволяє менеджеру видаляти/сторнувати транзакції */
@@ -59,7 +66,7 @@ export function WalletDialog({
   studentId,
   studentName,
   tutorName,
-  canTopUp,
+  canTopUp: canTopUpProp,
   ratePerLesson,
   canDelete = false,
 }: WalletDialogProps) {
@@ -67,6 +74,12 @@ export function WalletDialog({
     open ? tutorId : null,
     open ? studentId : null,
   );
+  /* Право на передоплату — рядок матриці ролей (walletTopUp): менеджер веде
+     розрахунки школи, самостійний — свої, хабовий не веде жодних. Поки роль
+     невідома (roleReady=false), вкладку не показуємо: краще без неї, ніж
+     показати і не мати чим наповнити. */
+  const { flags, ready: roleReady } = useRoleFlags();
+  const canTopUp = canTopUpProp ?? (roleReady && canSee("walletTopUp", flags));
 
   const [mode, setMode] = useState<"lessons" | "amount">("lessons");
   const [lessonsCount, setLessonsCount] = useState("");
@@ -308,7 +321,9 @@ export function WalletDialog({
         {/* 3 tabs */}
         <div style={{ display: "flex", gap: 2, margin: "0 20px 12px",
           background: "rgba(15,15,26,.06)", borderRadius: 12, padding: 4, flexShrink: 0 }}>
-          {([["mark", t("walletDialog.tabMark")], ["topup", t("walletDialog.tabTopup")], ["history", t("walletDialog.tabHistory")]] as const).map(([key, label]) => (
+          {(([["mark", t("walletDialog.tabMark")],
+              ...(canTopUp ? [["topup", t("walletDialog.tabTopup")] as const] : []),
+              ["history", t("walletDialog.tabHistory")]] as const) as ReadonlyArray<readonly [typeof tab, string]>).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ flex: 1, height: 36, borderRadius: 9, border: "none", cursor: "pointer",
                 background: tab === key ? F.surface : "transparent",

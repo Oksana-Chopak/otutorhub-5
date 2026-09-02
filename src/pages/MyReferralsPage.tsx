@@ -7,6 +7,7 @@ import { getLocale } from "@/lib/locale";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { ErrorState } from "@/components/ErrorState";
 import { supabase } from "@/integrations/supabase/client";
 import { Link2, Copy, Check, Share2, Heart, Trophy } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -85,7 +86,7 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 export default function MyReferralsPage() {
   const { t } = useTranslation();
   const { user, roles } = useAuth();
-  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   // The referral / Pro-invite program is INDEPENDENT-tutor only (MON-7). A hub tutor /
   // manager reaching this by URL must not see the independent monetization surface.
   // (Applied at the render return below, after all hooks, to respect the rules of hooks.)
@@ -93,8 +94,18 @@ export default function MyReferralsPage() {
     isManager: roles.includes("manager"), isTutor: roles.includes("tutor"),
     isIndependent, isStudent: roles.includes("student"),
   }); // P8-системно
+  /* Аудит 02.09: `workspaceUnknown` (читання завершилось, рядка налаштувань
+     немає) читалось як «не самостійний» — і САМОСТІЙНОГО репетитора викидало
+     редіректом із його ж сторінки рефералів. «Ще не знаю» ≠ «не самостійний».
+     Зразок правильної обробки поруч: MyStudentsPage.tsx. */
+  const personaUnknown = workspaceUnknown;
 
   const [code, setCode] = useState<string | null>(null);
+  /* Аудит 02.09: жодне читання не перевіряло error — сторінка впевнено
+     показувала «0 запрошень · 0 ₴ заощаджено», а кнопка «Копіювати» вічно
+     писала «посилання завантажується». */
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [referrals, setReferrals] = useState<ReferralRow[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [savedUah, setSavedUah] = useState(0);
@@ -115,8 +126,9 @@ export default function MyReferralsPage() {
       setLoading(true);
 
       let codeVal: string | null = null;
-      const { data: codeRow } = await supabase
+      const { data: codeRow, error: codeErr } = await supabase
         .from("referral_codes").select("code").eq("tutor_id", user.id).maybeSingle();
+      if (codeErr) { setLoadError(true); setLoading(false); return; }
       if (codeRow?.code) {
         codeVal = codeRow.code as string;
       } else {
@@ -125,7 +137,7 @@ export default function MyReferralsPage() {
       }
       setCode(codeVal);
 
-      const [{ data: refs }, { data: saved }, { data: board }] = await Promise.all([
+      const [{ data: refs, error: refsErr }, { data: saved }, { data: board }] = await Promise.all([
         supabase
           .from("referrals")
           .select("id, referred_id, signed_up_at, upgraded_to_pro_at")
@@ -135,6 +147,8 @@ export default function MyReferralsPage() {
         supabase.rpc("get_referral_leaderboard", { _year: year, _month: month }),
       ]);
 
+      if (refsErr) { setLoadError(true); setLoading(false); return; }
+      setLoadError(false);
       const refRows = (refs ?? []) as ReferralRow[];
       setReferrals(refRows);
       setSavedUah(Number(saved ?? 0));
@@ -153,7 +167,7 @@ export default function MyReferralsPage() {
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, year, month, wsLoading, blockedNonIndependent]);
+  }, [user?.id, year, month, wsLoading, blockedNonIndependent, reloadKey]);
 
   const link = code ? `${appOrigin()}/join/${code}` : "";
   const linkLabel = code ? `${window.location.host}/join/${code}` : "";
@@ -210,7 +224,21 @@ export default function MyReferralsPage() {
 
   // ── UI helpers ──────────────────────────────────────────────────────────────
 
+  if (personaUnknown) {
+    return (
+      <>
+        <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />
+      </>
+    );
+  }
   if (blockedNonIndependent) return <Navigate to="/" replace />;
+  if (loadError) {
+    return (
+      <>
+        <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />
+      </>
+    );
+  }
 
   return (
     <>

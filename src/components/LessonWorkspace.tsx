@@ -1086,7 +1086,6 @@ export function LessonWorkspace({
           onOpenChange={setWalletOpen}
           tutorId={tutorId}
           studentId={studentId}
-          canTopUp={true}
           ratePerLesson={studentPrice}
         />
       )}

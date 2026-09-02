@@ -137,7 +137,12 @@ export function AppSidebar() {
     if (!roles.includes("manager")) return;
     let active = true;
     // cast: is_superadmin enters generated types only after the migration is applied
-    (supabase as any).rpc("is_superadmin").then(({ data }: { data: unknown }) => { if (active) setIsSuperadmin(data === true); });
+    /* Аудит 02.09: без .catch відхилений проміс лишав пункт /admin схованим
+       назавжди — власниця платформи не бачила власної адмінки після одного
+       мережевого збою. Хук useIsSuperadmin цей catch має; копія в сайдбарі — ні. */
+    (supabase as any).rpc("is_superadmin")
+      .then(({ data }: { data: unknown }) => { if (active) setIsSuperadmin(data === true); })
+      .catch(() => { if (active) setIsSuperadmin(false); });
     return () => { active = false; };
   }, [roles]);
 

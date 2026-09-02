@@ -2234,7 +2234,6 @@ export default function PeoplePage() {
           studentId={walletPair.student.id}
           tutorName={walletPair.tutorName}
           studentName={fullName(walletPair.student)}
-          canTopUp={isManager}
         />
       )}
 
