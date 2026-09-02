@@ -2580,6 +2580,11 @@ export type Database = {
         }
         Returns: Json
       }
+      award_badge_once: {
+        Args: { _key: string; _tutor: string }
+        Returns: string[]
+      }
+      award_my_badges: { Args: never; Returns: string[] }
       award_referral_leaderboard_prizes: { Args: never; Returns: number }
       backfill_tutor_payouts_for_tutor: {
         Args: { _tutor_id: string }
