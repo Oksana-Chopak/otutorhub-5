@@ -1,5 +1,6 @@
 // Polls Telegram getUpdates and links app users via /start <code>
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendPaymentReminder, normLang } from "../_shared/paymentReminder.ts";
 
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
@@ -65,7 +66,8 @@ Deno.serve(async (req) => {
     for (const u of updates) {
       // ── Кнопки з дайджесту: «Нагадати» / «Оплачено» ──────────────────────
       if (u.callback_query) {
-        await handleDigestCallback(TG_BASE, supabase, u.callback_query);
+        await handleDigestCallback(TG_BASE, supabase, u.callback_query,
+          { supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN });
         processed++;
         continue;
       }
@@ -132,6 +134,31 @@ async function sendTg(base: string, chatId: number, text: string) {
   });
 }
 
+// Відповіді на кнопки — мовою репетитора (profiles.preferred_language).
+const CB = {
+  uk: {
+    bad: "Незрозуміла дія", nolink: "Telegram не прив’язаний до акаунта",
+    nodebt: "Боргів у цього учня вже немає ✅",
+    paid: (n: number) => `✅ Позначено оплаченими: ${n} ур. Застосунок уже знає.`,
+    remDone: (ch: string[]) => `🔔 Надіслано: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "застосунок" } as Record<string, string>)[c] ?? c).join(", ")}`,
+    remSkip: "Сьогодні вже нагадували — учень отримав. Наступне — через 24 год.",
+  },
+  en: {
+    bad: "Unknown action", nolink: "Telegram is not linked to an account",
+    nodebt: "This student has no open debts ✅",
+    paid: (n: number) => `✅ Marked as paid: ${n} lessons. The app already knows.`,
+    remDone: (ch: string[]) => `🔔 Sent via: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "app" } as Record<string, string>)[c] ?? c).join(", ")}`,
+    remSkip: "Already reminded today — the student got it. Next one in 24 h.",
+  },
+  sv: {
+    bad: "Okänd åtgärd", nolink: "Telegram är inte kopplat till kontot",
+    nodebt: "Eleven har inga obetalda lektioner ✅",
+    paid: (n: number) => `✅ Markerat som betalt: ${n} lektioner. Appen vet redan.`,
+    remDone: (ch: string[]) => `🔔 Skickat via: ${ch.map((c) => ({ telegram: "Telegram", email: "e-post", inapp: "appen" } as Record<string, string>)[c] ?? c).join(", ")}`,
+    remSkip: "Redan påmint idag — eleven fick den. Nästa om 24 h.",
+  },
+} as const;
+
 async function answerCb(base: string, id: string, text: string) {
   await fetch(`${base}/answerCallbackQuery`, {
     method: 'POST',
@@ -148,50 +175,62 @@ async function answerCb(base: string, id: string, text: string) {
  * source = 'independent' (хабові борги закриває менеджер, не бот).
  */
 // deno-lint-ignore no-explicit-any
-async function handleDigestCallback(base: string, db: any, cq: any) {
+async function handleDigestCallback(base: string, db: any, cq: any,
+  env: { supabaseUrl: string; serviceKey: string; botToken: string }) {
   const cqId: string = cq.id;
   const data: string = cq.data ?? '';
   const chatId: number | undefined = cq.message?.chat?.id;
   const m = data.match(/^(rem|paid):([0-9a-f-]{36})$/);
-  if (!m || !chatId) { await answerCb(base, cqId, 'Незрозуміла дія'); return; }
+  if (!m || !chatId) { await answerCb(base, cqId, CB.uk.bad); return; }
   const action = m[1]; const studentId = m[2];
 
   const { data: link } = await db
     .from('user_telegram_links').select('user_id').eq('chat_id', chatId).maybeSingle();
   const tutorId: string | undefined = link?.user_id;
-  if (!tutorId) { await answerCb(base, cqId, 'Telegram не прив’язаний до акаунта'); return; }
+  if (!tutorId) { await answerCb(base, cqId, CB.uk.nolink); return; }
+  const { data: tutorProf } = await db.from('profiles').select('preferred_language').eq('id', tutorId).maybeSingle();
+  const L = CB[normLang(tutorProf?.preferred_language)];
 
   // Борги цієї пари — індивідуальні (lesson_details) і групові (participants)
   const { data: indiv } = await db
     .from('lessons')
-    .select('id, status, lesson_details(student_price, student_payment_status, is_cancellation_fee)')
+    .select('id, status, subject, starts_at, lesson_details(student_price, student_payment_status, is_cancellation_fee)')
     .eq('tutor_id', tutorId).eq('student_id', studentId).eq('source', 'independent')
     .is('group_id', null).in('status', ['completed', 'scheduled', 'cancelled']);
-  const indivIds: string[] = (indiv ?? []).filter((l: any) => {
+  const indivRows = (indiv ?? []).filter((l: any) => {
     const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
     if (!d || (d.student_payment_status ?? 'unpaid') !== 'unpaid') return false;
     if (Number(d.student_price ?? 0) <= 0) return false;
     if (l.status === 'cancelled') return d.is_cancellation_fee === true;
     return true;
-  }).map((l: any) => l.id);
+  }).map((l: any) => {
+    const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+    return { id: l.id as string, subject: l.subject ?? null, starts_at: l.starts_at as string, student_price: Number(d.student_price ?? 0) };
+  });
+  const indivIds: string[] = indivRows.map((r: any) => r.id);
 
   const { data: grp } = await db
-    .from('lessons').select('id')
+    .from('lessons').select('id, subject, starts_at')
     .eq('tutor_id', tutorId).eq('source', 'independent')
     .not('group_id', 'is', null).in('status', ['completed', 'scheduled']);
   const grpLessonIds: string[] = (grp ?? []).map((l: any) => l.id);
   let grpPartIds: string[] = [];
+  let grpLessonsForStudent: { id: string; subject: string | null; starts_at: string; student_price: number }[] = [];
   if (grpLessonIds.length) {
     const { data: parts } = await db
-      .from('lesson_participants').select('id')
+      .from('lesson_participants').select('id, lesson_id, student_price')
       .in('lesson_id', grpLessonIds).eq('student_id', studentId)
       .eq('student_payment_status', 'unpaid').gt('student_price', 0);
     grpPartIds = (parts ?? []).map((p: any) => p.id);
+    const wanted = new Set((parts ?? []).map((p: any) => p.lesson_id));
+    const priceOf = new Map((parts ?? []).map((p: any) => [p.lesson_id, Number(p.student_price ?? 0)]));
+    grpLessonsForStudent = (grp ?? []).filter((l: any) => wanted.has(l.id))
+      .map((l: any) => ({ id: l.id, subject: l.subject ?? null, starts_at: l.starts_at, student_price: priceOf.get(l.id) ?? 0 }));
   }
   const total = indivIds.length + grpPartIds.length;
 
   if (action === 'paid') {
-    if (total === 0) { await answerCb(base, cqId, 'Боргів у цього учня вже немає ✅'); return; }
+    if (total === 0) { await answerCb(base, cqId, L.nodebt); return; }
     const now = new Date().toISOString();
     if (indivIds.length) {
       await db.from('lesson_details')
@@ -203,26 +242,24 @@ async function handleDigestCallback(base: string, db: any, cq: any) {
         .update({ student_payment_status: 'paid', student_paid_at: now })
         .in('id', grpPartIds).eq('student_payment_status', 'unpaid');
     }
-    await answerCb(base, cqId, `✅ Позначено оплаченими: ${total} ур. Застосунок уже знає.`);
+    // T4: зміна платіжного статусу з Telegram лишає слід — хто, звідки, що саме.
+    await db.from('manager_audit_log').insert({
+      actor_id: tutorId, action: 'mark_paid_via_telegram', entity_type: 'student_debt', entity_id: studentId,
+      before: { unpaid_lessons: indivIds, unpaid_participants: grpPartIds },
+      after: { status: 'paid', source: 'telegram_digest_button', chat_id: chatId },
+    });
+    await answerCb(base, cqId, L.paid(total));
     return;
   }
 
-  // action === 'rem' — нагадати учневі: Telegram (якщо прив’язаний) + сповіщення в застосунку
-  if (total === 0) { await answerCb(base, cqId, 'Нагадувати нема про що — боргів немає ✅'); return; }
-  const [{ data: tutorProfile }, { data: studentTg }] = await Promise.all([
-    db.from('profiles').select('first_name, last_name').eq('id', tutorId).maybeSingle(),
-    db.from('user_telegram_links').select('chat_id').eq('user_id', studentId).maybeSingle(),
-  ]);
-  const tutorName = [tutorProfile?.first_name, tutorProfile?.last_name].filter(Boolean).join(' ').trim() || 'репетитор';
-  const bodyText = `${tutorName} нагадує про оплату: ${total} ур. очікують на оплату.`;
-  let viaTg = false;
-  if (studentTg?.chat_id) {
-    await sendTg(base, Number(studentTg.chat_id), `💳 <b>Нагадування про оплату</b>\n\n${escapeHtml(bodyText)}\n\nДеталі — у розділі «Оплати» застосунку.`);
-    viaTg = true;
-  }
-  await db.from('notifications').insert({
-    user_id: studentId, type: 'payment_reminder',
-    title: '💳 Нагадування про оплату', body: bodyText, link: '/student/payments',
+  // action === 'rem' — через спільне ядро: 24-годинна дедуплікація за
+  // lesson_payment_reminders, три канали, мова учня, лог для крона.
+  if (total === 0) { await answerCb(base, cqId, L.nodebt); return; }
+  const res = await sendPaymentReminder({
+    admin: db, supabaseUrl: env.supabaseUrl, serviceKey: env.serviceKey, botToken: env.botToken,
+    tutorId, studentId, kind: 'telegram_button',
+    // Групові уроки нагадуємо через parent-урок: беремо ті, де є борг цього учня.
+    lessons: [...indivRows, ...grpLessonsForStudent],
   });
-  await answerCb(base, cqId, viaTg ? '🔔 Надіслано в Telegram і в застосунок' : '🔔 Надіслано в застосунок (Telegram учня не прив’язаний)');
+  await answerCb(base, cqId, res.sent === 0 ? L.remSkip : L.remDone(res.channels));
 }

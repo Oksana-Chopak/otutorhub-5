@@ -1,6 +1,7 @@
 // Sends an immediate payment reminder for a single lesson via Telegram + email.
 // Called from the dashboard "Bell" button by tutor or manager.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendPaymentReminder } from "../_shared/paymentReminder.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,12 +16,6 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
 
 
 
@@ -79,110 +74,23 @@ Deno.serve(async (req) => {
     return json({ error: "forbidden" }, 403);
   }
 
-  // Fetch profiles + contact + tg link
-  const [{ data: studentProfile }, { data: tutorProfile }, { data: contact }, { data: tgLink }] =
-    await Promise.all([
-      admin.from("profiles").select("first_name, last_name").eq("id", lesson.student_id).maybeSingle(),
-      admin.from("profiles").select("first_name, last_name").eq("id", lesson.tutor_id).maybeSingle(),
-      admin.from("profile_contacts").select("email").eq("user_id", lesson.student_id).maybeSingle(),
-      admin.from("user_telegram_links").select("chat_id").eq("user_id", lesson.student_id).maybeSingle(),
-    ]);
-
-  const studentName =
-    [studentProfile?.first_name, studentProfile?.last_name].filter(Boolean).join(" ").trim() || "учень";
-  const tutorName =
-    [tutorProfile?.first_name, tutorProfile?.last_name].filter(Boolean).join(" ").trim() || "репетитор";
-  const lessonDate = new Date(lesson.starts_at).toLocaleString("uk-UA", {
-    timeZone: "Europe/Kyiv",
-    day: "2-digit",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
+  // Усе нижче — спільне ядро (_shared/paymentReminder.ts): канали, мова
+  // одержувача, лог і 24-годинна дедуплікація за lesson_payment_reminders.
+  const result = await sendPaymentReminder({
+    admin, supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN,
+    tutorId: lesson.tutor_id, studentId: lesson.student_id, kind: "manual",
+    lessons: [{ id: lesson.id, subject: lesson.subject, starts_at: lesson.starts_at, student_price: lesson.student_price }],
   });
-  const amount = Number(lesson.student_price ?? 0);
-
-  const channels: string[] = [];
-  let tgOk = false;
-  let emailOk = false;
-  let emailReason: string | undefined;
-
-  // Telegram
-  const chatId = tgLink?.chat_id ? Number(tgLink.chat_id) : null;
-  if (chatId && TELEGRAM_BOT_TOKEN) {
-    const text = `💳 <b>Нагадування про оплату</b>\n\n${escapeHtml(tutorName)} нагадує про оплату уроку <b>${escapeHtml(lesson.subject)}</b> (${lessonDate}).${
-      amount > 0 ? `\n\nСума: <b>${amount} ₴</b>` : ""
-    }\n\nДякуємо! 🙏`;
-    const r = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text,
-          parse_mode: "HTML",
-          disable_web_page_preview: true,
-        }),
-      },
-    );
-    tgOk = r.ok;
-    if (tgOk) channels.push("telegram");
+  if (result.skipped > 0 && result.sent === 0) {
+    return json({ success: false, reason: "already_reminded_today" }, 200);
   }
+  const channels = result.channels;
+  const email = channels.includes("email") ? "sent" : null;
 
-  // Email
-  const email = contact?.email?.trim();
-  if (email) {
-    const r = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${supabaseServiceKey}`,
-        apikey: supabaseServiceKey,
-      },
-      body: JSON.stringify({
-        templateName: "payment-reminder",
-        recipientEmail: email,
-        idempotencyKey: `payment-reminder:${lesson.id}:${new Date().toISOString().slice(0, 13)}`,
-        templateData: { studentName, tutorName, subject: lesson.subject, lessonDate, amount },
-      }),
-    });
-    if (r.ok) {
-      emailOk = true;
-      channels.push("email");
-    } else {
-      const body = await r.json().catch(() => ({}));
-      emailReason = JSON.stringify(body);
-    }
-  }
-
-  // In-app 🔔 bell — the universal in-app channel the student always sees, on top of
-  // Telegram/email (which depend on a linked account / email on file). Guarantees the
-  // manual reminder actually reaches the student even with no Telegram and no email.
-  await admin.from("notifications").insert({
-    user_id: lesson.student_id,
-    type: "payment_reminder",
-    title: "💳 Нагадування про оплату",
-    body: `Урок «${lesson.subject}» — час оплатити заняття.`,
-    link: "/student/payments",
-  });
-  channels.push("inapp");
-
-  // Log to lesson_payment_reminders for each successful channel
-  for (const ch of channels) {
-    await admin.from("lesson_payment_reminders").insert({
-      lesson_id: lesson.id,
-      tutor_id: lesson.tutor_id,
-      student_id: lesson.student_id,
-      reminder_kind: "manual",
-      channel: ch,
-    });
-  }
-
+  // inapp завжди є у channels, тож «жодного каналу» тепер неможливе; лишаємо
+  // гілку на випадок майбутніх змін ядра.
   if (channels.length === 0) {
-    return json(
-      { success: false, reason: "no_channels", hasEmail: !!email, hasTelegram: !!chatId, emailReason },
-      200,
-    );
+    return json({ success: false, reason: "no_channels", hasEmail: !!email }, 200);
   }
-  return json({ success: true, channels, telegram: tgOk, email: emailOk });
+  return json({ success: true, channels, telegram: channels.includes("telegram"), email: channels.includes("email") });
 });

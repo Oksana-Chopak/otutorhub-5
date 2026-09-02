@@ -1,3 +1,68 @@
+type DLang = "uk" | "en" | "sv";
+const dlang = (v: unknown): DLang => (v === "en" || v === "sv" ? v : "uk");
+
+// Тексти дайджесту — мовою репетитора (profiles.preferred_language), за тим
+// самим патерном, що payment-reminders (RT) і tutor-evening-summary.
+const DT = {
+  uk: {
+    hi: (n: string, h: number) => `${h < 12 ? "🌤️" : h < 17 ? "☀️" : "🌙"} Привіт, ${n}!`,
+    fallbackName: "там",
+    lessons: (n: number) => (n === 1 ? "урок" : n >= 2 && n <= 4 ? "уроки" : "уроків"),
+    mgrNone: "\nСьогодні в центрі занять немає — гарний день для планування чи відпочинку 🌿",
+    mgrToday: (n: number, w: string) => `\n📅 Сьогодні в центрі <b>${n} ${w}</b>:`,
+    more: (n: number) => `  ↳ ще ${n} уроків`,
+    debt: (s: string) => `\n💳 Борг учнів: <b>${s}</b>`,
+    payout: (s: string) => `👛 До виплати репетиторам: <b>${s}</b>`,
+    errors: (n: number) => `🛠 Технічні помилки за добу: <b>${n}</b> — сторінка /errors`,
+    tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
+    tutToday: (n: number, w: string) => `\n📅 Сьогодні <b>${n} ${w}</b>:`,
+    remind: (s: string) => `\n💳 Нагадай учням про оплату — загалом <b>${s}</b>:`,
+    moreStudents: (n: number) => `  ↳ ще ${n} учнів`,
+    allPaid: "\n✅ Всі оплати закриті — так тримати! 🎉",
+    btnRemind: (nm: string) => `🔔 Нагадати: ${nm}`,
+    btnPaid: (nm: string) => `✅ ${nm} оплатив(ла)`,
+    btnName: "учень",
+  },
+  en: {
+    hi: (n: string, h: number) => `${h < 12 ? "🌤️" : h < 17 ? "☀️" : "🌙"} Hi, ${n}!`,
+    fallbackName: "there",
+    lessons: (n: number) => (n === 1 ? "lesson" : "lessons"),
+    mgrNone: "\nNo lessons at the centre today — a good day to plan or rest 🌿",
+    mgrToday: (n: number, w: string) => `\n📅 Today at the centre: <b>${n} ${w}</b>:`,
+    more: (n: number) => `  ↳ ${n} more`,
+    debt: (s: string) => `\n💳 Students' debt: <b>${s}</b>`,
+    payout: (s: string) => `👛 Due to tutors: <b>${s}</b>`,
+    errors: (n: number) => `🛠 Technical errors in 24 h: <b>${n}</b> — see /errors`,
+    tutNone: "\nA free day today — recharge! 🌴",
+    tutToday: (n: number, w: string) => `\n📅 Today: <b>${n} ${w}</b>:`,
+    remind: (s: string) => `\n💳 Remind students to pay — total <b>${s}</b>:`,
+    moreStudents: (n: number) => `  ↳ ${n} more students`,
+    allPaid: "\n✅ All payments settled — keep it up! 🎉",
+    btnRemind: (nm: string) => `🔔 Remind: ${nm}`,
+    btnPaid: (nm: string) => `✅ ${nm} paid`,
+    btnName: "student",
+  },
+  sv: {
+    hi: (n: string, h: number) => `${h < 12 ? "🌤️" : h < 17 ? "☀️" : "🌙"} Hej, ${n}!`,
+    fallbackName: "du",
+    lessons: (n: number) => (n === 1 ? "lektion" : "lektioner"),
+    mgrNone: "\nInga lektioner på centret idag — en bra dag att planera eller vila 🌿",
+    mgrToday: (n: number, w: string) => `\n📅 Idag på centret: <b>${n} ${w}</b>:`,
+    more: (n: number) => `  ↳ ${n} till`,
+    debt: (s: string) => `\n💳 Elevernas skuld: <b>${s}</b>`,
+    payout: (s: string) => `👛 Att betala lärare: <b>${s}</b>`,
+    errors: (n: number) => `🛠 Tekniska fel senaste dygnet: <b>${n}</b> — se /errors`,
+    tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
+    tutToday: (n: number, w: string) => `\n📅 Idag: <b>${n} ${w}</b>:`,
+    remind: (s: string) => `\n💳 Påminn elever om betalning — totalt <b>${s}</b>:`,
+    moreStudents: (n: number) => `  ↳ ${n} elever till`,
+    allPaid: "\n✅ Alla betalningar klara — bra jobbat! 🎉",
+    btnRemind: (nm: string) => `🔔 Påminn: ${nm}`,
+    btnPaid: (nm: string) => `✅ ${nm} betalade`,
+    btnName: "elev",
+  },
+} as const;
+
 // Daily morning digest — all roles: independent tutors, hired tutors, managers.
 // Idempotent per (user_id, digest_date) via tutor_daily_digests.
 // Invoked by pg_cron at 06:00 UTC (08:00 EET / 09:00 EEST).
@@ -39,27 +104,13 @@ async function sendTg(token: string, chatId: number, text: string, keyboard?: Tg
 }
 
 /** Ім'я на кнопці: перше слово, не довше 14 символів. */
-function shortName(full: unknown): string {
-  const first = String(full ?? "").trim().split(/\s+/)[0] || "учень";
+function shortName(full: unknown, fallback: string): string {
+  const first = String(full ?? "").trim().split(/\s+/)[0] || fallback;
   return first.length > 14 ? first.slice(0, 13) + "…" : first;
 }
 
 function esc(v: unknown): string {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function lessonWord(n: number): string {
-  if (n === 1) return "урок";
-  if (n >= 2 && n <= 4) return "уроки";
-  return "уроків";
-}
-
-function greet(firstName: string): string {
-  const h = new Date().toLocaleString("en-GB", { timeZone: TZ, hour: "numeric", hour12: false });
-  const hour = Number(h);
-  if (hour < 12) return `🌤️ Привіт, ${esc(firstName)}!`;
-  if (hour < 17) return `☀️ Привіт, ${esc(firstName)}!`;
-  return `🌙 Привіт, ${esc(firstName)}!`;
 }
 
 Deno.serve(async (req) => {
@@ -105,13 +156,13 @@ Deno.serve(async (req) => {
 
   const { data: profiles } = await sb
     .from("profiles")
-    .select("id, first_name, last_name")
+    .select("id, first_name, last_name, preferred_language")
     .in("id", allUserIds);
   const nameById = new Map<string, string>(
-    (profiles ?? []).map((p: any) => [
-      p.id,
-      `${p.first_name ?? ""}`.trim() || "там",
-    ])
+    (profiles ?? []).map((p: any) => [p.id, `${p.first_name ?? ""}`.trim()])
+  );
+  const langById = new Map<string, DLang>(
+    (profiles ?? []).map((p: any) => [p.id, dlang(p.preferred_language)])
   );
 
   // Roles
@@ -214,7 +265,7 @@ Deno.serve(async (req) => {
   const studentName = new Map<string, string>(
     (students ?? []).map((p: any) => [
       p.id,
-      `${(p.first_name ?? "")} ${(p.last_name ?? "")}`.trim() || "Учень",
+      `${(p.first_name ?? "")} ${(p.last_name ?? "")}`.trim() || "—", // мова невідома на цьому рівні
     ])
   );
 
@@ -231,37 +282,39 @@ Deno.serve(async (req) => {
     // Skip tutors who opted out
     if (isTutor && !isManager && digestEnabled.get(userId) === false) continue;
 
-    const firstName = nameById.get(userId) ?? "";
+    const D = DT[langById.get(userId) ?? "uk"];
+    const kyivHour = Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: TZ }).format(new Date()));
+    const firstName = nameById.get(userId) || D.fallbackName;
     const keyboard: TgButton[][] = [];
-    const lines: string[] = [greet(firstName)];
+    const lines: string[] = [D.hi(esc(firstName), kyivHour)];
 
     if (isManager) {
       // Manager: see ALL center lessons (source != independent)
       const myLessons = (todayLessons ?? []).filter((l: any) => l.source !== "independent");
       if (myLessons.length === 0) {
-        lines.push("\nСьогодні в центрі занять немає — гарний день для планування чи відпочинку 🌿");
+        lines.push(D.mgrNone);
       } else {
-        lines.push(`\n📅 Сьогодні в центрі <b>${myLessons.length} ${lessonWord(myLessons.length)}</b>:`);
+        lines.push(D.mgrToday(myLessons.length, D.lessons(myLessons.length)));
         for (const l of myLessons.slice(0, 10)) {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
             timeZone: TZ, hour: "2-digit", minute: "2-digit",
           });
           lines.push(`• ${t} — ${esc(studentName.get(l.student_id))} (${esc(l.subject)})`);
         }
-        if (myLessons.length > 10) lines.push(`  ↳ ще ${myLessons.length - 10} уроків`);
+        if (myLessons.length > 10) lines.push(D.more(myLessons.length - 10));
       }
       const sd = Number(summary?.students_debt ?? 0);
       const po = Number(summary?.payouts_owed ?? 0);
-      if (sd > 0) lines.push(`\n💳 Борг учнів: <b>${sd} ₴</b>`);
-      if (po > 0) lines.push(`👛 До виплати репетиторам: <b>${po} ₴</b>`);
-      if ((errCount ?? 0) > 0) lines.push(`🛠 Технічні помилки за добу: <b>${errCount}</b> — сторінка /errors`);
+      if (sd > 0) lines.push(D.debt(`${sd} ₴`));
+      if (po > 0) lines.push(D.payout(`${po} ₴`));
+      if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
     } else if (isTutor) {
       // Tutor: their own lessons
       const myLessons = (todayLessons ?? []).filter((l: any) => l.tutor_id === userId);
       if (myLessons.length === 0) {
-        lines.push("\nСьогодні вільний день — балдій, заряджайся! 🌴");
+        lines.push(D.tutNone);
       } else {
-        lines.push(`\n📅 Сьогодні <b>${myLessons.length} ${lessonWord(myLessons.length)}</b>:`);
+        lines.push(D.tutToday(myLessons.length, D.lessons(myLessons.length)));
         for (const l of myLessons) {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
             timeZone: TZ, hour: "2-digit", minute: "2-digit",
@@ -286,23 +339,23 @@ Deno.serve(async (req) => {
       }
       if (myDebts.size > 0) {
         const total = Array.from(myDebts.values()).reduce((a, b) => a + b, 0);
-        lines.push(`\n💳 Нагадай учням про оплату — загалом <b>${total} ₴</b>:`);
+        lines.push(D.remind(`${total} ₴`));
         for (const [sid, amount] of Array.from(myDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
           lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
           // Кнопки прямо в Telegram: «Нагадати» шле учневі TG + сповіщення в
           // застосунку; «Оплачено» закриває ВСІ борги цієї пари. Обробляє
           // telegram-poll (callback_query); автор дії = власник chat_id.
           if (debtIndependent.get(sid)) {
-            const nm = shortName(studentName.get(sid));
+            const nm = shortName(studentName.get(sid), D.btnName);
             keyboard.push([
-              { text: `🔔 Нагадати: ${nm}`, callback_data: `rem:${sid}` },
-              { text: `✅ ${nm} оплатив(ла)`, callback_data: `paid:${sid}` },
+              { text: D.btnRemind(nm), callback_data: `rem:${sid}` },
+              { text: D.btnPaid(nm), callback_data: `paid:${sid}` },
             ]);
           }
         }
-        if (myDebts.size > 5) lines.push(`  ↳ ще ${myDebts.size - 5} учнів`);
+        if (myDebts.size > 5) lines.push(D.moreStudents(myDebts.size - 5));
       } else {
-        lines.push("\n✅ Всі оплати закриті — так тримати! 🎉");
+        lines.push(D.allPaid);
       }
     } else {
       continue; // Student — не відправляємо
