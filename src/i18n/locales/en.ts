@@ -3804,6 +3804,7 @@ export const en: LocaleTranslations = {
     replyPlaceholder: "Reply to student (e.g. who you recommend)…",
   },
   subscriptionRequestsExtra: {
+    proActivated: "Pro activated — the tutor has been notified",
     empty: "All quiet 🎉 New requests will show up here.",
     updated: "Status updated",
     tutorFallback: "Tutor",

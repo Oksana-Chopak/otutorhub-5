@@ -3792,6 +3792,7 @@ export const uk = {
     replyPlaceholder: "Відповідь учневі (наприклад, кого ви рекомендуєте)…",
   },
   subscriptionRequestsExtra: {
+    proActivated: "Pro активовано — репетитор отримав сповіщення",
     empty: "Поки тихо 🎉 Нові запити зʼявляться тут.",
     updated: "Статус оновлено",
     tutorFallback: "Репетитор",

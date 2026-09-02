@@ -3789,6 +3789,7 @@ export const sv: LocaleTranslations = {
     replyPlaceholder: "Svar till elev (t.ex. vem du rekommenderar)…",
   },
   subscriptionRequestsExtra: {
+    proActivated: "Pro aktiverat — läraren har meddelats",
     empty: "Lugnt just nu 🎉 Nya förfrågningar dyker upp här.",
     updated: "Status uppdaterad",
     tutorFallback: "Lärare",
