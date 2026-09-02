@@ -17,6 +17,10 @@ const ALLOW = new Set([
   "src/hooks/useWorkspaceSettings.tsx",
   // фінансові предикати: прапор приходить аргументом, рендеру немає
   "src/lib/financials.ts",
+  // 02.09: адаптер ролі → RoleFlags. Це ДРУГЕ (після useWorkspaceSettings)
+  // і останнє місце, де прапорець згадується явно; сторінки тепер питають
+  // canSee(...), а не прапорець. Тому файл у ALLOW, а не в BASELINE.
+  "src/hooks/useRoleFlags.ts",
 ]);
 const BASELINE: Record<string, number> = {
   "src/components/AiNotesDialog.tsx": 2,

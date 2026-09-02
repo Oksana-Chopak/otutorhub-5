@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { ErrorState } from "@/components/ErrorState";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 
@@ -64,6 +65,10 @@ export default function StudentPaymentsPage() {
   const [tutorPayInfos, setTutorPayInfos] = useState<TutorPayInfo[]>([]);
   const [walletBalances, setWalletBalances] = useState<{ tutor_id: string; lessons_balance: number; amount_balance: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  /* Аудит 02.09: провал читання показував «усе оплачено» — найдорожча брехня
+     на цьому екрані: учень вирішує, що боргів немає. */
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -71,11 +76,14 @@ export default function StudentPaymentsPage() {
       // Cancelled lessons are included so a withheld CANCELLATION FEE (marked via
       // is_cancellation_fee) shows up as a payable row — plain cancellations are
       // filtered out below once the details arrive.
-      const { data: lessons } = await supabase
+      setLoading(true);
+      const { data: lessons, error: lessonsErr } = await supabase
         .from("lessons")
         .select("id, subject, starts_at, tutor_id, status")
         .eq("student_id", user.id)
         .order("starts_at", { ascending: false });
+      if (lessonsErr) { setLoadError(true); setLoading(false); return; }
+      setLoadError(false);
       const lessonIds0 = ((lessons ?? []) as any[]).map((l) => l.id);
       let detailsRes: any = lessonIds0.length
         ? await supabase
@@ -177,7 +185,7 @@ export default function StudentPaymentsPage() {
       } catch { /* view may be absent */ }
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, reloadKey]);
 
   // Group totals by currency to avoid mixing currencies in summary cards.
   const totalsByCurrency = rows.reduce<Record<string, { unpaid: number; paid: number }>>(
@@ -314,6 +322,8 @@ export default function StudentPaymentsPage() {
 
         {loading ? (
           <SkeletonList count={3} />
+        ) : loadError ? (
+          <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />
         ) : rows.length === 0 ? (
           <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", fontSize: 14, color: "var(--sub,#666b82)" }}>{t("studentPagesExtra.noLessonsCard")}</div>
         ) : (

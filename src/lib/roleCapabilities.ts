@@ -32,6 +32,7 @@ export type Feature =
   | "paymentRules"   // cancellation / prepay policy — hub billing is the manager's job
   | "autoMark"       // auto-complete billing setting — manager's job for hub
   | "ownStudents"    // add / price own students — the manager assigns them for a hub
+  | "moneySummary"   // «% оплат вчасно / зароблено за місяць» — для хабового це гроші ШКОЛИ
   // ── Every teaching tutor (independent AND hub) ──
   | "achievements"   // gamified level / streak / badges — every tutor teaches & earns
   | "setupGuide"     // onboarding guide — every tutor onboards (hub gets a lighter set)
@@ -55,6 +56,7 @@ const INDEPENDENT_ONLY: ReadonlySet<Feature> = new Set<Feature>([
   "paymentRules",
   "autoMark",
   "ownStudents",
+  "moneySummary",
 ]);
 
 const ANY_TUTOR: ReadonlySet<Feature> = new Set<Feature>([

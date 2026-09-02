@@ -407,19 +407,35 @@ export function LessonWorkspace({
     onUpdated?.();
 
     // Notify student when tutor adds homework or summary
-    if (studentId && (field === "homework" || field === "summary")) {
+    if (field === "homework" || field === "summary") {
       const isHomework = field === "homework";
-      insertNotification({
-        userId: studentId,
-        type: `${field}_added_${lessonId}`,
-        title: isHomework ? t("lessonWorkspaceExtra.notifHomeworkTitle") : t("lessonWorkspaceExtra.notifSummaryTitle"),
-        body: isHomework
-          ? t("lessonWorkspaceExtra.notifHomeworkBody")
-          : t("lessonWorkspaceExtra.notifSummaryBody"),
-        // B17: учень живе у своїх маршрутах — домашка в /student/homework.
-        // 43: конспект теж живе на сторінці домашки (там і рендериться) —
-        // /student/schedule не показує конспект узагалі, лінк вів у порожнечу.
-        link: "/student/homework",
+      /* Аудит 02.09: умова була `if (studentId && …)`. У ГРУПОВОГО уроку
+         батьківський рядок має student_id = NULL — тобто репетитор писав
+         домашку всій групі, а сповіщення не отримував НІХТО. Домашка тихо
+         лежала на сторінці, куди ніхто не мав приводу зайти. Тепер: індивід —
+         одному учневі, група — усім активним учасникам. */
+      let recipients: string[] = studentId ? [studentId] : [];
+      if (!studentId) {
+        const { data: parts } = await (supabase.from("lesson_participants") as any)
+          .select("student_id, status")
+          .eq("lesson_id", lessonId);
+        recipients = ((parts ?? []) as any[])
+          .filter((p) => p.student_id && p.status !== "cancelled")
+          .map((p) => p.student_id as string);
+      }
+      recipients.forEach((uid) => {
+        insertNotification({
+          userId: uid,
+          type: `${field}_added_${lessonId}`,
+          title: isHomework ? t("lessonWorkspaceExtra.notifHomeworkTitle") : t("lessonWorkspaceExtra.notifSummaryTitle"),
+          body: isHomework
+            ? t("lessonWorkspaceExtra.notifHomeworkBody")
+            : t("lessonWorkspaceExtra.notifSummaryBody"),
+          // B17: учень живе у своїх маршрутах — домашка в /student/homework.
+          // 43: конспект теж живе на сторінці домашки (там і рендериться) —
+          // /student/schedule не показує конспект узагалі, лінк вів у порожнечу.
+          link: "/student/homework",
+        });
       });
     }
   };

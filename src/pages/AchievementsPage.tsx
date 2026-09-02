@@ -1,4 +1,6 @@
 import { BackToProfile } from "@/components/BackToProfile";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { canSee } from "@/lib/roleCapabilities";
 import { useAwardBadges } from "@/hooks/useAwardBadges";
 import { LevelBadge } from "@/components/LevelBadge";
 import { BadgesGrid } from "@/components/BadgesGrid";
@@ -13,11 +15,14 @@ export default function AchievementsPage() {
   const { t } = useTranslation();
   const { roles } = useAuth();
   const isPureStudent = roles.includes("student") && !roles.includes("tutor") && !roles.includes("manager");
+  const { flags, ready: roleReady } = useRoleFlags();
+  const canSeeMoney = canSee("moneySummary", flags);
   const gamification = useTutorGamification();
   const { level, streak, badges, loading } = gamification;
   // Перевірка 01.09: тост про бейдж веде саме сюди — сторінка мусить нараховувати
   // сама, інакше той, хто прийшов за тостом, бачить стару сітку.
-  useAwardBadges(!isPureStudent && !loading, gamification.refresh);
+  // Менеджер без ролі tutor отримає від RPC порожній результат — не кличемо.
+  useAwardBadges(!isPureStudent && !loading && roleReady, gamification.refresh);
 
   if (isPureStudent) {
     return (
@@ -67,7 +72,10 @@ export default function AchievementsPage() {
           </div>
         </div>
 
-        <MonthlySummaryCard />
+        {/* Аудит 02.09: картка показує «% оплат вчасно» — для хабового це гроші
+            ШКОЛИ. На дашборді вона гейтилась, тут гейта не було зовсім. Тепер
+            це рядок матриці ролей (moneySummary), а не окремий прапорець. */}
+        {roleReady && canSeeMoney && <MonthlySummaryCard />}
       </div>
       <BackToProfile />
     </>

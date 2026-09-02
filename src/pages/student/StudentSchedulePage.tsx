@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { ErrorState } from "@/components/ErrorState";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
 interface Lesson {
@@ -34,6 +35,10 @@ export default function StudentSchedulePage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  /* Аудит 02.09: помилка читання малювала «уроків немає» — учень із повним
+     розкладом бачив порожній календар і вірив йому. */
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const statusLabel: Record<string, string> = {
     scheduled: t("studentPages.statusScheduled"),
@@ -45,11 +50,14 @@ export default function StudentSchedulePage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from("lessons")
         .select("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id")
         .or(await studentLessonsOrFilter(user.id))
         .order("starts_at", { ascending: false });
+      if (error) { setLoadError(true); setLoading(false); return; }
+      setLoadError(false);
       const tutorIds = Array.from(new Set(((data ?? []) as Lesson[]).map((l) => l.tutor_id)));
       const { data: profiles } = tutorIds.length
         ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
@@ -61,7 +69,7 @@ export default function StudentSchedulePage() {
       setLessons(((data ?? []) as Lesson[]).map((l) => ({ ...l, tutor_name: map[l.tutor_id] })));
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, reloadKey]);
 
   // Tick every 30s so the time-aware "live" join window flips on/off without a manual
   // refresh (it was frozen at first render, so the glowing «Приєднатися зараз» never
@@ -80,6 +88,8 @@ export default function StudentSchedulePage() {
   const D = "Inter, system-ui, sans-serif";
   const renderList = (items: Lesson[]) => {
     if (loading) return <SkeletonList count={3} />;
+    if (loadError)
+      return <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />;
     if (items.length === 0)
       return (
         // Warm empty state (mandatory positive framing) — same dashed-card treatment

@@ -3592,6 +3592,7 @@ export const uk = {
     markedDone: "Виконано",
     homeworkDoneToast: "Чудово! Завдання виконано 🎉",
     homeworkDoneTutorSees: "Репетитор побачить ✅",
+    homeworkUndoFailed: "Не вдалося зняти позначку — спробуйте ще раз",
     archiveEmptyTitle: "Архів порожній",
     myTutorsTitle: "Мої репетитори",
     prepaidLabel: "📦 Передплачено",
@@ -3854,6 +3855,10 @@ export const uk = {
     cardTitle: "🌙 Вечірній підсумок",
     cardDesc: "О 21:00 — скільки уроків провів, серія і конспекти, що чекають.",
   },
+  dailyDigest: {
+    cardTitle: "☀️ Ранковий дайджест",
+    cardDesc: "Щоранку в Telegram — уроки на сьогодні і хто ще не оплатив.",
+  },
   walletsPageExtra: {
     studentCol: "Учень",
     tutorCol: "Репетитор",
@@ -4054,6 +4059,8 @@ export const uk = {
     open: "Відкрити",
   },
   badgeUnlockToast: {
+    manyBadges: "🏆 Відкрито досягнень: {{count}}",
+    manyBadgesDesc: "Заслужені раніше — дивись усі на сторінці досягнень",
     newBadge: "{{emoji}} Новий бейдж: {{name}}!",
   },
   languageSwitcher: {

@@ -16,6 +16,7 @@ import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { fetchHomeworkDone } from "@/lib/homeworkDone";
+import { ErrorState } from "@/components/ErrorState";
 import { computeWeeklyStats } from "@/lib/studentStats";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
@@ -45,6 +46,9 @@ export default function StudentDashboardPage() {
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [homeworkCount, setHomeworkCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  /* Аудит 02.09: усі п'ять читань ігнорували error — провал мережі малював
+     «уроків немає / до оплати 0», тобто екран впевнено брехав учневі. */
+  const [loadError, setLoadError] = useState(false);
   // 42: баланс передоплат учня (з wallet_balance_view або lesson_participants_visible)
   const [lessonsBalance, setLessonsBalance] = useState<number | null>(null);
   const [completedLessons, setCompletedLessons] = useState<CompletedLessonStat[]>([]);
@@ -99,7 +103,7 @@ export default function StudentDashboardPage() {
     setLoading(true);
     const nowIso = new Date().toISOString();
     const orFilter = await studentLessonsOrFilter(user.id);
-    const [{ data: lessons }, { data: details }, { data: completed }, { data: groupParts }, { data: cancelledRows }] = await Promise.all([
+    const [{ data: lessons, error: lessonsErr }, { data: details, error: detailsErr }, { data: completed }, { data: groupParts }, { data: cancelledRows }] = await Promise.all([
       supabase
         // student_payment_status lives on lesson_details, NOT lessons — selecting it here
         // errored (42703). The unpaid count is computed from `details`
@@ -146,6 +150,12 @@ export default function StudentDashboardPage() {
         .or(orFilter)
         .eq("status", "cancelled"),
     ]);
+    if (lessonsErr || detailsErr) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+    setLoadError(false);
     setCompletedLessons((completed as CompletedLessonStat[] | null) ?? []);
 
     const tutorIds = Array.from(new Set((lessons ?? []).map((l: any) => l.tutor_id)));
@@ -249,6 +259,13 @@ export default function StudentDashboardPage() {
           <h1 style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", lineHeight: 1.15 }}>{t("studentPages.greeting")}</h1>
           <p style={{ fontSize: 15, color: DS.sub, marginTop: 4 }}>{t("studentPages.greetingSub")}</p>
         </div>
+
+        {loadError && (
+          <ErrorState
+            onRetry={() => { void loadDashboard(); }}
+            retrying={loading}
+          />
+        )}
 
         {/* Review prompt — invites a rating for the most recent unrated completed lesson */}
         <ReviewPromptCard />

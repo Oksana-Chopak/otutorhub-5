@@ -6,10 +6,11 @@ import { Loader2, Sparkles, Download, Clock, Check } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { ErrorState } from "@/components/ErrorState";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
-import { readHomeworkDone, fetchHomeworkDone, setHomeworkDoneServer } from "@/lib/homeworkDone";
+import { readHomeworkDone, writeHomeworkDone, fetchHomeworkDone, setHomeworkDoneServer } from "@/lib/homeworkDone";
 import { insertNotification } from "@/lib/notifications";
 import { openExternal } from "@/lib/openExternal";
 
@@ -33,6 +34,10 @@ export default function StudentHomeworkPage() {
   const [loading, setLoading] = useState(true);
   const [openNoteId, setOpenNoteId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  /* Аудит 02.09: error лише писався в console — учень бачив «домашки немає»
+     замість «не вдалося прочитати». */
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [doneSet, setDoneSet] = useState<Set<string>>(new Set());
   const haptic = useHaptic();
 
@@ -60,7 +65,21 @@ export default function StudentHomeworkPage() {
     }
     void (async () => {
       const serverOk = await setHomeworkDoneServer(user.id, lessonId, !wasDone);
-      if (!wasDone) {
+      /* Аудит 02.09: раніше тост показувався ТІЛЬКИ при позначенні. Зняття,
+         яке сервер відкинув, проходило мовчки — галочка «зникала», а при
+         наступному відкритті поверталася, бо сервер тепер джерело правди.
+         Тепер невдале зняття одразу відкочуємо і чесно про це кажемо. */
+      if (wasDone) {
+        if (!serverOk) {
+          setDoneSet((prev) => new Set(prev).add(lessonId));
+          const cache = readHomeworkDone(user.id);
+          cache.add(lessonId);
+          writeHomeworkDone(user.id, cache);
+          toast.error(t("studentPagesExtra.homeworkUndoFailed"));
+        }
+        return;
+      }
+      {
         toast.success(t("studentPagesExtra.homeworkDoneToast"), {
           // Чесність: якщо сервер не прийняв (офлайн/стара БД) — не обіцяємо,
           // що репетитор побачить.
@@ -91,11 +110,14 @@ export default function StudentHomeworkPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
+      setLoading(true);
       const { data: details, error } = await supabase
         .from("lesson_details_student" as any)
         .select("lesson_id, homework, summary");
       // 43: фільтр .not("homework","is",null) робив конспект БЕЗ домашки
       // недосяжним — сповіщення «Конспект готовий» вело в порожнечу.
+      if (error) { console.error(error); setLoadError(true); setLoading(false); return; }
+      setLoadError(false);
 
       const lessonIds0 = Array.from(
         new Set(((details ?? []) as any[]).map((d) => d.lesson_id).filter(Boolean)),
@@ -168,9 +190,8 @@ export default function StudentHomeworkPage() {
         .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
       setRows(list);
       setLoading(false);
-      if (error) console.error(error);
     })();
-  }, [user?.id]);
+  }, [user?.id, reloadKey]);
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -305,6 +326,8 @@ export default function StudentHomeworkPage() {
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.homeworkTitle")}</h1>
         {loading ? (
           <SkeletonList count={3} />
+        ) : loadError ? (
+          <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />
         ) : rows.length === 0 ? (
           <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
             <div style={{ fontSize: 38 }}>📚</div>

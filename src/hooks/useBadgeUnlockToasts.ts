@@ -8,7 +8,9 @@ import i18n from "@/i18n";
 
 const t = i18n.t.bind(i18n);
 
-const STORAGE_KEY = "seen_badge_keys_v1";
+/* Ключ на КОРИСТУВАЧА: спільний ключ означав, що на одному пристрої другий
+   акаунт успадковував чужий список «побачених» (аудит 02.09). */
+const storageKey = (userId: string | undefined) => `seen_badge_keys_v1.${userId ?? "anon"}`;
 
 /**
  * Detects newly-awarded badges between renders and fires an animated
@@ -24,6 +26,7 @@ export function useBadgeUnlockToasts(badges: TutorBadge[], loading: boolean) {
   useEffect(() => {
     if (loading) return;
 
+    const STORAGE_KEY = storageKey(user?.id);
     let seen: Set<string>;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -47,27 +50,44 @@ export function useBadgeUnlockToasts(badges: TutorBadge[], loading: boolean) {
     const newOnes = badges.filter((b) => !seen.has(b.badge_key));
     if (newOnes.length === 0) return;
 
-    newOnes.forEach((b, i) => {
-      const def = BADGE_DEFS[b.badge_key];
-      const emoji = def?.emoji ?? "🏅";
-      const name = def?.name ?? b.badge_key;
-      const desc = def?.description;
-      setTimeout(() => {
-        toast.success(t("badgeUnlockToast.newBadge", { emoji, name }), {
-          description: desc,
-          className: "animate-pop",
-        });
-      }, i * 800);
+    /* Аудит 02.09: у день, коли нарахування ачівок увімкнули, кожен наявний
+       репетитор отримував ШІСТЬ тостів підряд по 800 мс — історичні досягнення
+       прилітають разом. Свято перетворюється на спам. Тому пачка від трьох
+       бейджів згортається в одне повідомлення. */
+    if (newOnes.length >= 3) {
+      toast.success(t("badgeUnlockToast.manyBadges", { count: newOnes.length }), {
+        description: t("badgeUnlockToast.manyBadgesDesc"),
+        className: "animate-pop",
+      });
+    } else {
+      newOnes.forEach((b, i) => {
+        const def = BADGE_DEFS[b.badge_key];
+        const emoji = def?.emoji ?? "🏅";
+        const name = def?.name ?? b.badge_key;
+        const desc = def?.description;
+        setTimeout(() => {
+          toast.success(t("badgeUnlockToast.newBadge", { emoji, name }), {
+            description: desc,
+            className: "animate-pop",
+          });
+        }, i * 800);
+      });
+    }
 
-      if (user) {
+    if (user) {
+      newOnes.forEach((b) => {
+        const name = BADGE_DEFS[b.badge_key]?.name ?? b.badge_key;
         insertNotification({
           userId: user.id,
-          type: "badge_unlocked",
+          /* Тип містить КЛЮЧ бейджа: create_notification дедуплікує за
+             (user_id, type) на 24 години, тож зі спільним типом
+             «badge_unlocked» у дзвіночок долітав лише перший із шести. */
+          type: `badge_unlocked_${b.badge_key}`,
           title: t("notifications.badgeUnlockedTitle", { name }),
           link: "/achievements",
         });
-      }
-    });
+      });
+    }
 
     const next = Array.from(new Set([...Array.from(seen), ...newOnes.map((b) => b.badge_key)]));
     try {
