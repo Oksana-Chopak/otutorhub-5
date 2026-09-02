@@ -55,41 +55,41 @@ function PushSettingsCard() {
   );
 }
 
-// №15+№21 (ідеї 01.09): перемикач вечірнього підсумку («🌙 Сьогодні: 3 уроки…»
-// о 21:00). Увімкнений за замовчуванням; чесний opt-out тут. Видимий і в
-// нативі — підсумок приходить у дзвіночок незалежно від web-push.
-function EveningSummaryCard() {
+// №15+№21 (ідеї 01.09): перемикачі щоденних сповіщень репетитора.
+// Спільна картка: чесний локальний стан (якщо запис не пройшов — кажемо про це,
+// а не вдаємо, що все гаразд) і однаковий вигляд для всіх тумблерів.
+function SettingToggleCard({
+  column, titleKey, descKey,
+}: { column: string; titleKey: string; descKey: string }) {
   const { t } = useTranslation();
   // settings існують лише для репетиторів (хук вантажить їх тільки для ролі
   // tutor) — тож перевірка на settings і є перевіркою персони.
   const { settings, updateSettings } = useWorkspaceSettings();
-  // Перевірка 01.09: колонки ще немає в живій БД, тож RPC мовчки викидає ключ,
+  // Перевірка 01.09: якщо колонки ще немає в живій БД, RPC мовчки викидає ключ,
   // а `refresh()` повертає старе значення — тумблер стрибав назад під пальцем.
-  // Локальний стан лишає перемикач чесним: він показує те, що обрав користувач,
-  // а якщо запис не пройшов — каже про це, а не вдає, що все гаразд.
   // Хук оголошений ДО раннього виходу: інакше порядок хуків залежав би від даних.
   const [pending, setPending] = useState<boolean | null>(null);
   if (!settings) return null;
-  const serverEnabled = (settings as any).evening_summary_enabled !== false;
+  const serverEnabled = (settings as any)[column] !== false;
   const enabled = pending ?? serverEnabled;
   return (
     <div className="mb-4 rounded-[16px] border-[0.5px] bg-card p-4" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
-            {t("eveningSummary.cardTitle")}
+            {t(titleKey)}
           </p>
           <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
-            {t("eveningSummary.cardDesc")}
+            {t(descKey)}
           </p>
         </div>
         <Switch
           checked={enabled}
-          aria-label={t("eveningSummary.cardTitle")}
+          aria-label={t(titleKey)}
           onCheckedChange={(v) => {
             setPending(v);
             void (async () => {
-              const err = await updateSettings({ evening_summary_enabled: v } as any);
+              const err = await updateSettings({ [column]: v } as any);
               if (err) {
                 setPending(null);
                 toast.error(t("profile.saveFailed"));
@@ -99,6 +99,43 @@ function EveningSummaryCard() {
         />
       </div>
     </div>
+  );
+}
+
+function EveningSummaryCard() {
+  return (
+    <SettingToggleCard
+      column="evening_summary_enabled"
+      titleKey="eveningSummary.cardTitle"
+      descKey="eveningSummary.cardDesc"
+    />
+  );
+}
+
+/* Аудит 02.09: ранковий дайджест вмикався РІВНО ОДИН раз — на кроці онбордингу
+   з Telegram — і вимкнути його потім не було де. Тумблер показуємо лише тим,
+   у кого бот привʼязаний: інакше це перемикач для листа, який нікуди не йде. */
+function DailyDigestCard() {
+  const { user } = useAuth();
+  const [tgLinked, setTgLinked] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!user) { setTgLinked(false); return; }
+    let alive = true;
+    void supabase
+      .from("user_telegram_links")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => { if (alive) setTgLinked(!!data); });
+    return () => { alive = false; };
+  }, [user?.id]);
+  if (!tgLinked) return null;
+  return (
+    <SettingToggleCard
+      column="daily_digest_enabled"
+      titleKey="dailyDigest.cardTitle"
+      descKey="dailyDigest.cardDesc"
+    />
   );
 }
 
@@ -567,6 +604,7 @@ export default function ProfilePage() {
               <GoogleCalendarCard />
               <PushSettingsCard />
               <EveningSummaryCard />
+              <DailyDigestCard />
             </div>
 
             {/* Manager sections — every existing item preserved, now in DS cards */}
@@ -1092,6 +1130,7 @@ export default function ProfilePage() {
             <div id="calendar"><GoogleCalendarCard /></div>
             <PushSettingsCard />
             <EveningSummaryCard />
+            <DailyDigestCard />
           </SheetContent>
         </Sheet>
 

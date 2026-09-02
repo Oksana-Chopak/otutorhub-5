@@ -33,24 +33,45 @@ function dayBoundsKyiv(dateStr: string): { from: string; to: string } {
   };
 }
 
-function lessonWord(n: number): string {
-  if (n === 1) return "урок";
-  if (n >= 2 && n <= 4) return "уроки";
-  return "уроків";
-}
-
-function noteWord(n: number): string {
-  if (n === 1) return "конспект чекає";
-  if (n >= 2 && n <= 4) return "конспекти чекають";
-  return "конспектів чекають";
-}
+// ── i18n: мова одержувача з profiles.preferred_language (той самий підхід,
+// що в payment-reminders). Аудит 02.09: підсумок приходив українською навіть
+// репетитору, у якого весь інтерфейс шведський.
+const ET = {
+  uk: {
+    lesson: (n: number) => (n === 1 ? "урок" : n >= 2 && n <= 4 ? "уроки" : "уроків"),
+    notes: (n: number) => (n === 1 ? "конспект чекає" : n >= 2 && n <= 4 ? "конспекти чекають" : "конспектів чекають"),
+    today: "🌙 Сьогодні",
+    streak: (n: number) => `серія ${n} дн. 🔥`,
+    notesTail: "на текст — учні їх читають.",
+    locale: "uk-UA",
+  },
+  en: {
+    lesson: (n: number) => (n === 1 ? "lesson" : "lessons"),
+    notes: (n: number) => (n === 1 ? "summary is waiting" : "summaries are waiting"),
+    today: "🌙 Today",
+    streak: (n: number) => `${n}-day streak 🔥`,
+    notesTail: "to be written — students do read them.",
+    locale: "en-GB",
+  },
+  sv: {
+    lesson: (n: number) => (n === 1 ? "lektion" : "lektioner"),
+    notes: (n: number) => (n === 1 ? "sammanfattning väntar" : "sammanfattningar väntar"),
+    today: "🌙 Idag",
+    streak: (n: number) => `${n} dagar i rad 🔥`,
+    notesTail: "att skriva — eleverna läser dem.",
+    locale: "sv-SE",
+  },
+} as const;
+type EtLang = keyof typeof ET;
+const etOf = (lang?: string | null): EtLang =>
+  lang === "en" || lang === "sv" ? lang : "uk";
 
 const CUR_LABEL: Record<string, string> = { UAH: "грн", USD: "$", EUR: "€", GBP: "£", PLN: "zł", SEK: "kr" };
-function fmtMoney(byCur: Map<string, number>): string {
+function fmtMoney(byCur: Map<string, number>, locale: string): string {
   const entries = Array.from(byCur.entries()).filter(([, v]) => v > 0)
     .sort((a, b) => b[1] - a[1]);
   return entries
-    .map(([c, v]) => `${Math.round(v).toLocaleString("uk-UA")} ${CUR_LABEL[c] ?? c}`)
+    .map(([c, v]) => `${Math.round(v).toLocaleString(locale)} ${CUR_LABEL[c] ?? c}`)
     .join(" + ");
 }
 
@@ -113,14 +134,23 @@ Deno.serve(async (req) => {
   const tutorRole = new Set((roleRows ?? []).filter((r: any) => r.role === "tutor").map((r: any) => r.user_id));
   const managerRole = new Set((roleRows ?? []).filter((r: any) => r.role === "manager").map((r: any) => r.user_id));
 
-  // Opt-out (default: увімкнено). Якщо колонки ще нема — вважаємо всіх увімкненими.
+  // Opt-out (default: увімкнено — рядка в налаштуваннях може не бути).
+  // Аудит 02.09: раніше помилка цього запиту просто лишала мапу порожньою —
+  // і підсумок летів УСІМ, включно з тими, хто його свідомо вимкнув. Тепер
+  // fail-closed: не змогли прочитати згоду — не шлемо нікому, спробуємо завтра.
   const enabled = new Map<string, boolean>();
   {
     const { data: st, error: stErr } = await sb
       .from("tutor_workspace_settings")
       .select("tutor_id, evening_summary_enabled")
       .in("tutor_id", tutorIds);
-    if (!stErr) (st ?? []).forEach((s: any) => enabled.set(s.tutor_id, s.evening_summary_enabled !== false));
+    if (stErr) {
+      return new Response(
+        JSON.stringify({ ok: false, sent: 0, reason: "settings unavailable — skipped to respect opt-out" }),
+        { status: 200 },
+      );
+    }
+    (st ?? []).forEach((s: any) => enabled.set(s.tutor_id, s.evening_summary_enabled !== false));
   }
 
   // Вже надіслані сьогодні (ідемпотентність)
@@ -142,6 +172,12 @@ Deno.serve(async (req) => {
     .from("student_rates").select("tutor_id, student_id, currency").in("tutor_id", tutorIds);
   const curOfPair = new Map<string, string>(
     (rates ?? []).map((r: any) => [`${r.tutor_id}:${r.student_id}`, r.currency ?? "UAH"]));
+
+  // Мова одержувача (best effort: без рядка — українська)
+  const { data: langRows } = await sb
+    .from("profiles").select("id, preferred_language").in("id", tutorIds);
+  const langOf = new Map<string, EtLang>(
+    (langRows ?? []).map((r: any) => [r.id, etOf(r.preferred_language)]));
 
   // Telegram-лінки (best effort)
   const { data: tgAll } = await sb
@@ -172,15 +208,16 @@ Deno.serve(async (req) => {
       byCur.set(cur, (byCur.get(cur) ?? 0) + amount);
     }
 
-    const bits: string[] = [`${agg.count} ${lessonWord(agg.count)} ✅`];
-    const money = fmtMoney(byCur);
+    const L = ET[langOf.get(tutorId) ?? "uk"];
+    const bits: string[] = [`${agg.count} ${L.lesson(agg.count)} ✅`];
+    const money = fmtMoney(byCur, L.locale);
     if (money) bits.push(money);
     const streak = streakOf.get(tutorId) ?? 0;
-    if (streak >= 2) bits.push(`серія ${streak} дн. 🔥`);
-    const title = `🌙 Сьогодні: ${bits.join(" · ")}`;
+    if (streak >= 2) bits.push(L.streak(streak));
+    const title = `${L.today}: ${bits.join(" · ")}`;
     let body: string | null = null;
     if (agg.notesMissing > 0) {
-      body = `✍️ ${agg.notesMissing} ${noteWord(agg.notesMissing)} на текст — учні їх читають.`;
+      body = `✍️ ${agg.notesMissing} ${L.notes(agg.notesMissing)} ${L.notesTail}`;
     }
 
     // 1) Дзвіночок (+ web-push через AFTER INSERT-тригер)

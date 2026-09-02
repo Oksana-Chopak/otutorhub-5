@@ -32,6 +32,7 @@ const MATRIX: Record<Feature, { manager: boolean; hub: boolean; independent: boo
   paymentRules: { manager: false, hub: false, independent: true, student: false },
   autoMark:     { manager: false, hub: false, independent: true, student: false },
   ownStudents:  { manager: false, hub: false, independent: true, student: false },
+  moneySummary: { manager: false, hub: false, independent: true, student: false },
   // Every tutor (independent AND hub) — the parity that kept regressing:
   achievements: { manager: false, hub: true,  independent: true, student: false },
   setupGuide:   { manager: false, hub: true,  independent: true, student: false },

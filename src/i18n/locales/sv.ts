@@ -3588,6 +3588,7 @@ export const sv: LocaleTranslations = {
     markedDone: "Klar",
     homeworkDoneToast: "Snyggt! Läxan är klar 🎉",
     homeworkDoneTutorSees: "Din lärare ser det ✅",
+    homeworkUndoFailed: "Kunde inte ta bort markeringen — försök igen",
     archiveEmptyTitle: "Arkivet är tomt",
     myTutorsTitle: "Mina lärare",
     prepaidLabel: "📦 Förbetalt",
@@ -3788,6 +3789,7 @@ export const sv: LocaleTranslations = {
     replyPlaceholder: "Svar till elev (t.ex. vem du rekommenderar)…",
   },
   subscriptionRequestsExtra: {
+    proActivated: "Pro aktiverat — läraren har meddelats",
     empty: "Lugnt just nu 🎉 Nya förfrågningar dyker upp här.",
     updated: "Status uppdaterad",
     tutorFallback: "Lärare",
@@ -3851,6 +3853,10 @@ export const sv: LocaleTranslations = {
   eveningSummary: {
     cardTitle: "🌙 Kvällssammanfattning",
     cardDesc: "Kl. 21 — dagens lektioner, din svit och anteckningar som väntar.",
+  },
+  dailyDigest: {
+    cardTitle: "☀️ Morgonöversikt",
+    cardDesc: "Varje morgon i Telegram — dagens lektioner och vem som inte betalat.",
   },
   walletsPageExtra: {
     studentCol: "Elev",
@@ -4051,6 +4057,8 @@ export const sv: LocaleTranslations = {
     open: "Öppna",
   },
   badgeUnlockToast: {
+    manyBadges: "🏆 {{count}} prestationer upplåsta",
+    manyBadgesDesc: "Intjänade tidigare — se alla på din prestationssida",
     newBadge: "{{emoji}} Nytt märke: {{name}}!",
   },
   languageSwitcher: {

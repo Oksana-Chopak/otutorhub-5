@@ -109,21 +109,46 @@ export default function SubscriptionRequestsPage() {
 
   const updateStatus = async (id: string, status: RequestStatus) => {
     setSavingId(id);
-    const patch: { status: RequestStatus; manager_response?: string } = { status };
-    if (responseDrafts[id]?.trim()) {
-      patch.manager_response = responseDrafts[id].trim();
+    const response = responseDrafts[id]?.trim() || null;
+
+    /* ⛔ Аудит 02.09: раніше тут був простий UPDATE статусу — і «Опрацьовано»
+       не вмикало Pro. Людина платила переказом, статус мінявся, а підписки не
+       було: колонки subscription_* навмисно недоступні клієнту
+       (20260618150457). Тепер підтвердження і відмова йдуть через
+       SECURITY DEFINER-функції, які реально вмикають підписку і повідомляють
+       репетитора. Проміжні статуси лишаються звичайним UPDATE. */
+    let error: { message: string } | null = null;
+    if (status === "completed") {
+      const res = await (supabase as any).rpc("approve_subscription_request", {
+        _request_id: id,
+        _response: response,
+      });
+      error = res.error;
+    } else if (status === "rejected") {
+      const res = await (supabase as any).rpc("reject_subscription_request", {
+        _request_id: id,
+        _response: response,
+      });
+      error = res.error;
+    } else {
+      const patch: { status: RequestStatus; manager_response?: string } = { status };
+      if (response) patch.manager_response = response;
+      const res = await supabase.from("subscription_requests").update(patch).eq("id", id);
+      error = res.error;
     }
-    const { error } = await supabase
-      .from("subscription_requests")
-      .update(patch)
-      .eq("id", id);
+
     setSavingId(null);
     if (error) {
-      toast.error(t("subscriptionRequests.updateFailed"));
+      toast.error(t("subscriptionRequests.updateFailed"), { description: error.message });
       return;
     }
-    toast.success(t("subscriptionRequestsExtra.updated"));
+    toast.success(
+      status === "completed"
+        ? t("subscriptionRequestsExtra.proActivated")
+        : t("subscriptionRequestsExtra.updated"),
+    );
     setResponseDrafts((p) => ({ ...p, [id]: "" }));
+    void load();
   };
 
   return (

@@ -3603,6 +3603,7 @@ export const en: LocaleTranslations = {
     markedDone: "Done",
     homeworkDoneToast: "Nice! Homework done 🎉",
     homeworkDoneTutorSees: "Your tutor will see it ✅",
+    homeworkUndoFailed: "Could not remove the mark — please try again",
     archiveEmptyTitle: "Archive is empty",
     myTutorsTitle: "My tutors",
     prepaidLabel: "📦 Prepaid",
@@ -3803,6 +3804,7 @@ export const en: LocaleTranslations = {
     replyPlaceholder: "Reply to student (e.g. who you recommend)…",
   },
   subscriptionRequestsExtra: {
+    proActivated: "Pro activated — the tutor has been notified",
     empty: "All quiet 🎉 New requests will show up here.",
     updated: "Status updated",
     tutorFallback: "Tutor",
@@ -3866,6 +3868,10 @@ export const en: LocaleTranslations = {
   eveningSummary: {
     cardTitle: "🌙 Evening summary",
     cardDesc: "At 9 pm — lessons taught today, your streak, and notes still waiting.",
+  },
+  dailyDigest: {
+    cardTitle: "☀️ Morning digest",
+    cardDesc: "Every morning in Telegram — today's lessons and who hasn't paid yet.",
   },
   walletsPageExtra: {
     studentCol: "Student",
@@ -4066,6 +4072,8 @@ export const en: LocaleTranslations = {
     open: "Open",
   },
   badgeUnlockToast: {
+    manyBadges: "🏆 {{count}} achievements unlocked",
+    manyBadgesDesc: "Earned earlier — see them all on your achievements page",
     newBadge: "{{emoji}} New badge: {{name}}!",
   },
   languageSwitcher: {
