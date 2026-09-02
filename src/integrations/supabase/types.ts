@@ -2623,6 +2623,10 @@ export type Database = {
         }
         Returns: Json
       }
+      approve_subscription_request: {
+        Args: { _months?: number; _request_id: string; _response?: string }
+        Returns: Json
+      }
       award_badge_once: {
         Args: { _key: string; _tutor: string }
         Returns: string[]
@@ -2827,6 +2831,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      reject_subscription_request: {
+        Args: { _request_id: string; _response?: string }
+        Returns: Json
       }
       resolve_referral_code: {
         Args: { _code: string }
