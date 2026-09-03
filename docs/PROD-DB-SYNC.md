@@ -36,6 +36,9 @@ node scripts/check-db-sync.mjs
 |---|---|---|---|
 | `< 20260903081642` (107 файлів) | історія до 03.09 — застосована через пайплайн Lovable у свій час | схема в `types.ts` | ✅ історія |
 | `20260903081642_a4976b0d…` | M1: `source` immutable + гейт цін групових (аудит 02.09) | хеш-файл Lovable | ✅ |
-| `20260903100000_lessons_visible_currency` | M4: `currency` у `lessons_visible` (валюта пари) | `lessons_visible` Row має `currency` | ⏳ чекає Run |
-| `20260903110000_money_by_currency` | M3: `manager_debts_by_currency()`, `get_people_aggregates` + `unpaid_by_currency` | `manager_debts_by_currency`, `unpaid_by_currency` у types | ⏳ чекає Run (після 100000) |
-| `20260903150000_finances_period_totals` | M2 (справжній): підсумки /finances рахує база через `lessons_visible` (INVOKER) | `finances_period_totals` у types | ⏳ чекає Run (після 110000) |
+| `20260903100000_lessons_visible_currency` | M4: `currency` у `lessons_visible` (валюта пари) | `lessons_visible` Row має `currency` | ✅ 03.09 (Lovable `150928`) |
+| `20260903110000_money_by_currency` | M3: `manager_debts_by_currency()`, `get_people_aggregates` + `unpaid_by_currency` | `manager_debts_by_currency`, `unpaid_by_currency` у types | ✅ 03.09 (Lovable `151318`) |
+| `20260903150000_finances_period_totals` | M2 (справжній): підсумки /finances рахує база через `lessons_visible` (INVOKER) | `finances_period_totals` у types | ✅ 03.09 (Lovable `151432`) |
+| `20260903170000_hub_id_model` | HUB_ID етап A: колонка + бекфіл + гард + `is_hub_scoped`/`is_hub_member` + `default_hub_id` + `start_manager_chat` через хаб | `tutor_workspace_settings` Row має `hub_id`; `is_hub_scoped`, `is_hub_member` у types | ⏳ чекає Run |
+| `20260903180000_hub_scope_policies` | HUB_ID етап B: 60 manager-політик скоуплено на хаб (згенеровано з живих визначень) | — (політики не в types) · перевірка: `SELECT count(*) FROM pg_policies WHERE qual ILIKE '%is_hub_%'` = 60+ | ⏳ **читання аудиторкою → Run після 170000** |
+
