@@ -2532,6 +2532,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          currency: string | null
           duration_minutes: number | null
           group_id: string | null
           homework: string | null
