@@ -13,6 +13,7 @@
 -- Визначення в'ю ДОСЛІВНО повторює 20260721000000 + одна колонка. Таймстемп
 -- вищий за 20260902170000, інакше Lovable мовчки пропустить (пастка 2.2).
 
+-- LIVE-MARKER-IN: lessons_visible :: currency: string
 DROP VIEW IF EXISTS public.lessons_visible;
 CREATE VIEW public.lessons_visible WITH (security_invoker = false) AS
 WITH caller AS (

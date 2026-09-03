@@ -119,9 +119,14 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   src/lib/financials.ts. Every channel (Finances card, debts tab, telegram
   digest, any future report) MIRRORS them verbatim. Debt is PERIOD-LESS —
   month filters shape turnover views, never receivables.
-- PROCESS: DB fixes reach prod ONLY via the owner's manual Run. Every new
-  migration must land in outputs/PROD-DB-SYNC.sql; applied-status is checked
-  against types.ts (the live-schema mirror) before claiming 'done forever'.
+- PROCESS (переписано 03.09): DB fixes reach prod ONLY via the owner pasting
+  SQL into Lovable chat. Стан бази для БУДЬ-ЯКОГО агента — `docs/PROD-DB-SYNC.md`
+  + `node scripts/check-db-sync.mjs` (водяний знак = останній хеш-файл Lovable;
+  `LIVE-MARKER` звіряється з `types.ts`, живим дзеркалом схеми). Кожна нова
+  міграція: таймстемп вище водяного знаку, ідемпотентна, з `LIVE-MARKER`,
+  рядок у журналі. SQL власниці — у чат цілком, ніколи «скопіюй з репо».
+  «Done» лише після `✅ live` у скрипті. (Старий `outputs/PROD-DB-SYNC.sql`
+  ніколи не існував у репо — рядок був фантомом.)
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the
@@ -145,11 +150,15 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   answer automatic; hardcoded hex is how we got white-on-white and
   dark-on-dark bugs three times.
 
-### Never touch
-- `LessonCard.tsx` — perfect as-is, used across Dashboard/Schedule
-- Supabase queries and hooks logic
-- Routing
-- i18n keys (only add, never rename)
+### Protect (уточнено 03.09 рішенням власниці: нульова толерантність до помилок)
+- `LessonCard.tsx` — його ДИЗАЙН і поведінка недоторкані (used across
+  Dashboard/Schedule). Виправлення дефектів, знайдених аудитом (мертвий код,
+  несправні фолбеки, a11y), дозволені, якщо рендер лишається побайтово тим самим.
+- Supabase queries and hooks — не переписувати «бо так краще». Але якщо аудит
+  показав дефект (наприклад, хук ковтає помилку і показує «0» замість збою) —
+  виправляти. Аудит переважає над цим списком.
+- Routing — не міняти маршрути без рішення власниці.
+- i18n keys (only add, never rename).
 
 ---
 
@@ -640,12 +649,19 @@ top of that file. The remaining MED/DELIGHT items there are the next UX backlog.
 
 ---
 
-## CI Checks (run after every commit)
+## CI Checks (run after every commit) — усі за exit-кодом
 ```bash
-npx tsc --noEmit          # 0 errors required
-npm run test              # 118 tests must pass
-node scripts/check-i18n.mjs  # all keys synced uk/en/sv
-node scripts/check-ux.mjs    # 0 errors, <115 warnings
+npm run typecheck                 # НЕ npx tsc --noEmit (перевіряє нічого)
+npx eslint src --quiet            # 0 errors (X1 previewAuthStorage — задокументований виняток)
+npm run test                      # vitest, усі зелені
+npm run build                     # vite build — обов'язковий
+node scripts/check-i18n.mjs       # uk/en/sv синхронні
+node scripts/check-ux.mjs         # 0 errors
+node scripts/check-hardcode.mjs   # ≤ ліміту; бачить t("k") || "Укр" (03.09)
+node scripts/check-currency.mjs   # 0 літеральних валют
+node scripts/check-db-sync.mjs    # міграції нижче водяного знаку = 0
+npx playwright test --list        # парс-гейт e2e
+# edge: for f in <touched>; do npx esbuild supabase/functions/$f/index.ts --format=esm --outfile=/dev/null; done
 ```
 
 ## Process Rules

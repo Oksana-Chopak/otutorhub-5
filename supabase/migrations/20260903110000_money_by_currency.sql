@@ -9,6 +9,9 @@
 -- поруч з'являється jsonb {"UAH": 800, "SEK": 200}. Клієнт показує розбивку
 -- там, де валют більше однієї. Таймстемп > 20260903100000 (пастка 2.2).
 
+-- LIVE-MARKER: manager_debts_by_currency: {
+-- LIVE-MARKER: unpaid_by_currency: Json
+
 -- ── 1. Борги менеджера по валютах ──────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.manager_debts_by_currency()
 RETURNS jsonb
