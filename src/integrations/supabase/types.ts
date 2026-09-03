@@ -2704,6 +2704,7 @@ export type Database = {
           has_paid: boolean
           last_interaction_at: string
           last_lesson_at: string
+          unpaid_by_currency: Json
           unpaid_count: number
           unpaid_total: number
           user_id: string
@@ -2791,6 +2792,7 @@ export type Database = {
           tutor_payout_status: Database["public"]["Enums"]["payment_status"]
         }[]
       }
+      manager_debts_by_currency: { Args: never; Returns: Json }
       manager_debts_summary: {
         Args: never
         Returns: {
