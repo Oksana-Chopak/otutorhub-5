@@ -791,7 +791,7 @@ export default function FinancesPage() {
   // маскування за персоною успадковане, а семантика — та сама isBillableLesson.
   // Поки міграція не застосована (RPC відсутня) — масиви; коли є — база, і
   // розбіжність із масивами показується як розбіжність, не ховається.
-  type DbTotals = { paid_income: number; paid_expense: number; markup_income: number; markup_payout: number; billable_count: number; income_by_currency: Record<string, number> };
+  type DbTotals = { paid_income: number; paid_expense: number; markup_income: number; markup_payout: number; billable_count: number; paid_count: number; income_by_currency: Record<string, number> };
   const [dbTotals, setDbTotals] = useState<DbTotals | null>(null);
   useEffect(() => {
     if (loading || loadError) return;
@@ -808,6 +808,7 @@ export default function FinancesPage() {
         paid_income: Number(d.paid_income ?? 0), paid_expense: Number(d.paid_expense ?? 0),
         markup_income: Number(d.markup_income ?? 0), markup_payout: Number(d.markup_payout ?? 0),
         billable_count: Number(d.billable_count ?? 0),
+        paid_count: Number(d.paid_count ?? 0),
         income_by_currency: (d.income_by_currency as Record<string, number>) ?? {},
       });
     })();
@@ -844,12 +845,16 @@ export default function FinancesPage() {
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
   const hubMarkup = useMemo(() => {
-    // M2: націнка з бази, коли є (та сама умова price>0 AND payout>0 у SQL).
-    if (dbTotals && dbTotals.markup_income > 0) {
+    /* Аудит 03.09: число з БД пораховане від periodStart, а коментар над
+       блоком (і сусідні графіки) обіцяють стабільність незалежно від
+       вибраного періоду. Націнка стрибала при перемиканні тижня/місяця.
+       Тримаємо один зміст: націнка — по всьому завантаженому, як і було.
+       Число з бази беремо лише для періоду «весь час», де вони збігаються. */
+    if (period === "all" && dbTotals && dbTotals.markup_income > 0) {
       return ((dbTotals.markup_income - dbTotals.markup_payout) / dbTotals.markup_income) * 100;
     }
     return grossMarkupPct(billable);
-  }, [billable, dbTotals]);
+  }, [billable, dbTotals, period]);
 
   const markupByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
@@ -1828,7 +1833,23 @@ export default function FinancesPage() {
   const domCur = incomeByCur[0]?.[0] ?? "UAH";
   const domPaidCount = periodBillable.filter(
     (l) => l.student_payment_status === "paid" && rowCurrency(l) === domCur).length;
-  const avgLesson = domPaidCount > 0 ? Math.round((incomeByCur[0]?.[1] ?? 0) / domPaidCount) : 0;
+  /* Аудит 03.09: чисельник брався з БД (dbTotals.income_by_currency), а
+     знаменник — із масиву, обрізаного на 500 рядках. Щойно RPC запрацює,
+     «середній чек» злетить у стелю саме там, де уроків найбільше. Тому
+     обидві половини мусять бути з ОДНОГО джерела: є число з бази — беремо
+     і кількість звідти; немає — рахуємо все з масиву. */
+  const avgLesson = (() => {
+    if (dbTotals && dbTotals.billable_count > 0 && Object.keys(dbTotals.income_by_currency).length === 1) {
+      const only = Object.values(dbTotals.income_by_currency)[0] ?? 0;
+      const paidN = dbTotals.paid_count > 0 ? dbTotals.paid_count : domPaidCount;
+      return paidN > 0 ? Math.round(only / paidN) : 0;
+    }
+    const arrIncomeDom = sumByCurrency(
+      periodBillable.filter((l) => l.student_payment_status === "paid"),
+      (l) => Number(l.student_price ?? 0), rowCurrency,
+    )[0]?.[1] ?? 0;
+    return domPaidCount > 0 ? Math.round(arrIncomeDom / domPaidCount) : 0;
+  })();
   // 6-month stacked bars
   /* Перевірка 02.09: стовпчики були німі — висота є, числа немає, і натиснути
      не можна, хоча рука тягнеться. Тепер над кожним стовпчиком стоїть сума, а

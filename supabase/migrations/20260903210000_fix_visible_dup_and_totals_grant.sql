@@ -155,7 +155,10 @@ AS $$
       coalesce(sum(tutor_payout)  FILTER (WHERE NOT is_group AND tutor_payout_status = 'paid'), 0) AS paid_expense,
       coalesce(sum(student_price) FILTER (WHERE coalesce(student_price,0) > 0 AND coalesce(tutor_payout,0) > 0), 0) AS markup_income,
       coalesce(sum(tutor_payout)  FILTER (WHERE coalesce(student_price,0) > 0 AND coalesce(tutor_payout,0) > 0), 0) AS markup_payout,
-      count(*)::int AS billable_count
+      count(*)::int AS billable_count,
+      /* Аудит 03.09: без цього числа клієнт рахував «середній чек» так:
+         чисельник із бази, знаменник — із масиву, обрізаного на 500 рядках. */
+      count(*) FILTER (WHERE student_payment_status = 'paid')::int AS paid_count
     FROM billable
   ),
   by_cur AS (
@@ -172,6 +175,7 @@ AS $$
     'markup_income',      a.markup_income,
     'markup_payout',      a.markup_payout,
     'billable_count',     a.billable_count,
+    'paid_count',         a.paid_count,
     'income_by_currency', b.income_by_currency
   )
   FROM agg a, by_cur b;
