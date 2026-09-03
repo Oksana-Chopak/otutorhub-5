@@ -4092,6 +4092,7 @@ export const uk = {
     newBadge: "{{emoji}} Новий бейдж: {{name}}!",
   },
   languageSwitcher: {
+    aria: "Мова інтерфейсу",
     english: "Англійська",
     swedish: "Шведська",
     ukrainian: "Українська",

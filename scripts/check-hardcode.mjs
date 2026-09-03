@@ -33,7 +33,7 @@ const SKIP_FILES = new Set([
 // 01.09: стеля була 50 при фактичних 25 — тобто половину боргу можна було
 // набрати непомітно. Після локалізації /marketing і /audit ставимо ратчет:
 // число може лише падати. Знизив — онови тут.
-const MAX_GLOBAL = 5; // 03.09: H1+H2 звели 25→4; ratchet — лише вниз.
+const MAX_GLOBAL = 3; // 03.09: H1+H2 звели 25→4; коментарі більше не рахуються (03.09) → 4. Ratchet — лише вниз.
 
 function getAllFiles(dir) {
   const files = [];
@@ -61,14 +61,38 @@ for (const file of getAllFiles(SRC)) {
   if (file.includes("/i18n/")) continue;
   if (file.includes(".test.")) continue;
 
-  const lines = readFileSync(file, "utf8").split("\n");
+  const src = readFileSync(file, "utf8");
+  const lines = src.split("\n");
   const issues = [];
+
+  /* Аудит 03.09: гейт рахував і КОМЕНТАРІ — чотири з шести «порушень» були
+     прозою в /* … *\/ і {/* … *\/}, тобто бюджет витрачався на пояснення, а
+     не на рядки, які бачить користувач. Розмічаємо багаторядкові коментарі
+     один раз на файл: тепер кожне число в підсумку — справжній UI-рядок.
+     Це звуження гейта до суті, а не послаблення: після нього ліміт можна
+     тримати нижчим і чесним. */
+  const inComment = new Array(lines.length).fill(false);
+  {
+    let block = false;
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i];
+      if (block) {
+        inComment[i] = true;
+        if (l.includes("*/")) block = false;
+        continue;
+      }
+      const opens = l.indexOf("/*");
+      if (opens !== -1 && !l.includes("*/", opens + 2)) { inComment[i] = true; block = true; }
+      else if (opens !== -1) inComment[i] = true;   // однорядковий /* … */
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const stripped = line.trim();
 
     // Skip comments
+    if (inComment[i]) continue;
     if (stripped.startsWith("//") || stripped.startsWith("*")) continue;
     // Skip affirmations
     if (line.includes("dayAffirmations")) continue;
@@ -131,8 +155,14 @@ if (realTotal > MAX_GLOBAL) {
   console.log(
     `✅ Хардкод: ${realTotal} рядків (ліміт ${MAX_GLOBAL}) — в нормі`
   );
-  if (realTotal > 0) {
+  if (dashCount > 0) {
     console.log(`   (${dashCount} навмисних афірмацій у DashboardPage не рахуються)`);
+  }
+  /* Аудит 03.09: у межах ліміту скрипт мовчав про те, ЩО саме лишилось —
+     тобто борг був порахований, але невидимий. Друкуємо завжди. */
+  for (const [file, issues] of [...results.entries()].filter(([f]) => !f.includes("DashboardPage"))) {
+    console.log(`   ▫️ ${file}`);
+    issues.forEach(({ line, text }) => console.log(`      ${line}: ${text}`));
   }
   process.exit(0);
 }

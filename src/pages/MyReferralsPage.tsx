@@ -426,8 +426,9 @@ export default function MyReferralsPage() {
               </Card>
               {referrals.length > 0 && (
                 <div style={{ fontSize: 14, color: R.muted, marginTop: 8, paddingLeft: 2 }}>
-                  {t("myReferrals.summaryLine", { total: referrals.length, pro: proUpgrades }) ||
-                    `Усього запрошень: ${referrals.length} · з підпискою: ${proUpgrades}`}
+                  {/* Аудит 03.09: `|| «укр»` — мертвий фолбек, i18next завжди
+                      віддає рядок. Ключ існує в усіх трьох мовах. */}
+                  {t("myReferrals.summaryLine", { total: referrals.length, pro: proUpgrades })}
                 </div>
               )}
             </div>

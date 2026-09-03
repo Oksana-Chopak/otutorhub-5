@@ -607,7 +607,11 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    document.title = `oTutorHub — ${tp("landing.hero.titlePrefix")} ${personaVars.label}`;
+    /* Перевірка 03.09 у браузері: заголовок вкладки переписувався разом із
+       персоною, а вона крутиться КОЖНІ 2,5 с — тобто підпис вкладки блимав
+       «для репетитора / для психолога / для нутриціолога…» без упину, і в
+       закладку потрапляла випадкова професія. Ставимо один раз, за
+       замовчуванням — репетитор (головна персона продукту). */
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -623,6 +627,12 @@ export default function LandingPage() {
     return () => obs.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaId]);
+
+  // Заголовок — один раз на вхід, поза ротацією персон.
+  useEffect(() => {
+    document.title = `oTutorHub — ${t("landing.hero.titlePrefix")} ${t("landing.personas.tutor.label")}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-rotate persona every 2.5s until user pauses
   useEffect(() => {

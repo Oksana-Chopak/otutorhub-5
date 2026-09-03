@@ -4085,6 +4085,7 @@ export const sv: LocaleTranslations = {
     newBadge: "{{emoji}} Nytt märke: {{name}}!",
   },
   languageSwitcher: {
+    aria: "Gränssnittsspråk",
     english: "Engelska",
     swedish: "Svenska",
     ukrainian: "Ukrainska",

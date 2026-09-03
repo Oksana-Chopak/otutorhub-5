@@ -4104,6 +4104,7 @@ export const en: LocaleTranslations = {
     newBadge: "{{emoji}} New badge: {{name}}!",
   },
   languageSwitcher: {
+    aria: "Interface language",
     english: "English",
     swedish: "Swedish",
     ukrainian: "Ukrainian",
