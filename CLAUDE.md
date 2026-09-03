@@ -8,6 +8,11 @@
 - **Code generator**: Lovable (publishes to `main` branch)
 - **Roles**: manager / tutor (hub) / tutor (independent) / student
 
+> **START HERE → [`HANDOFF.md`](./HANDOFF.md)** — стан проєкту, шість пасток репозиторію,
+> обовʼязковий ланцюг воріт, що вже закрито і що лишилось (з файлами й рядками).
+> Читай його ДО першої правки. Цей файл (CLAUDE.md) — довідник по механіці; HANDOFF.md —
+> що робити і чого не робити.
+
 ## Pre-release security/quality audit (2026-06-19) — fixes shipped, MUST be applied
 Deep audit (37 agents) found 20 confirmed issues; all fixed in the repo. **Nothing is live
 until Lovable applies/deploys it** (see Deploy model). Apply these in order:
