@@ -2665,6 +2665,10 @@ export type Database = {
         Returns: number
       }
       expire_lapsed_subscriptions: { Args: never; Returns: number }
+      finances_period_totals: {
+        Args: { _from: string; _tutor?: string }
+        Returns: Json
+      }
       generate_referral_code: { Args: { _tutor_id: string }; Returns: string }
       generate_telegram_link_code: {
         Args: { _user_id: string }
