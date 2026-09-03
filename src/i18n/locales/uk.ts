@@ -183,6 +183,7 @@ export const uk = {
     perMonth: "{{price}}/міс",
   },
   common: {
+    workspaceUnknown: "Не вдалося визначити тип робочого простору — оновіть сторінку",
     copyFailed: "Не вдалося скопіювати — скопіюй вручну",
     copy: "Копіювати",
     copied: "скопійовано",
@@ -803,6 +804,12 @@ export const uk = {
 
   // Finances
   finances: {
+    bulkMarkConfirmTitle_one: "Змінити статус {{count}} рядка?",
+    bulkMarkConfirmTitle_few: "Змінити статус {{count}} рядків?",
+    bulkMarkConfirmTitle_many: "Змінити статус {{count}} рядків?",
+    bulkMarkConfirmDescStudent: "Уроки будуть позначені як оплачені учнем. Скасувати одним рухом не вийде.",
+    bulkMarkConfirmDescPayout: "Виплати репетиторам будуть позначені як здійснені. Скасувати одним рухом не вийде.",
+    bulkMarkConfirmBtn: "Позначити",
     sortBy: "Сорт.:",
     sortPaidShort: "Оплата",
     sortPayoutShort: "Виплата",
@@ -889,6 +896,11 @@ export const uk = {
     debtsTabShort: "Борги",
     debtTitle: "Заборгованість {{sum}}",
     debtAwaiting: "{{count}} уроків очікують оплати",
+    remindAllConfirmTitle_one: "Надіслати нагадування {{count}} учню?",
+    remindAllConfirmTitle_few: "Надіслати нагадування {{count}} учням?",
+    remindAllConfirmTitle_many: "Надіслати нагадування {{count}} учням?",
+    remindAllConfirmDesc: "Кожен отримає лист або повідомлення в Telegram. Скасувати надіслане не можна.",
+    remindAllConfirmBtn: "Надіслати",
     debtAwaiting_one: "{{count}} урок очікує оплати",
     debtAwaiting_few: "{{count}} уроки очікують оплати",
     debtAwaiting_many: "{{count}} уроків очікують оплати",
@@ -1035,7 +1047,7 @@ export const uk = {
     truncatedTitle: "Показано перші {{shown}} із {{total}} записів за рік — підсумки неповні",
     truncatedBody: "Дохід, витрати та прибуток порахувані лише з показаної частини. Звузьте період, щоб бачити точні цифри.",
     stornoNote: "Скасування помилкової передоплати",
-    totalsParityMismatch: "⚠️ Підсумок бази й застосунку розійшлись — скопіюй цей екран Клоду.",},
+    totalsParityMismatch: "⚠️ Підсумки розійшлись. Показано число з бази — воно точніше. Якщо це повторюється, напишіть у підтримку.",},
 
   // Chats
   subjectSelect: {
@@ -3206,6 +3218,11 @@ export const uk = {
     chatBtn: "Чат",
   },
   availabilityManagerExtra: {
+    dayOffConfirmTitle: "Зробити {{day}} вихідним?",
+    dayOffConfirmDesc_one: "{{count}} проміжок цього дня буде видалено. Повернути його автоматично не вийде.",
+    dayOffConfirmDesc_few: "{{count}} проміжки цього дня буде видалено. Повернути їх автоматично не вийде.",
+    dayOffConfirmDesc_many: "{{count}} проміжків цього дня буде видалено. Повернути їх автоматично не вийде.",
+    dayOffConfirmBtn: "Видалити",
     requestsTitle: "Запити на проставлення годин ({{count}})",
     closeBtn: "Закрити",
     openThisWeek: "Цього тижня відкрито",

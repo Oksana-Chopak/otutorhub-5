@@ -24,6 +24,11 @@ node scripts/check-db-sync.mjs
 - Кожна міграція, що додає колонку/функцію, несе рядок
   `-- LIVE-MARKER: <фрагмент, який має з'явитись у types.ts>`. Скрипт звіряє
   його з `types.ts` і каже `✅ live` / `⛔ NOT live` — це і є відповідь «чи вже».
+- **Межа методу (аудит 03.09).** `types.ts` описує ФОРМУ схеми, не її тіло.
+  Міграція, що перевипускає наявне в'ю чи функцію з тією самою сигнатурою,
+  збігається з маркером ЩЕ ДО застосування — скрипт скаже «✅ live» про те,
+  чого в проді немає. Такі міграції несуть `-- LIVE-MARKER-NONE: <як перевірити
+  вручну>`, скрипт друкує «❓ не доводиться», а стан береться з цього журналу.
 - Ідемпотентність обов'язкова (`IF EXISTS` / `OR REPLACE` / `ON CONFLICT`):
   власниця не може перевірити, що вже запускала, — SQL сам мусить бути байдужим.
 - SQL для власниці — **у чат, цілком**, не «скопіюй з репо».
@@ -39,6 +44,7 @@ node scripts/check-db-sync.mjs
 | `20260903100000_lessons_visible_currency` | M4: `currency` у `lessons_visible` (валюта пари) | `lessons_visible` Row має `currency` | ✅ 03.09 (Lovable `150928`) |
 | `20260903110000_money_by_currency` | M3: `manager_debts_by_currency()`, `get_people_aggregates` + `unpaid_by_currency` | `manager_debts_by_currency`, `unpaid_by_currency` у types | ✅ 03.09 (Lovable `151318`) |
 | `20260903150000_finances_period_totals` | M2 (справжній): підсумки /finances рахує база через `lessons_visible` (INVOKER) | `finances_period_totals` у types | ✅ 03.09 (Lovable `151432`) |
+| `20260903210000_fix_visible_dup_and_totals_grant` | ⛔ Аудит 03.09: `lessons_visible` дублювала уроки пари з кількома предметами (дохід і борг подвоєні); `finances_period_totals` падала з 42501 у кожного (читала базову `lesson_participants`); лог нагадувань не приймав жодного рядка (CHECK + UNIQUE) | **не доводиться з types.ts** (перевипуск в'ю і функції). Вручну: `SELECT count(*) FROM lessons_visible WHERE id='<урок пари з 2 предметами>'` = 1; виклик `finances_period_totals` від звичайного репетитора не 42501 | ⏳ НЕ ЗАСТОСОВАНА |
 | `20260903170000_hub_id_model` | HUB_ID етап A: колонка + бекфіл + гард + `is_hub_scoped`/`is_hub_member` + `default_hub_id` + `start_manager_chat` через хаб | `tutor_workspace_settings` Row має `hub_id`; `is_hub_scoped`, `is_hub_member` у types | ⏸ ВІДКЛАДЕНО до другої школи (supabase/migrations-deferred/) |
 | `20260903180000_hub_scope_policies` | HUB_ID етап B: 60 manager-політик скоуплено на хаб (згенеровано з живих визначень) | — (політики не в types) · перевірка: `SELECT count(*) FROM pg_policies WHERE qual ILIKE '%is_hub_%'` = 60+ | ⏸ ВІДКЛАДЕНО до другої школи (supabase/migrations-deferred/) |
 

@@ -23,6 +23,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { confirmDialog } from "@/hooks/useConfirm";
 import {
   Loader2,
   Plus,
@@ -266,6 +267,19 @@ export function AvailabilityManager() {
   // Quick action: mark a whole weekday as day off (delete all weekly slots for that day)
   const clearWeekday = async (day: number) => {
     if (!canEdit) return;
+    /* Аудит 03.09: це звичайний перемикач, а натискання СТИРАЄ всі слоти дня
+       назавжди — увімкнення назад створює один дефолтний 16:00–20:00, а не
+       повертає попередні. Питаємо, бо відновити нічим. */
+    const slots = weekly.filter((r) => r.weekday === day).length;
+    if (slots > 0) {
+      const ok = await confirmDialog({
+        title: t("availabilityManagerExtra.dayOffConfirmTitle", { day: WEEKDAYS_FULL_UK[day] }),
+        description: t("availabilityManagerExtra.dayOffConfirmDesc", { count: slots }),
+        confirmText: t("availabilityManagerExtra.dayOffConfirmBtn"),
+        destructive: true,
+      });
+      if (!ok) return;
+    }
     const { error } = await supabase
       .from("tutor_availability_weekly")
       .delete()

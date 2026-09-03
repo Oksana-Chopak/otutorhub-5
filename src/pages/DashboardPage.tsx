@@ -1199,6 +1199,11 @@ export default function DashboardPage() {
       // Hub tutors get the same setup helpers (availability, Zoom, calendar, AI notes)
       // for parity — but NOT "referral" (Pro referrals are an independent-tutor concept).
       && !(isHubTutor && t.action === "referral")
+      /* Аудит 03.09: задача «Zoom» веде на /my-students, а MyStudentsPage
+         редіректить будь-кого, хто не самостійний. Хабовий тапав задачу,
+         повертався на дашборд, задача лишалась — петля без виходу. Посилання
+         на урок він задає у самому уроці, тож задача йому не належить. */
+      && !(isHubTutor && t.action === "zoom")
   );
 
   const smartTasks = useMemo(() => {

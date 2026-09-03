@@ -717,7 +717,7 @@ function GroupDetailsDialog({
   // Independence decides group-lesson source: ONLY a truly independent tutor's group
   // lesson is "independent". A HUB tutor (not manager, not independent) must stamp "hub"
   // so the lesson stays visible to the manager — `isManager` alone missed that case.
-  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   const [group, setGroup] = useState<Group | null>(null);
   const [tutorName, setTutorName] = useState<string>("");
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -778,6 +778,16 @@ function GroupDetailsDialog({
     // «Моїх учнів», фінансів і підрахунку учнів. Чекаємо, поки прапор відомий.
     if (wsLoading) {
       toast.error(t("common.loading"));
+      return;
+    }
+    /* ⛔ Аудит 03.09: гейт стояв лише на завантаженні. Але є ТРЕТІЙ стан —
+       читання завершилось, рядка налаштувань немає (workspaceUnknown):
+       wsLoading=false, прапор самостійності false, і урок пишеться з
+       source:"hub". А source з 20260902170000 НЕЗМІННИЙ — тобто виправити
+       такий урок уже неможливо, він назавжди зникає з фінансів самостійного
+       репетитора. Не знаємо персону — не пишемо. */
+    if (workspaceUnknown) {
+      toast.error(t("common.workspaceUnknown"));
       return;
     }
 

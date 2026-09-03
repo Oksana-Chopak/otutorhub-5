@@ -157,7 +157,7 @@ export default function SchedulePage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
-  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
   const [loading, setLoading] = useState(true);
@@ -575,6 +575,16 @@ export default function SchedulePage() {
     // «Моїх учнів», фінансів і підрахунку учнів. Чекаємо, поки прапор відомий.
     if (wsLoading) {
       toast.error(t("common.loading"));
+      return;
+    }
+    /* ⛔ Аудит 03.09: гейт стояв лише на завантаженні. Але є ТРЕТІЙ стан —
+       читання завершилось, рядка налаштувань немає (workspaceUnknown):
+       wsLoading=false, прапор самостійності false, і урок пишеться з
+       source:"hub". А source з 20260902170000 НЕЗМІННИЙ — тобто виправити
+       такий урок уже неможливо, він назавжди зникає з фінансів самостійного
+       репетитора. Не знаємо персону — не пишемо. */
+    if (workspaceUnknown) {
+      toast.error(t("common.workspaceUnknown"));
       return;
     }
 

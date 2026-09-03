@@ -3,11 +3,12 @@ import { StudentAchievementsGrid } from "@/components/student/StudentAchievement
 import { useStudentRewards } from "@/hooks/useStudentRewards";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { ErrorState } from "@/components/ErrorState";
 import { useTranslation } from "react-i18next";
 
 export default function StudentAchievementsPage() {
   const { t } = useTranslation();
-  const { achievements, earnedAchievements, loading } = useStudentRewards();
+  const { achievements, earnedAchievements, loading, loadError, reload } = useStudentRewards();
   const { trackPaywallClick } = usePaywallTracking();
 
   // Product analytics: record an achievements-page view (student is authed here).
@@ -44,6 +45,11 @@ export default function StudentAchievementsPage() {
 
         {loading ? (
           <SkeletonList count={3} />
+        ) : loadError ? (
+          /* Аудит 03.09: сторінка не мала стану помилки — збій читання
+             показував «0 з N» і всі бейджі замкненими, тобто впевнено казав
+             учневі «ти нічого не досяг». */
+          <ErrorState onRetry={() => reload()} retrying={loading} />
         ) : (
           <>
             {/* Hero progress card (dark --grad-income) */}

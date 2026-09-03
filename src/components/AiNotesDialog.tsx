@@ -48,10 +48,14 @@ const ToggleRow = ({ on, onChange, title, desc, disabled }: { on: boolean; onCha
 export function AiNotesDialog({ open, onOpenChange }: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { settings, isPro, isIndependent, updateSettings, loading: wsLoading } = useWorkspaceSettings();
+  const { settings, isPro, isIndependent, updateSettings, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   // Аудит 01.09: поки налаштування летять, прапор = false і вираз давав true —
   // безкоштовний самостійний репетитор бачив AI замість пейволу.
-  const aiAllowed = wsLoading ? false : (!isIndependent || isPro);
+  /* Аудит 03.09: гейт закривав лише гонку завантаження. При workspaceUnknown
+     (читання завершилось, рядка немає) прапор самостійності false — і вираз
+     давав true, тобто безкоштовний самостійний репетитор отримував Pro-фічу
+     замість пейволу. Не знаємо персону — не відкриваємо. */
+  const aiAllowed = wsLoading || workspaceUnknown ? false : (!isIndependent || isPro);
 
   const [auto, setAuto] = useState(!!settings?.ai_notes_auto);
   const [autoSend, setAutoSend] = useState(!!settings?.ai_notes_auto_send);

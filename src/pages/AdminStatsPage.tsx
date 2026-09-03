@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { ErrorState } from "@/components/ErrorState";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { toast } from "sonner";
@@ -198,8 +198,11 @@ export default function AdminStatsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [detail, setDetail] = useState<CrmRow | null>(null);
 
-  useEffect(() => {
-    (async () => {
+  /* Аудит 03.09: завантаження жило всередині useEffect, тож кнопці
+     «Спробувати ще» не було що викликати. Піднято у функцію. */
+  const load = useCallback(async () => {
+    {
+      setState("loading");
       try {
         // cast: is_superadmin enters generated types only after the migration is applied
         // Аудит 01.09: error не діставався — обрив мережі давав data=null і
@@ -215,8 +218,10 @@ export default function AdminStatsPage() {
       } catch {
         setState("error");
       }
-    })();
+    }
   }, []);
+
+  useEffect(() => { void load(); }, [load]);
 
   const money = (n: number | null) =>
     n == null ? "—" : formatPrice(Math.round(n), "UAH");
@@ -267,7 +272,12 @@ export default function AdminStatsPage() {
           <div className={`mt-6 ${card} text-[15px]`}>🔒 {t("admin.noAccess")}</div>
         )}
         {state === "error" && (
-          <div className={`mt-6 ${card} text-[15px]`}>⚠️ {t("admin.error")}</div>
+          /* Аудит 03.09: коментар у цьому ж файлі обіцяв «Спробувати ще», а
+             головна сторінка мала лише рядок тексту — власниця платформи
+             після одного збою мусила перезавантажувати вручну. */
+          <div className="mt-6">
+            <ErrorState title={t("admin.error")} onRetry={() => void load()} />
+          </div>
         )}
 
         {state === "ready" && stats && (

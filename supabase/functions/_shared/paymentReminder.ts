@@ -159,11 +159,23 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
   });
   channels.push("inapp");
 
-  // 6) Лог — саме за ним крон і наступні натискання тримають ідемпотентність
+  // 6) Лог — саме за ним крон і наступні натискання тримають ідемпотентність.
+  /* Аудит 03.09: тут був один batch-INSERT. Він не міг пройти НІКОЛИ:
+     kind='manual'/'telegram_button' порушував CHECK таблиці, а рядки по
+     каналах конфліктували між собою за UNIQUE (lesson_id, reminder_kind) у
+     ТІЙ САМІЙ інструкції. Помилка не перевірялась, лог лишався порожній —
+     тобто дедуплікація, заради якої все й робилось, не працювала.
+     Констрейнти виправлено міграцією 20260903210000; тут — upsert, щоб
+     повтор не падав, і перевірка помилки, щоб мовчання більше не повторилось. */
   const rows = fresh.flatMap((l) => channels.map((ch) => ({
     lesson_id: l.id, tutor_id: tutorId, student_id: studentId, reminder_kind: kind, channel: ch,
   })));
-  if (rows.length) await admin.from("lesson_payment_reminders").insert(rows);
+  if (rows.length) {
+    const { error: logErr } = await admin
+      .from("lesson_payment_reminders")
+      .upsert(rows, { onConflict: "lesson_id,reminder_kind,channel", ignoreDuplicates: true });
+    if (logErr) console.error("[paymentReminder] лог не записався:", logErr.message);
+  }
 
   return { sent: fresh.length, skipped: input.lessons.length - fresh.length, channels, lang };
 }

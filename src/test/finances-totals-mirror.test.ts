@@ -14,16 +14,57 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const migDir = join(root, "supabase/migrations");
-const sqlFile = readdirSync(migDir).filter((f) => f.includes("finances_period_totals")).sort().at(-1)!;
+/* Аудит 03.09: фільтр по імені файла не бачив ані копію, яку створює Lovable
+   при застосуванні, ані пізнішу міграцію, що перевипускає функцію. Беремо
+   ОСТАННІЙ за таймстемпом файл, у якому функція взагалі оголошена. */
+const sqlFile = readdirSync(migDir)
+  .filter((f) => f.endsWith(".sql"))
+  .filter((f) => readFileSync(join(migDir, f), "utf8").includes("FUNCTION public.finances_period_totals"))
+  .sort().at(-1)!;
 const sql = readFileSync(join(migDir, sqlFile), "utf8");
+const viewFile = readdirSync(migDir)
+  .filter((f) => f.endsWith(".sql"))
+  .filter((f) => readFileSync(join(migDir, f), "utf8").includes("CREATE VIEW public.lessons_visible"))
+  .sort().at(-1)!;
+const viewSql = readFileSync(join(migDir, viewFile), "utf8");
+
+/* Негативні перевірки мусять дивитись на КОД, а не на коментарі: у коментарі
+   міграції цитується стара помилкова конструкція — саме щоб її було видно. */
+const stripSqlComments = (src: string) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*--.*$/gm, " ");
+const sqlCode = stripSqlComments(sql);
+const viewCode = stripSqlComments(viewSql);
 const ts = readFileSync(join(root, "src/lib/financials.ts"), "utf8");
 const page = readFileSync(join(root, "src/pages/FinancesPage.tsx"), "utf8");
 
 describe("finances_period_totals дзеркалить financials.ts", () => {
   it("SQL читає lessons_visible як SECURITY INVOKER (маскування успадковане, не переписане)", () => {
-    expect(sql).toMatch(/SECURITY INVOKER/);
-    expect(sql).toMatch(/FROM public\.lessons_visible/);
-    expect(sql).not.toMatch(/SECURITY DEFINER/);
+    expect(sqlCode).toMatch(/SECURITY INVOKER/);
+    expect(sqlCode).toMatch(/FROM public\.lessons_visible/);
+    expect(sqlCode).not.toMatch(/SECURITY DEFINER/);
+  });
+
+  /* ⛔ Аудит 03.09: функція читала БАЗОВУ lesson_participants, де грошові
+     колонки відкликані у authenticated (20260720000000) — тобто падала з
+     42501 у кожного, а клієнтський фолбек мовчки повертав підрахунок із 500
+     обрізаних рядків. Гроші мусять читатися з маскованого в'ю. */
+  it("групові гроші — з lesson_participants_visible, а не з базової таблиці", () => {
+    expect(sqlCode).toMatch(/FROM public\.lesson_participants_visible/);
+    /* Точна умова: грошові колонки не читаються з БАЗОВОЇ таблиці. Сама
+       lessons_visible приєднує lesson_participants заради валюти — це
+       дозволено, currency в GRANT є. */
+    expect(sqlCode).not.toMatch(/lp\.student_price/);
+    expect(sqlCode).not.toMatch(/lp\.student_payment_status/);
+  });
+
+  /* ⛔ Аудит 03.09: LEFT JOIN student_rates по (tutor_id, student_id) множив
+     КОЖЕН урок на кількість предметів пари — унікальність там по
+     (tutor_id, student_id, subject). Дохід і борг подвоювались. */
+  it("lessons_visible бере ставку рівно однією (LATERAL … LIMIT 1)", () => {
+    expect(viewCode).toMatch(/LEFT JOIN LATERAL/);
+    expect(viewCode).toMatch(/FROM public\.student_rates r/);
+    expect(viewCode).toMatch(/LIMIT 1/);
+    expect(viewCode).not.toMatch(/LEFT JOIN public\.student_rates sr\s*\n\s*ON /);
   });
 
   it("isBillableLesson: cancelled → лише з is_cancellation_fee і price>0", () => {

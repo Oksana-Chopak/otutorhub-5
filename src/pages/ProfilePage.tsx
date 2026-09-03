@@ -393,6 +393,11 @@ export default function ProfilePage() {
           : null,
       );
 
+      /* ⛔ Аудит 03.09: помилка detailsRes не перевірялась, тож `stored`
+         ставав порожнім — і upsert нижче ЗАТИРАВ курований список предметів
+         тим, що вдалося зібрати з уроків. Один невдалий запит = тиха втрата
+         даних профілю. Тепер збій читання = не пишемо нічого. */
+      const detailsFailed = Boolean(detailsRes.error);
       const stored = (detailsRes.data?.subjects as string[] | null) ?? [];
       const fromLessons = (lessonsRes.data ?? [])
         .map((l) => (l.subject ?? "").trim())
@@ -413,7 +418,7 @@ export default function ProfilePage() {
 
       setSubjects(merged);
 
-      if (merged.length > stored.length) {
+      if (!detailsFailed && merged.length > stored.length) {
         await supabase
           .from("tutor_details")
           .upsert({ user_id: user.id, subjects: merged }, { onConflict: "user_id" });

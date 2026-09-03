@@ -18,15 +18,21 @@ export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) { setLoading(false); return; }
-    const { data } = await db
+    const { data, error } = await db
       .from("notifications")
       .select("id, type, title, body, link, read, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(30);
+    /* Аудит 03.09: помилка ігнорувалась, і дзвіночок для ВСІХ персон писав
+       «Сповіщень немає» там, де читання просто не пройшло. Тепер список не
+       затирається порожнім, а стан помилки видно. */
+    if (error) { setLoadError(true); setLoading(false); return; }
+    setLoadError(false);
     setNotifications((data ?? []) as AppNotification[]);
     setLoading(false);
   }, [user?.id]);
@@ -48,5 +54,5 @@ export function useNotifications() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  return { notifications, loading, unreadCount, markRead, markAllRead };
+  return { notifications, loading, loadError, unreadCount, markRead, markAllRead, reload: load };
 }

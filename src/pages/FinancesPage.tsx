@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { ErrorState } from "@/components/ErrorState";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { getLocale } from "@/lib/locale";
@@ -1147,6 +1148,19 @@ export default function FinancesPage() {
 
   const bulkMark = async (field: "student_payment_status" | "tutor_payout_status") => {
     if (selected.size === 0) return;
+    /* Аудит 03.09: «вибрати все» бере до 100 видимих рядків, і один тап
+       переводив їх усі в «оплачено» з конфеті — без діалогу і без undo.
+       Це запис у гроші; він мусить питати. */
+    {
+      const ok = await confirmDialog({
+        title: t("finances.bulkMarkConfirmTitle", { count: selected.size }),
+        description: field === "student_payment_status"
+          ? t("finances.bulkMarkConfirmDescStudent")
+          : t("finances.bulkMarkConfirmDescPayout"),
+        confirmText: t("finances.bulkMarkConfirmBtn"),
+      });
+      if (!ok) return;
+    }
     setBulkBusy(true);
     try {
       const ids = Array.from(selected);
@@ -2228,6 +2242,11 @@ export default function FinancesPage() {
 
     return (
       <>
+        {/* Аудит 03.09: банер стояв лише в хабовій і менеджерській гілках —
+            тобто головна персона релізу не дізнавалась, що підсумок рахується
+            з обрізаних даних. 500 уроків за рік — це ~10 на тиждень. */}
+        {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
+
         {/* Period pills */}
         <div role="radiogroup" aria-label={t("finances.periodFilterAria")} style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
           {(["week","month","all"] as Period[]).map(pill)}
@@ -2954,6 +2973,19 @@ export default function FinancesPage() {
                     seen.add(l.student_id);
                     return true;
                   });
+                  /* Аудит 03.09: один тап слав СПРАВЖНІ листи й повідомлення
+                     всім боржникам одразу — незворотно, за межі застосунку, і
+                     скільки саме людей отримає, ніде не було видно до
+                     відправки. Масова email-розсилка на /marketing давно має
+                     підтвердження; тут його не було. */
+                  if (reps.length > 0) {
+                    const ok = await confirmDialog({
+                      title: t("finances.remindAllConfirmTitle", { count: reps.length }),
+                      description: t("finances.remindAllConfirmDesc"),
+                      confirmText: t("finances.remindAllConfirmBtn"),
+                    });
+                    if (!ok) { setRemindingAll(false); return; }
+                  }
                   if (reps.length === 0) {
                     // Nothing remindable (e.g. only group debts) — don't blame contacts.
                     toast.error(t("pendingPaymentsExtra.reminderGeneric"));

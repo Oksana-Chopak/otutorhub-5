@@ -40,7 +40,7 @@ interface Props {
 export function NotificationBell({ className }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, loadError, reload } = useNotifications();
 
   const handleClick = async (n: AppNotification) => {
     if (!n.read) await markRead(n.id);
@@ -95,7 +95,18 @@ export function NotificationBell({ className }: Props) {
 
         {/* List */}
         <div className="max-h-[400px] overflow-y-auto">
-          {displayed.length === 0 ? (
+          {loadError ? (
+            /* Аудит 03.09: збій читання малював «Сповіщень немає» — дзвіночок
+               впевнено казав «усе тихо» там, де просто не прочиталось. */
+            <div className="px-4 py-8 text-center">
+              <div className="text-3xl mb-2">⚠️</div>
+              <p className="text-[15px] font-semibold text-foreground">{t("errorState.title")}</p>
+              <button type="button" onClick={() => void reload()}
+                className="mt-3 rounded-lg border px-3 py-1.5 text-[14px] font-semibold tap-44">
+                {t("errorState.retry")}
+              </button>
+            </div>
+          ) : displayed.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <div className="text-3xl mb-2">✨</div>
               <p className="text-[15px] font-semibold text-foreground">{t("notifications.empty")}</p>

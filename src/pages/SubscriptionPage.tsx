@@ -126,6 +126,7 @@ export default function SubscriptionPage() {
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
+  const [requestError, setRequestError] = useState(false);
 
 
   const [billing, setBilling] = useState<"monthly" | "halfyear" | "yearly">("yearly");
@@ -269,13 +270,19 @@ export default function SubscriptionPage() {
   const loadRequest = async () => {
     if (!user) return;
     setRequestLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("subscription_requests")
       .select("id, status, message, manager_response, created_at, handled_at")
       .eq("tutor_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    /* Аудит 03.09: помилка ігнорувалась → latestRequest=null → сторінка знову
+       пропонувала подати запит, хоча він уже висить у менеджера. Дубль заявки
+       на ручну оплату — це два списання або дві активації. Не знаємо стану —
+       не пропонуємо подавати. */
+    if (error) { setRequestError(true); setRequestLoading(false); return; }
+    setRequestError(false);
     setLatestRequest((data as RequestRow | null) ?? null);
     setRequestLoading(false);
   };
@@ -340,8 +347,11 @@ export default function SubscriptionPage() {
       : null;
 
 
+  /* Стан заявки невідомий (збій читання) трактуємо як «можливо, вже подана»:
+     дубль заявки на ручну оплату гірший за зайву обережність. */
   const pendingRequest =
-    latestRequest && (latestRequest.status === "new" || latestRequest.status === "in_progress");
+    requestError ||
+    (latestRequest && (latestRequest.status === "new" || latestRequest.status === "in_progress"));
 
   const trialTotal = 30;
   const trialPct = Math.max(0, Math.min(100, ((trialTotal - (trialDaysLeft ?? 0)) / trialTotal) * 100));

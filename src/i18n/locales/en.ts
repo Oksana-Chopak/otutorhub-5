@@ -187,6 +187,7 @@ export const en: LocaleTranslations = {
     perMonth: "{{price}}/mo",
   },
   common: {
+    workspaceUnknown: "Could not determine the workspace type — please reload",
     copyFailed: "Couldn't copy — please copy manually",
     copy: "Copy",
     copied: "copied",
@@ -799,6 +800,11 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
+    bulkMarkConfirmTitle_one: "Change the status of {{count}} row?",
+    bulkMarkConfirmTitle_other: "Change the status of {{count}} rows?",
+    bulkMarkConfirmDescStudent: "The lessons will be marked as paid by the student. There is no one-click undo.",
+    bulkMarkConfirmDescPayout: "Tutor payouts will be marked as sent. There is no one-click undo.",
+    bulkMarkConfirmBtn: "Mark",
     sortBy: "Sort:",
     sortPaidShort: "Paid",
     sortPayoutShort: "Payout",
@@ -885,6 +891,10 @@ export const en: LocaleTranslations = {
     debtsTabShort: "Debts",
     debtTitle: "Outstanding {{sum}}",
     debtAwaiting: "{{count}} lessons awaiting payment",
+    remindAllConfirmTitle_one: "Send a reminder to {{count}} student?",
+    remindAllConfirmTitle_other: "Send reminders to {{count}} students?",
+    remindAllConfirmDesc: "Each will get an email or a Telegram message. Sent reminders cannot be recalled.",
+    remindAllConfirmBtn: "Send",
     debtAwaiting_one: "{{count}} lesson awaiting payment",
     debtAwaiting_few: "{{count}} lessons awaiting payment",
     debtAwaiting_many: "{{count}} lessons awaiting payment",
@@ -1042,7 +1052,7 @@ export const en: LocaleTranslations = {
 
     stornoNote: "Reversal of an erroneous prepayment",
 
-    totalsParityMismatch: "⚠️ Database and app totals disagree — please screenshot this for Claude.",},
+    totalsParityMismatch: "⚠️ Totals disagree. Showing the database figure — it is the accurate one. If this keeps happening, contact support.",},
 
   subjectSelect: {
     removeItem: "Remove",
@@ -3220,6 +3230,10 @@ export const en: LocaleTranslations = {
     chatBtn: "Chat",
   },
   availabilityManagerExtra: {
+    dayOffConfirmTitle: "Make {{day}} a day off?",
+    dayOffConfirmDesc_one: "{{count}} slot will be deleted. It cannot be restored automatically.",
+    dayOffConfirmDesc_other: "{{count}} slots will be deleted. They cannot be restored automatically.",
+    dayOffConfirmBtn: "Delete",
     requestsTitle: "Requests to set hours ({{count}})",
     closeBtn: "Close",
     openThisWeek: "Open this week",

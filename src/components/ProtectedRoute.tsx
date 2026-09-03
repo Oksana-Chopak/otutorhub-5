@@ -55,7 +55,12 @@ export function ProtectedRoute({ children, allowedRoles, superadmin }: Props) {
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasAccess = allowedRoles.some((r) => checkRole(r)) || (superadmin === true && isSuperadmin);
+    /* Аудит 03.09: тут було `АБО (superadmin && isSuperadmin)`. Для /admin із
+       allowedRoles={["manager"]} перша частина вже істинна для БУДЬ-ЯКОГО
+       менеджера — тобто прапорець superadmin не звужував доступ, а розширював.
+       Власник школи за прямим URL потрапляв в адмінку платформи. Прапорець
+       мусить бути ДОДАТКОВОЮ умовою, а не альтернативою. */
+    const hasAccess = allowedRoles.some((r) => checkRole(r)) && (superadmin !== true || isSuperadmin);
     if (!hasAccess) {
       const isStudentOnly =
         checkRole("student") && !checkRole("manager") && !checkRole("tutor");

@@ -27,16 +27,22 @@ export function useStudentRewards() {
   const [rewards, setRewards] = useState<StudentReward[]>([]);
   const [achievements, setAchievements] = useState<StudentAchievementWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  /* Аудит 03.09: помилки читання ігнорувались, і збій виглядав як «0
+     досягнень, нічого не заробив». Гейміфікація — стовп продукту; впевнена
+     нула демотивує сильніше за порожній екран. */
+  const [loadError, setLoadError] = useState(false);
   const initialized = useRef(false);
 
   const load = async () => {
     if (!user) return;
-    const { data } = await db
+    const { data, error } = await db
       .from("student_rewards")
       .select("id, emoji, theme, earned_at, lesson_id")
       .eq("student_id", user.id)
       .order("earned_at", { ascending: false })
       .limit(50);
+    if (error) { setLoadError(true); setLoading(false); return; }
+    setLoadError(false);
     setRewards((data as StudentReward[] | null) ?? []);
     setLoading(false);
   };
@@ -45,7 +51,7 @@ export function useStudentRewards() {
   // the student's own lessons + assigned homework. No backend/table required.
   const loadAchievements = async () => {
     if (!user) return;
-    const [{ data: lessons }, { data: hw }] = await Promise.all([
+    const [{ data: lessons, error: lessonsErr }, { data: hw }] = await Promise.all([
       // Include GROUP lessons (student linked via lesson_participants; lessons.student_id
       // is NULL) so achievements/streaks count them too.
       supabase.from("lessons").select("starts_at, status").or(await studentLessonsOrFilter(user.id)),
@@ -56,6 +62,7 @@ export function useStudentRewards() {
         .select("homework")
         .not("homework", "is", null),
     ]);
+    if (lessonsErr) { setLoadError(true); return; }
     const completed = ((lessons ?? []) as { starts_at: string; status: string }[]).filter(
       (l) => l.status === "completed",
     );
@@ -103,5 +110,7 @@ export function useStudentRewards() {
 
   const earnedAchievements = achievements.filter((a) => a.earned).length;
 
-  return { rewards, achievements, earnedAchievements, loading };
+  const reload = () => { setLoading(true); void load(); void loadAchievements(); };
+
+  return { rewards, achievements, earnedAchievements, loading, loadError, reload };
 }

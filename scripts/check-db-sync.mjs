@@ -48,6 +48,17 @@ for (const f of files) {
 //   -- LIVE-MARKER: <рядок, який має з'явитись у types.ts>
 //   -- LIVE-MARKER-IN: <назва Row у types.ts> :: <фрагмент усередині цього Row>
 //   (для колонок у в'ю/таблицях, де сам фрагмент не унікальний по файлу)
+//
+// ⚠️ Аудит 03.09 — межа методу. types.ts описує ФОРМУ схеми, не її тіло. Якщо
+// міграція ПЕРЕВИПУСКАЄ наявний обʼєкт (CREATE OR REPLACE в'ю чи функції з тією
+// самою сигнатурою), маркер збігається ще ДО застосування — і скрипт каже
+// «✅ live» про те, чого в проді немає. Саме так виглядав фікс подвоєння
+// lessons_visible: сигнатура та сама, тіло інше.
+// Тому такі міграції МУСЯТЬ нести
+//   -- LIVE-MARKER-NONE: <як перевірити вручну>
+// і скрипт позначає їх «❓ не доводиться з types.ts», а не «live». Маркер, який
+// збігається у файлі ВИЩЕ водяного знаку (тобто ще не застосованому), також
+// позначається як недоказовий — збіг там означає лише, що обʼєкт уже існував.
 const markers = [];
 const rowBlock = (name) => {
   const i = TYPES.indexOf(`      ${name}: {`);
@@ -59,14 +70,20 @@ const rowBlock = (name) => {
   }
   return TYPES.slice(i, j);
 };
+const pending = new Set(above);   // ще НЕ застосовані — збіг маркера нічого не доводить
 for (const f of files) {
   const t = readFileSync(join(MIG, f), "utf8");
+  for (const m of t.matchAll(/--\s*LIVE-MARKER-NONE:\s*(.+)$/gm)) {
+    markers.push({ f, marker: m[1].trim(), state: "unprovable" });
+  }
   for (const m of t.matchAll(/--\s*LIVE-MARKER:\s*(.+)$/gm)) {
-    markers.push({ f, marker: m[1].trim(), live: TYPES.includes(m[1].trim()) });
+    const hit = TYPES.includes(m[1].trim());
+    markers.push({ f, marker: m[1].trim(), state: pending.has(f) ? "unprovable" : hit ? "live" : "no" });
   }
   for (const m of t.matchAll(/--\s*LIVE-MARKER-IN:\s*(\S+)\s*::\s*(.+)$/gm)) {
     const block = rowBlock(m[1].trim());
-    markers.push({ f, marker: `${m[1].trim()} → ${m[2].trim()}`, live: block.includes(m[2].trim()) });
+    const hit = block.includes(m[2].trim());
+    markers.push({ f, marker: `${m[1].trim()} → ${m[2].trim()}`, state: pending.has(f) ? "unprovable" : hit ? "live" : "no" });
   }
 }
 
@@ -76,6 +93,12 @@ for (const f of above) console.log(`   ${f}`);
 console.log(`\n⚠ Нижче водяного знаку і НЕ позначені ✅ у docs/PROD-DB-SYNC.md (Lovable пропустить мовчки): ${belowUnknown.length}`);
 for (const f of belowUnknown) console.log(`   ${f}`);
 console.log(`\n◆ LIVE-MARKER перевірка проти types.ts: ${markers.length}`);
-for (const m of markers) console.log(`   ${m.live ? "✅ live " : "⛔ NOT live"}  ${m.f}  ← ${m.marker}`);
+const badge = { live: "✅ live      ", no: "⛔ NOT live  ", unprovable: "❓ не доводиться" };
+for (const m of markers) console.log(`   ${badge[m.state]}  ${m.f}  ← ${m.marker}`);
+const unprovable = markers.filter((m) => m.state === "unprovable");
+if (unprovable.length) {
+  console.log(`\n❓ ${unprovable.length} маркер(ів) НЕ доводяться з types.ts (перевипуск наявного обʼєкта або ще не застосована міграція).`);
+  console.log(`   Стан цих міграцій бери з журналу docs/PROD-DB-SYNC.md, а не з цього рядка.`);
+}
 
 process.exit(belowUnknown.length ? 1 : 0);
