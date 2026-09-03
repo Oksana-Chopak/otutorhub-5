@@ -780,11 +780,47 @@ export default function FinancesPage() {
     [rowsForActiveTab],
   );
 
-  // Sticky-summary totals — all derived from the same `periodBillable`, via the
-  // shared MON-2 money math (src/lib/financials, locked by financials.test.ts).
-  const totalIncome = paidIncome(periodBillable);
-  const totalExpense = paidExpense(periodBillable);
+  // Sticky-summary totals — derived from `periodBillable` via the shared MON-2
+  // money math (src/lib/financials, locked by financials.test.ts)…
+  const arrIncome = paidIncome(periodBillable);
+  const arrExpense = paidExpense(periodBillable);
+
+  // …АЛЕ масиви обрізані на 500 рядках (M2). Правильне число рахує база:
+  // finances_period_totals читає lessons_visible як SECURITY INVOKER, тож
+  // маскування за персоною успадковане, а семантика — та сама isBillableLesson.
+  // Поки міграція не застосована (RPC відсутня) — масиви; коли є — база, і
+  // розбіжність із масивами показується як розбіжність, не ховається.
+  type DbTotals = { paid_income: number; paid_expense: number; markup_income: number; markup_payout: number; billable_count: number; income_by_currency: Record<string, number> };
+  const [dbTotals, setDbTotals] = useState<DbTotals | null>(null);
+  useEffect(() => {
+    if (loading || loadError) return;
+    let alive = true;
+    (async () => {
+      const fromIso = new Date(periodStart || 0).toISOString();
+      const { data, error } = await (supabase.rpc as any)("finances_period_totals", {
+        _from: fromIso, _tutor: tutorFilter === "all" ? null : tutorFilter,
+      });
+      if (!alive) return;
+      if (error || !data) { setDbTotals(null); return; } // функція ще не в проді
+      const d = data as DbTotals;
+      setDbTotals({
+        paid_income: Number(d.paid_income ?? 0), paid_expense: Number(d.paid_expense ?? 0),
+        markup_income: Number(d.markup_income ?? 0), markup_payout: Number(d.markup_payout ?? 0),
+        billable_count: Number(d.billable_count ?? 0),
+        income_by_currency: (d.income_by_currency as Record<string, number>) ?? {},
+      });
+    })();
+    return () => { alive = false; };
+  }, [loading, loadError, periodStart, tutorFilter]);
+
+  const totalIncome = dbTotals ? dbTotals.paid_income : arrIncome;
+  const totalExpense = dbTotals ? dbTotals.paid_expense : arrExpense;
   const profit = totalIncome - totalExpense;
+  // Коли масив НЕ обрізаний, база і масив мусять збігатися. Якщо ні — це
+  // дефект семантики (SQL ≠ TS), і ми хочемо його БАЧИТИ, а не отримати тихо.
+  const totalsParity = dbTotals && !truncatedYear
+    ? Math.abs(dbTotals.paid_income - arrIncome) <= 1 && Math.abs(dbTotals.paid_expense - arrExpense) <= 1
+    : null;
   const pendingIncome = periodStudentDebts.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
   const pendingExpense = periodPayoutDue.reduce((sum, l) => sum + Number(l.tutor_payout ?? 0), 0);
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
@@ -806,7 +842,13 @@ export default function FinancesPage() {
   }, [isManager, loading, totalDebt]);
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
-  const hubMarkup = useMemo(() => grossMarkupPct(billable), [billable]);
+  const hubMarkup = useMemo(() => {
+    // M2: націнка з бази, коли є (та сама умова price>0 AND payout>0 у SQL).
+    if (dbTotals && dbTotals.markup_income > 0) {
+      return ((dbTotals.markup_income - dbTotals.markup_payout) / dbTotals.markup_income) * 100;
+    }
+    return grossMarkupPct(billable);
+  }, [billable, dbTotals]);
 
   const markupByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
@@ -1785,9 +1827,12 @@ export default function FinancesPage() {
   // dominant one headlines a card, the rest render as a compact "+ …" line.
   const rowCurrency = (l: LessonRow) =>
     (l as any).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? "UAH";
-  const incomeByCur = sumByCurrency(
-    periodBillable.filter((l) => l.student_payment_status === "paid"),
-    (l) => Number(l.student_price ?? 0), rowCurrency);
+  const incomeByCur: [string, number][] = dbTotals
+    ? Object.entries(dbTotals.income_by_currency).map(([c, v]) => [c, Number(v)] as [string, number])
+        .filter(([, v]) => v > 0).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+    : sumByCurrency(
+        periodBillable.filter((l) => l.student_payment_status === "paid"),
+        (l) => Number(l.student_price ?? 0), rowCurrency);
   // P0.7: середнє — лише в домінантній валюті, а не сума яблук із метрами.
   const domCur = incomeByCur[0]?.[0] ?? "UAH";
   const domPaidCount = periodBillable.filter(
@@ -1991,6 +2036,9 @@ export default function FinancesPage() {
           <p className="text-[14px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
         </div>
         {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
+        {totalsParity === false && (
+          <p role="status" className="mb-3 text-[13px] text-amber-800">{t("finances.totalsParityMismatch")}</p>
+        )}
 
         {/* Period pills */}
         <div role="radiogroup" aria-label={t("finances.periodFilterAria")} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
@@ -2718,6 +2766,9 @@ export default function FinancesPage() {
           </p>
         </div>
         {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
+        {totalsParity === false && (
+          <p role="status" className="mb-3 text-[13px] text-amber-800">{t("finances.totalsParityMismatch")}</p>
+        )}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">

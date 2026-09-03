@@ -38,3 +38,4 @@ node scripts/check-db-sync.mjs
 | `20260903081642_a4976b0d…` | M1: `source` immutable + гейт цін групових (аудит 02.09) | хеш-файл Lovable | ✅ |
 | `20260903100000_lessons_visible_currency` | M4: `currency` у `lessons_visible` (валюта пари) | `lessons_visible` Row має `currency` | ⏳ чекає Run |
 | `20260903110000_money_by_currency` | M3: `manager_debts_by_currency()`, `get_people_aggregates` + `unpaid_by_currency` | `manager_debts_by_currency`, `unpaid_by_currency` у types | ⏳ чекає Run (після 100000) |
+| `20260903150000_finances_period_totals` | M2 (справжній): підсумки /finances рахує база через `lessons_visible` (INVOKER) | `finances_period_totals` у types | ⏳ чекає Run (після 110000) |

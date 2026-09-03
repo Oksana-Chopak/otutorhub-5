@@ -1040,7 +1040,9 @@ export const en: LocaleTranslations = {
 
     truncatedBody: "Income, expenses and profit are computed from the shown part only. Narrow the period to see exact figures.",
 
-    stornoNote: "Reversal of an erroneous prepayment",},
+    stornoNote: "Reversal of an erroneous prepayment",
+
+    totalsParityMismatch: "⚠️ Database and app totals disagree — please screenshot this for Claude.",},
 
   subjectSelect: {
     removeItem: "Remove",

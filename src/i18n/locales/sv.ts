@@ -786,7 +786,8 @@ export const sv: LocaleTranslations = {
     exportKindNotPaidOut: "Ej utbetalt",
     truncatedTitle: "Visar de första {{shown}} av {{total}} poster i år — summorna är ofullständiga",
     truncatedBody: "Intäkter, utgifter och vinst beräknas bara från den visade delen. Begränsa perioden för exakta siffror.",
-    stornoNote: "Återföring av felaktig förskottsbetalning",},
+    stornoNote: "Återföring av felaktig förskottsbetalning",
+    totalsParityMismatch: "⚠️ Databasens och appens summor stämmer inte överens — skärmdumpa detta till Claude.",},
   subjectSelect: {
     removeItem: "Ta bort",
     customPlaceholder: "Eller skriv ett eget ämne…",
