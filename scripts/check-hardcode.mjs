@@ -75,6 +75,23 @@ for (const file of getAllFiles(SRC)) {
 
     if (!hasCyrillic(line)) continue;
 
+    // H1 (аудит 02.09): наявність t( на рядку ≠ рядок перекладений. Три форми
+    // ховали 103 українські рядки від цього гейта:
+    //   t("k") || "Укр"                 — || ніколи не спрацьовує (i18next віддає рядок)
+    //   t("k", "Укр")                   — другий аргумент = defaultValue
+    //   t("k", { defaultValue: "Укр" })
+    // Сирий ключ на екрані, якщо переклад відсутній; мертвий хвіст, якщо
+    // присутній. Перевіряється НЕЗАЛЕЖНО від умови «UI-рядок у лапках» нижче —
+    // саме залежність від неї і робила гейт сліпим.
+    const deadFallback =
+      /t\(\s*["'][\w.]+["']\s*\)\s*\|\|\s*["'][^"']*[\u0400-\u04FF]{3,}/.test(line) ||
+      /t\(\s*["'][\w.]+["']\s*,\s*["'][^"']*[\u0400-\u04FF]{3,}/.test(line) ||
+      /t\(\s*["'][\w.]+["']\s*,\s*\{[^}]*defaultValue:\s*["'][^"']*[\u0400-\u04FF]{3,}/.test(line);
+    if (deadFallback) {
+      issues.push({ line: i + 1, text: "[dead-fallback] " + stripped.slice(0, 64) });
+      continue;
+    }
+
     // Check if it's a UI string not wrapped in t()
     if (/["'`>].*[\u0400-\u04FF]{3,}.*["'`<]/.test(line)) {
       if (!/\bt\(/.test(line)) {

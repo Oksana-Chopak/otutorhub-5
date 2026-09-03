@@ -172,7 +172,7 @@ function LessonCardImpl({
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   const isToday = d.toDateString() === today.toDateString();
   const isTomorrow = d.toDateString() === tomorrow.toDateString();
-  const relLabel = isToday ? t("lessonCard.todayShort", "Сьогодні") : isTomorrow ? t("lessonCard.tomorrowShort", "Завтра") : null;
+  const relLabel = isToday ? t("lessonCard.todayShort") : isTomorrow ? t("lessonCard.tomorrowShort") : null;
   const dow = d.toLocaleDateString(locale, { weekday: "short" }).replace(".", "");
   const dateLabel = d.toLocaleDateString(locale, { day: "numeric", month: "short" }).replace(".", "");
 
@@ -186,10 +186,10 @@ function LessonCardImpl({
 
   const tap = onContentClick ?? onEdit;
   const overflowItems = [
-    onAiNotes ? { ic: Sparkles, t: t("lessonCard.aiNotes", "AI-конспект"), fn: onAiNotes } : null,
-    onEdit && canEdit ? { ic: Pencil, t: t("lessonCard.edit", "Редагувати"), fn: onEdit } : null,
-    onCopy && canCopy ? { ic: Copy, t: t("lessonCard.copy", "Копіювати"), fn: onCopy } : null,
-    onWallet ? { ic: Wallet, t: t("lessonCard.topUp", "Поповнити гаманець"), fn: onWallet } : null,
+    onAiNotes ? { ic: Sparkles, t: t("lessonCard.aiNotes"), fn: onAiNotes } : null,
+    onEdit && canEdit ? { ic: Pencil, t: t("lessonCard.edit"), fn: onEdit } : null,
+    onCopy && canCopy ? { ic: Copy, t: t("lessonCard.copy"), fn: onCopy } : null,
+    onWallet ? { ic: Wallet, t: t("lessonCard.topUp"), fn: onWallet } : null,
     onDelete && canDelete ? { ic: Trash2, t: t("lessonCard.delete"), fn: onDelete, danger: true } : null,
   ].filter(Boolean) as { ic: typeof Pencil; t: string; fn: () => void; danger?: boolean }[];
 
@@ -268,7 +268,7 @@ function LessonCardImpl({
             {overflowItems.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button className="tap-44" aria-label={t("lessonCard.actions", "Дії")} style={{ width: 34, height: 34, borderRadius: 999, border: "none", cursor: "pointer", background: "transparent", color: L.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <button className="tap-44" aria-label={t("lessonCard.actions")} style={{ width: 34, height: 34, borderRadius: 999, border: "none", cursor: "pointer", background: "transparent", color: L.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <MoreVertical size={20} />
                   </button>
                 </DropdownMenuTrigger>
@@ -328,14 +328,14 @@ function LessonCardImpl({
                 payment), so this row is hidden and only their payout row shows — no phantom
                 zero-price tappable toggle. */}
             {lesson.student_price != null && (
-              <PayRow currency={lesson.currency} icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
+              <PayRow currency={lesson.currency} icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid")} pendLabel={t("lessonCard.pending")}
                 onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />
             )}
             {/* FINANCE INVARIANT: tutor_payout НІКОЛИ не підмінюється student_price.
                 Якщо сторінка не завантажила payout — рядок не рендеримо взагалі:
                 краще відсутність цифри, ніж чужа цифра (баг «виплата = оплата», 10.06–01.08). */}
             {withPayout && lesson.tutor_payout != null && (
-              <PayRow currency={lesson.currency} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut", "Виплачено")} pendLabel={t("lessonCard.toPayout", "До виплати")}
+              <PayRow currency={lesson.currency} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut")} pendLabel={t("lessonCard.toPayout")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />
             )}
           </div>

@@ -1595,7 +1595,7 @@ export default function ChatsPage() {
             </div>
             <SheetHeader className="px-4 pb-2 flex-shrink-0">
               <SheetTitle className="text-left text-[16px]">
-                {t("chats.context", "Контекст учня")}
+                {t("chats.context")}
               </SheetTitle>
             </SheetHeader>
             <ChatContextPanel

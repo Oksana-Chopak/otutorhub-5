@@ -360,8 +360,8 @@ export function LessonWorkspace({
     maybeAutoStartFireflies(lessonId, effectiveMeetingUrl).then((started) => {
       if (started) {
         toast({
-          title: t("lessonWorkspaceExtra.aiAutoStarted", "✨ AI-конспект"),
-          description: t("lessonWorkspaceExtra.aiAutoStartedDesc", "Запис цього уроку розпочато автоматично."),
+          title: t("lessonWorkspaceExtra.aiAutoStarted"),
+          description: t("lessonWorkspaceExtra.aiAutoStartedDesc"),
         });
       }
     });
@@ -956,7 +956,7 @@ export function LessonWorkspace({
       {isTutor && statusLocal === "completed" && (
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-border bg-background/50 p-4 md:col-span-2">
           <p className="text-sm text-muted-foreground">
-            {t("requestReview.tutorHint") || "Попросіть учня залишити відгук про цей урок 🌟"}
+            {t("requestReview.tutorHint")}
           </p>
           <RequestReviewButton tutorId={tutorId} studentId={studentId} />
         </section>

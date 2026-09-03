@@ -12,8 +12,8 @@ export function BackToProfile({ to = "/profile", label }: { to?: string; label?:
   const navigate = useNavigate();
   const { t } = useTranslation();
   const autoLabel = to === "/finances"
-    ? (t("common.backToFinances") || "Назад до Фінансів")
-    : (t("common.backToProfile") || "Назад до профілю");
+    ? (t("common.backToFinances"))
+    : (t("common.backToProfile"));
   return (
     <div className="mt-8 mb-2 flex justify-center">
       <button

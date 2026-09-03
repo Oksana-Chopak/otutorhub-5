@@ -488,7 +488,7 @@ export default function ProfilePage() {
     const first = editFirst.trim();
     const last = editLast.trim();
     if (!first && !last) {
-      toast.error(t("profile.editNameRequired") || "Введіть ім'я");
+      toast.error(t("profile.editNameRequired"));
       return;
     }
     setSavingProfile(true);
@@ -518,13 +518,13 @@ export default function ProfilePage() {
       setSavingProfile(false);
       if (error || cErr) {
         console.error(error ?? cErr);
-        toast.error(t("profile.editSaveFailed") || "Не вдалося зберегти");
+        toast.error(t("profile.editSaveFailed"));
         return;
       }
       setProfileName({ first, last });
       setContacts((c) => ({ ...c, email: editEmail.trim(), phone: editPhone.trim(), telegram: editTelegram.trim() }));
       setActiveSheet(null);
-      toast.success(t("profile.editSaved") || "Профіль оновлено");
+      toast.success(t("profile.editSaved"));
     } finally {
       setSavingProfile(false);
     }
@@ -590,7 +590,7 @@ export default function ProfilePage() {
                     <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 19, color: P.txt, lineHeight: 1.2 }}>{mgrName}</p>
                     <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>{t("profile.managerSub")}</p>
                   </div>
-                  <button onClick={openEditProfile} aria-label={t("profile.editTitle") || "Редагувати профіль"}
+                  <button onClick={openEditProfile} aria-label={t("profile.editTitle")}
                     className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-muted"
                     style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                     <Pencil size={14} style={{ color: P.sub }} />
@@ -640,7 +640,7 @@ export default function ProfilePage() {
             </div>
             <div className="px-5 py-4">
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "var(--ds-txt,#0f0f1a)", marginBottom: 4 }}>
-                {t("profile.editTitle") || "Редагувати профіль"}
+                {t("profile.editTitle")}
               </p>
               <div style={{ display: "flex", justifyContent: "center", margin: "12px 0 18px" }}>
                 <AvatarUploader
@@ -653,15 +653,15 @@ export default function ProfilePage() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
-                  {t("profile.editFirstName") || "Ім'я"}
+                  {t("profile.editFirstName")}
                 </label>
-                <Input aria-label={t("profile.editFirstName") || "Ім'я"} value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-11 rounded-[12px] text-[15px]" />
+                <Input aria-label={t("profile.editFirstName")} value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName")} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <div style={{ marginBottom: 4 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
-                  {t("profile.editLastName") || "Прізвище"}
+                  {t("profile.editLastName")}
                 </label>
-                <Input aria-label={t("profile.editLastName") || "Прізвище"} value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-11 rounded-[12px] text-[15px]" />
+                <Input aria-label={t("profile.editLastName")} value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName")} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <button onClick={saveProfile} disabled={savingProfile}
                 style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
@@ -669,7 +669,7 @@ export default function ProfilePage() {
                   color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: savingProfile ? "default" : "pointer", opacity: savingProfile ? 0.7 : 1,
                   boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
-                {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
+                {savingProfile ? "…" : (t("profile.editSave"))}
               </button>
             </div>
           </SheetContent>
@@ -714,7 +714,7 @@ export default function ProfilePage() {
                 {/* Edit button */}
                 <button
                   onClick={openEditProfile}
-                  aria-label={t("profile.editTitle") || "Редагувати профіль"}
+                  aria-label={t("profile.editTitle")}
                   className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-muted"
                   style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                   <Pencil size={14} style={{ color: P.sub }} />
@@ -723,8 +723,8 @@ export default function ProfilePage() {
               {/* Stats */}
               <div style={{ display: "flex", gap: 16, marginTop: 14, paddingTop: 14, borderTop: `1px solid ${P.border}` }}>
                 {[
-                  { val: studentCount, label: t("profile.statsStudents") || "учнів" },
-                  { val: subjects.length, label: t("profile.statsSubjects") || "предметів" },
+                  { val: studentCount, label: t("profile.statsStudents") },
+                  { val: subjects.length, label: t("profile.statsSubjects") },
                 ].map(({ val, label }) => (
                   <div key={label}>
                     <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 20, color: P.txt }}>{val}</span>
@@ -786,24 +786,24 @@ export default function ProfilePage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontFamily: P.display, fontWeight: 700, fontSize: 15, color: P.txt }}>
-                  {gamLevel ? `${gamLevel.emoji} ${gamLevel.name}` : (t("profile.itemAchievements") || "Досягнення")}
+                  {gamLevel ? `${gamLevel.emoji} ${gamLevel.name}` : (t("profile.itemAchievements"))}
                 </p>
                 <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 1 }}>
                   {(gamStreak?.current_streak ?? 0) > 0 || gamBadges.length > 0
                     ? `🔥 ${t("profile.achStreak", { count: gamStreak?.current_streak ?? 0 })} · 🏅 ${t("profile.achBadges", { count: gamBadges.length })}`
-                    : (t("profile.achStart") || "Проведи урок — розпочни свою серію 🔥")}
+                    : (t("profile.achStart"))}
                 </p>
               </div>
               <ChevronRight size={17} style={{ color: P.muted, flexShrink: 0 }} />
             </button>
             {isIndependent && (
-              <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
+              <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals")}
                 val={t("profile.referralBonusVal")} onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
             )}
           </Sec>
 
           {/* ── Reward theme ───────────────────────────────────────────────── */}
-          <Sec title={t("profile.sectionRewards") || "СТИЛЬ НАГОРОД"}>
+          <Sec title={t("profile.sectionRewards")}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, padding: "12px 12px 14px" }}>
               {THEMES.map(({ key, emoji, label }) => {
                 const active = (settings?.reward_theme as string ?? "fruits") === key;
@@ -827,23 +827,23 @@ export default function ProfilePage() {
 
         {/* ── Settings section (full-width) ──────────────────────────────────── */}
         <div className="mt-4">
-          <Sec title={t("profile.sectionSettings") || "НАЛАШТУВАННЯ"}>
+          <Sec title={t("profile.sectionSettings")}>
             {/* Payment-rules (cancellation/prepay policy) + auto-mark are independent-tutor
                 billing features. A hub tutor's billing is the hub's job, so hide them. */}
             {isIndependent && (
-              <NavRow icon={<ShieldAlert size={18} />} label={t("profile.rowPayRules") || "Правила оплати"}
+              <NavRow icon={<ShieldAlert size={18} />} label={t("profile.rowPayRules")}
                 val={payRuleVal} onClick={() => setActiveSheet("rules")} />
             )}
             {isIndependent && (
-              <NavRow icon={<CheckCircle2 size={18} />} label={t("profile.rowAutoMark") || "Відмітка уроків"}
+              <NavRow icon={<CheckCircle2 size={18} />} label={t("profile.rowAutoMark")}
                 val={autoMarkVal} onClick={() => setActiveSheet("automark")} />
             )}
-            <NavRow icon={<BookOpen size={18} />} label={t("profile.rowSubjects") || "Предмети"}
+            <NavRow icon={<BookOpen size={18} />} label={t("profile.rowSubjects")}
               val={subjectsVal} onClick={() => setActiveSheet("subjects")} />
             <NavRow icon={<Calendar size={18} />} label={t("profile.rowCalendar") || "Google Calendar"}
               val={calVal} valColor={calendarConnected ? P.tealD : undefined}
               onClick={() => setActiveSheet("calendar")} />
-            <NavRow icon={<CalendarClock size={18} />} label={t("profile.rowAvailability") || "Доступність"}
+            <NavRow icon={<CalendarClock size={18} />} label={t("profile.rowAvailability")}
               onClick={() => setActiveSheet("availability")} noBorder />
           </Sec>
         </div>
@@ -854,7 +854,7 @@ export default function ProfilePage() {
         {canSee("setupGuide", roleFlags) && (
           <div className="mt-4">
             <Sec>
-              <NavRow icon={<Sparkles size={18} />} label={t("profile.rowGuide") || "Гайд по налаштуванню"}
+              <NavRow icon={<Sparkles size={18} />} label={t("profile.rowGuide")}
                 onClick={() => { window.location.href = "/onboarding"; }} noBorder />
             </Sec>
           </div>
@@ -886,10 +886,10 @@ export default function ProfilePage() {
             </div>
             <div className="px-5 py-4">
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "var(--ds-txt,#0f0f1a)", marginBottom: 4 }}>
-                {t("profile.editTitle") || "Редагувати профіль"}
+                {t("profile.editTitle")}
               </p>
               <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#666b82)", marginBottom: 16 }}>
-                {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
+                {t("profile.editSubtitle")}
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
                 <AvatarUploader
@@ -902,29 +902,29 @@ export default function ProfilePage() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
-                  {t("profile.editFirstName") || "Ім'я"}
+                  {t("profile.editFirstName")}
                 </label>
-                <Input aria-label={t("profile.editFirstName") || "Ім'я"}
+                <Input aria-label={t("profile.editFirstName")}
                   value={editFirst}
                   onChange={(e) => setEditFirst(e.target.value)}
-                  placeholder={t("profile.editFirstName") || "Ім'я"}
+                  placeholder={t("profile.editFirstName")}
                   className="h-11 rounded-[12px] text-[15px]"
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
-                  {t("profile.editLastName") || "Прізвище"}
+                  {t("profile.editLastName")}
                 </label>
-                <Input aria-label={t("profile.editLastName") || "Прізвище"}
+                <Input aria-label={t("profile.editLastName")}
                   value={editLast}
                   onChange={(e) => setEditLast(e.target.value)}
-                  placeholder={t("profile.editLastName") || "Прізвище"}
+                  placeholder={t("profile.editLastName")}
                   className="h-11 rounded-[12px] text-[15px]"
                 />
               </div>
               {/* Primary contacts inline — one expressive form instead of a hop */}
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 13, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--sub,#666b82)", margin: "16px 0 8px" }}>
-                {t("profile.editContacts") || "Контактні дані"}
+                {t("profile.editContacts")}
               </p>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
@@ -940,7 +940,7 @@ export default function ProfilePage() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
-                  {t("shared.phone", { defaultValue: "Телефон" })}
+                  {t("shared.phone")}
                 </label>
                 <Input aria-label={t("profile.phone")}
                   type="tel"
@@ -969,7 +969,7 @@ export default function ProfilePage() {
                   color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: savingProfile ? "default" : "pointer", opacity: savingProfile ? 0.7 : 1,
                   boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
-                {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
+                {savingProfile ? "…" : (t("profile.editSave"))}
               </button>
 
               {/* Contact details */}
@@ -983,7 +983,7 @@ export default function ProfilePage() {
                   <Mail size={18} style={{ color: "var(--sub,#666b82)" }} />
                   <span style={{ textAlign: "left" }}>
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
-                      {t("profile.editSocials") || "Соцмережі та месенджери"}
+                      {t("profile.editSocials")}
                     </span>
                     <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "var(--sub,#666b82)" }}>
                       {[contacts.instagram_url && "Instagram", contacts.facebook_url && "Facebook", contacts.messenger_url && "Messenger"].filter(Boolean).join(" · ") || (t("profile.editSocialsHint") || "Instagram, Facebook, Messenger")}
@@ -997,7 +997,7 @@ export default function ProfilePage() {
               <div style={{ marginTop: 18 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                   <span style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
-                    {t("profile.reviewsTitle") || "Відгуки учнів"}
+                    {t("profile.reviewsTitle")}
                   </span>
                   {(ratingAgg || reviews.length > 0) && (
                     <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
@@ -1010,7 +1010,7 @@ export default function ProfilePage() {
                 </div>
                 {reviews.length === 0 ? (
                   <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#666b82)", padding: "10px 0" }}>
-                    {t("profile.reviewsEmpty") || "Відгуки з'являться, коли учні оцінять твої уроки 🌟"}
+                    {t("profile.reviewsEmpty")}
                   </p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

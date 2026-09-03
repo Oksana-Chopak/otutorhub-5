@@ -132,14 +132,14 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
       });
       setSaving(false);
       if (error) {
-        toast.error(t("reviewPrompt.saveFailed") || "Не вдалося надіслати відгук");
+        toast.error(t("reviewPrompt.saveFailed"));
         return;
       }
       // Reviewing is a prosocial "win" we actively solicit — celebrate it like
       // homework-done (haptic + confetti), not just a silent toast.
       hapticSuccess();
       burstConfetti({ count: 14 });
-      toast.success(t("reviewPrompt.thanks") || "Дякуємо за відгук! 🌟");
+      toast.success(t("reviewPrompt.thanks"));
       setRating(0);
       setHover(0);
       setComment("");
@@ -184,7 +184,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
         </div>
         <button
           onClick={skip}
-          aria-label={t("reviewPrompt.skip") || "Пропустити"}
+          aria-label={t("reviewPrompt.skip")}
           className="hover:bg-black/5"
           style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
@@ -214,10 +214,10 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
       {/* Comment + submit appear after a rating is chosen */}
       {rating > 0 && (
         <div className="ds-pop-in">
-          <textarea aria-label={t("reviewPrompt.commentPlaceholder") || "Додай кілька слів (необов'язково)…"}
+          <textarea aria-label={t("reviewPrompt.commentPlaceholder")}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder={t("reviewPrompt.commentPlaceholder") || "Додай кілька слів (необов'язково)…"}
+            placeholder={t("reviewPrompt.commentPlaceholder")}
             rows={2}
             style={{
               width: "100%", borderRadius: 12, border: "1px solid var(--ds-border,#eceef3)", padding: "10px 12px",
@@ -238,7 +238,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
             }}
           >
             {saving && <Loader2 size={16} className="animate-spin" />}
-            {t("reviewPrompt.submit") || "Надіслати відгук"}
+            {t("reviewPrompt.submit")}
           </button>
         </div>
       )}

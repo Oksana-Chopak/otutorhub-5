@@ -184,15 +184,14 @@ export default function MyReferralsPage() {
   const progress = Math.min(100, (monthly / 3) * 100);
 
   const handleCopy = async () => {
-    if (!link) { toast.error(t("referralWidget.linkLoading") || "Посилання ще завантажується"); return; }
+    if (!link) { toast.error(t("referralWidget.linkLoading")); return; }
     await navigator.clipboard.writeText(link);
     setCopied(true);
     toast.success(t("referralWidget.linkCopied"));
     setTimeout(() => setCopied(false), 1600);
   };
 
-  const inviteText = t("referralWidget.inviteText") ||
-    "Приєднуйся до oTutorHub — застосунку, що веде всю репетиторську практику в одному місці. 21 день безкоштовно за моїм посиланням 👇";
+  const inviteText = t("referralWidget.inviteText");
 
   // P0.1: локальна обгортка ЗАТІНЯЛА імпорт і викликала САМА СЕБЕ —
   // RangeError на головному CTA рефералки. Інше ім'я = інше життя.
@@ -247,10 +246,10 @@ export default function MyReferralsPage() {
             on desktop the bell lives in the sidebar. So this page must NOT add its own bell. */}
         <div className="mb-4 hidden lg:block">
           <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub }}>
-            {t("myReferrals.kicker") || "Реферальна програма"}
+            {t("myReferrals.kicker")}
           </div>
           <h1 style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>
-            {t("myReferrals.heroTitle") || "Запроси колегу"}
+            {t("myReferrals.heroTitle")}
           </h1>
         </div>
 
@@ -285,8 +284,8 @@ export default function MyReferralsPage() {
                   <Heart size={21} />
                 </div>
                 <div>
-                  <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 16 }}>{t("myReferrals.yourLinkTitle") || "Твоє посилання"}</div>
-                  <div style={{ fontSize: 14, color: R.sub }}>{t("myReferrals.yourLinkSub") || "Поділись — і отримуй місяці підписки"}</div>
+                  <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 16 }}>{t("myReferrals.yourLinkTitle")}</div>
+                  <div style={{ fontSize: 14, color: R.sub }}>{t("myReferrals.yourLinkSub")}</div>
                 </div>
               </div>
 
@@ -298,7 +297,7 @@ export default function MyReferralsPage() {
                     {linkLabel || "…"}
                   </span>
                 </div>
-                <button onClick={handleCopy} aria-label={t("referralWidget.copy") || "Копіювати"}
+                <button onClick={handleCopy} aria-label={t("referralWidget.copy")}
                   style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: "pointer",
                     background: copied ? "rgba(34,197,94,.16)" : R.surface, color: copied ? R.successD : R.txt,
                     boxShadow: `inset 0 0 0 1px ${R.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -306,7 +305,7 @@ export default function MyReferralsPage() {
                 </button>
                 <Popover open={shareOpen} onOpenChange={setShareOpen}>
                   <PopoverTrigger asChild>
-                    <button disabled={!link} aria-label={t("referralWidget.share") || "Поділитися"}
+                    <button disabled={!link} aria-label={t("referralWidget.share")}
                       style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: link ? "pointer" : "default",
                         background: R.gradTeal, color: "#0f0f1a", boxShadow: R.shadowTeal, opacity: link ? 1 : 0.6,
                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -315,7 +314,7 @@ export default function MyReferralsPage() {
                   </PopoverTrigger>
                   <PopoverContent align="end" className="w-60 p-2" style={{ borderRadius: 16 }}>
                     <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, color: R.sub, padding: "4px 8px 8px", letterSpacing: ".04em", textTransform: "uppercase" }}>
-                      {t("referralWidget.shareVia") || "Поділитися через"}
+                      {t("referralWidget.shareVia")}
                     </div>
                     {shareTargets().map((s) => (
                       <button key={s.key} onClick={() => openShare(s.href)}
@@ -330,14 +329,14 @@ export default function MyReferralsPage() {
                       className="hover:bg-black/[0.04]"
                       style={{ display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "9px 8px", borderRadius: 10, border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
                       <span style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(43,191,170,.12)", color: R.tealD, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Copy size={16} /></span>
-                      <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{t("referralWidget.copyLink") || "Скопіювати посилання"}</span>
+                      <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{t("referralWidget.copyLink")}</span>
                     </button>
                     {typeof navigator !== "undefined" && "share" in navigator && (
                       <button onClick={nativeShare}
                         className="hover:bg-black/[0.04]"
                         style={{ display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "9px 8px", borderRadius: 10, border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
                         <span style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(15,15,26,.06)", color: R.txt, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Share2 size={16} /></span>
-                        <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{t("referralWidget.moreApps") || "Інше…"}</span>
+                        <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{t("referralWidget.moreApps")}</span>
                       </button>
                     )}
                   </PopoverContent>
@@ -355,7 +354,7 @@ export default function MyReferralsPage() {
 
             {/* Цього місяця */}
             <div>
-              <Label>{t("myReferrals.thisMonth") || "Цього місяця"}</Label>
+              <Label>{t("myReferrals.thisMonth")}</Label>
               <Card style={{ padding: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 6 }}>
                   <span style={{ color: R.sub }}>
@@ -376,13 +375,13 @@ export default function MyReferralsPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Card style={{ padding: 14 }}>
                 <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".08em", color: R.sub, fontFamily: R.display, fontWeight: 700 }}>
-                  {t("myReferrals.invitedLabel") || "Запрошено"}
+                  {t("myReferrals.invitedLabel")}
                 </div>
                 <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 28, marginTop: 4 }}>{referrals.length}</div>
               </Card>
               <Card style={{ padding: 14, background: "rgba(34,197,94,.07)", border: "1px solid rgba(34,197,94,.25)" }}>
                 <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".08em", color: R.successD, fontFamily: R.display, fontWeight: 700 }}>
-                  {t("myReferrals.savedLabel") || "Заощаджено"}
+                  {t("myReferrals.savedLabel")}
                 </div>
                 <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, marginTop: 4, color: R.successD }}>
                   {formatPrice(savedUah, "UAH")}
@@ -392,11 +391,11 @@ export default function MyReferralsPage() {
 
             {/* Твої запрошені */}
             <div>
-              <Label>{t("myReferrals.yourInvitees") || "Твої запрошені"}</Label>
+              <Label>{t("myReferrals.yourInvitees")}</Label>
               <Card style={{ padding: referrals.length ? 6 : 18 }}>
                 {referrals.length === 0 ? (
                   <p style={{ fontSize: 15, color: R.sub, textAlign: "center", lineHeight: 1.5 }}>
-                    {t("myReferrals.inviteesEmpty") || "Ще нікого — поділись посиланням, і запрошені з'являться тут 🌱"}
+                    {t("myReferrals.inviteesEmpty")}
                   </p>
                 ) : (
                   referrals.map((r, i) => {
@@ -406,8 +405,8 @@ export default function MyReferralsPage() {
                       ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: t("myReferrals.pillSubscription") }
                       : { bg: "rgba(43,191,170,.12)", fg: "#1f8e7e", ring: "rgba(43,191,170,.28)", label: t("myReferrals.pillTrial") };
                     const note = isPro
-                      ? (t("myReferrals.noteJoinedPro") || "Приєднав(ла)ся · оформив(ла) підписку")
-                      : (t("myReferrals.noteJoinedTrial") || "Приєднав(ла)ся · на тріалі");
+                      ? (t("myReferrals.noteJoinedPro"))
+                      : (t("myReferrals.noteJoinedTrial"));
                     return (
                       <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderBottom: i < referrals.length - 1 ? `1px solid ${R.border}` : "none" }}>
                         <div style={{ width: 38, height: 38, borderRadius: 999, background: avatarGrad(name), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 14, flexShrink: 0 }}>
@@ -436,7 +435,7 @@ export default function MyReferralsPage() {
             {/* Leaderboard */}
             {leaderboard.length > 0 && (
               <div>
-                <Label>{t("myReferrals.leaderboardTitle") || "Рейтинг місяця"}</Label>
+                <Label>{t("myReferrals.leaderboardTitle")}</Label>
                 <Card style={{ padding: 6 }}>
                   {leaderboard.slice(0, 10).map((row, idx) => {
                     const isMe = row.referrer_id === user?.id;

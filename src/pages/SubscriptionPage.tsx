@@ -366,7 +366,7 @@ export default function SubscriptionPage() {
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
         {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
-          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
+          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker")}</div>
           <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>{t("subscriptionPageExtra.pageTitle")}</h1>
         </div>
 

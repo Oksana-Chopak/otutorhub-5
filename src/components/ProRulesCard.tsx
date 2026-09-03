@@ -183,7 +183,7 @@ export function ProRulesCard() {
         </p>
       )}
       <p style={{ fontSize: 15, color: C.sub, lineHeight: 1.45, margin: "6px 0 16px" }}>
-        {t("proRulesCard.intro") || "Почни з готового шаблону — потім можна тонко налаштувати під себе."}
+        {t("proRulesCard.intro")}
       </p>
 
       {/* Presets */}
@@ -198,7 +198,7 @@ export function ProRulesCard() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17 }}>{p.title}</span>
-                  {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 14, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen") || "Обрано"}</span>}
+                  {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 14, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen")}</span>}
                 </div>
                 <div style={{ fontSize: 14, color: C.sub, marginTop: 2, lineHeight: 1.4 }}>{p.desc}</div>
               </div>
@@ -213,7 +213,7 @@ export function ProRulesCard() {
       {/* Summary */}
       <div style={{ marginTop: 14, borderRadius: 16, padding: 16, background: "rgba(43,191,170,.06)", border: `1px solid ${C.tealRing}` }}>
         <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".08em", color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>
-          {t("proRulesCard.summary") || "Підсумок"}{activePreset ? ` · ${activePreset.title}` : ` · ${t("proRulesCard.custom") || "Власні"}`}
+          {t("proRulesCard.summary")}{activePreset ? ` · ${activePreset.title}` : ` · ${t("proRulesCard.custom")}`}
         </div>
         <div style={{ fontSize: 15, lineHeight: 1.5, marginTop: 8 }}>{summaryText()}</div>
       </div>
@@ -226,8 +226,8 @@ export function ProRulesCard() {
             <SlidersHorizontal size={18} />
           </span>
           <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-            <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.fineTune") || "Тонке налаштування"}</span>
-            <span style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>{t("proRulesCard.fineTuneSub") || "Зміни вікно, оплати й перенесення"}</span>
+            <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.fineTune")}</span>
+            <span style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>{t("proRulesCard.fineTuneSub")}</span>
           </span>
         </span>
         <ChevronDown size={18} style={{ color: C.muted, transform: tuneOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
@@ -237,8 +237,8 @@ export function ProRulesCard() {
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 18, opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? "none" : "auto" }}>
           {/* Free window */}
           <div>
-            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.freeWindow") || "Безкоштовне вікно"}</div>
-            <div style={{ fontSize: 14, color: C.sub, marginTop: 1, marginBottom: 9 }}>{t("proRulesCard.freeWindowHint") || "За скільки годин до уроку можна скасувати безкоштовно"}</div>
+            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.freeWindow")}</div>
+            <div style={{ fontSize: 14, color: C.sub, marginTop: 1, marginBottom: 9 }}>{t("proRulesCard.freeWindowHint")}</div>
             <div style={{ display: "flex", gap: 8 }}>
               {[6, 12, 24, 48].map((h) => {
                 const on = state.cancel_free_hours === h;
@@ -246,7 +246,7 @@ export function ProRulesCard() {
                   <button key={h} onClick={() => set("cancel_free_hours", h)} type="button"
                     style={{ flex: 1, height: 48, borderRadius: 12, cursor: "pointer", fontFamily: C.display, fontWeight: 700, fontSize: 14,
                       border: `1.5px solid ${on ? C.teal : C.border}`, background: on ? C.tealL : C.surface, color: on ? C.tealD : C.txt }}>
-                    {h} {t("proRulesCard.hoursShort") || "год"}
+                    {h} {t("proRulesCard.hoursShort")}
                   </button>
                 );
               })}

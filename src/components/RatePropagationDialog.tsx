@@ -137,7 +137,7 @@ export function RatePropagationDialog({
         </RadioGroup>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>{t("common.cancel") || "Скасувати"}</AlertDialogCancel>
+          <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={busy}
             onClick={(e) => { e.preventDefault(); apply(); }}

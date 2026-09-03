@@ -1291,20 +1291,20 @@ export default function FinancesPage() {
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {/* Mobile sort controls */}
         <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[14px] lg:hidden">
-          <span className="mr-1 text-muted-foreground">{t("finances.sortBy", { defaultValue: "Сорт.:" })}</span>
+          <span className="mr-1 text-muted-foreground">{t("finances.sortBy")}</span>
           <MobileSortChip
             label={t("finances.colDate")}
             active={sort?.key === "starts_at" ? sort.dir : null}
             onClick={() => cycleSort("starts_at")}
           />
           <MobileSortChip
-            label={t("finances.sortPaidShort", { defaultValue: "Оплата" })}
+            label={t("finances.sortPaidShort")}
             active={sort?.key === "student_paid_at" ? sort.dir : null}
             onClick={() => cycleSort("student_paid_at")}
           />
           {!isIndependentTutor && (
             <MobileSortChip
-              label={t("finances.sortPayoutShort", { defaultValue: "Виплата" })}
+              label={t("finances.sortPayoutShort")}
               active={sort?.key === "tutor_paid_at" ? sort.dir : null}
               onClick={() => cycleSort("tutor_paid_at")}
             />
@@ -1487,10 +1487,10 @@ export default function FinancesPage() {
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">
                   <SortHeader
                     label={t("finances.colDate")}
-                    sublabel={t("finances.sortByLessonDate", { defaultValue: "за датою уроку" })}
+                    sublabel={t("finances.sortByLessonDate")}
                     active={sort?.key === "starts_at" ? sort.dir : null}
                     onClick={() => cycleSort("starts_at")}
-                    title={t("finances.sortByLessonDate", { defaultValue: "Сортувати за датою уроку" })}
+                    title={t("finances.sortByLessonDate")}
                   />
                 </th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
@@ -1499,10 +1499,10 @@ export default function FinancesPage() {
                   <SortHeader
                     align="right"
                     label={t("finances.colIncome")}
-                    sublabel={t("finances.sortByPaidDateShort", { defaultValue: "за датою оплати" })}
+                    sublabel={t("finances.sortByPaidDateShort")}
                     active={sort?.key === "student_paid_at" ? sort.dir : null}
                     onClick={() => cycleSort("student_paid_at")}
-                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати від учня" })}
+                    title={t("finances.sortByPaidDate")}
                   />
                 </th>
                 {!isIndependentTutor && (
@@ -1513,10 +1513,10 @@ export default function FinancesPage() {
                     <SortHeader
                       align="right"
                       label={t("finances.colPayout")}
-                      sublabel={t("finances.sortByPayoutDateShort", { defaultValue: "за датою виплати" })}
+                      sublabel={t("finances.sortByPayoutDateShort")}
                       active={sort?.key === "tutor_paid_at" ? sort.dir : null}
                       onClick={() => cycleSort("tutor_paid_at")}
-                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати репетитору" })}
+                      title={t("finances.sortByPayoutDate")}
                     />
                   </th>
                 )}
@@ -1697,10 +1697,10 @@ export default function FinancesPage() {
 
   const periodLabel =
     period === "week"
-      ? t("finances.periodWeek", { defaultValue: "Цей тиждень" })
+      ? t("finances.periodWeek")
       : period === "month"
-      ? t("finances.periodMonth", { defaultValue: "Цей місяць" })
-      : t("finances.periodAll", { defaultValue: "Весь час" });
+      ? t("finances.periodMonth")
+      : t("finances.periodAll");
 
 
   // ── Independent Tutor Cockpit computed values ─────────────────────────────
@@ -2807,7 +2807,7 @@ export default function FinancesPage() {
                 )}
                 <SummaryStat
                   icon={DollarSign}
-                  label={t("finances.debtsTab", { defaultValue: "Заборгованості" })}
+                  label={t("finances.debtsTab")}
                   value={isIndependentTutor ? fmtCurList(pendingByCur) : formatPrice(totalDebt, "UAH")}
                   tone={parity && !parity.ok ? "warning" : totalDebt > 0 ? "warning" : "neutral"}
                 />
@@ -2940,14 +2940,14 @@ export default function FinancesPage() {
             <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,var(--ds-border,#eceef3))"}}>
               <TabsTrigger value="income" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <ArrowDownLeft className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
-                <span className="sm:hidden">{t("finances.incomeTabShort", { defaultValue: "Доходи" })}</span>
+                <span className="hidden sm:inline">{t("finances.incomeTab")}</span>
+                <span className="sm:hidden">{t("finances.incomeTabShort")}</span>
                 <span className="ml-1 text-[14px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
               </TabsTrigger>
               <TabsTrigger value="debts" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t("finances.debtsTab", { defaultValue: "Заборгованості" })}</span>
-                <span className="sm:hidden">{t("finances.debtsTabShort", { defaultValue: "Борги" })}</span>
+                <span className="hidden sm:inline">{t("finances.debtsTab")}</span>
+                <span className="sm:hidden">{t("finances.debtsTabShort")}</span>
                 <span className="ml-1 text-[14px] text-muted-foreground">({debtsRows.length})</span>
               </TabsTrigger>
             </TabsList>
