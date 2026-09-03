@@ -8,8 +8,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
-const sweep = readFileSync(join(root, "supabase/migrations/20260903180000_hub_scope_policies.sql"), "utf8");
-const model = readFileSync(join(root, "supabase/migrations/20260903170000_hub_id_model.sql"), "utf8");
+const sweep = readFileSync(join(root, "supabase/migrations-deferred/20260903180000_hub_scope_policies.sql"), "utf8");
+const model = readFileSync(join(root, "supabase/migrations-deferred/20260903170000_hub_id_model.sql"), "utf8");
 
 describe("hub_id етап B — свіп політик", () => {
   it("кожен manager-арм у свіпі скоуплений на хаб", () => {
