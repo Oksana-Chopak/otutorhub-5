@@ -11,6 +11,7 @@
  */
 
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 // ─── Типи ────────────────────────────────────────────────────────────────────
 
@@ -106,9 +107,10 @@ export const lessonToasts = {
   },
 
   paymentMarked: (who: "student" | "tutor", amount?: string) => {
-    const label = who === "student" ? "Оплата від учня" : "Виплата репетитору";
-    success(`✓ ${label} зафіксована`, {
-      description: amount ? `Сума: ${amount}` : undefined,
+    // H2: були укр-літерали в lib — тост «✓ Оплата від учня зафіксована» ішов
+    // шведу. Ключі toasts.paymentMarked* у трьох мовах.
+    success(i18n.t(who === "student" ? "toasts.paymentMarkedStudent" : "toasts.paymentMarkedTutor"), {
+      description: amount ? i18n.t("toasts.paymentMarkedSum", { amount }) : undefined,
     });
   },
 

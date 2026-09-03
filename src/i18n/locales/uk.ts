@@ -1033,7 +1033,8 @@ export const uk = {
     exportKindPaidOut: "Виплачено",
     exportKindNotPaidOut: "Не виплачено",
     truncatedTitle: "Показано перші {{shown}} із {{total}} записів за рік — підсумки неповні",
-    truncatedBody: "Дохід, витрати та прибуток порахувані лише з показаної частини. Звузьте період, щоб бачити точні цифри.",},
+    truncatedBody: "Дохід, витрати та прибуток порахувані лише з показаної частини. Звузьте період, щоб бачити точні цифри.",
+    stornoNote: "Скасування помилкової передоплати",},
 
   // Chats
   subjectSelect: {
@@ -4694,6 +4695,41 @@ export const uk = {
   legalNotice: {
     title: "Документ українською",
     body: "Юридично чинною є українська редакція.",
+  },
+
+  requestLabels: {
+    beginner: "Початковий рівень",
+    intermediate: "Середній рівень",
+    advanced: "Просунутий рівень",
+    weekday_morning: "Будні, ранок",
+    weekday_day: "Будні, день",
+    weekday_evening: "Будні, вечір",
+    weekend_morning: "Вихідні, ранок",
+    weekend_day: "Вихідні, день",
+    weekend_evening: "Вихідні, вечір",
+    flexible: "Гнучкий графік",
+    self: "Для себе",
+    child: "Для дитини",
+    other: "Для іншої людини",
+  },
+
+  subjectCatalog: {
+    english: "Англійська",
+    math: "Математика",
+    ukrainian: "Українська",
+    physics: "Фізика",
+    chemistry: "Хімія",
+    german: "Німецька",
+    biology: "Біологія",
+    cs: "Інформатика",
+    history: "Історія",
+    polish: "Польська",
+  },
+
+  toasts: {
+    paymentMarkedStudent: "✓ Оплата від учня зафіксована",
+    paymentMarkedTutor: "✓ Виплата репетитору зафіксована",
+    paymentMarkedSum: "Сума: {{amount}}",
   },
 
 };

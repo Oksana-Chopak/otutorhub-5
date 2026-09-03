@@ -785,7 +785,8 @@ export const sv: LocaleTranslations = {
     exportKindPaidOut: "Utbetalt",
     exportKindNotPaidOut: "Ej utbetalt",
     truncatedTitle: "Visar de första {{shown}} av {{total}} poster i år — summorna är ofullständiga",
-    truncatedBody: "Intäkter, utgifter och vinst beräknas bara från den visade delen. Begränsa perioden för exakta siffror.",},
+    truncatedBody: "Intäkter, utgifter och vinst beräknas bara från den visade delen. Begränsa perioden för exakta siffror.",
+    stornoNote: "Återföring av felaktig förskottsbetalning",},
   subjectSelect: {
     removeItem: "Ta bort",
     customPlaceholder: "Eller skriv ett eget ämne…",
@@ -4691,6 +4692,41 @@ export const sv: LocaleTranslations = {
   legalNotice: {
     title: "Dokumentet är på ukrainska",
     body: "Erbjudandet och integritetspolicyn är bindande dokument enligt ukrainsk lag, därför behåller vi den auktoritativa ukrainska texten i stället för en inofficiell översättning. Behöver du en förklaring av en klausul — skriv till oss så svarar vi skriftligt.",
+  },
+
+  requestLabels: {
+    beginner: "Nybörjare",
+    intermediate: "Medel",
+    advanced: "Avancerad",
+    weekday_morning: "Vardagar, morgon",
+    weekday_day: "Vardagar, dagtid",
+    weekday_evening: "Vardagar, kväll",
+    weekend_morning: "Helger, morgon",
+    weekend_day: "Helger, dagtid",
+    weekend_evening: "Helger, kväll",
+    flexible: "Flexibelt schema",
+    self: "För mig själv",
+    child: "För mitt barn",
+    other: "För någon annan",
+  },
+
+  subjectCatalog: {
+    english: "Engelska",
+    math: "Matematik",
+    ukrainian: "Ukrainska",
+    physics: "Fysik",
+    chemistry: "Kemi",
+    german: "Tyska",
+    biology: "Biologi",
+    cs: "Datavetenskap",
+    history: "Historia",
+    polish: "Polska",
+  },
+
+  toasts: {
+    paymentMarkedStudent: "✓ Elevens betalning registrerad",
+    paymentMarkedTutor: "✓ Lärarens utbetalning registrerad",
+    paymentMarkedSum: "Belopp: {{amount}}",
   },
 
 };

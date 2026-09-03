@@ -299,7 +299,9 @@ export default function FinancesPage() {
           _student_id: deletePrepayTx.student_id,
           _lessons_delta: -(deletePrepayTx.lessons_delta ?? 0),
           _amount_delta: -Number(deletePrepayTx.amount_delta ?? 0),
-          _note: `[storno:${deletePrepayTx.id}] Скасування помилкової передоплати`,
+          // H2: у БД — лише машинний маркер. Українське речення в note показувалось
+          // потім БУДЬ-ЯКОЮ мовою; текст рендер бере з i18n за маркером.
+          _note: `[storno:${deletePrepayTx.id}]`,
         });
         setDeletingPrepay(false);
         if (adjErr) {
@@ -639,6 +641,12 @@ export default function FinancesPage() {
     return tutorScoped.filter((l) => isPayoutDueLesson(l, nowMs));
   }, [tutorScoped]);
 
+  /** H2: нотатка транзакції — маркер → переклад; старі укр-нотатки (до 03.09) показуємо як є. */
+  const noteLabel = (note: string): string => {
+    const m = /^\[storno:[0-9a-fA-F-]+\]\s*(.*)$/.exec(note);
+    if (!m) return note;
+    return m[1].trim() ? m[1].trim() : t("finances.stornoNote");
+  };
   const stornoedIds = useMemo(() => {
     const ids = new Set<string>();
     transactions.forEach((tx) => {
@@ -1333,7 +1341,7 @@ export default function FinancesPage() {
                         {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
                       </p>
                       {tx.note && (
-                        <p className="mt-0.5 truncate text-[14px] text-muted-foreground">{tx.note}</p>
+                        <p className="mt-0.5 truncate text-[14px] text-muted-foreground">{noteLabel(tx.note)}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">

@@ -1,32 +1,19 @@
 // Human-readable labels for tutor-referral-request enum values that come from the
 // "find a tutor" quiz (preferred_level / preferred_times / preferred_days / for-whom).
 // Without this, the manager's request cards show raw values like "advanced" or
-// "weekend_evening". uk-primary (these requests originate from the Ukrainian quiz);
-// unknown values fall back to a humanized form.
+// "weekend_evening".
+//
+// H2 (аудит 02.09): раніше підписи були українськими ЛІТЕРАЛАМИ в коді — менеджер
+// зі шведським інтерфейсом бачив «Будні, вечір». Тепер це ключі i18n
+// (`requestLabels.<value>`); невідоме значення — humanize-фолбек.
+import i18n from "@/i18n";
 
-const LEVEL: Record<string, string> = {
-  beginner: "Початковий рівень",
-  intermediate: "Середній рівень",
-  advanced: "Просунутий рівень",
-};
-
-const TIMES: Record<string, string> = {
-  weekday_morning: "Будні, ранок",
-  weekday_day: "Будні, день",
-  weekday_evening: "Будні, вечір",
-  weekend_morning: "Вихідні, ранок",
-  weekend_day: "Вихідні, день",
-  weekend_evening: "Вихідні, вечір",
-  flexible: "Гнучкий графік",
-};
-
-const FORWHOM: Record<string, string> = {
-  self: "Для себе",
-  child: "Для дитини",
-  other: "Для іншої людини",
-};
-
-const ALL: Record<string, string> = { ...LEVEL, ...TIMES, ...FORWHOM };
+const KNOWN = new Set([
+  "beginner", "intermediate", "advanced",
+  "weekday_morning", "weekday_day", "weekday_evening",
+  "weekend_morning", "weekend_day", "weekend_evening", "flexible",
+  "self", "child", "other",
+]);
 
 function humanize(v: string): string {
   return v.replace(/[_-]+/g, " ").replace(/^\w/, (c) => c.toUpperCase());
@@ -38,6 +25,6 @@ export function prettyRequestValue(v?: string | null): string {
   return v
     .split(/[,\s]+/)
     .filter(Boolean)
-    .map((part) => ALL[part] ?? humanize(part))
+    .map((part) => (KNOWN.has(part) ? i18n.t(`requestLabels.${part}`) : humanize(part)))
     .join(", ");
 }

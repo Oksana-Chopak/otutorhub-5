@@ -33,7 +33,7 @@ const SKIP_FILES = new Set([
 // 01.09: стеля була 50 при фактичних 25 — тобто половину боргу можна було
 // набрати непомітно. Після локалізації /marketing і /audit ставимо ратчет:
 // число може лише падати. Знизив — онови тут.
-const MAX_GLOBAL = 25; // toasts.ts excluded (intentional), decrease each sprint.
+const MAX_GLOBAL = 5; // 03.09: H1+H2 звели 25→4; ratchet — лише вниз.
 
 function getAllFiles(dir) {
   const files = [];

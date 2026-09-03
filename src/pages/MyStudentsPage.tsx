@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SUBJECT_SUGGESTIONS } from "@/lib/subjectCatalog";
 import { copyToClipboard } from "@/lib/clipboard";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
@@ -1072,7 +1073,7 @@ export default function MyStudentsPage() {
               setSubjectDraft("");
               setSubjectOpen(false);
             };
-            const SUBS = ["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Біологія","Інформатика","Історія","Польська"];
+            const SUBS = SUBJECT_SUGGESTIONS.map((k) => t(`subjectCatalog.${k}`));
             const subMatches = SUBS.filter(
               (s) => !subjList.some((v) => v.toLowerCase() === s.toLowerCase()) &&
                 (!subjectDraft || s.toLowerCase().includes(subjectDraft.trim().toLowerCase()))

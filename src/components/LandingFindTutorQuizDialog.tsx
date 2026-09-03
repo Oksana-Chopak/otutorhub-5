@@ -11,20 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { SUBJECT_OPTIONS, subjectEmoji } from "@/lib/subjects";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const SUBJECT_EMOJI: Record<string, string> = {
-  "Математика (німецька програма)": "🧮",
-  "Математика (польська програма)": "🧮",
-  "Англійська мова": "🇬🇧",
-  "Шведська мова": "🇸🇪",
-  "Польська мова": "🇵🇱",
-  "Німецька мова": "🇩🇪",
-};
 
 const LEVELS = [
   { value: "beginner", label: "Починаю з нуля", emoji: "🐣" },
@@ -256,7 +248,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                         : "border-border hover:border-primary/40",
                     )}
                   >
-                    <span className="text-2xl">{SUBJECT_EMOJI[s] ?? "📖"}</span>
+                    <span className="text-2xl">{subjectEmoji(s)}</span>
                     <span className="text-[14px] font-medium leading-tight">{s}</span>
                   </button>
                 );

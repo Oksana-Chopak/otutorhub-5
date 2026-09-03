@@ -7,19 +7,12 @@ import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyManagers } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
-import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { SUBJECT_OPTIONS, subjectEmoji } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Loader2, Check, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-const SUBJECT_EMOJI: Record<string, string> = {
-  "Математика": "🧮",
-  "Англійська мова": "🇬🇧",
-  "Шведська мова": "🇸🇪",
-  "Польська мова": "🇵🇱",
-  "Німецька мова": "🇩🇪",
-};
 
 interface Props {
   onComplete: () => void;
@@ -238,7 +231,7 @@ export function StudentOnboarding({ onComplete }: Props) {
                       : "border-border hover:border-primary/40"
                   )}
                 >
-                  <span className="text-3xl">{isCustom ? "✏️" : (SUBJECT_EMOJI[s] ?? "📖")}</span>
+                  <span className="text-3xl">{isCustom ? "✏️" : subjectEmoji(s)}</span>
                   <span className="text-[14px] font-medium leading-tight">{s}</span>
                 </button>
               );

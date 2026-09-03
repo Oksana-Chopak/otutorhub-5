@@ -1038,7 +1038,9 @@ export const en: LocaleTranslations = {
 
     truncatedTitle: "Showing the first {{shown}} of {{total}} records this year — totals are incomplete",
 
-    truncatedBody: "Income, expenses and profit are computed from the shown part only. Narrow the period to see exact figures.",},
+    truncatedBody: "Income, expenses and profit are computed from the shown part only. Narrow the period to see exact figures.",
+
+    stornoNote: "Reversal of an erroneous prepayment",},
 
   subjectSelect: {
     removeItem: "Remove",
@@ -4708,6 +4710,41 @@ export const en: LocaleTranslations = {
   legalNotice: {
     title: "This document is in Ukrainian",
     body: "The offer and the privacy policy are binding documents under Ukrainian law, so we keep the authoritative Ukrainian text rather than an unofficial translation. If you need an English explanation of any clause, write to us and we will answer in writing.",
+  },
+
+  requestLabels: {
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced",
+    weekday_morning: "Weekdays, morning",
+    weekday_day: "Weekdays, daytime",
+    weekday_evening: "Weekdays, evening",
+    weekend_morning: "Weekends, morning",
+    weekend_day: "Weekends, daytime",
+    weekend_evening: "Weekends, evening",
+    flexible: "Flexible schedule",
+    self: "For myself",
+    child: "For my child",
+    other: "For someone else",
+  },
+
+  subjectCatalog: {
+    english: "English",
+    math: "Math",
+    ukrainian: "Ukrainian",
+    physics: "Physics",
+    chemistry: "Chemistry",
+    german: "German",
+    biology: "Biology",
+    cs: "Computer science",
+    history: "History",
+    polish: "Polish",
+  },
+
+  toasts: {
+    paymentMarkedStudent: "✓ Student payment recorded",
+    paymentMarkedTutor: "✓ Tutor payout recorded",
+    paymentMarkedSum: "Amount: {{amount}}",
   },
 
 };
