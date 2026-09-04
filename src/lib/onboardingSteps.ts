@@ -9,6 +9,7 @@ export interface StepProgress {
   hasMeetingUrl: boolean;
   hasChat: boolean;
   hasPaidLesson: boolean;
+  hasDebtAnswer: boolean;
   hasPaymentRules: boolean;
   hasAutoCompleteChoice: boolean;
   hasGoogleCalendar: boolean;
@@ -27,6 +28,14 @@ export const ALL_STEPS: StepDef[] = [
   { id:0, emoji:"📚", group:"essential", action:"subject",      xp:25,  title:"step.subject.title",      desc:"step.subject.desc",      cta:"step.subject.cta",    hint:"step.subject.hint",      autoKey:"hasSubject" },
   { id:1, emoji:"👋", group:"essential", action:"student",      xp:50,  title:"step.student.title",      desc:"step.student.desc",      cta:"step.student.cta",    hint:"step.student.hint",      autoKey:"hasStudent" },
   { id:2, emoji:"📅", group:"essential", action:"lesson",       xp:75,  title:"step.lesson.title",       desc:"step.lesson.desc",       cta:"step.lesson.cta",     hint:"step.lesson.hint",       autoKey:"hasLesson" },
+  /* Крок «гроші» стоїть ТРЕТІМ, одразу після першого уроку, і це навмисно.
+     Без нього перша сесія закінчується словами «профіль заповнено», а фінанси
+     лишаються порожніми, поки не мине місяць — тобто цінність приходить
+     ПІЗНО, а рішення платити треба ухвалити РАНО. Репетитор носить суму
+     боргів у голові вже сьогодні; запитати про неї — найдешевший спосіб
+     зробити продукт корисним у перший день. Хабовому не показуємо: розрахунки
+     з учнями веде школа (HUB_SKIP). */
+  { id:13,emoji:"💸", group:"essential", action:"debt",         xp:75,  title:"step.debt.title",         desc:"step.debt.desc",         cta:"step.debt.cta",       hint:"step.debt.hint",         autoKey:"hasDebtAnswer" },
   { id:3, emoji:"🔔", group:"setup",     action:"proRules",     xp:75,  title:"step.proRules.title",     desc:"step.proRules.desc",     cta:"step.proRules.cta",   hint:"step.proRules.hint",     autoKey:"hasPaymentRules" },
   { id:4, emoji:"✅", group:"setup",     action:"autoMark",     xp:50,  title:"step.autoMark.title",     desc:"step.autoMark.desc",     cta:"step.autoMark.cta",   hint:"step.autoMark.hint",     autoKey:"hasAutoCompleteChoice" },
   { id:5, emoji:"🕐", group:"bonus",     action:"availability", xp:75,  title:"step.availability.title", desc:"step.availability.desc", cta:"step.availability.cta", hint:"step.availability.hint", autoKey:"hasAvailability" },

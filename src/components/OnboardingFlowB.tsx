@@ -312,6 +312,156 @@ function StudentAction({ defaultSubject, onComplete, user }: {
   );
 }
 
+/* ── Крок «гроші»: скільки тобі вже винні ────────────────────────────────────
+   Перша сесія має закінчуватись ЧИСЛОМ, а не словами «профіль заповнено».
+   Але в нового репетитора боргів у базі ще немає — бо в базі взагалі нічого
+   немає. Зате вони є в нього в голові: майже кожен, хто приходить у застосунок
+   посеред місяця, уже провів уроки, за які ще не заплатили.
+
+   Тому питаємо прямо і записуємо це як СПРАВЖНІ проведені уроки (completed,
+   не оплачені), а не як абстрактну цифру: далі з ними працює вся звичайна
+   механіка — нагадування, гаманці, фінанси. Ціна підставляється тригером
+   autofill_lesson_prices зі ставки учня, тож окремо її не пишемо. */
+function DebtAction({ studentId, studentName, user, onComplete, onSkip }: {
+  studentId: string | null; studentName: string; user: any;
+  onComplete: (count: number) => void; onSkip: () => void;
+}) {
+  const { t } = useTranslation();
+  const [resolved, setResolved] = useState<{ id: string; name: string; price: number } | null>(null);
+  const [count, setCount] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("student_rates")
+        .select("student_id, price_per_lesson")
+        .eq("tutor_id", user?.id)
+        .eq("source", "independent")
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!active) return;
+      if (error || !data?.student_id) { setLoadFailed(true); return; }
+      const id = (data as any).student_id as string;
+      const price = Number((data as any).price_per_lesson ?? 0);
+      let name = studentName;
+      if (!name) {
+        const { data: p } = await supabase.from("profiles").select("first_name, last_name").eq("id", id).maybeSingle();
+        if (p) name = `${(p as any).first_name ?? ""} ${(p as any).last_name ?? ""}`.trim();
+      }
+      if (active) setResolved({ id, name: name || t("onboardingFlowB.debtStudentFallback"), price });
+    })();
+    return () => { active = false; };
+  }, [studentId, studentName, user?.id]);
+
+  const n = Math.max(0, Math.min(50, parseInt(count || "0", 10) || 0));
+  const total = n * (resolved?.price ?? 0);
+
+  const save = async () => {
+    if (!user || !resolved || n <= 0) return;
+    setSaving(true);
+    /* Дати — назад по тижню від сьогодні: це найпоширеніший ритм занять, і
+       уроки лягають у минуле, тобто одразу рахуються як проведені й неоплачені. */
+    const rows = Array.from({ length: n }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - 7 * (i + 1));
+      d.setHours(18, 0, 0, 0);
+      return {
+        tutor_id: user.id, student_id: resolved.id,
+        subject: t("onboardingFlowB.lessonDefaultSubject"),
+        starts_at: d.toISOString(), duration_minutes: 60,
+        status: "completed" as const, created_by: user.id, source: "independent",
+      };
+    });
+    const { error } = await supabase.from("lessons").insert(rows as any);
+    setSaving(false);
+    if (error) { toast.error(t("onboardingFlowB.debtSaveError")); return; }
+    onComplete(n);
+  };
+
+  if (loadFailed) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-[15px]" style={{ color: T.sub }}>{t("onboardingFlowB.debtNoStudent")}</p>
+        <GhostBtn onClick={onSkip}>{t("onboardingFlowB.debtSkip")}</GhostBtn>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      <p className="text-[15px] leading-relaxed" style={{ color: T.sub }}>
+        {t("onboardingFlowB.debtQuestion", { name: resolved?.name ?? "…" })}
+      </p>
+      <div>
+        <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>
+          {t("onboardingFlowB.debtCountLabel")}
+        </Label>
+        <Input aria-label={t("onboardingFlowB.debtCountLabel")} value={count}
+          onChange={(e) => setCount(e.target.value.replace(/\D/g, "").slice(0, 2))}
+          placeholder="3" inputMode="numeric" className="h-12 rounded-xl text-[15px]" />
+      </div>
+      {n > 0 && resolved && resolved.price > 0 && (
+        <div className="rounded-[14px] p-3.5" style={{ background: T.tealL, border: `1px solid ${T.teal}33` }}>
+          <p className="text-[15px] font-black" style={{ fontFamily: T.display, color: T.tealD }}>
+            {t("onboardingFlowB.debtPreview", {
+              count: n, price: formatPrice(resolved.price, "UAH"), total: formatPrice(total, "UAH"),
+            })}
+          </p>
+        </div>
+      )}
+      <Btn disabled={n <= 0 || saving} onClick={save}>
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.debtSubmit")}
+      </Btn>
+      <GhostBtn onClick={onSkip}>{t("onboardingFlowB.debtNothingOwed")}</GhostBtn>
+    </div>
+  );
+}
+
+/* ── Підсумок першої сесії у грошах ──────────────────────────────────────────
+   Замість «профіль заповнено» фінальний екран має показати ЧИСЛО. Пріоритет:
+   1) реальний борг — найсильніше, це гроші, які людина ризикує втратити;
+   2) якщо боргів немає — місячна вартість практики: скільки проходить через
+      руки цього репетитора. Теж число, теж про гроші, теж правда.
+   Рахуємо з lessons_visible і student_rates, тобто з тих самих джерел, що й
+   /finances — щоб цифра на фініші збігалася з тією, яку він побачить далі. */
+function useFirstSessionMoney(userId: string | undefined, reloadKey: number) {
+  const [state, setState] = useState<{ loading: boolean; debt: number; debtStudents: number; students: number; monthly: number }>(
+    { loading: true, debt: 0, debtStudents: 0, students: 0, monthly: 0 },
+  );
+  useEffect(() => {
+    if (!userId) { setState((p) => ({ ...p, loading: false })); return; }
+    let active = true;
+    (async () => {
+      const [lesRes, rateRes] = await Promise.all([
+        supabase.from("lessons_visible")
+          .select("student_id, student_price, student_payment_status, status")
+          .eq("tutor_id", userId).eq("source", "independent").limit(500),
+        supabase.from("student_rates")
+          .select("student_id, price_per_lesson")
+          .eq("tutor_id", userId).eq("source", "independent").is("archived_at", null).limit(200),
+      ]);
+      if (!active) return;
+      const rows = ((lesRes.data ?? []) as any[]).filter(
+        (l) => l.status === "completed" && (l.student_payment_status ?? "unpaid") === "unpaid" && Number(l.student_price ?? 0) > 0,
+      );
+      const debt = rows.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
+      const debtStudents = new Set(rows.map((l) => l.student_id)).size;
+      const rates = (rateRes.data ?? []) as any[];
+      /* Місячна вартість: 4 уроки на місяць — тижневий ритм, найпоширеніший.
+         Це оцінка, і підпис на екрані каже «≈», а не вдає точність. */
+      const monthly = rates.reduce((sum, r) => sum + Number(r.price_per_lesson ?? 0) * 4, 0);
+      setState({ loading: false, debt, debtStudents, students: rates.length, monthly });
+    })();
+    return () => { active = false; };
+  }, [userId, reloadKey]);
+  return state;
+}
+
 // ── Lesson inline action ──────────────────────────────────────────────────────
 function LessonAction({ studentId, studentName, subject, onComplete, onSkip, user, nav }: {
   studentId: string | null; studentName: string; subject: string;
@@ -1169,7 +1319,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   // steps; subject, Telegram, availability, Zoom, chat, Google Calendar and AI-notes
   // are shared. These role-aware CORE/BONUS/TOTAL_XP shadow the module-level full-list
   // versions, so every reference below is automatically scoped to the visible steps.
-  const HUB_SKIP = new Set(["student", "lesson", "proRules", "autoMark", "referral", "finance"]);
+  const HUB_SKIP = new Set(["student", "lesson", "debt", "proRules", "autoMark", "referral", "finance"]);
   const visibleSteps = isIndependent ? ALL_STEPS : ALL_STEPS.filter((s) => !HUB_SKIP.has(s.action));
   const CORE  = visibleSteps.filter((s) => s.group !== "bonus");
   // A12: ключ «вже редіректили» ставиться ТУТ (прибуття = успішна навігація),
@@ -1185,7 +1335,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const [progress, setProgress]   = useState<StepProgress>({
     hasSubject:false, hasStudent:false, hasLesson:false, hasAvailability:false,
     hasReferral:false, hasMeetingUrl:false, hasChat:false, hasPaidLesson:false, hasTelegram:false,
-    hasPaymentRules:false, hasAutoCompleteChoice:false, hasGoogleCalendar:false,
+    hasPaymentRules:false, hasAutoCompleteChoice:false, hasGoogleCalendar:false, hasDebtAnswer:false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -1223,7 +1373,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       setProgressLoading(true);
       const [studRes, lesRes, paidRes, defRes, tgRes] = await Promise.all([
         safe(supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
-        safe(supabase.from("lessons").select("id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
+        safe(supabase.from("lessons").select("id, status").eq("tutor_id", user.id).eq("source","independent").limit(10), {data:[]} as any),
         // A5: «Перша оплата» нарешті обчислюється, а не вічно false.
         safe(supabase.from("lessons_visible").select("id").eq("tutor_id", user.id).eq("student_payment_status","paid").limit(1), {data:[]} as any),
         // A6: Zoom-бонус ПИШЕ в tutor_student_defaults — прогрес читає ЗВІДТИ ж.
@@ -1236,6 +1386,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
         hasStudent: ((studRes as any).data?.length ?? 0) > 0,
         hasLesson: les.length > 0,
         hasPaidLesson: (((paidRes as any).data?.length ?? 0) > 0),
+        /* Крок «гроші» вважається пройденим, якщо в базі вже є проведений
+           неоплачений урок — тобто відповідь на питання вже дана ділом. */
+        hasDebtAnswer: (les as any[]).some((l: any) => l.status === "completed"),
         hasTelegram: (((tgRes as any).data?.length ?? 0) > 0),
         hasMeetingUrl: (((defRes as any).data ?? []) as any[]).some((d:any) => d.default_meeting_url?.trim()),
         hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
@@ -1258,6 +1411,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   }, [user?.id, reloadKey, settings?.onboarding_completed]);
 
   const reload = useCallback(() => setReloadKey(k => k+1), []);
+  const money = useFirstSessionMoney(user?.id, reloadKey);
 
   // Google Calendar OAuth return
   useEffect(() => {
@@ -1342,14 +1496,63 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
         <div className="min-h-screen" style={{ background: T.bg, fontFamily: T.body }}>
           {/* Centered container — phone width on desktop */}
           <div className="max-w-[430px] mx-auto px-5 pb-6">
+            {/* Перша сесія закінчується ЧИСЛОМ, а не словами «профіль заповнено».
+                Репетитор прийшов не по профіль — він прийшов, щоб не губити гроші.
+                Тому головне тут — сума, і рівно одна дія поруч із нею. */}
             <div className="pt-14 pb-6 text-center">
-              <div className="ob-bounce text-[72px] leading-none">🎉</div>
-              <h1 className="mt-4 text-[27px] font-black tracking-tight" style={{ fontFamily: T.display, letterSpacing: "-0.02em" }}>
-                {t("onboardingFlowB.celebrationTitle")}
-              </h1>
-              <p className="mt-2 text-[15px] leading-relaxed px-6" style={{ color: T.sub }}>
-                {t("onboardingFlowB.celebrationSubtitle")}
-              </p>
+              {money.loading ? (
+                <div className="animate-pulse mx-auto" style={{ height: 108, width: "78%", borderRadius: 18, background: "rgba(0,0,0,.06)" }} />
+              ) : money.debt > 0 ? (
+                <>
+                  <div className="ob-bounce text-[56px] leading-none">💸</div>
+                  <p className="mt-3 text-[15px] font-black uppercase tracking-widest" style={{ color: T.sub, fontFamily: T.display }}>
+                    {t("onboardingFlowB.moneyDebtLabel")}
+                  </p>
+                  <h1 className="mt-1 text-[40px] font-black tracking-tight" style={{ fontFamily: T.display, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
+                    {formatPrice(money.debt, "UAH")}
+                  </h1>
+                  <p className="mt-2 text-[15px] leading-relaxed px-6" style={{ color: T.sub }}>
+                    {t("onboardingFlowB.moneyDebtSub", { count: money.debtStudents })}
+                  </p>
+                  <button
+                    className="mt-5 w-full h-[52px] rounded-2xl font-bold text-white text-base transition-transform active:scale-[.97]"
+                    style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display }}
+                    onClick={async () => {
+                      /* Той самий захист, що й у кнопки нижче: якщо прапорець
+                         не зберігся, репетитора наступного разу знову кине в
+                         онбординг — краще сказати про це зараз. */
+                      const err = await updateSettings({ onboarding_completed: true } as any);
+                      if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; }
+                      logEvent("onboarding_finished_money");
+                      navigate("/finances?tab=debts");
+                    }}>
+                    {t("onboardingFlowB.moneyDebtCta")}
+                  </button>
+                </>
+              ) : money.monthly > 0 ? (
+                <>
+                  <div className="ob-bounce text-[56px] leading-none">📈</div>
+                  <p className="mt-3 text-[15px] font-black uppercase tracking-widest" style={{ color: T.sub, fontFamily: T.display }}>
+                    {t("onboardingFlowB.moneyPracticeLabel")}
+                  </p>
+                  <h1 className="mt-1 text-[40px] font-black tracking-tight" style={{ fontFamily: T.display, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>
+                    ≈ {formatPrice(money.monthly, "UAH")}
+                  </h1>
+                  <p className="mt-2 text-[15px] leading-relaxed px-6" style={{ color: T.sub }}>
+                    {t("onboardingFlowB.moneyPracticeSub", { count: money.students })}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="ob-bounce text-[72px] leading-none">🎉</div>
+                  <h1 className="mt-4 text-[27px] font-black tracking-tight" style={{ fontFamily: T.display, letterSpacing: "-0.02em" }}>
+                    {t("onboardingFlowB.celebrationTitle")}
+                  </h1>
+                  <p className="mt-2 text-[15px] leading-relaxed px-6" style={{ color: T.sub }}>
+                    {t("onboardingFlowB.celebrationSubtitle")}
+                  </p>
+                </>
+              )}
               <div className="mt-4 inline-flex">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
                   style={{ background: "#fef9ec", color: "#92400e", outline: "1.5px solid #fbbf24", fontFamily: T.display }}>
@@ -1486,6 +1689,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                   {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); markDone(step.id); advance(); }} />}
                   {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); markDone(step.id); advance(); reload(); }} />}
                   {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); markDone(step.id); advance(); }} />}
+                  {step.action === "debt"         && <DebtAction    user={user} studentId={addedStudentId} studentName={addedStudentName} onSkip={() => { markDone(step.id); advance(); }} onComplete={() => { markDone(step.id); advance(); reload(); }} />}
                   {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
                   {step.action === "autoMark"     && <AutoMarkAction onComplete={() => { markDone(step.id); advance(); }} />}
                   {step.action === "availability" && <AvailabilityAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
