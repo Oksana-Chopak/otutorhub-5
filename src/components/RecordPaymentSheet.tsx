@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { formatPrice } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,6 +78,12 @@ export function RecordPaymentSheet({
   const [lessonsCount, setLessonsCount] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  // 04.09: дата внесення вручну — передоплату часто позначають ПІЗНІШЕ, ніж учень заплатив.
+  const [paidOn, setPaidOn] = useState<string>(() => {
+    const d = new Date(); d.setSeconds(0, 0);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  });
   const [busy, setBusy] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
 
@@ -156,6 +163,7 @@ export function RecordPaymentSheet({
         _lessons_delta: lessonsDelta,
         _amount_delta: amountDelta,
         _note: note || null,
+        _paid_at: paidOn ? new Date(paidOn).toISOString() : null,
       });
 
       if (error) {
@@ -349,6 +357,15 @@ export function RecordPaymentSheet({
                       ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
                     </p>
                   ) : null}
+                </div>
+
+                {/* 04.09: Дата внесення — вручну. Кейс: учень заплатив у понеділок,
+                    менеджер позначив у четвер; транзакція має жити в понеділку. */}
+                <div>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 6 }}>
+                    {t("recordPaymentExtra.paidOnLabel")}
+                  </p>
+                  <DateTimeField value={paidOn} onChange={setPaidOn} />
                 </div>
 
                 {/* Коментар */}

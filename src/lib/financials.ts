@@ -78,12 +78,27 @@ export const unpaidExpense = (rows: MoneyLesson[]): number =>
  * NB: intentionally NOT time-gated — future unpaid lessons count. This predicate
  * drives every "debt / awaiting payment / remind" surface for ALL roles.
  */
+/**
+ * БОРГ = проведений і не оплачений (рішення власниці 04.09, скасовує 342f20c9 від 06.07).
+ * «Якщо уроки заплановані на пів року вперед — який це борг? Це очікувані платежі».
+ * Запланований неоплачений — див. isExpectedPaymentLesson: окрема цифра, не борг.
+ * Дзеркало в БД: manager_debts_summary / manager_debts_by_currency (20260904…).
+ */
 export const isStudentDebtLesson = (l: MoneyLesson): boolean => {
   if ((l.student_payment_status ?? "unpaid") !== "unpaid") return false;
   if (Number(l.student_price ?? 0) <= 0) return false; // priceless rows aren't receivables
-  if (l.status === "pending") return false;
   if (l.status === "cancelled") return l.is_cancellation_fee === true;
-  return true;
+  return l.status === "completed";
+};
+
+/**
+ * ОЧІКУВАНИЙ ПЛАТІЖ: запланований (ще не проведений) урок без оплати.
+ * Показується як прогноз, окремо від боргу. Ніколи не сумується з боргом.
+ */
+export const isExpectedPaymentLesson = (l: MoneyLesson): boolean => {
+  if ((l.student_payment_status ?? "unpaid") !== "unpaid") return false;
+  if (Number(l.student_price ?? 0) <= 0) return false;
+  return l.status === "scheduled";
 };
 
 /**

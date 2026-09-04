@@ -338,6 +338,15 @@ function LessonCardImpl({
               <PayRow currency={lesson.currency} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut")} pendLabel={t("lessonCard.toPayout")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />
             )}
+            {/* 04.09: для МЕНЕДЖЕРА відсутня виплата — не «нічого», а ПРОБЛЕМА, яку видно.
+                Інваріант «краще відсутність цифри, ніж чужа» лишається — тут не цифра, а
+                позначка «ставку не задано» + єдиний видимий тогл більше не вводить в оману. */}
+            {manager && lesson.tutor_payout == null && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#B4740B" }}>
+                <span aria-hidden>💼</span>
+                <span style={{ fontWeight: 600 }}>{t("lessonCard.payoutMissing")}</span>
+              </div>
+            )}
           </div>
         )}
       </div>

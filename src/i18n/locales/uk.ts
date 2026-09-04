@@ -1052,7 +1052,8 @@ export const uk = {
     truncatedTitle: "Показано перші {{shown}} із {{total}} записів за рік — підсумки неповні",
     truncatedBody: "Дохід, витрати та прибуток порахувані лише з показаної частини. Звузьте період, щоб бачити точні цифри.",
     stornoNote: "Скасування помилкової передоплати",
-    totalsParityMismatch: "⚠️ Підсумки розійшлись. Показано число з бази — воно точніше. Якщо це повторюється, напишіть у підтримку.",},
+    totalsParityMismatch: "⚠️ Підсумки розійшлись. Показано число з бази — воно точніше. Якщо це повторюється, напишіть у підтримку.",
+    expectedPayments: "Очікувані платежі",},
 
   // Chats
   subjectSelect: {
@@ -1616,7 +1617,9 @@ export const uk = {
     now: "● Зараз",
     lesson: "Урок",
     chatAriaLabel: "Чат",
-  },
+  
+
+    payoutMissing: "Ставку репетитора не задано — виплата не порахована",},
 
   weekCalendar: {
     today: "Сьогодні",
@@ -2225,7 +2228,9 @@ export const uk = {
     cancelStreakCta: "Написати",
     seriesEndTitle: "Розклад з {{name}} закінчується",
     seriesEndDesc: "Останній запланований урок — {{date}}. Продовжити ще на кілька тижнів?",
-    seriesEndCta: "Продовжити",},
+    seriesEndCta: "Продовжити",
+    undo: "Скасувати",
+    payoutMarkedToast: "Виплату {{amount}} для {{name}} позначено",},
   notifications: {
     title: "Сповіщення",
     markAllRead: "Позначити всі прочитаними",
@@ -3858,7 +3863,8 @@ export const uk = {
     countPlaceholder: "напр. 5",
     amountPlaceholder: "напр. 1800",
     commentPlaceholder: "напр. готівка 16.05",
-  },
+  
+    paidOnLabel: "Дата внесення",},
   monthlySummaryExtra: {
     shareText: "Мій {{month}} в oTutorHub:\n📚 {{lessons}} уроків проведено",
     shareNavTitle: "Мій підсумок місяця",

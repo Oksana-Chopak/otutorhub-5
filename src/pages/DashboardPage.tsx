@@ -763,8 +763,14 @@ export default function DashboardPage() {
           }),
           {
             description: t("dashboardExtra.paymentCheckFinances"),
-            action: { label: t("nav.finances"), onClick: () => navigate("/finances") },
-          },
+            // 04.09: дія тосту — «Скасувати», не «Фінанси». Відкликати помилкове
+            // позначення важливіше за перехід; у фінанси є меню.
+            action: {
+              label: t("dashboardExtra.undo"),
+              onClick: () => { void updatePayment(lessonId, field, "unpaid" as PaymentStatus); },
+            },
+            duration: 8000,
+          }
         );
       }
     }
@@ -776,6 +782,16 @@ export default function DashboardPage() {
         type: "payout_confirmed",
         title: t("notifications.payoutConfirmedTitle", { amount }),
         link: "/finances",
+      });
+      // 04.09: виплата репетитору — теж із «Скасувати». Помилковий тап на виплаті
+      // раніше не мав дороги назад із того ж екрана.
+      const tutorFirst = profiles[lesson.tutor_id]?.split(" ")[0] ?? "";
+      toast.success(t("dashboardExtra.payoutMarkedToast", { amount, name: tutorFirst }), {
+        action: {
+          label: t("dashboardExtra.undo"),
+          onClick: () => { void updatePayment(lessonId, field, "unpaid" as PaymentStatus); },
+        },
+        duration: 8000,
       });
     }
   };

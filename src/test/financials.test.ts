@@ -11,6 +11,7 @@ import {
   grossMarkupPct,
   sumByCurrency,
   type MoneyLesson,
+  isExpectedPaymentLesson,
 } from "@/lib/financials";
 
 const NOW = new Date("2026-07-01T12:00:00Z").getTime();
@@ -116,12 +117,13 @@ describe("sumByCurrency (multi-currency totals for independent tutors)", () => {
   });
 });
 
-describe("isStudentDebtLesson (PREPAYMENT model — owner rule 2026-07-06)", () => {
-  it("counts unpaid FUTURE lessons as debts (hub students pay before lessons)", () => {
-    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid" }))).toBe(true);
+describe("isStudentDebtLesson (owner rule 2026-09-04: debt = CONDUCTED and unpaid; overrides 2026-07-06)", () => {
+  it("does NOT count unpaid FUTURE lessons as debts — they are expected payments", () => {
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid" }))).toBe(false);
+    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid" }))).toBe(true);
   });
-  it("counts unpaid past + completed lessons", () => {
-    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-06-20T10:00:00Z", student_payment_status: "unpaid" }))).toBe(true);
+  it("counts unpaid completed lessons; an unclosed past 'scheduled' row is not yet a debt (close the day first)", () => {
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-06-20T10:00:00Z", student_payment_status: "unpaid" }))).toBe(false);
     expect(isStudentDebtLesson(mk({ status: "completed", student_payment_status: "unpaid" }))).toBe(true);
   });
   it("never counts paid, pending, priceless or NULL-status-paid rows", () => {
@@ -131,7 +133,8 @@ describe("isStudentDebtLesson (PREPAYMENT model — owner rule 2026-07-06)", () 
     expect(isStudentDebtLesson(mk({ student_payment_status: "unpaid", student_price: null }))).toBe(false);
   });
   it("treats a missing payment status as unpaid (no details row yet, priced)", () => {
-    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: null }))).toBe(true);
+    expect(isStudentDebtLesson(mk({ status: "completed", student_payment_status: null }))).toBe(true);
+    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: null }))).toBe(true);
   });
   it("cancelled lessons owe ONLY with the explicit fee marker", () => {
     expect(isStudentDebtLesson(mk({ status: "cancelled", student_payment_status: "unpaid" }))).toBe(false);

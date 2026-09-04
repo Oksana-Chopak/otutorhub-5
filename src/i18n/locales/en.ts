@@ -1056,7 +1056,9 @@ export const en: LocaleTranslations = {
 
     stornoNote: "Reversal of an erroneous prepayment",
 
-    totalsParityMismatch: "⚠️ Totals disagree. Showing the database figure — it is the accurate one. If this keeps happening, contact support.",},
+    totalsParityMismatch: "⚠️ Totals disagree. Showing the database figure — it is the accurate one. If this keeps happening, contact support.",
+
+    expectedPayments: "Expected payments",},
 
   subjectSelect: {
     removeItem: "Remove",
@@ -1618,7 +1620,9 @@ export const en: LocaleTranslations = {
     now: "● Now",
     lesson: "Lesson",
     chatAriaLabel: "Chat",
-  },
+  
+
+    payoutMissing: "Tutor rate not set — payout not calculated",},
 
   weekCalendar: {
     today: "Today",
@@ -2235,7 +2239,11 @@ export const en: LocaleTranslations = {
     cancelStreakCta: "Message",
     seriesEndTitle: "Your schedule with {{name}} is ending",
     seriesEndDesc: "The last planned lesson is {{date}}. Extend for a few more weeks?",
-    seriesEndCta: "Extend",},
+    seriesEndCta: "Extend",
+
+    undo: "Undo",
+
+    payoutMarkedToast: "Payout {{amount}} to {{name}} marked",},
   notifications: {
     title: "Notifications",
     markAllRead: "Mark all as read",
@@ -3871,7 +3879,8 @@ export const en: LocaleTranslations = {
     countPlaceholder: "e.g. 5",
     amountPlaceholder: "e.g. 1800",
     commentPlaceholder: "e.g. cash 16.05",
-  },
+  
+    paidOnLabel: "Payment date",},
   monthlySummaryExtra: {
     shareText: "My {{month}} in oTutorHub:\n📚 {{lessons}} lessons completed",
     shareNavTitle: "My monthly summary",

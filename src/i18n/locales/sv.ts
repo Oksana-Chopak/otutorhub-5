@@ -801,7 +801,8 @@ export const sv: LocaleTranslations = {
     truncatedTitle: "Visar de första {{shown}} av {{total}} poster i år — summorna är ofullständiga",
     truncatedBody: "Intäkter, utgifter och vinst beräknas bara från den visade delen. Begränsa perioden för exakta siffror.",
     stornoNote: "Återföring av felaktig förskottsbetalning",
-    totalsParityMismatch: "⚠️ Summorna stämmer inte. Visar databasens siffra — den är den korrekta. Händer det igen, kontakta supporten.",},
+    totalsParityMismatch: "⚠️ Summorna stämmer inte. Visar databasens siffra — den är den korrekta. Händer det igen, kontakta supporten.",
+    expectedPayments: "Förväntade betalningar",},
   subjectSelect: {
     removeItem: "Ta bort",
     customPlaceholder: "Eller skriv ett eget ämne…",
@@ -1599,7 +1600,9 @@ export const sv: LocaleTranslations = {
     now: "● Nu",
     lesson: "Lektion",
     chatAriaLabel: "Chatt",
-  },
+  
+
+    payoutMissing: "Lärarens arvode ej satt — utbetalning ej beräknad",},
 
   weekCalendar: {
     today: "Idag",
@@ -2216,7 +2219,11 @@ export const sv: LocaleTranslations = {
     cancelStreakCta: "Skriv",
     seriesEndTitle: "Ditt schema med {{name}} tar slut",
     seriesEndDesc: "Sista planerade lektionen är {{date}}. Förläng några veckor till?",
-    seriesEndCta: "Förläng",},
+    seriesEndCta: "Förläng",
+
+    undo: "Ångra",
+
+    payoutMarkedToast: "Utbetalning {{amount}} till {{name}} markerad",},
   notifications: {
     title: "Aviseringar",
     markAllRead: "Markera alla som lästa",
@@ -3852,7 +3859,8 @@ export const sv: LocaleTranslations = {
     countPlaceholder: "t.ex. 5",
     amountPlaceholder: "t.ex. 1800",
     commentPlaceholder: "t.ex. kontant 16.05",
-  },
+  
+    paidOnLabel: "Betalningsdatum",},
   monthlySummaryExtra: {
     shareText: "Min {{month}} i oTutorHub:\n📚 {{lessons}} lektioner genomförda",
     shareNavTitle: "Min månadssammanfattning",

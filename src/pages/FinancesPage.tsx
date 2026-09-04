@@ -31,6 +31,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,7 +69,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
+import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice} from "@/lib/currency";
 
 type PaymentStatus = "paid" | "unpaid";
@@ -635,6 +636,12 @@ export default function FinancesPage() {
     () => tutorScoped.filter((l) => isStudentDebtLesson(l)),
     [tutorScoped],
   );
+  // 04.09: заплановані неоплачені — ОЧІКУВАНІ платежі (прогноз), не борг. Окрема цифра.
+  const periodExpected = useMemo(
+    () => tutorScoped.filter((l) => isExpectedPaymentLesson(l)),
+    [tutorScoped],
+  );
+  const expectedIncome = periodExpected.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
   // Payouts owed: CONDUCTED lessons only — mirrors mark_tutor_payouts_paid, so
   // the sums here always equal what the pay actions actually flip.
   const periodPayoutDue = useMemo(() => {
@@ -2962,6 +2969,17 @@ export default function FinancesPage() {
                   value={isIndependentTutor ? fmtCurList(pendingByCur) : formatPrice(totalDebt, "UAH")}
                   tone={parity && !parity.ok ? "warning" : totalDebt > 0 ? "warning" : "neutral"}
                 />
+                {/* 04.09: заплановані неоплачені — ОЧІКУВАНІ платежі, не борг. Окремо, нейтрально. */}
+                {expectedIncome > 0 && (
+                  <SummaryStat
+                    icon={Clock}
+                    label={t("finances.expectedPayments")}
+                    value={isIndependentTutor
+                      ? fmtCurList(sumByCurrency(periodExpected, (l) => Number(l.student_price ?? 0), rowCurrency))
+                      : formatPrice(expectedIncome, "UAH")}
+                    tone="neutral"
+                  />
+                )}
               </div>
               {parity && (
                 <p className={`mt-1.5 text-[13px] ${parity.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}>

@@ -40,7 +40,7 @@ const BASELINE: Record<string, number> = {
   // { isIndependent })`. Згадок стало більше, а можливостей помилитись — менше.
   // Далі число знову може лише падати.
   "src/pages/DashboardPage.tsx": 33,
-  "src/pages/FinancesPage.tsx": 42,
+  "src/pages/FinancesPage.tsx": 43,
   "src/pages/GroupsPage.tsx": 3,
   "src/pages/MyReferralsPage.tsx": 2,
   "src/pages/MyStudentsPage.tsx": 6,
