@@ -37,7 +37,7 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
   );
 }
 
-export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, onWriteSummary, onCloseDay, onPlanNext, onOpenSchedule, canMarkPaid = true }: {
+export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, onWriteSummary, onCloseDay, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid" }: {
   lessons: DayLesson[];
   tomorrow: { count: number; firstTime: string | null };
   pendingCount: number;
@@ -48,6 +48,8 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
   onPlanNext: () => void;
   onOpenSchedule: () => void;
   canMarkPaid?: boolean;
+  /** Ключ підпису чекбокса оплати. Менеджеру — явний «і учень оплатив»: чекбокс пише student_payment_status, а «і оплачено» читалось як виплата репетитору. */
+  paidLabelKey?: string;
 }) {
   const { t } = useTranslation();
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -113,7 +115,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
             {canMarkPaid && (
             <label style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 6, color: "rgba(255,255,255,.8)", fontSize: 14, cursor: "pointer" }}>
               <input type="checkbox" checked={alsoPaid} onChange={(e) => setAlsoPaid(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#2BBFAA" }} />
-              {t("dayBlock.andPaid")}
+              {t(paidLabelKey)}
             </label>
             )}
             {pendingCount >= 1 && (

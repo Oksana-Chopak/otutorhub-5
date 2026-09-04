@@ -83,7 +83,8 @@ export const sv: LocaleTranslations = {
     tomorrowTitle_other: "Imorgon {{count}} lektioner, första kl. {{time}}",
     addLink: "Lägg till länk",
     freeDay: "Ledig dag idag",
-    nextTodayTitle: "Nästa kl. {{time}} — {{name}}",},
+    nextTodayTitle: "Nästa kl. {{time}} — {{name}}",
+    andStudentPaid: "och eleven betalade",},
   closeDaySummary: {
     createdBulk: "{{count}} lektioner skapade 📅",
     subtitle: "{{count}} lektioner genomförda",

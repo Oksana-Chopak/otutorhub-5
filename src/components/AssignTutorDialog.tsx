@@ -135,11 +135,14 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       if (subject.trim()) {
         const { data } = await supabase
           .from("tutor_subject_rates")
-          .select("rate_per_lesson")
-          .eq("tutor_id", tutorId)
-          .eq("subject", subject.trim())
-          .maybeSingle();
-        if (data?.rate_per_lesson != null) payout = Number(data.rate_per_lesson);
+          .select("subject, rate_per_lesson")
+          .eq("tutor_id", tutorId);
+        // Нормалізовано, як тригер autofill_lesson_details_prices: «Англійська» ↔ «англійська мова».
+        const norm = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
+        const want = norm(subject);
+        const hit = (data ?? []).find((r: any) => norm(String(r.subject)) === want)
+          ?? (data ?? []).find((r: any) => norm(String(r.subject)).startsWith(want) || want.startsWith(norm(String(r.subject))));
+        if (hit?.rate_per_lesson != null && Number(hit.rate_per_lesson) > 0) payout = Number(hit.rate_per_lesson);
       }
       if (payout == null) {
         const found = tutors.find((x) => x.id === tutorId);
@@ -166,7 +169,9 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       toast.error(t("assignTutor.invalidStudentRate"));
       return;
     }
-    if (!Number.isFinite(tp) || tp < 0) {
+    if (!Number.isFinite(tp) || tp <= 0) {
+      // 0 — не ставка. Саме нуль тут ставав ставкою репетитора на предмет
+      // назавжди (див. нижче), і виплата на всіх нових уроках зникала (04.09).
       toast.error(t("assignTutor.invalidTutorRate"));
       return;
     }
@@ -204,7 +209,11 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         return;
       }
 
-      // 2. Upsert tutor_subject_rate (so future autofill works)
+      // 2. Ставка репетитора на предмет — ЛИШЕ якщо її ще немає. Раніше тут був
+      // upsert, який ПЕРЕЗАПИСУВАВ чинну ставку тим, що менеджер ввів у полі
+      // «виплата» для ЦІЄЇ пари (а поле часто заповнювалось руками, бо префіл
+      // шукав ставку за точним рядком предмета). Так «Марина знову має 0».
+      // Джерело правди ставки — картка репетитора в /people, не цей діалог.
       const { error: tsrErr } = await supabase
         .from("tutor_subject_rates")
         .upsert(
@@ -213,7 +222,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
             subject: subject.trim(),
             rate_per_lesson: tp,
           },
-          { onConflict: "tutor_id,subject" },
+          { onConflict: "tutor_id,subject", ignoreDuplicates: true },
         );
       if (tsrErr) {
         // Non-fatal — log and continue

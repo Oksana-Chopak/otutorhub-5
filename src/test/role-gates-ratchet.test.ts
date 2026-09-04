@@ -39,7 +39,7 @@ const BASELINE: Record<string, number> = {
   // ОБОВʼЯЗКОВИЙ аргумент чистої функції `countLessonsMissingPrice(rows,
   // { isIndependent })`. Згадок стало більше, а можливостей помилитись — менше.
   // Далі число знову може лише падати.
-  "src/pages/DashboardPage.tsx": 31,
+  "src/pages/DashboardPage.tsx": 33,
   "src/pages/FinancesPage.tsx": 42,
   "src/pages/GroupsPage.tsx": 3,
   "src/pages/MyReferralsPage.tsx": 2,

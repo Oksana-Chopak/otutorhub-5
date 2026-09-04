@@ -913,10 +913,18 @@ export default function DashboardPage() {
     const tmrKey = localKey(tmr);
     // B3: «Сьогодні» = ВСІ сьогоднішні (з візуальним станом проведених/скасованих),
     // «завтра» — лише заплановані; лічильник у заголовку бере ЦЕЙ же масив.
-    const todayAll = lessons.filter((l) => localKey(new Date(l.starts_at)) === todayKey);
+    // Незалежний: заголовок «Сьогодні (N)» — усі сьогоднішні зі станами (B3).
+    // Менеджер/хабовий: заголовок «Найближчі уроки» — тож ЛИШЕ ті, що ще не
+    // закінчились. Урок об 11:00 о 19:00 у «найближчих» — помилка (04.09).
+    // Незакритий минулий урок живе в блоці «Закрити день», не тут.
+    const endMs = (l: (typeof lessons)[number]) =>
+      new Date(l.starts_at).getTime() + (Number((l as any).duration_minutes) || 60) * 60_000;
+    const todayAll = lessons.filter((l) =>
+      localKey(new Date(l.starts_at)) === todayKey &&
+      (isIndependentTutor || (endMs(l) >= nowMs && l.status !== "cancelled" && l.status !== "completed")));
     const tmrScheduled = lessons.filter((l) => localKey(new Date(l.starts_at)) === tmrKey && l.status === "scheduled");
     return [...todayAll, ...tmrScheduled].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-  }, [lessons, todayKey]);
+  }, [lessons, todayKey, isIndependentTutor, nowMs]);
   const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
   const dayBlockTomorrow = useMemo(() => {
     const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
@@ -1689,6 +1697,7 @@ export default function DashboardPage() {
               onPlanNext={() => navigate("/schedule?create=1")}
               onOpenSchedule={() => navigate("/schedule")}
               canMarkPaid={isIndependentTutor || isManager}
+              paidLabelKey={isManager ? "dayBlock.andStudentPaid" : "dayBlock.andPaid"}
             />
           )}
 

@@ -82,7 +82,8 @@ export const en: LocaleTranslations = {
     tomorrowTitle_other: "Tomorrow {{count}} lessons, first at {{time}}",
     addLink: "Add link",
     freeDay: "A free day today",
-    nextTodayTitle: "Next at {{time}} — {{name}}",},
+    nextTodayTitle: "Next at {{time}} — {{name}}",
+    andStudentPaid: "and the student paid",},
   closeDaySummary: {
     createdBulk: "{{count}} lessons created 📅",
     subtitle: "{{count}} lessons completed",

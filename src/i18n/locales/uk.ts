@@ -80,7 +80,8 @@ export const uk = {
     tomorrowTitle_many: "Завтра {{count}} уроків, перший о {{time}}",
     addLink: "Додати лінк",
     freeDay: "Сьогодні вільний день",
-    nextTodayTitle: "Далі о {{time}} — {{name}}",},
+    nextTodayTitle: "Далі о {{time}} — {{name}}",
+    andStudentPaid: "і учень оплатив",},
   closeDaySummary: {
     createdBulk: "Створено {{count}} уроків 📅",
     subtitle: "Проведено {{count}} уроків",
