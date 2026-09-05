@@ -5,6 +5,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.lesson-reminders]
     verify_jwt = false
+  [functions.db-backup]
+    verify_jwt = false
   [functions.payment-reminders]
     verify_jwt = false
   [functions.payout-reminders]
