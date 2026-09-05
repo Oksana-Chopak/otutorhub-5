@@ -26,4 +26,34 @@ console.log("═ Літеральні валюти: " + hits.length + " рядк
 Object.entries(byFile).sort((a, b) => b[1] - a[1]).forEach(([f, n]) => console.log(String(n).padStart(4), f));
 console.log("─ перші 40 ─");
 hits.slice(0, 40).forEach((h) => console.log(h));
-process.exit(hits.length ? 1 : 0); // ГЕЙТ: нуль літеральних валют — назавжди
+
+// ── П3.19 (вердикт 31.08): аргументи теж перевіряються ─────────────────────
+// formatPrice(..., "UAH") літералом — це та сама зашита валюта, лише поверхом
+// вище: рядок покаже ₴ шведському учню. Частина викликів ЛЕГІТИМНА (підписка
+// свідомо в гривні; фінанси менеджера — UAH до хаб-етапу П4), тому це ratchet:
+// число може лише падати. Нове місце з "UAH" — обери валюту пари/рядка або
+// свідомо підніми baseline тут із поясненням.
+const MAX_UAH_ARGS = 42; // станом на 05.09
+const uahArgHits = [];
+function walkUah(dir) {
+  for (const f of readdirSync(dir)) {
+    const p = join(dir, f);
+    const st = statSync(p);
+    if (st.isDirectory()) { if (!/node_modules|test/.test(p)) walkUah(p); continue; }
+    if (!/\.(tsx|ts)$/.test(p) || /\.test\./.test(p)) continue;
+    const src = readFileSync(p, "utf8");
+    src.split("\n").forEach((line, i) => {
+      const tl = line.trim();
+      if (tl.startsWith("//") || tl.startsWith("*") || tl.startsWith("/*")) return;
+      if (/formatPrice\([^)]*,\s*["']UAH["']/.test(line)) uahArgHits.push(`${p}:${i + 1}: ${tl.slice(0, 100)}`);
+    });
+  }
+}
+walkUah("src");
+console.log(`═ formatPrice(..., "UAH") літералом: ${uahArgHits.length} (ratchet ≤ ${MAX_UAH_ARGS}) ═`);
+if (uahArgHits.length > MAX_UAH_ARGS) {
+  console.error(`⛔ Нові зашиті "UAH" в аргументах (${uahArgHits.length} > ${MAX_UAH_ARGS}):`);
+  uahArgHits.forEach((h) => console.error("   " + h));
+}
+
+process.exit(hits.length || uahArgHits.length > MAX_UAH_ARGS ? 1 : 0); // ГЕЙТ: нуль літеральних валют + UAH-ratchet лише вниз
