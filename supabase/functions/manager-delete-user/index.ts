@@ -67,6 +67,19 @@ Deno.serve(async (req) => {
       return json({ error: 'Cannot delete another manager' }, 403);
     }
 
+    // П1.6 (вердикт 31.08): самостійний репетитор — НЕ підопічний школи.
+    // Менеджер не може стерти чужий бізнес разом з акаунтом: у незалежного
+    // свої учні, свої гроші і своя підписка. До моделі «школа = сутність»
+    // це єдиний надійний гейт від видалення поза межами школи.
+    const { data: targetWs } = await admin
+      .from('tutor_workspace_settings')
+      .select('independent_workspace')
+      .eq('tutor_id', targetId)
+      .maybeSingle();
+    if (targetWs?.independent_workspace === true) {
+      return json({ error: 'Cannot delete an independent tutor' }, 403);
+    }
+
     // 4. Run the existing data purge AS the manager so manager_purge_user's
     //    own auth.uid()=manager / not-self checks + audit write all apply.
     const { error: purgeErr } = await userClient.rpc('manager_purge_user', { _user_id: targetId });

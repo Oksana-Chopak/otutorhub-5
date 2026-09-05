@@ -50,11 +50,27 @@ Deno.serve(async (req) => {
   const { data: lessonRow } = await admin
     .from("lessons")
     .select(
-      "id, tutor_id, student_id, subject, starts_at, lesson_details!inner(student_price, student_payment_status)",
+      "id, tutor_id, student_id, subject, starts_at, source, lesson_details!inner(student_price, student_payment_status)",
     )
     .eq("id", lessonId)
     .maybeSingle();
-  if (!lessonRow) return json({ error: "Lesson not found" }, 404);
+
+  // П1.4 (вердикт 31.08): авторизація ПЕРЕД будь-якою відповіддю про урок.
+  // Раніше 404/409 летіли ДО перевірки прав — функція з service role давала
+  // будь-кому перебирати id і читати статус оплати чужих уроків. Тепер
+  // «не існує» і «не твій» — та сама відповідь: нема чого перебирати.
+  // Менеджерський арм скоуплено: уроки незалежних — не поле школи.
+  const { data: isManagerData } = await admin.rpc("check_user_role", {
+    _user_id: user.id,
+    _role: "manager",
+  });
+  const isManager = isManagerData === true;
+  const authorized = !!lessonRow && (
+    (lessonRow as any).tutor_id === user.id ||
+    (isManager && (lessonRow as any).source !== "independent")
+  );
+  if (!authorized) return json({ error: "Lesson not found" }, 404);
+
   const lesson: any = {
     ...lessonRow,
     student_price: (lessonRow as any).lesson_details?.student_price,
@@ -62,16 +78,6 @@ Deno.serve(async (req) => {
   };
   if (lesson.student_payment_status === "paid") {
     return json({ error: "already_paid" }, 409);
-  }
-
-  // Authorization: manager OR the lesson's tutor
-  const { data: isManagerData } = await admin.rpc("check_user_role", {
-    _user_id: user.id,
-    _role: "manager",
-  });
-  const isManager = isManagerData === true;
-  if (!isManager && lesson.tutor_id !== user.id) {
-    return json({ error: "forbidden" }, 403);
   }
 
   // Усе нижче — спільне ядро (_shared/paymentReminder.ts): канали, мова

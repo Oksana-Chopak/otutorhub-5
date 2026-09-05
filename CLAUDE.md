@@ -598,20 +598,21 @@ fields below before building anything money-related.
   (extends trial_until), i.e. ~51 days total. AuthPage passes
   `independent_workspace: role === "tutor"` in signup metadata.
 
-> **🔒 INVARIANT — PREPAYMENT model (owner rule, stated 2026-07-06 after a regression):**
-> Hub students pay **BEFORE** lessons. Therefore:
-> - **Student debt** = ANY unpaid priced lesson — **including FUTURE scheduled ones**
->   (not pending; cancelled only with `is_cancellation_fee`). Predicate:
->   `isStudentDebtLesson` in `src/lib/financials.ts`. Drives ALL debt/pending/remind
->   surfaces (Finances debts, dashboard payment reminders, People «⚠️ Борг»,
->   RecordPaymentSheet picker, CSV unpaid).
+> **🔒 INVARIANT — DEBT model (owner decision 2026-09-04; REPLACES the 06.07
+> «prepayment debt» rule — do not resurrect it from old docs/commits):**
+> - **Student debt** = **CONDUCTED and unpaid only**: `status='completed'`,
+>   price > 0, unpaid (cancelled only with `is_cancellation_fee`). Predicate:
+>   `isStudentDebtLesson` in `src/lib/financials.ts`. FUTURE scheduled unpaid
+>   lessons are NOT debt — they are **expected payments**
+>   (`isExpectedPaymentLesson`), shown as a forecast figure, NEVER summed with
+>   debt. Both hub DB functions mirror this (migration `20260904100000`).
 > - **Tutor payout due** = **CONDUCTED lessons only** (completed or already started),
 >   payout > 0, never group rows. Predicate: `isPayoutDueLesson` — it must mirror the
 >   `mark_tutor_payouts_paid` RPC EXACTLY, so the shown sum always equals what the pay
 >   button flips. NEVER compute payout-due with `isBillableLesson` (its student-prepaid
 >   shortcut admits future lessons → "виплачено, але уроки висять" bug).
-> Locked by financials.test.ts. Do not re-introduce past-only student debts or
-> billable-based payout sums.
+> Locked by financials.test.ts. Every channel (Finances, dashboard reminders,
+> People «⚠️ Борг», telegram digest, CSV) mirrors these predicates verbatim.
 
 ### Don't mix them
 - "Pro / subscription / 249 ₴/mo / trial" → **independent tutors only**.

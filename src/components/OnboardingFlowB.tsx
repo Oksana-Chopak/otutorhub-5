@@ -943,27 +943,20 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
 }
 
 // ── Bonus: Finance (LessonCard anatomy) ───────────────────────────────────────
-function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: {
-  lessonId: string | null; studentName: string; subject: string; onComplete: () => void; navigate: any;
+function FinanceBonus({ studentName, subject, onComplete, navigate }: {
+  studentName: string; subject: string; onComplete: () => void; navigate: any;
 }) {
   const { t } = useTranslation();
   const [paid, setPaid] = useState(false);
-  const [saving, setSaving] = useState(false);
   const price = 500;
 
-  const togglePaid = async () => {
-    if (!lessonId) { setPaid(v => !v); return; }
-    setSaving(true);
-    try {
-      await updateLessonDetailsSafe(lessonId, {
-        student_payment_status: paid ? "unpaid" : "paid",
-      });
-      setPaid(v => !v);
-      setSaving(false);
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Б3/П2.7 (вердикт 31.08): це ЧИСТА демка. Картка і так малює вигадані
+  // «Сьогодні 18:00 · 500 ₴», але тумблер ПИСАВ справжній платіжний статус у
+  // справжній перший урок — тап «оплачено» у навчальній вправі робив
+  // неоплачений урок оплаченим у книгах. Тепер тумблер лише локальний:
+  // вчимося на макеті, гроші чіпаємо тільки у Фінансах.
+  const togglePaid = () => setPaid((v) => !v);
+  const saving = false;
 
   return (
     <div className="flex flex-col gap-4">
@@ -1627,7 +1620,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                   {activeBonus.action === "availability" && <AvailabilityAction user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "zoom"      && <ZoomBonus    user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "chat"      && <ChatBonus studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
-                  {activeBonus.action === "finance"   && <FinanceBonus lessonId={createdLessonId} studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
+                  {activeBonus.action === "finance"   && <FinanceBonus studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "calendar"  && <CalendarBonus user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "ai"        && <AiBonus onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
                 </div>

@@ -29,19 +29,21 @@ import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 import { PushNotificationToggle } from "@/components/PushNotificationToggle";
+import { isPushCapable } from "@/hooks/usePushNotifications";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
-import { isNativeApp } from "@/lib/platform";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
 
 function PushSettingsCard() {
   const { t } = useTranslation();
-  // BUG-8 (2026-07-25): PushNotificationToggle renders null on native (Web
-  // Push is web-only) — hide the whole card too, not just its content.
-  if (isNativeApp()) return null;
+  // П2.8 (вердикт 31.08): старий гейт isNativeApp() лишився з часів, коли пуші
+  // були лише web-push (BUG-8, 25.07). З хвилі 40b тогл у нативі ЖИВИЙ (FCM),
+  // а цей гейт ховав ЄДИНЕ місце, де користувач може їх увімкнути. Тепер
+  // ховаємось лише там, де пуші справді неможливі.
+  if (!isPushCapable()) return null;
   return (
     <div className="mb-4 rounded-[16px] border-[0.5px] bg-card p-4" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>

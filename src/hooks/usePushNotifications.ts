@@ -33,6 +33,7 @@ export function usePushNotifications() {
 
   // Check initial state
   useEffect(() => {
+    // (синхронна версія цієї ж перевірки — isPushCapable нижче; тримати їх у парі)
     // 40b: у наативі web-push (SW+VAPID) не працює — там FCM через плагін,
     // тож підтримка є ЗАВЖДИ, просто іншим транспортом.
     if (native) {
@@ -170,4 +171,16 @@ export function usePushNotifications() {
   }, [user?.id, supported, swReg, native]);
 
   return { supported, permission, subscribed, loading, subscribe, unsubscribe };
+}
+
+/**
+ * П2.8: синхронна перевірка «чи взагалі можливі пуші на цій платформі» — для
+ * обгорток (картка в профілі, смужка в дзвіночку), яким не потрібен повний хук
+ * зі слухачами. Дзеркалить логіку supported вище: натив = завжди так (FCM),
+ * веб = SW + PushManager + Notification.
+ */
+export function isPushCapable(): boolean {
+  if (isNativeApp()) return true;
+  return typeof navigator !== "undefined" && typeof window !== "undefined"
+    && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }

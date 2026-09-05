@@ -812,7 +812,13 @@ export default function MyStudentsPage() {
       {loading ? <StudentsSkeleton /> : loadError ? (
         <ErrorState description={t("myStudents.loadFailed")} onRetry={() => void load()} />
       ) : visibleStudents.length === 0 ? (
-        view === "active" ? (
+        /* П2.11 (вердикт 31.08): порожній РЕЗУЛЬТАТ ПОШУКУ — не «додай першого
+           учня». Плейсхолдер, що бреше про стан списку, — баг, не копірайт. */
+        searchQuery.trim() ? (
+          <EmptyState icon={Search} title={t("myStudents.searchNoResultsTitle")}
+            description={t("myStudents.searchNoResultsDesc", { query: searchQuery.trim() })}
+            actionLabel={t("myStudents.searchClearBtn")} onAction={() => setSearchQuery("")} />
+        ) : view === "active" ? (
           <EmptyState icon={UserPlus} title={t("myStudents.emptyActiveTitle")}
             description={t("myStudents.emptyActiveDesc")} actionLabel={t("myStudents.addStudentBtn")} onAction={openCreate} />
         ) : (

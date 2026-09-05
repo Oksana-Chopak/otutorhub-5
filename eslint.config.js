@@ -29,4 +29,15 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": "warn",
     },
   },
+  {
+    // X1 (HANDOFF §5): previewAuthStorage.ts генерується Lovable'ом і при кожній
+    // регенерації повертає `let timer` (prefer-const). Правити файл — біг по колу:
+    // фікс 01.09 уже стерло регенерацією. Тому виняток живе В КОНФІГУ, який
+    // Lovable не чіпає: гейт лишається чесно нульовим, і червоний eslint знову
+    // означає «нова помилка», а не «та сама задокументована».
+    files: ["src/integrations/supabase/previewAuthStorage.ts"],
+    rules: {
+      "prefer-const": "off",
+    },
+  },
 );

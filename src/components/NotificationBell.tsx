@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
-import { isNativeApp } from "@/lib/platform";
+import { isPushCapable } from "@/hooks/usePushNotifications";
 
 function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -146,8 +146,9 @@ export function NotificationBell({ className }: Props) {
             </ul>
           )}
         </div>
-        {/* BUG-8: the toggle is null on native — don't leave an empty bordered strip */}
-        {!isNativeApp() && displayed.length > 0 && (
+        {/* П2.8: гейт за РЕАЛЬНОЮ можливістю пушів (у нативі тогл живий — FCM),
+            а не за платформою; порожня смужка (BUG-8) так само неможлива. */}
+        {isPushCapable() && displayed.length > 0 && (
           <div className="border-t border-border px-3 py-2">
             <PushNotificationToggle />
           </div>
