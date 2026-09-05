@@ -272,7 +272,9 @@ export function WalletDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px] p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[88vh] overflow-hidden flex flex-col">
+      <DialogContent aria-describedby={undefined} className="max-w-[420px] p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[88vh] overflow-hidden flex flex-col">
+        {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+        <DialogTitle className="sr-only">{t("walletDialog.paymentHeader", { name: studentName ?? t("walletDialog.studentFallback") })}</DialogTitle>
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-0 flex-shrink-0">
           <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />

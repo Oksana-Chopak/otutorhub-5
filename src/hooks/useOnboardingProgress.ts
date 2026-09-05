@@ -13,6 +13,11 @@ export interface OnboardingProgress {
   hasReferral: boolean;
   hasGoogleCalendar: boolean;
   hasTelegram: boolean;
+  /* Аудит 05.09: репетитор проходив онбординг до кінця і лишався БЕЗ способу
+     приймати гроші — реквізитів не було в жодному чеклісті, а учень на
+     «Оплатити» бачив тільки «спитати в чаті». */
+  hasPaymentDetails: boolean;
+  hasAnyStudent: boolean;
   loading: boolean;
 }
 
@@ -22,6 +27,8 @@ const INITIAL: OnboardingProgress = {
   hasReferral: true,
   hasGoogleCalendar: true,
   hasTelegram: true,
+  hasPaymentDetails: true,
+  hasAnyStudent: false,
   loading: true,
 };
 
@@ -37,7 +44,7 @@ export function useOnboardingProgress(): OnboardingProgress & { refetch: () => v
       try { return await p; } catch { return fallback; }
     };
 
-    const [avail, meetUrl, referral, gcal, tgLink] = await Promise.all([
+    const [avail, meetUrl, referral, gcal, tgLink, payDetails, anyRate] = await Promise.all([
       safe(
         supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
@@ -65,6 +72,28 @@ export function useOnboardingProgress(): OnboardingProgress & { refetch: () => v
         (supabase.from("user_telegram_links") as any).select("user_id").eq("user_id", user.id).not("chat_id", "is", null).limit(1),
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
+      // Аудит 05.09: реквізити живуть на student_rates.payment_details (форма
+      // учня в MyStudentsPage). «Виконано» = хоч одна НЕархівована пара має
+      // непорожні реквізити; поки учнів немає — крок не показуємо зовсім
+      // (реквізити вводяться у формі учня, тож спершу «додай учня»).
+      safe(
+        (supabase.from("student_rates") as any)
+          .select("id")
+          .eq("tutor_id", user.id)
+          .is("archived_at", null)
+          .not("payment_details", "is", null)
+          .neq("payment_details", "")
+          .limit(1),
+        { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
+      ),
+      safe(
+        (supabase.from("student_rates") as any)
+          .select("id")
+          .eq("tutor_id", user.id)
+          .is("archived_at", null)
+          .limit(1),
+        { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
+      ),
     ]);
 
     setState({
@@ -73,6 +102,8 @@ export function useOnboardingProgress(): OnboardingProgress & { refetch: () => v
       hasReferral:       ((referral.data as any[])?.length ?? 0) > 0,
       hasGoogleCalendar: ((gcal.data as any[])?.length ?? 0) > 0,
       hasTelegram:       ((tgLink.data as any[])?.length ?? 0) > 0,
+      hasPaymentDetails: ((payDetails.data as any[])?.length ?? 0) > 0,
+      hasAnyStudent:     ((anyRate.data as any[])?.length ?? 0) > 0,
       loading: false,
     });
   }, [user?.id, tick]);

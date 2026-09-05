@@ -1067,6 +1067,7 @@ export const uk = {
     totalsParityMismatch: "⚠️ Підсумки розійшлись. Показано число з бази — воно точніше. Якщо це повторюється, напишіть у підтримку.",
     expectedPayments: "Очікувані платежі",
     studentsOweLabel: "Учні винні",
+    studentsOweBannerTitle: "Учні винні {{sum}}",
     owedToTutorsLabel: "Винні репетиторам",
     pastUnmarkedHint: "Минулих уроків без відмітки: {{count}} — познач проведеними, і вони стануть боргом до нагадування.",},
 
@@ -2210,6 +2211,8 @@ export const uk = {
     taskAvailabilityDesc: "Учні бронюватимуть слоти самостійно, без дзвінків",
     taskZoomTitle: "Підключіть Zoom або Meet",
     taskZoomDesc: "Постійне посилання — учень підключиться одним кліком",
+    taskPayDetailsTitle: "Додайте реквізити для оплат",
+    taskPayDetailsDesc: "Картка чи IBAN у картці учня — і він бачить, куди платити, прямо в застосунку",
     taskCalendarTitle: "Підключіть Google Calendar",
     taskCalendarDesc: "Уроки автоматично з'являться у вашому Google Calendar",
     taskReferralTitle: "Запросіть колегу",
@@ -2600,6 +2603,12 @@ export const uk = {
   levelBadge: {
     yourLevel: "Твій рівень",
     maxLevel: "Максимальний рівень досягнуто 🎉",
+    toNextLevel: "{{done}} / {{total}} уроків до наступного рівня",
+    level_novice: "Новачок",
+    level_practitioner: "Практик",
+    level_master: "Майстер",
+    level_expert: "Експерт",
+    level_pro_tutor: "Про-репетитор",
   },
   liqPay: {
     redirecting: "Переходимо до LiqPay…",

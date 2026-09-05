@@ -159,10 +159,19 @@ export default function StudentPaymentsPage() {
       });
       const payMap: Record<string, { currency: string; payment_details: string | null }> = {};
       (rates ?? []).forEach((r: any) => {
-        payMap[r.tutor_id] = {
-          currency: r.currency ?? "UAH",
-          payment_details: r.payment_details ?? null,
-        };
+        // Аудит 05.09: учень із ДВОМА предметами в одного репетитора має два
+        // рядки student_rates. Ключ лише по tutor_id — останній рядок затирав
+        // перший РАЗОМ із реквізитами, і кнопка «Оплатити» зникала залежно від
+        // порядку рядків (доведено перестановкою). Реквізити — властивість
+        // репетитора, не предмета: тримаємо перший рядок, ДЕ ВОНИ Є, і рядок
+        // без реквізитів ніколи не затирає рядок із ними.
+        const prev = payMap[r.tutor_id];
+        if (prev?.payment_details) return;
+        const details =
+          typeof r.payment_details === "string" && r.payment_details.trim() ? r.payment_details : null;
+        if (!prev || details) {
+          payMap[r.tutor_id] = { currency: r.currency ?? "UAH", payment_details: details };
+        }
       });
       setRows(
         list.map((l) => ({

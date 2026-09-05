@@ -1035,7 +1035,9 @@ export default function MyStudentsPage() {
         open={dialog.open}
         onOpenChange={(v) => !v && setDialog({ open: false, mode: "create", studentId: null })}
       >
-        <DialogContent className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[88vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent aria-describedby={undefined} className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[88vh] flex flex-col [&>button.absolute]:hidden">
+          {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+          <DialogTitle className="sr-only">{dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}</DialogTitle>
           {/* Drag handle (mobile) */}
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
             <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />

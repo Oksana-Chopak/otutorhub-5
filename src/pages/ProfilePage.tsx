@@ -21,7 +21,7 @@ import {
   CalendarClock, ShieldAlert, ChevronRight, Sparkles, Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video, Pencil, Mail } from "lucide-react";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
@@ -641,7 +641,9 @@ export default function ProfilePage() {
 
         {/* Edit-profile sheet (same as tutor branch) */}
         <Sheet open={activeSheet === "editProfile"} onOpenChange={(o) => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.editTitle")}</SheetTitle>
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
@@ -869,7 +871,9 @@ export default function ProfilePage() {
 
         {/* ── Sheets for settings components ─────────────────────────────────── */}
         <Sheet open={activeSheet === "rules"} onOpenChange={o => { if (!o) { setActiveSheet(null); refreshSettings(); } }}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.rowPayRules")}</SheetTitle>
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
@@ -878,7 +882,9 @@ export default function ProfilePage() {
         </Sheet>
 
         <Sheet open={activeSheet === "automark"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.rowAutoMark")}</SheetTitle>
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
@@ -887,7 +893,9 @@ export default function ProfilePage() {
         </Sheet>
 
         <Sheet open={activeSheet === "editProfile"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.editTitle")}</SheetTitle>
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
@@ -1041,7 +1049,9 @@ export default function ProfilePage() {
         </Sheet>
 
         <Sheet open={activeSheet === "subjects"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.subjectsSheetTitle")}</SheetTitle>
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
@@ -1130,7 +1140,9 @@ export default function ProfilePage() {
         </Sheet>
 
         <Sheet open={activeSheet === "calendar"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.rowCalendar") || "Google Calendar"}</SheetTitle>
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
@@ -1143,7 +1155,9 @@ export default function ProfilePage() {
 
         {/* Availability sheet — slides up, X to close */}
         <Sheet open={activeSheet === "availability"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-[20px] p-0">
+          <SheetContent side="bottom" aria-describedby={undefined} className="max-h-[92vh] overflow-y-auto rounded-t-[20px] p-0">
+            {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+            <SheetTitle className="sr-only">{t("profile.availableHoursTitle")}</SheetTitle>
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b"
               style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
               <p className="font-black text-[18px]" style={{ fontFamily: "Inter, system-ui" }}>

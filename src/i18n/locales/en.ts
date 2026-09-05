@@ -1064,6 +1064,7 @@ export const en: LocaleTranslations = {
 
     expectedPayments: "Expected payments",
     studentsOweLabel: "Students owe",
+    studentsOweBannerTitle: "Students owe {{sum}}",
     owedToTutorsLabel: "Owed to tutors",
     pastUnmarkedHint: "Past lessons not marked yet: {{count}} — mark them done and they become collectible debt.",},
 
@@ -2198,6 +2199,8 @@ export const en: LocaleTranslations = {
     taskAvailabilityDesc: "Students book slots on their own, no calls needed",
     taskZoomTitle: "Connect Zoom or Meet",
     taskZoomDesc: "One permanent link — the student joins in one click",
+    taskPayDetailsTitle: "Add your payment details",
+    taskPayDetailsDesc: "Card or IBAN on a student's card — they see where to pay right in the app",
     taskCalendarTitle: "Connect Google Calendar",
     taskCalendarDesc: "Lessons will automatically appear in your Google Calendar",
     taskReferralTitle: "Invite a colleague",
@@ -2596,6 +2599,12 @@ export const en: LocaleTranslations = {
   levelBadge: {
     yourLevel: "Your level",
     maxLevel: "Maximum level reached 🎉",
+    toNextLevel: "{{done}} / {{total}} lessons to the next level",
+    level_novice: "Newcomer",
+    level_practitioner: "Practitioner",
+    level_master: "Master",
+    level_expert: "Expert",
+    level_pro_tutor: "Pro tutor",
   },
   liqPay: {
     amountMismatch: "The checkout amount doesn't match",

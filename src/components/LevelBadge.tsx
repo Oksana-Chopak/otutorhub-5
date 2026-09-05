@@ -11,11 +11,16 @@ interface Props {
 }
 
 export function LevelBadge({ level, variant = "compact", className }: Props) {
+  // Аудит 05.09: назви рівнів зашиті в SQL українською («Про-репетитор»,
+  // «Експерт») і летіли у ВСІ три мови. Ключ рівня стабільний — перекладаємо
+  // на клієнті; server-name лишається фолбеком для невідомого майбутнього ключа.
+  const levelName = t(`levelBadge.level_${level.key}`, { defaultValue: level.name });
+
   if (variant === "compact") {
     return (
       <div className={cn("inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary", className)}>
         <span className="text-base leading-none">{level.emoji}</span>
-        <span>{level.name}</span>
+        <span>{levelName}</span>
       </div>
     );
   }
@@ -33,14 +38,14 @@ export function LevelBadge({ level, variant = "compact", className }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[14px] uppercase tracking-wide text-muted-foreground">{t("levelBadge.yourLevel")}</div>
-          <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{level.name}</div>
+          <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{levelName}</div>
         </div>
       </div>
       {level.next_threshold ? (
         <>
           <Progress value={progress} className="h-2" />
           <p className="mt-2 text-[14px] text-muted-foreground">
-            {level.completed_lessons} / {level.next_threshold} уроків до наступного рівня
+            {t("levelBadge.toNextLevel", { done: level.completed_lessons, total: level.next_threshold })}
           </p>
         </>
       ) : (

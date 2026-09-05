@@ -486,7 +486,9 @@ export function QuickLessonDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent aria-describedby={undefined} className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          {/* Radix a11y (аудит 05.09): sr-only заголовок */}
+          <DialogTitle className="sr-only">{t("quickLessonDialog.newLessonTitle")}</DialogTitle>
           {/* Drag handle */}
           <div className="flex justify-center pt-2.5 pb-1 flex-shrink-0 sm:hidden">
             <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />

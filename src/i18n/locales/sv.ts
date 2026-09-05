@@ -808,6 +808,7 @@ export const sv: LocaleTranslations = {
     totalsParityMismatch: "⚠️ Summorna stämmer inte. Visar databasens siffra — den är den korrekta. Händer det igen, kontakta supporten.",
     expectedPayments: "Förväntade betalningar",
     studentsOweLabel: "Elever är skyldiga",
+    studentsOweBannerTitle: "Elever är skyldiga {{sum}}",
     owedToTutorsLabel: "Skuld till lärare",
     pastUnmarkedHint: "Tidigare lektioner utan markering: {{count}} — markera dem som genomförda så blir de skuld.",},
   subjectSelect: {
@@ -2178,6 +2179,8 @@ export const sv: LocaleTranslations = {
     taskAvailabilityDesc: "Elever bokar tider själva, utan samtal",
     taskZoomTitle: "Anslut Zoom eller Meet",
     taskZoomDesc: "En permanent länk — eleven ansluter med ett klick",
+    taskPayDetailsTitle: "Lägg till betalningsuppgifter",
+    taskPayDetailsDesc: "Kort eller IBAN på elevens kort — eleven ser var hen ska betala direkt i appen",
     taskCalendarTitle: "Anslut Google Kalender",
     taskCalendarDesc: "Lektioner visas automatiskt i din Google Kalender",
     taskReferralTitle: "Bjud in en kollega",
@@ -2576,6 +2579,12 @@ export const sv: LocaleTranslations = {
   levelBadge: {
     yourLevel: "Din nivå",
     maxLevel: "Maxnivå uppnådd 🎉",
+    toNextLevel: "{{done}} / {{total}} lektioner till nästa nivå",
+    level_novice: "Nybörjare",
+    level_practitioner: "Utövare",
+    level_master: "Mästare",
+    level_expert: "Expert",
+    level_pro_tutor: "Pro-lärare",
   },
   liqPay: {
     amountMismatch: "Beloppet i kassan stämmer inte",

@@ -31,7 +31,9 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
           </button>
         )}
       </span>
-      <button className="tap-44" type="button" onClick={onAction} style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+      {/* Аудит 05.09: 44px ВІЗУАЛЬНО, не лише хіт-зоною (.tap-44) — це головна
+          кнопка дня («Приєднатися» тощо), її тиснуть поспіхом з телефона. */}
+      <button className="tap-44" type="button" onClick={onAction} style={{ flexShrink: 0, height: 44, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
         {action}
       </button>
     </div>
@@ -134,7 +136,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
               try { await onComplete(justPast.id, alsoPaid); setAlsoPaid(false); }
               finally { setMarking(false); }
             }}
-            style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, border: "none", cursor: marking ? "default" : "pointer", opacity: marking ? 0.6 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+            style={{ flexShrink: 0, height: 44, padding: "0 16px", borderRadius: 12, border: "none", cursor: marking ? "default" : "pointer", opacity: marking ? 0.6 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
             {t("dayBlock.markDone")}
           </button>
         </div>

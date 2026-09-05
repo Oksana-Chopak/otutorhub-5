@@ -66,6 +66,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
@@ -1400,7 +1401,9 @@ export default function PeoplePage() {
 
       {/* Tutor rate dialog */}
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          {/* Radix a11y (аудит 05.09): заголовок для скрінрідера — візуальний хедер лишається кастомним div-ом */}
+          <DialogTitle className="sr-only">{t("people.dialogTutorRateTitle")}</DialogTitle>
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
             <div className="h-1 w-9 rounded-full bg-border" />
           </div>
@@ -1481,7 +1484,9 @@ export default function PeoplePage() {
 
       {/* Student price dialog */}
       <Dialog open={studentDialog.open} onOpenChange={(o) => setStudentDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          {/* Radix a11y (аудит 05.09): заголовок для скрінрідера — візуальний хедер лишається кастомним div-ом */}
+          <DialogTitle className="sr-only">{t("people.dialogStudentPriceTitle")}</DialogTitle>
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
             <div className="h-1 w-9 rounded-full bg-border" />
           </div>
@@ -1562,7 +1567,9 @@ export default function PeoplePage() {
         open={addTutorToStudent.open}
         onOpenChange={(o) => setAddTutorToStudent((s) => ({ ...s, open: o }))}
       >
-        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          {/* Radix a11y (аудит 05.09): заголовок для скрінрідера — візуальний хедер лишається кастомним div-ом */}
+          <DialogTitle className="sr-only">{t("people.dialogAddTutorTitle")}</DialogTitle>
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
             <div className="h-1 w-9 rounded-full bg-border" />
           </div>
@@ -1760,7 +1767,9 @@ export default function PeoplePage() {
       {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
       {isManager && (
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+            <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+              {/* Radix a11y (аудит 05.09): заголовок для скрінрідера — візуальний хедер лишається кастомним div-ом */}
+              <DialogTitle className="sr-only">{t("people.dialogAddTitle")}</DialogTitle>
               <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
                 <div className="h-1 w-9 rounded-full bg-border" />
               </div>
@@ -1875,8 +1884,20 @@ export default function PeoplePage() {
       <Sheet open={!!selectedPerson} onOpenChange={(open) => !open && setSelectedPerson(null)}>
         <SheetContent
           side="bottom"
+          aria-describedby={undefined}
           className="rounded-t-[20px] px-0 pb-6 pt-0 max-h-[90vh] overflow-y-auto [&>button.absolute]:hidden"
         >
+          {/* Radix a11y (аудит 05.09): незрячий користувач відкривав картку і не
+              чув, ЧИЯ вона — оголошуємо імʼя і роль при відкритті. */}
+          {selectedPerson && (
+            <SheetTitle className="sr-only">
+              {fullName(selectedPerson)}
+              {" · "}
+              {selectedPerson.role === "tutor" ? t("roles.tutor")
+                : selectedPerson.role === "manager" ? t("roles.manager")
+                : t("roles.student")}
+            </SheetTitle>
+          )}
           {selectedPerson && (() => {
             const u = selectedPerson;
             const tutorProgress = isManager && u.role === "tutor" && !u.archived_at

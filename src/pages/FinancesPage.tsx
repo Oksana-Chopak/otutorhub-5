@@ -3094,18 +3094,22 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {/* === Debt alert — shows when there are unpaid lessons === */}
-          {totalDebt > 0 && (
+          {/* === Debt alert — shows when STUDENTS owe (аудит 05.09: банер сумував
+              учнівський борг із виплатами репетиторам в одну «Заборгованість»,
+              а «Нагадати» шле нагадування лише учням — про виплати школи
+              нагадати учневі неможливо. Тепер банер = рівно та сума і ті уроки,
+              на які діє кнопка; виплати живуть у своїй картці вище). === */}
+          {pendingIncome > 0 && (
             <div className="mb-4 flex items-center justify-between gap-3 rounded-[14px] px-4 py-3"
               style={{ background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.35)" }}>
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">⚠️</span>
                 <div>
                   <p className="text-[15px] font-bold" style={{ color: "#b45309" }}>
-                    {t("finances.debtTitle", { sum: formatPrice((totalDebt), "UAH")})}
+                    {t("finances.studentsOweBannerTitle", { sum: formatPrice((pendingIncome), "UAH")})}
                   </p>
                   <p className="text-[14px]" style={{ color: "#b45309", opacity: 0.8 }}>
-                    {t("finances.debtAwaiting", { count: debtsRows.length })}
+                    {t("finances.debtAwaiting", { count: periodStudentDebts.length })}
                   </p>
                 </div>
               </div>

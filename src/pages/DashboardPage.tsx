@@ -1199,6 +1199,18 @@ export default function DashboardPage() {
       done:  obProgress.hasMeetingUrl,
     },
     {
+      // Аудит 05.09: без реквізитів онбординг завершувався, а приймати гроші
+      // не було як — учень на «Оплатити» бачив тільки «спитати в чаті».
+      // Реквізити вводяться у формі учня (MyStudentsPage), тому крок зʼявляється,
+      // щойно є перший учень, і гасне, коли хоч одна пара має реквізити.
+      action: "payDetails",
+      emoji: "💳",
+      title: t("dashboardExtra.taskPayDetailsTitle"),
+      desc:  t("dashboardExtra.taskPayDetailsDesc"),
+      to:    "/my-students",
+      done:  obProgress.hasPaymentDetails,
+    },
+    {
       action: "calendar",
       emoji: "📆",
       title: t("dashboardExtra.taskCalendarTitle"),
@@ -1235,6 +1247,11 @@ export default function DashboardPage() {
          повертався на дашборд, задача лишалась — петля без виходу. Посилання
          на урок він задає у самому уроці, тож задача йому не належить. */
       && !(isHubTutor && t.action === "zoom")
+      /* Реквізити — концепт САМОСТІЙНОГО репетитора (учні хаба платять школі),
+         і крок живе у формі учня на /my-students (хабового звідти редіректить).
+         Поки немає жодного учня — кроку немає: спершу «додай учня». */
+      && !(isHubTutor && t.action === "payDetails")
+      && !(t.action === "payDetails" && !obProgress.hasAnyStudent)
   );
 
   const smartTasks = useMemo(() => {
