@@ -59,6 +59,7 @@ import { isPayoutDueToday, nextPayoutDate, type PayoutSchedule } from "@/lib/pay
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { DayClosedCelebration } from "@/components/DayClosedCelebration";
 import { TopTutorBadge } from "@/components/TopTutorBadge";
+import { useCoreLock } from "@/hooks/useCoreLock";
 import {
   CalendarDays,
   Users,
@@ -123,6 +124,7 @@ export default function DashboardPage() {
   const haptic = useHaptic();
   const { user, roles, loading: authLoading } = useAuth();
   const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil, updateSettings } = useWorkspaceSettings();
+  const coreLock = useCoreLock();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
@@ -725,6 +727,8 @@ export default function DashboardPage() {
     field: "student_payment_status" | "tutor_payout_status",
     value: PaymentStatus,
   ) => {
+    // Замок 05.09: позначення оплат — ядро, лише з підпискою/тріалом.
+    if (coreLock.locked) { coreLock.openPaywall(); return; }
     // Group lessons have no shared lesson_details row — per-participant payments are
     // marked in the lesson dialog (lesson_participants). Never write a bogus shared row.
     const lesson = lessons.find((l) => l.id === lessonId);

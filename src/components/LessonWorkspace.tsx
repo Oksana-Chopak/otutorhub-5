@@ -113,7 +113,7 @@ export function LessonWorkspace({
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
   const navigate = useNavigate();
-  const { isPro, isIndependent, settings, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
+  const { hasFullPlan, isIndependent, settings, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   const { trackPaywallClick } = usePaywallTracking();
   const isTutor = user?.id === tutorId;
   const [lastSaved, setLastSaved] = useState<null | "homework" | "summary">(null); // B-D2
@@ -128,7 +128,8 @@ export function LessonWorkspace({
      (читання завершилось, рядка немає) прапор самостійності false — і вираз
      давав true, тобто безкоштовний самостійний репетитор отримував Pro-фічу
      замість пейволу. Не знаємо персону — не відкриваємо. */
-  const aiAllowed = wsLoading || workspaceUnknown ? false : (!isIndependent || isPro);
+  // Light (05.09): AI-конспекти — лише ПОВНИЙ план.
+  const aiAllowed = wsLoading || workspaceUnknown ? false : (!isIndependent || hasFullPlan);
   const canTogglePayment = (isTutor && source === "independent") || isManager;
   const canMarkCompleted = isTutor || isManager; // P8: свій урок — своя кнопка, конфеті для всіх
   const [paymentBusy, setPaymentBusy] = useState(false);

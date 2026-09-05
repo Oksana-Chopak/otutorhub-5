@@ -46,6 +46,18 @@ export const PLAN_DISCOUNT = {
 
 export type PlanKey = keyof typeof PRICE_PER_MONTH;
 
+/**
+ * Light — план-рятівник при СКАСУВАННІ (рішення власниці 05.09, за взірцем
+ * Lovable): пів ціни місячного, ядро працює (уроки, оплати, борги, розклад),
+ * закриті AI-конспекти і правила скасувань. НЕ показується в публічному
+ * прайсі — тільки в потоці скасування, щоб не розмивати анкор 299 грн.
+ * Тому він СВІДОМО не в PRICE_PER_MONTH (той обʼєкт = публічні плани).
+ */
+export const LIGHT_PRICE_MONTHLY = 149;
+
+/** Плани, які приймає LiqPay-флоу (публічні + Light із потоку скасування). */
+export type PayablePlanKey = PlanKey | "light";
+
 /** «299 грн» — символ підставляє formatPrice, як велить canon у lib/currency. */
 export const priceLabel = (plan: PlanKey): string => formatPrice(PRICE_PER_MONTH[plan], "UAH");
 export const totalLabel = (plan: PlanKey): string => formatPrice(PRICE_TOTAL[plan], "UAH");

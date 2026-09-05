@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import i18nInstance from "@/i18n";
+import { useCoreLock } from "@/hooks/useCoreLock";
 const t = i18nInstance.t.bind(i18nInstance);
 
 export interface PairOption {
@@ -137,7 +138,10 @@ export function RecordPaymentSheet({
       );
   }, [unpaidLessons, pickedPair]);
 
+  const lock = useCoreLock();
   const handleMarkPaid = async (lessonId: string) => {
+    // Замок 05.09: запис оплат — ядро, лише з підпискою/тріалом.
+    if (lock.locked) { lock.openPaywall(); return; }
     // Instant-feedback invariant: buzz on the tap, not after the network round-trip
     // (the parent callback already updates the list optimistically).
     haptic.success();
@@ -147,6 +151,7 @@ export function RecordPaymentSheet({
   };
 
   const handleTopUp = async () => {
+    if (lock.locked) { lock.openPaywall(); return; } // замок 05.09
     if (busy) return; // P7: подвійний тап = гаманець на 20 уроків замість 10 (як у WalletDialog)
     if (!pickedPair) return;
     let lessonsDelta = 0;

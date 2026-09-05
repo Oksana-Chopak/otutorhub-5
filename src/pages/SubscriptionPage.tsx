@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { priceLabel, totalLabel } from "@/lib/pricing";
+import { priceLabel, totalLabel, LIGHT_PRICE_MONTHLY } from "@/lib/pricing";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeApp, isIosApp } from "@/lib/platform";
@@ -140,7 +142,34 @@ export default function SubscriptionPage() {
 
   // Stop LiqPay auto-renew (web). Pro stays until subscription_until; only
   // future charges stop. iOS cancels via App Store, so this is web-only.
-  const cancelSubscription = async () => {
+  /**
+   * Save-офер при скасуванні (рішення власниці 05.09, за взірцем Lovable):
+   * перш ніж відпустити людину — пропонуємо Light за пів ціни (149 грн):
+   * ядро працює, без AI-конспектів і правил скасувань. Бізнес-причина:
+   * повернути частину відтоку дешевше, ніж привести нового підписника.
+   * Публічний прайс Light не показує — тільки цей потік.
+   */
+  const [saveOfferOpen, setSaveOfferOpen] = useState(false);
+  const cancelSubscription = () => {
+    // Light-офер має сенс лише для повних планів; для Light — одразу чесне скасування.
+    if ((settings as any)?.current_plan === "light") { void doFullCancel(); return; }
+    setSaveOfferOpen(true);
+  };
+
+  /** Тихо зупиняє старе автопоновлення перед чекаутом Light (onBeforePay). */
+  const stopOldRecurringSilently = async (): Promise<boolean> => {
+    const { data, error } = await supabase.functions.invoke("liqpay-cancel", { body: {} });
+    const errMsg = error?.message || (data as { error?: string } | null)?.error;
+    if (errMsg) {
+      const { toast } = await import("sonner");
+      toast.error(t("subscriptionPageExtra.cancelFailed"));
+      return false;
+    }
+    await refresh?.();
+    return true;
+  };
+
+  const doFullCancel = async () => {
     if (!(await confirmDialog({ description: t("subscriptionPageExtra.cancelConfirm") }))) return;
     setCancelling(true);
     const { data, error } = await supabase.functions.invoke("liqpay-cancel", { body: {} });
@@ -151,6 +180,7 @@ export default function SubscriptionPage() {
       toast.error(t("subscriptionPageExtra.cancelFailed"));
       return;
     }
+    setSaveOfferOpen(false);
     toast.success(t("subscriptionPageExtra.cancelled"));
     await refresh?.();
   };
@@ -580,6 +610,54 @@ export default function SubscriptionPage() {
         <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
         <BackToProfile />
       </div>
+
+      {/* ── Save-офер при скасуванні: Light за пів ціни (05.09) ─────────── */}
+      <Dialog open={saveOfferOpen} onOpenChange={setSaveOfferOpen}>
+        <DialogContent
+          aria-describedby={undefined}
+          className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden"
+        >
+          <DialogTitle className="sr-only">{t("cancelOffer.title")}</DialogTitle>
+          <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+            <div className="h-1 w-9 rounded-full bg-border" />
+          </div>
+          <div style={{ padding: "16px 22px 22px" }}>
+            <div style={{ fontSize: 40, lineHeight: 1 }}>🫶</div>
+            <p className="mt-2 text-[20px] font-extrabold text-foreground" style={{ fontFamily: S.display, letterSpacing: "-.01em" }}>
+              {t("cancelOffer.title")}
+            </p>
+            <p className="mt-1 text-[15px] text-muted-foreground">
+              {t("cancelOffer.subtitle", { price: formatPrice(LIGHT_PRICE_MONTHLY, "UAH") })}
+            </p>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-start gap-2.5 text-[14px] text-foreground">
+                <span aria-hidden className="mt-[1px]" style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>
+                <span>{t("cancelOffer.keeps")}</span>
+              </div>
+              <div className="flex items-start gap-2.5 text-[14px] text-muted-foreground">
+                <span aria-hidden className="mt-[1px]">🔒</span>
+                <span>{t("cancelOffer.drops")}</span>
+              </div>
+            </div>
+            <LiqPayPayButton
+              plan="light"
+              recurring
+              onBeforePay={stopOldRecurringSilently}
+              className="mt-5 h-[50px] w-full rounded-[14px] text-[16px] font-semibold"
+              label={t("cancelOffer.acceptBtn", { price: formatPrice(LIGHT_PRICE_MONTHLY, "UAH") })}
+            />
+            <button
+              type="button"
+              onClick={() => { setSaveOfferOpen(false); void doFullCancel(); }}
+              disabled={cancelling}
+              className="tap-44 mt-2 h-11 w-full rounded-[12px] text-[14px] font-semibold text-muted-foreground"
+              style={{ background: "transparent", border: "none", cursor: "pointer" }}
+            >
+              {cancelling ? "…" : t("cancelOffer.declineBtn")}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

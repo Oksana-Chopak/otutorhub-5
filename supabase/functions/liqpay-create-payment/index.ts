@@ -11,6 +11,8 @@ const corsHeaders = {
 // Мають збігатися з src/lib/pricing.ts — це та сама сітка, яку бачить користувач.
 const PLANS = {
   monthly:  { uah: 299,  months: 1,  description: "oTutorHub Pro — 1 місяць (299 грн)" },
+  // Light (05.09): план-рятівник із потоку скасування — пів ціни, ядро без AI.
+  light:    { uah: 149,  months: 1,  description: "oTutorHub Light — 1 місяць (149 грн)" },
   halfyear: { uah: 1614, months: 6,  description: "oTutorHub Pro — 6 місяців (1614 грн, −10%)" },
   yearly:   { uah: 2988, months: 12, description: "oTutorHub Pro — 12 місяців (2988 грн, −17%)" },
 } as const;

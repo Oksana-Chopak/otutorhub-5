@@ -71,6 +71,7 @@ import { useMediaQuery } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice} from "@/lib/currency";
+import { useCoreLock } from "@/hooks/useCoreLock";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -206,6 +207,7 @@ export default function FinancesPage() {
   const haptic = useHaptic();
   const { roles } = useAuth();
   const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
+  const coreLock = useCoreLock();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
@@ -1067,6 +1069,8 @@ export default function FinancesPage() {
     lesson: LessonRow,
     field: "student_payment_status" | "tutor_payout_status"
   ) => {
+    // Замок 05.09: позначення оплат — ядро, лише з підпискою/тріалом.
+    if (coreLock.locked) { coreLock.openPaywall(); return; }
     // No tutor payout is tracked for group lessons (it would leak the hub margin to
     // students via lesson_participants), so the payout toggle is a no-op for them.
     if (field === "tutor_payout_status" && lesson.kind === "group") return;

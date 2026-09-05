@@ -34,6 +34,7 @@ import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
+import { useCoreLock } from "@/hooks/useCoreLock";
 
 interface Props {
   open: boolean;
@@ -246,7 +247,10 @@ export function QuickLessonDialog({
 
   const effStartsAt = whenLocal ?? startsAt;
 
+  const lock = useCoreLock();
   const submit = async () => {
+    // Замок 05.09: нові уроки — лише з підпискою/тріалом (незалежний).
+    if (lock.locked) { lock.openPaywall(); return; }
     if (!user || !effStartsAt) return;
 
     if (mode === "individual" && students.length === 0) {

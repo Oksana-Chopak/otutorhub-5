@@ -21,6 +21,7 @@ import { useStudentWallet } from "@/hooks/useStudentWallet";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
 import i18nInstance from "@/i18n";
+import { useCoreLock } from "@/hooks/useCoreLock";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface WalletDialogProps {
@@ -89,6 +90,7 @@ export function WalletDialog({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (txId: string, hard: boolean) => {
+    if (lock.locked) { lock.openPaywall(); return; } // замок 05.09
     const label = hard ? t("walletDialog.confirmDeleteHard") : t("walletDialog.confirmDeleteSoft");
     if (!(await confirmDialog({ description: t("walletDialogExtra.confirmPrompt", { action: label }), destructive: true }))) return;
     setDeletingId(txId);
@@ -111,7 +113,10 @@ export function WalletDialog({
     setNote("");
   };
 
+  const lock = useCoreLock();
   const handleTopUp = async () => {
+    // Замок 05.09: рухи гаманця — ядро, лише з підпискою/тріалом.
+    if (lock.locked) { lock.openPaywall(); return; }
     let lessonsDelta = 0;
     let amountDelta = 0;
 
@@ -219,6 +224,7 @@ export function WalletDialog({
   }, [open, tutorId, studentId]);
 
   const handleMarkPaid = async () => {
+    if (lock.locked) { lock.openPaywall(); return; } // замок 05.09
     if (checkedIds.size === 0) return;
     setMarking(true);
     try {

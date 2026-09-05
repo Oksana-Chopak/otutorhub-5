@@ -3,6 +3,7 @@ import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { PaywallProvider } from "@/hooks/useCoreLock";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationBell } from "./NotificationBell";
@@ -69,6 +70,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const greetEmoji = hour < 12 ? "☀️" : hour < 18 ? "🌤️" : "🌙";
 
   return (
+    <PaywallProvider>
     <div className="flex min-h-screen bg-background">
       {/* Offline banner — was imported but never rendered (so it never showed for any
           role). Rendered here so the whole app, every role, gets it. */}
@@ -112,5 +114,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
       <MobileBottomNav />
     </div>
+    </PaywallProvider>
   );
 }

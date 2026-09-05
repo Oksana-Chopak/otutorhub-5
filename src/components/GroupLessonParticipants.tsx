@@ -7,6 +7,7 @@ import { useHaptic } from "@/hooks/useHaptic";
 import { currencySymbol } from "@/lib/currency";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useCoreLock } from "@/hooks/useCoreLock";
 
 interface Participant {
   id: string;
@@ -80,7 +81,10 @@ export function GroupLessonParticipants({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
+  const lock = useCoreLock();
   const togglePaid = async (p: Participant) => {
+    // Замок 05.09: позначення оплат — ядро, лише з підпискою/тріалом (менеджера/хабового не стосується).
+    if (lock.locked) { lock.openPaywall(); return; }
     const next = p.student_payment_status === "paid" ? "unpaid" : "paid";
     setBusyId(p.id);
     // optimistic

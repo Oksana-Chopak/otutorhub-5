@@ -68,6 +68,7 @@ import { useScheduleFilters } from "@/hooks/useScheduleFilters";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { insertNotification } from "@/lib/notifications";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
+import { useCoreLock } from "@/hooks/useCoreLock";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -568,7 +569,10 @@ export default function SchedulePage() {
     return t('schedule.conflictWarning', { subject: conflict.subject, time: conflictTime });
   }, [form.tutor_id, form.starts_at, form.duration_minutes, lessons]);
 
+  const lock = useCoreLock();
   const handleCreate = async () => {
+    // Замок 05.09: нові уроки — лише з підпискою/тріалом (незалежний).
+    if (lock.locked) { lock.openPaywall(); return; }
     // Аудит 01.09: прапор самостійності дефолтиться у false, поки налаштування
     // робочого простору ще вантажаться. Якщо дати сабмітити в цей момент,
     // урок самостійного репетитора запишеться з source:"hub" і зникне з його

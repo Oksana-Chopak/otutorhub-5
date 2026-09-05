@@ -45,7 +45,7 @@ interface Preset {
 
 export function ProRulesCard() {
   const { t } = useTranslation();
-  const { settings, isPro, isTrial, updateSettings, loading } = useWorkspaceSettings();
+  const { settings, hasFullPlan, updateSettings, loading } = useWorkspaceSettings();
   const [state, setState] = useState<RulesState | null>(null);
   const [saving, setSaving] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -80,7 +80,8 @@ export function ProRulesCard() {
     );
   }
 
-  const disabled = !isPro && !isTrial;
+  // Light (05.09): правила скасувань/передоплат — фіча повного плану (тріал = повний).
+  const disabled = !hasFullPlan;
 
   const PRESETS: Preset[] = [
     { k: "flex", emoji: "🌿", title: t("proRulesCard.presetFlexTitle"), desc: t("proRulesCard.presetFlexDesc"), hours: 6, fee: 0, noshow: 50, resched: 3 },

@@ -4,16 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
-import { PRICE_TOTAL, type PlanKey } from "@/lib/pricing";
+import { PRICE_TOTAL, LIGHT_PRICE_MONTHLY, type PlanKey, type PayablePlanKey } from "@/lib/pricing";
 import { formatPrice } from "@/lib/currency";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface LiqPayPayButtonProps {
-  plan: "monthly" | "halfyear" | "yearly";
+  /** 'light' — план-рятівник із потоку скасування (05.09), у публічному прайсі його немає. */
+  plan: PayablePlanKey;
   recurring?: boolean;
   disabled?: boolean;
   className?: string;
   label?: string;
+  /**
+   * Виконується ПЕРЕД створенням платежу; поверни false — оплата не стартує.
+   * Потрібно save-оферу Light: спершу зупинити старе автопоновлення
+   * (liqpay-cancel), і лише потім вести на чекаут нового плану.
+   */
+  onBeforePay?: () => Promise<boolean>;
 }
 
 /**
@@ -34,16 +41,26 @@ export function LiqPayPayButton({
   disabled,
   className,
   label,
+  onBeforePay,
 }: LiqPayPayButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handlePay = async () => {
     setLoading(true);
+    // Вікно відкривається СИНХРОННО в жесті кліку (до будь-якого await),
+    // інакше блокувальники спливаючих вікон зʼїдять чекаут.
     const checkoutWindowName = `liqpay_checkout_${Date.now()}`;
     const checkoutWindow = window.open("", checkoutWindowName);
     if (checkoutWindow) {
       checkoutWindow.opener = null;
       checkoutWindow.document.write(t("liqPay.redirecting"));
+    }
+    if (onBeforePay) {
+      // Підготовчий крок (напр., зупинка старого автопоновлення для Light);
+      // false — платіж не стартує, відкрите вікно закриваємо.
+      let ok = false;
+      try { ok = await onBeforePay(); } catch { ok = false; }
+      if (!ok) { checkoutWindow?.close(); setLoading(false); return; }
     }
 
     try {
@@ -64,7 +81,7 @@ export function LiqPayPayButton({
 
       // Звірка суми: `data.data` — це base64 від JSON параметрів LiqPay,
       // тож суму видно без жодної довіри до сервера.
-      const expected = PRICE_TOTAL[plan as PlanKey];
+      const expected = plan === "light" ? LIGHT_PRICE_MONTHLY : PRICE_TOTAL[plan as PlanKey];
       let signedAmount: number | null = null;
       try {
         // TextDecoder, а не escape(): опис плану містить кирилицю.

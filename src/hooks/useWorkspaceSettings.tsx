@@ -8,6 +8,7 @@ export interface WorkspaceSettings {
   independent_workspace: boolean;
   subscription_status: "free" | "trial" | "active" | "past_due" | "cancelled";
   subscription_until: string | null;
+  current_plan?: string | null;
   trial_until: string | null;
   onboarding_completed: boolean;
   onboarding_step: number;
@@ -135,6 +136,29 @@ export function useWorkspaceSettings() {
     ? Math.max(0, Math.ceil((trialUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 
+  /**
+   * ЗАМОК (рішення власниці 05.09): застосунок — платний. Після 30 днів тріалу
+   * без підписки ядро (НОВІ уроки та позначення оплат) замикається; всі дані,
+   * історія та кабінети учнів лишаються видимими. Бізнес-причина: без замка
+   * конверсія тріалу ~3% замість ~10% і реклама не окупається (freemium-
+   * бенчмарк), а обіцянка продукту — саме платний сервіс.
+   *
+   * Безпечність по персонах: хабовий репетитор/менеджер/учень НІКОЛИ не
+   * замикаються (isIndependent=false або хук вимкнений). Поки персона
+   * невідома (roleReady=false / workspaceUnknown) — замок НЕ вмикається,
+   * як і будь-яке інше рольове рішення (інваріант persona-readiness);
+   * записи в цей короткий стан гейтяться загальними guard'ами воркспейсу.
+   */
+  const coreLocked = roleReady && !workspaceUnknown && isIndependent && !isPro;
+
+  /**
+   * Light (149 грн) — оплачений план БЕЗ AI-фіч: ядро працює (isPro=true),
+   * а AI-конспекти/Fireflies/правила скасувань вимагають ПОВНОГО плану.
+   * Тріал = повний план (людина має спробувати все, за що платитиме).
+   */
+  const planKey = (settings?.current_plan ?? null) as string | null;
+  const hasFullPlan = isPro && !(isActiveSub && planKey === "light");
+
   return {
     settings,
     loading,
@@ -148,6 +172,12 @@ export function useWorkspaceSettings() {
     isIndependent,
     isPro,
     isTrial: trialActive,
+    /** Ядро замкнене: незалежний без активної підписки/тріалу. Дані видно, нові уроки/оплати — ні. */
+    coreLocked,
+    /** Активний ПОВНИЙ план (не Light): відкриває AI-конспекти і правила скасувань. */
+    hasFullPlan,
+    /** current_plan з бази: 'monthly' | 'halfyear' | 'yearly' | 'light' | null. */
+    planKey,
     trialUntil,
     trialDaysLeft,
     updateSettings,
