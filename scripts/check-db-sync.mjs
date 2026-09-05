@@ -11,8 +11,13 @@
  *     пропустить (ordering trap, CLAUDE.md);
  *   • колонка/функція є в проді ⇔ вона є у types.ts.
  *
- * Скрипт друкує три списки. Exit 1, якщо є міграції нижче водяного знаку, що
+ * Скрипт друкує чотири списки. Exit 1, якщо є міграції нижче водяного знаку, що
  * ще не позначені як застосовані в docs/PROD-DB-SYNC.md.
+ *
+ * Четвертий список (доказ тілом) закриває сліпу пляму: перевипуск функції з тією
+ * самою сигнатурою не міняє types.ts, тож раніше відповідь була «спитай журнал»,
+ * а журнал відстає. Тепер тіло функції з міграції шукається серед застосованих
+ * хеш-файлів Lovable і звіряється за ЗМІСТОМ (коментарі й переноси ігноруються).
  */
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -95,10 +100,66 @@ for (const f of belowUnknown) console.log(`   ${f}`);
 console.log(`\n◆ LIVE-MARKER перевірка проти types.ts: ${markers.length}`);
 const badge = { live: "✅ live      ", no: "⛔ NOT live  ", unprovable: "❓ не доводиться" };
 for (const m of markers) console.log(`   ${badge[m.state]}  ${m.f}  ← ${m.marker}`);
+/* ── Доказ для перевипущених обʼєктів ───────────────────────────────────────
+   Коли функцію перевипускають із тією самою сигнатурою, types.ts не міняється,
+   тож LIVE-MARKER-NONE донедавна означав лише «спитай журнал». А журнал
+   відстає: 05.09 він казав «⛔ чекає Run у Lovable», хоча Lovable застосував
+   обидві функції ще о 09:50 — і аудиторка переказала журнал як факт.
+   Тому доводимо інакше: шукаємо ТІЛО обʼєкта серед уже застосованих хеш-файлів
+   Lovable. Збіг слово в слово = обʼєкт у проді саме такий. Розбіжність = у проді
+   ІНША версія: найнебезпечніший стан, бо журнал у ньому каже «✅ live». */
+/* Порівнюємо ЗМІСТ, не форматування: коментарі й переноси не міняють поведінку
+   функції, а різняться завжди (SQL для власниці ущільнюється перед вставкою в
+   чат). Без цього перевірка кричала б «інша версія» на кожну косметику. */
+const normSql = (x) =>
+  x.replace(/\/\*[\s\S]*?\*\//g, " ")   // блокові коментарі
+   .replace(/--[^\n]*/g, " ")            // рядкові коментарі
+   .replace(/\s+/g, " ")
+   .trim();
+const objectsIn = (text) => {
+  const out = [];
+  for (const m of text.matchAll(/CREATE\s+OR\s+REPLACE\s+(FUNCTION|VIEW)\s+public\.([a-z_0-9]+)/gi)) {
+    const kind = m[1].toUpperCase();
+    const end = kind === "FUNCTION"
+      ? (text.indexOf("$$;", m.index) === -1 ? -1 : text.indexOf("$$;", m.index) + 3)
+      : (text.indexOf(";", m.index) === -1 ? -1 : text.indexOf(";", m.index) + 1);
+    if (end === -1) continue;
+    out.push({ kind, name: m[2], body: normSql(text.slice(m.index, end)) });
+  }
+  return out;
+};
+
+const appliedHashes = hashes.filter((h) => h.slice(0, 14) <= watermark);
+const appliedObjects = new Map();           // name → [{ file, body }] у порядку застосування
+for (const h of appliedHashes)
+  for (const o of objectsIn(readFileSync(join(MIG, h), "utf8")))
+    appliedObjects.set(o.name, [...(appliedObjects.get(o.name) ?? []), { file: h, body: o.body }]);
+
+const proofs = [];
+for (const f of [...new Set(markers.filter((m) => m.state === "unprovable").map((m) => m.f))].sort()) {
+  for (const obj of objectsIn(readFileSync(join(MIG, f), "utf8"))) {
+    const seen = appliedObjects.get(obj.name) ?? [];
+    const exact = [...seen].reverse().find((x) => x.body === obj.body);
+    if (proofs.some((p) => p.f === f && p.name === obj.name)) continue;   // один рядок на обʼєкт
+    proofs.push({ f, name: obj.name, exact: exact?.file ?? null, latest: seen.at(-1)?.file ?? null });
+  }
+}
+
+if (proofs.length) {
+  console.log(`\n◆ Доказ тілом у застосованих файлах Lovable: ${proofs.length}`);
+  for (const p of proofs) {
+    const from = `${p.f}  →  ${p.name}()`;
+    if (p.exact) console.log(`   ✅ у проді саме це      ${from}\n        збіг зі змістом ${p.exact}`);
+    else if (p.latest) console.log(`   ⚠ у проді ІНША ВЕРСІЯ  ${from}\n        остання застосована: ${p.latest} — ця міграція ще не доїхала`);
+    else console.log(`   ❓ не знайдено          ${from}\n        жоден застосований файл Lovable його не містить`);
+  }
+}
+
 const unprovable = markers.filter((m) => m.state === "unprovable");
-if (unprovable.length) {
-  console.log(`\n❓ ${unprovable.length} маркер(ів) НЕ доводяться з types.ts (перевипуск наявного обʼєкта або ще не застосована міграція).`);
-  console.log(`   Стан цих міграцій бери з журналу docs/PROD-DB-SYNC.md, а не з цього рядка.`);
+const stillUnknown = unprovable.filter((m) => !proofs.some((p) => p.f === m.f && p.exact));
+if (stillUnknown.length) {
+  console.log(`\n❓ ${stillUnknown.length} маркер(ів) НЕ доводяться ні з types.ts, ні тілом.`);
+  console.log(`   Лише для НИХ стан бери з журналу docs/PROD-DB-SYNC.md.`);
 }
 
 process.exit(belowUnknown.length ? 1 : 0);
