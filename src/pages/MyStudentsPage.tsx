@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
+import { ImportStudentsSheet } from "@/components/ImportStudentsSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
@@ -734,6 +735,8 @@ export default function MyStudentsPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  // 05.09 (премортем п.2): масовий імпорт списку учнів текстом.
+  const [importOpen, setImportOpen] = useState(false);
   const [subjectOpen, setSubjectOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
@@ -805,6 +808,13 @@ export default function MyStudentsPage() {
           <button onClick={() => setSearchOpen(true)} aria-label={t("myStudents.searchPlaceholder")}
             style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
             <Search size={21} strokeWidth={2} />
+          </button>
+        )}
+        {!searchOpen && (
+          <button onClick={() => setImportOpen(true)} aria-label={t("importStudents.title")}
+            title={t("importStudents.title")}
+            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)", fontSize: 19 }}>
+            📋
           </button>
         )}
       </div>
@@ -1349,6 +1359,7 @@ export default function MyStudentsPage() {
         />
       )}
       <PageFAB onClick={openCreate} label={t("myStudents.addStudent")} />
+      <ImportStudentsSheet open={importOpen} onOpenChange={setImportOpen} onImported={() => void load()} />
     </>
   );
 }

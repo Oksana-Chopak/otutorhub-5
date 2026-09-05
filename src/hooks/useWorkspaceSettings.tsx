@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { deriveSubscription } from "@/lib/subscriptionState";
 
 export interface WorkspaceSettings {
   tutor_id: string;
@@ -120,44 +121,30 @@ export function useWorkspaceSettings() {
     return rpcError;
   };
 
-  const isIndependent = settings?.independent_workspace ?? false;
-  // A paid sub is only valid until it lapses; a failed LiqPay renewal leaves
-  // status='active' until the downgrade cron runs (mirror of the trial check).
-  const subUntil = settings?.subscription_until ? new Date(settings.subscription_until).getTime() : null;
-  const isActiveSub =
-    settings?.subscription_status === "active" && (subUntil === null || subUntil > Date.now());
-  const trialActive =
-    settings?.subscription_status === "trial" &&
-    !!settings?.trial_until &&
-    new Date(settings.trial_until).getTime() > Date.now();
-  const isPro = isActiveSub || trialActive;
+  /**
+   * ЗАМОК (рішення власниці 05.09): застосунок — платний. Після 30 днів тріалу
+   * без підписки ядро (НОВІ уроки та позначення оплат) замикається; всі дані,
+   * історія та кабінети учнів лишаються видимими. Light (149 грн) — оплачений
+   * план без AI-фіч (hasFullPlan=false; тріал = повний план).
+   *
+   * Уся математика станів — у ЧИСТІЙ deriveSubscription (lib/subscriptionState):
+   * чотириперсонний тест записів ганяє САМЕ її, тож тест і продакшн виконують
+   * один код. Хабовий/менеджер/учень не замикаються ніколи; поки персона
+   * невідома (roleReady/workspaceUnknown) — замок не вмикається
+   * (persona-readiness), записи в цю мить гейтяться guard'ами воркспейсу.
+   */
+  const {
+    isIndependent,
+    isPro,
+    isTrial: trialActive,
+    coreLocked,
+    hasFullPlan,
+    planKey,
+  } = deriveSubscription({ settings, roleReady, workspaceUnknown });
   const trialUntil = settings?.trial_until ? new Date(settings.trial_until) : null;
   const trialDaysLeft = trialActive && trialUntil
     ? Math.max(0, Math.ceil((trialUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
-
-  /**
-   * ЗАМОК (рішення власниці 05.09): застосунок — платний. Після 30 днів тріалу
-   * без підписки ядро (НОВІ уроки та позначення оплат) замикається; всі дані,
-   * історія та кабінети учнів лишаються видимими. Бізнес-причина: без замка
-   * конверсія тріалу ~3% замість ~10% і реклама не окупається (freemium-
-   * бенчмарк), а обіцянка продукту — саме платний сервіс.
-   *
-   * Безпечність по персонах: хабовий репетитор/менеджер/учень НІКОЛИ не
-   * замикаються (isIndependent=false або хук вимкнений). Поки персона
-   * невідома (roleReady=false / workspaceUnknown) — замок НЕ вмикається,
-   * як і будь-яке інше рольове рішення (інваріант persona-readiness);
-   * записи в цей короткий стан гейтяться загальними guard'ами воркспейсу.
-   */
-  const coreLocked = roleReady && !workspaceUnknown && isIndependent && !isPro;
-
-  /**
-   * Light (149 грн) — оплачений план БЕЗ AI-фіч: ядро працює (isPro=true),
-   * а AI-конспекти/Fireflies/правила скасувань вимагають ПОВНОГО плану.
-   * Тріал = повний план (людина має спробувати все, за що платитиме).
-   */
-  const planKey = (settings?.current_plan ?? null) as string | null;
-  const hasFullPlan = isPro && !(isActiveSub && planKey === "light");
 
   return {
     settings,

@@ -17,6 +17,9 @@ const ALLOW = new Set([
   "src/hooks/useWorkspaceSettings.tsx",
   // фінансові предикати: прапор приходить аргументом, рендеру немає
   "src/lib/financials.ts",
+  // 05.09: ЧИСТЕ джерело правди станів підписки (замок/Light) — прапор
+  // живе тут за визначенням, рендера немає; useWorkspaceSettings делегує.
+  "src/lib/subscriptionState.ts",
   // 02.09: адаптер ролі → RoleFlags. Це ДРУГЕ (після useWorkspaceSettings)
   // і останнє місце, де прапорець згадується явно; сторінки тепер питають
   // canSee(...), а не прапорець. Тому файл у ALLOW, а не в BASELINE.
@@ -40,7 +43,8 @@ const BASELINE: Record<string, number> = {
   // { isIndependent })`. Згадок стало більше, а можливостей помилитись — менше.
   // Далі число знову може лише падати.
   "src/pages/DashboardPage.tsx": 33,
-  "src/pages/FinancesPage.tsx": 43,
+  // 05.09: 43→44 — рендер-гейт картки «Нагадування повернули» (незалежний).
+  "src/pages/FinancesPage.tsx": 44,
   "src/pages/GroupsPage.tsx": 3,
   "src/pages/MyReferralsPage.tsx": 2,
   "src/pages/MyStudentsPage.tsx": 6,

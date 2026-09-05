@@ -2,7 +2,7 @@
 // Мета: 0 літералів поза src/lib/currency.ts; всі суми через formatPrice().
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
-const OK = new Set(["src/lib/currency.ts", "src/components/CurrencyComboBox.tsx"]); // канон + пікер-визначення
+const OK = new Set(["src/lib/currency.ts", "src/components/CurrencyComboBox.tsx", "src/lib/importStudents.ts"]); // канон + пікер-визначення + парсер імпорту (₴/грн у regex РОЗПІЗНАВАННЯ, не в рендері)
 const hits = [];
 function walk(dir) {
   for (const f of readdirSync(dir)) {
@@ -40,7 +40,9 @@ hits.slice(0, 40).forEach((h) => console.log(h));
 // 05.09 ніч: 43→45 — save-офер Light у потоці скасування показує ціну плану
 // двічі (підзаголовок + кнопка). Ціни підписки ЗАФІКСОВАНІ в гривні рішенням
 // власниці 02.09 (pricing.ts) — тут UAH-літерал і є правилом, не недбалістю.
-const MAX_UAH_ARGS = 45; // станом на 05.09
+// 05.09 пізніше: 45→46 — превʼю імпорту учнів показує розібрану ціну; сам
+// імпорт створює ставки в UAH за задумом v1 (укр. ринок), тож літерал чесний.
+const MAX_UAH_ARGS = 46; // станом на 05.09
 const uahArgHits = [];
 function walkUah(dir) {
   for (const f of readdirSync(dir)) {

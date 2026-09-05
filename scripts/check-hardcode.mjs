@@ -129,6 +129,10 @@ for (const file of getAllFiles(SRC)) {
   }
 }
 
+// 05.09: словник парсера імпорту (заголовки «Імʼя/Предмет/Ціна») — це ДАНІ
+// розпізнавання, не UI-рядки; UI імпорту весь через t().
+results.delete("src/lib/importStudents.ts");
+
 const total = [...results.values()].reduce((s, v) => s + v.length, 0);
 
 // Separate DashboardPage (has affirmations — expected)

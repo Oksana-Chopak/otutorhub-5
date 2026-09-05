@@ -72,6 +72,7 @@ import { cn } from "@/lib/utils";
 import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice} from "@/lib/currency";
 import { useCoreLock } from "@/hooks/useCoreLock";
+import { RemindersRecoveredCard } from "@/components/RemindersRecoveredCard";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -3056,6 +3057,9 @@ export default function FinancesPage() {
                     : t("finances.parityMismatch", { db: formatPrice(parity.db, "UAH"), app: formatPrice(parity.app, "UAH")})}
                 </p>
               )}
+              {/* 05.09 (премортем п.1): продукт показує ГРОШІ, які він повернув, —
+                  уроки, оплачені в 7 днів після нагадування. Північна зірка. */}
+              {isIndependentTutor && <RemindersRecoveredCard />}
             </div>
 
               {isManager && prepaidRows.length > 0 && (
