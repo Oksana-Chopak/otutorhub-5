@@ -1,0 +1,85 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Android release: збирає ПІДПИСАНИЙ app-release.aab для Google Play — у хмарі
+# GitHub, без Android Studio на Mac власниці.
+#
+# Як користуватись (власниця): GitHub → вкладка Actions → «Android release
+# (.aab для Play)» → Run workflow → дочекатись зеленої галочки (~5–8 хв) →
+# відкрити ран → внизу секція Artifacts → завантажити «otutorhub-release».
+#
+# Потрібні секрети репозиторію (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64 — вміст upload-ключа (.jks) у base64
+#   ANDROID_KEYSTORE_PASSWORD — пароль keystore (він же пароль ключа)
+# Alias зашитий: otutorhub. Це UPLOAD-ключ: із увімкненим Play App Signing
+# Google тримає справжній ключ підпису в себе, upload-ключ можна замінити.
+#
+# Шлях A (v1 без IAP): RevenueCat-ключі свідомо НЕ передаються — картка
+# покупки в застосунку сама ховається (SubscriptionPage), реджекту за
+# «мертву кнопку» не буде. Supabase URL/anon-key беруться з комітнутого .env
+# (публічні за задумом, захищені RLS).
+# ─────────────────────────────────────────────────────────────────────────────
+name: Android release (.aab для Play)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build web (dist/)
+        run: npm run build
+
+      - name: Sync Capacitor android
+        run: npx cap sync android
+
+      - name: Restore upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Секрети ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD не задані (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/android/upload.jks"
+          # key.properties git-ігнорується; тут існує лише в раннері на час збірки.
+          cat > "$GITHUB_WORKSPACE/android/key.properties" <<EOF
+          storeFile=$GITHUB_WORKSPACE/android/upload.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=otutorhub
+          keyPassword=$KEYSTORE_PASSWORD
+          EOF
+
+      - name: Build signed .aab
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Verify signature
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          test -f "$AAB" || { echo "::error::.aab не зібрався"; exit 1; }
+          # jarsigner входить у JDK; для .aab цього досить, щоб упевнитись у підписі.
+          jarsigner -verify "$AAB" && echo "✅ Підписаний: $AAB"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otutorhub-release
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 14
+          if-no-files-found: error
