@@ -842,9 +842,15 @@ export default function AuthPage() {
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Перевірка 05.09 на мобілці: цей рядок був СУСІДОМ картки всередині
+            flex-контейнера (`flex items-center justify-center`), тобто другим
+            flex-елементом у РЯДКУ — тому й висів збоку по центру висоти і
+            забирав у картки ширину, через що вона стискалась. Місце йому під
+            карткою, всередині тієї самої колонки. */}
+        <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#666b82)", opacity: .6 }}>{BUILD_TAG}</p>
       </div>
-      <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#666b82)", opacity: .6 }}>{BUILD_TAG}</p>
-      </div>
+    </div>
     </>
   );
 }
