@@ -277,6 +277,8 @@ export default function FinancesPage() {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
+  // Усі ставки пари по предметах (аудит 05.09: мультиставкова пара)
+  const [pairRateOptions, setPairRateOptions] = useState<Record<string, Array<{ subject: string; rate: number }>>>({});
   // Per-pair billing currency (student_rates.currency) — RecordPaymentSheet must not
   // label USD/EUR students' amounts with a hardcoded ₴.
   const [pairCurrencies, setPairCurrencies] = useState<Record<string, string | undefined>>({});
@@ -427,7 +429,7 @@ export default function FinancesPage() {
         .select("tutor_id, student_id, lessons_balance, amount_balance"),
       supabase
         .from("student_rates")
-        .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
+        .select("tutor_id, student_id, subject, price_per_lesson, currency, archived_at")
         .is("archived_at", null),
     ]);
     // Аудит 01.09: перевірявся лише перший запит, і навіть він лише тостом —
@@ -556,13 +558,26 @@ export default function FinancesPage() {
       };
     });
     setBalances(balanceMap);
+    // Аудит 05.09: у пари може бути КІЛЬКА ставок (по предметах) — ключ без
+    // предмета означав «остання з вибірки затирає попередню», і передоплата
+    // рахувала «≈ 3 200» за німецькою ставкою там, де уроки англійські.
+    // Тепер: усі ставки пари зберігаються з предметами; однозначна «поточна
+    // ставка» існує лише коли вона в пари одна.
     const rateMap: Record<string, number | undefined> = {};
+    const rateOptionsMap: Record<string, Array<{ subject: string; rate: number }>> = {};
     const currencyMap: Record<string, string | undefined> = {};
     ((ratesData ?? []) as any[]).forEach((r) => {
-      rateMap[`${r.tutor_id}:${r.student_id}`] = Number(r.price_per_lesson ?? 0) || undefined;
-      if (r.currency) currencyMap[`${r.tutor_id}:${r.student_id}`] = r.currency;
+      const key = `${r.tutor_id}:${r.student_id}`;
+      const rate = Number(r.price_per_lesson ?? 0);
+      if (rate > 0) (rateOptionsMap[key] ??= []).push({ subject: (r.subject ?? "").trim(), rate });
+      if (r.currency) currencyMap[key] = r.currency;
+    });
+    Object.entries(rateOptionsMap).forEach(([key, opts]) => {
+      const distinct = new Set(opts.map((o) => o.rate));
+      rateMap[key] = distinct.size === 1 ? opts[0].rate : undefined;
     });
     setPairRates(rateMap);
+    setPairRateOptions(rateOptionsMap);
     setPairCurrencies(currencyMap);
     setSelected(new Set());
     setLoading(false);
@@ -637,11 +652,23 @@ export default function FinancesPage() {
     [tutorScoped],
   );
   // 04.09: заплановані неоплачені — ОЧІКУВАНІ платежі (прогноз), не борг. Окрема цифра.
+  // Аудит 05.09: минуле-але-непозначене — НЕ прогноз (isExpectedPaymentLesson
+  // тепер лише майбутнє); такі уроки отримують підказку «позначте проведеним».
   const periodExpected = useMemo(
     () => tutorScoped.filter((l) => isExpectedPaymentLesson(l)),
     [tutorScoped],
   );
   const expectedIncome = periodExpected.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
+  const pastUnmarkedCount = useMemo(() => {
+    const nowMs = Date.now();
+    return tutorScoped.filter(
+      (l) =>
+        l.status === "scheduled" &&
+        new Date(l.starts_at).getTime() <= nowMs &&
+        (l.student_payment_status ?? "unpaid") === "unpaid" &&
+        Number(l.student_price ?? 0) > 0,
+    ).length;
+  }, [tutorScoped]);
   // Payouts owed: CONDUCTED lessons only — mirrors mark_tutor_payouts_paid, so
   // the sums here always equal what the pay actions actually flip.
   const periodPayoutDue = useMemo(() => {
@@ -844,8 +871,15 @@ export default function FinancesPage() {
       const { data, error } = await (supabase.rpc as any)("manager_debts_summary");
       if (error || !data) return; // функція ще не застосована — бейдж просто не показуємо
       const row = Array.isArray(data) ? data[0] : data;
-      const db = Number(row?.students_debt ?? 0) + Number(row?.payouts_owed ?? 0);
-      setParity({ ok: Math.abs(db - totalDebt) <= 1, db, app: totalDebt });
+      // Аудит 05.09: звіряємо КОЖНУ половину окремо — «учні винні» і «школа
+      // винна» — а не одну суму, яка маскує помилку в обох напрямках одразу.
+      const dbIn = Number(row?.students_debt ?? 0);
+      const dbOut = Number(row?.payouts_owed ?? 0);
+      setParity({
+        ok: Math.abs(dbIn - pendingIncome) <= 1 && Math.abs(dbOut - pendingExpense) <= 1,
+        db: dbIn + dbOut,
+        app: totalDebt,
+      });
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isManager, loading, totalDebt]);
@@ -950,11 +984,12 @@ export default function FinancesPage() {
         tutor_name: nameOf(tutor_id),
         student_name: nameOf(student_id),
         rate: pairRates[key],
+        rates: pairRateOptions[key],
         currency: pairCurrencies[key],
       };
     }).sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessons, transactions, balances, pairRates, profiles]);
+  }, [lessons, transactions, balances, pairRates, pairRateOptions, profiles]);
 
   // 💳 «Передоплати учнів» для менеджера: станом на зараз, лише додатні залишки.
   // Джерело — той самий balances (student_wallet_balances) і pairsList (hub-скоуп
@@ -1054,7 +1089,9 @@ export default function FinancesPage() {
       field === "student_payment_status"
         ? await writeStudentPayment(lesson, next, nextPaidAt)
         : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: next });
-    if (!error) { setReloadKey((k) => k + 1); logEvent("payment_marked", { page: "finances" }); bumpDataVersion(); } // B22+C6+C3
+    // Аудит 05.09: «позначив → скасував» давало ДВІ події payment_marked —
+    // метрика активації завищувалась рівно там, де нею міряють успіх.
+    if (!error) { setReloadKey((k) => k + 1); logEvent(next === "paid" ? "payment_marked" : "payment_unmarked", { page: "finances" }); bumpDataVersion(); } // B22+C6+C3
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>
@@ -2963,12 +3000,32 @@ export default function FinancesPage() {
                     tone={profit >= 0 ? "success" : "warning"}
                   />
                 )}
-                <SummaryStat
-                  icon={DollarSign}
-                  label={t("finances.debtsTab")}
-                  value={isIndependentTutor ? fmtCurList(pendingByCur) : formatPrice(totalDebt, "UAH")}
-                  tone={parity && !parity.ok ? "warning" : totalDebt > 0 ? "warning" : "neutral"}
-                />
+                {/* Аудит 05.09: «Заборгованість 1 850» складала ДВІ протилежні речі
+                    (учні винні школі + школа винна репетиторам) в одне число, за
+                    яким менеджер планує гроші. Тепер два підписані числа. */}
+                {isIndependentTutor ? (
+                  <SummaryStat
+                    icon={DollarSign}
+                    label={t("finances.debtsTab")}
+                    value={fmtCurList(pendingByCur)}
+                    tone={totalDebt > 0 ? "warning" : "neutral"}
+                  />
+                ) : (
+                  <>
+                    <SummaryStat
+                      icon={DollarSign}
+                      label={t("finances.studentsOweLabel")}
+                      value={formatPrice(pendingIncome, "UAH")}
+                      tone={parity && !parity.ok ? "warning" : pendingIncome > 0 ? "warning" : "neutral"}
+                    />
+                    <SummaryStat
+                      icon={ArrowUpRight}
+                      label={t("finances.owedToTutorsLabel")}
+                      value={formatPrice(pendingExpense, "UAH")}
+                      tone={parity && !parity.ok ? "warning" : "neutral"}
+                    />
+                  </>
+                )}
                 {/* 04.09: заплановані неоплачені — ОЧІКУВАНІ платежі, не борг. Окремо, нейтрально. */}
                 {expectedIncome > 0 && (
                   <SummaryStat
@@ -2981,6 +3038,13 @@ export default function FinancesPage() {
                   />
                 )}
               </div>
+              {/* Аудит 05.09: минулий непозначений урок — не «очікуваний платіж»
+                  і ще не борг. Гроші за те, що вже сталося, чекають ОДНОГО тапа. */}
+              {pastUnmarkedCount > 0 && (
+                <p className="mt-1.5 text-[13px] font-medium" style={{ color: "#b4740b" }}>
+                  {t("finances.pastUnmarkedHint", { count: pastUnmarkedCount })}
+                </p>
+              )}
               {parity && (
                 <p className={`mt-1.5 text-[13px] ${parity.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}>
                   {parity.ok

@@ -71,14 +71,6 @@ export const unpaidExpense = (rows: MoneyLesson[]): number =>
     .reduce((s, l) => s + Number(l.tutor_payout ?? 0), 0);
 
 /**
- * PREPAYMENT model (owner rule, 2026-07-06): hub students pay BEFORE lessons, so
- * an unpaid UPCOMING lesson is already a receivable/debt — not just past ones.
- * A lesson owes student money when it has a price, isn't a request (pending) and
- * isn't cancelled (unless the price is an explicit cancellation fee).
- * NB: intentionally NOT time-gated — future unpaid lessons count. This predicate
- * drives every "debt / awaiting payment / remind" surface for ALL roles.
- */
-/**
  * БОРГ = проведений і не оплачений (рішення власниці 04.09, скасовує 342f20c9 від 06.07).
  * «Якщо уроки заплановані на пів року вперед — який це борг? Це очікувані платежі».
  * Запланований неоплачений — див. isExpectedPaymentLesson: окрема цифра, не борг.
@@ -92,13 +84,16 @@ export const isStudentDebtLesson = (l: MoneyLesson): boolean => {
 };
 
 /**
- * ОЧІКУВАНИЙ ПЛАТІЖ: запланований (ще не проведений) урок без оплати.
+ * ОЧІКУВАНИЙ ПЛАТІЖ: запланований МАЙБУТНІЙ урок без оплати.
  * Показується як прогноз, окремо від боргу. Ніколи не сумується з боргом.
+ * Аудит 05.09: минулий-але-непозначений урок — НЕ «очікуваний платіж» (гроші за
+ * те, що вже сталося, не прогноз) і ще не борг (не completed) — його місце в
+ * «потребують відмітки»: познач проведеним, і він стане боргом.
  */
-export const isExpectedPaymentLesson = (l: MoneyLesson): boolean => {
+export const isExpectedPaymentLesson = (l: MoneyLesson, nowMs: number = Date.now()): boolean => {
   if ((l.student_payment_status ?? "unpaid") !== "unpaid") return false;
   if (Number(l.student_price ?? 0) <= 0) return false;
-  return l.status === "scheduled";
+  return l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs;
 };
 
 /**

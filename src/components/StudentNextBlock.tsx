@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -37,8 +38,10 @@ function Card({ emoji, title, sub, cta, onClick }: {
         <span style={{ display: "block", fontFamily: "Inter,system-ui,sans-serif", fontWeight: 800, fontSize: 16, color: "#fff" }}>{title}</span>
         {sub && <span style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,.6)", marginTop: 1 }}>{sub}</span>}
       </span>
+      {/* Аудит 05.09: 44px ВІЗУАЛЬНО, не лише хіт-зоною (.tap-44) — це
+          найголовніша кнопка дня учня, її тиснуть поспіхом з телефона. */}
       <button className="tap-44" type="button" onClick={onClick} style={{
-        flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11,
+        flexShrink: 0, height: 44, padding: "0 16px", borderRadius: 12,
         border: "none", cursor: "pointer",
         background: "linear-gradient(135deg,#2BBFAA,#25a896)",
         color: "#0f0f1a", fontFamily: "Inter,system-ui,sans-serif",
@@ -126,7 +129,7 @@ export function StudentNextBlock(props: StudentNextBlockProps) {
       emoji: "📅", key: "upcoming",
       title: nextSubject ?? t("studentNext.upcomingTitle"),
       sub: nextStartsAt
-        ? t("studentNext.upcomingSub", { date: new Date(nextStartsAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) })
+        ? t("studentNext.upcomingSub", { date: new Date(nextStartsAt).toLocaleDateString(getLocale(), { weekday: "short", day: "numeric", month: "short" }) })
         : undefined,
       cta: t("studentNext.upcomingCta"),
       to: "/student/schedule",

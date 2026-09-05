@@ -954,7 +954,7 @@ export default function MyStudentsPage() {
                         historyData[s.id].map((h) => (
                           <div key={h.id} style={{ padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 10, alignItems: "baseline" }}>
                             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.txt, flexShrink: 0 }}>
-                              {new Date(h.starts_at).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit" })}
+                              {new Date(h.starts_at).toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" })}
                             </span>
                             <span style={{ fontSize: 13, flexShrink: 0 }}>{h.status === "completed" ? "✅" : h.status === "cancelled" ? "✖️" : "🕓"}</span>
                             <span style={{ fontFamily: T.body, fontSize: 14, color: h.summary ? T.txt : T.sub, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

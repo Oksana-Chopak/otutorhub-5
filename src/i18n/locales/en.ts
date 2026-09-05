@@ -1062,7 +1062,10 @@ export const en: LocaleTranslations = {
 
     totalsParityMismatch: "⚠️ Totals disagree. Showing the database figure — it is the accurate one. If this keeps happening, contact support.",
 
-    expectedPayments: "Expected payments",},
+    expectedPayments: "Expected payments",
+    studentsOweLabel: "Students owe",
+    owedToTutorsLabel: "Owed to tutors",
+    pastUnmarkedHint: "Past lessons not marked yet: {{count}} — mark them done and they become collectible debt.",},
 
   subjectSelect: {
     removeItem: "Remove",
@@ -2134,7 +2137,7 @@ export const en: LocaleTranslations = {
     monthlySummaryDesc: "View your monthly summary and share it with friends.",
     monthlySummaryBtn: "View",
     pendingPaymentsTitle: "Awaiting payment: {{count}}",
-    pendingPaymentsDesc: "Completed lessons without full payment or payout.",
+    pendingPaymentsDesc: "Conducted lessons awaiting payment, cancellation fees, and payouts due.",
     pendingPaymentsCta: "View unpaid",
     tutorRequestsDesc: "Students left a request — find them a tutor.",
     tutorRequestsCta: "View requests",
@@ -3675,6 +3678,8 @@ export const en: LocaleTranslations = {
     noLessonsCard: "Your first lesson is ahead ✨",
     paidStatus: "Paid",
     awaitingStatus: "Pending",
+    plannedStatus: "Scheduled",
+    upcomingSum: "Scheduled (not due yet): {{sum}}",
     upcoming: "Upcoming ({{count}})",
     past: "Archive ({{count}})",
     pastSchedule: "Past ({{count}})",
@@ -3877,6 +3882,7 @@ export const en: LocaleTranslations = {
     priceUah: "{{price}}",
     markPaid: "Paid",
     atCurrentRate: "at the current rate",
+    pickRateLabel: "This pair has several rates — pick one to calculate with",
     lessonsCount: "{{count}} lessons",
     lessonsCount_one: "{{count}} lesson",
     lessonsCount_few: "{{count}} lessons",

@@ -103,6 +103,9 @@ interface LessonRow {
   summary: string | null;
   student_notes: string | null;
   source: "hub" | "independent";
+  /** Скасований урок зі штрафом = борг (модель 04.09) — без цього поля
+   *  предикат isStudentDebtLesson «не бачить» штрафів. */
+  is_cancellation_fee?: boolean;
 }
 
 interface ProfileRow {
@@ -450,7 +453,7 @@ export default function DashboardPage() {
       (() => {
         let q = supabase
           .from("lessons_visible")
-          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source")
+          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee")
           .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())  // last 30 days
           .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())  // next 14 days
           .limit(150);
@@ -479,7 +482,7 @@ export default function DashboardPage() {
         mStart.setHours(0, 0, 0, 0);
         let q = supabase
           .from("lessons_visible")
-          .select("id, tutor_id, student_id, starts_at, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, source")
+          .select("id, tutor_id, student_id, starts_at, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, source, is_cancellation_fee")
           .gte("starts_at", mStart.toISOString())
           .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())
           .limit(2000);
@@ -749,7 +752,8 @@ export default function DashboardPage() {
       toast.error(t("dashboardExtra.paymentFailed"));
       return;
     }
-    logEvent("payment_marked", { field }); // C6
+    // Аудит 05.09: зняття позначки — окрема подія, не друга «оплата» в метриці
+    logEvent(value === "paid" ? "payment_marked" : "payment_unmarked", { field }); // C6
     bumpDataVersion(); // C3
     obProgress.refetch(); // A16: оплата впливає на чекліст
     if (value === "paid" && field === "student_payment_status" && lesson) {
@@ -1046,12 +1050,15 @@ export default function DashboardPage() {
   const pendingPayments = useMemo(
     () =>
       lessons.filter((l) => {
-        if (l.status === "cancelled" || l.status === "pending") return false;
-        // PREPAYMENT model (owner rule): students pay BEFORE lessons, so an unpaid
-        // UPCOMING lesson must already show in the payment reminders — no past gate
-        // on the student side. Payout side stays CONDUCTED-only (isPayoutDueLesson
-        // mirrors mark_tutor_payouts_paid).
-        if (!l.student_id) return groupUnpaidLessonIds.has(l.id); // group: any unpaid participant
+        // Аудит 05.09 (модель боргу 04.09): скасовані НЕ відсіюються ДО предиката —
+        // isStudentDebtLesson сам знає, що скасований урок зі штрафом
+        // (is_cancellation_fee) — це борг. Ранній guard тут губив штраф 350 грн,
+        // який Фінанси чесно показували; дашборд і Фінанси тепер одна модель.
+        if (!l.student_id) {
+          // Групові: будь-який неоплачений учасник; скасовані/запити — повз.
+          if (l.status === "cancelled" || l.status === "pending") return false;
+          return groupUnpaidLessonIds.has(l.id);
+        }
         return isStudentDebtLesson(l) || isPayoutDueLesson(l, nowMs);
       }),
     [lessons, nowMs, groupUnpaidLessonIds]
@@ -1423,7 +1430,8 @@ export default function DashboardPage() {
         tone: "destructive" as const,
         title: t("dashboardExtra.studentsWithoutTutorTitle", { count: studentsWithoutTutor }),
         description: t("dashboardExtra.studentsWithoutTutorDesc"),
-        to: "/people",
+        // Аудит 05.09: задача про УЧНЯ висаджувала на вкладку репетиторів
+        to: "/people?tab=students",
         cta: t("dashboardExtra.studentsWithoutTutorCta"),
       });
     }
@@ -1887,7 +1895,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </Link>
-                <Link to="/people" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-card p-3 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
+                <Link to="/people?tab=students" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-card p-3 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2" style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
                   </div>
@@ -1899,7 +1907,7 @@ export default function DashboardPage() {
               </div>
               {/* Tutors + Lessons today — mobile/tablet (lg uses the 4-col grid below) */}
               <div className="grid grid-cols-2 gap-3 lg:hidden">
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
+                <Link to="/people?tab=tutors" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
@@ -1933,7 +1941,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </Link>
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
+                <Link to="/people?tab=tutors" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
@@ -1941,7 +1949,7 @@ export default function DashboardPage() {
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
+                <Link to="/people?tab=students" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardStudents")}</p>
                     {/* MANAGER card: hub-wide studentCount, NOT myStudentCount (see above) */}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { logEvent } from "@/lib/analytics";
 import { createNextWeekLessons } from "@/lib/nextWeekBulk";
@@ -201,7 +202,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                       style={{ width: 18, height: 18, accentColor: "#2BBFAA" }} />
                     <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 15 }}>{r.name}</span>
                     <span style={{ fontSize: 14, color: "var(--sub,#666b82)", flexShrink: 0 }}>
-                      {next.toLocaleDateString(undefined, { weekday: "short" })} {r.time}
+                      {next.toLocaleDateString(getLocale(), { weekday: "short" })} {r.time}
                     </span>
                   </label>
                 );

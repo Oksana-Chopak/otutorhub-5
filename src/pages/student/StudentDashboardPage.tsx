@@ -131,7 +131,7 @@ export default function StudentDashboardPage() {
       })(),
       supabase
         .from("lessons")
-        .select("starts_at")
+        .select("id, starts_at")
         .or(orFilter)
         .eq("status", "completed"),
       // GROUP lessons: the view above (over lesson_details) has no row for them —
@@ -188,15 +188,19 @@ export default function StudentDashboardPage() {
     setHomeworkCount(
       detailsArr.filter((d) => d.homework && d.homework.trim() && !hwDone.has(d.lesson_id)).length,
     );
+    // Модель боргу 04.09 (аудит 05.09): «До оплати» = ПРОВЕДЕНЕ й неоплачене
+    // (+ штрафи за скасування). Майбутній запланований урок — не рахунок:
+    // учениці показували борг за урок, який ще не відбувся.
     const unpaidGroup = ((groupParts ?? []) as any[]).filter(
-      (p) => (p.student_payment_status ?? "unpaid") === "unpaid",
+      (p) => (p.student_payment_status ?? "unpaid") === "unpaid" && p.status === "completed",
     ).length;
     const cancelledIds = new Set(((cancelledRows ?? []) as any[]).map((r) => r.id));
+    const completedIds = new Set(((completed ?? []) as any[]).map((r: any) => r.id).filter(Boolean));
     setPendingPaymentsCount(
-      // cancelled lessons don't bill — EXCEPT a withheld cancellation fee.
       detailsArr.filter((d) =>
         d.student_payment_status === "unpaid" &&
-        (!cancelledIds.has(d.lesson_id) || d.is_cancellation_fee === true)
+        (completedIds.has(d.lesson_id) ||
+          (cancelledIds.has(d.lesson_id) && d.is_cancellation_fee === true))
       ).length + unpaidGroup,
     );
 

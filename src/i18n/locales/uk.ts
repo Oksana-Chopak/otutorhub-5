@@ -1065,7 +1065,10 @@ export const uk = {
     truncatedBody: "Дохід, витрати та прибуток порахувані лише з показаної частини. Звузьте період, щоб бачити точні цифри.",
     stornoNote: "Скасування помилкової передоплати",
     totalsParityMismatch: "⚠️ Підсумки розійшлись. Показано число з бази — воно точніше. Якщо це повторюється, напишіть у підтримку.",
-    expectedPayments: "Очікувані платежі",},
+    expectedPayments: "Очікувані платежі",
+    studentsOweLabel: "Учні винні",
+    owedToTutorsLabel: "Винні репетиторам",
+    pastUnmarkedHint: "Минулих уроків без відмітки: {{count}} — познач проведеними, і вони стануть боргом до нагадування.",},
 
   // Chats
   subjectSelect: {
@@ -2144,7 +2147,7 @@ export const uk = {
     monthlySummaryDesc: "Подивись підсумок місяця та поділись з друзями.",
     monthlySummaryBtn: "Подивитись",
     pendingPaymentsTitle: "Очікують оплати: {{count}}",
-    pendingPaymentsDesc: "Завершені уроки без повної оплати або виплати.",
+    pendingPaymentsDesc: "Проведені уроки без оплати, штрафи за скасування та виплати, що чекають.",
     pendingPaymentsCta: "Переглянути неоплачені",
     tutorRequestsDesc: "Учні залишили заявку — підберіть фахівця.",
     tutorRequestsCta: "Переглянути заявки",
@@ -3683,6 +3686,8 @@ export const uk = {
     noLessonsCard: "Перший урок ще попереду ✨",
     paidStatus: "Оплачено",
     awaitingStatus: "Очікує",
+    plannedStatus: "Заплановано",
+    upcomingSum: "Заплановано (ще не до сплати): {{sum}}",
     upcoming: "Майбутні ({{count}})",
     past: "Архів ({{count}})",
     pastSchedule: "Минулі ({{count}})",
@@ -3885,6 +3890,7 @@ export const uk = {
     priceUah: "{{price}}",
     markPaid: "Оплачено",
     atCurrentRate: "за поточною ставкою",
+    pickRateLabel: "У пари кілька ставок — обери, за якою рахувати",
     lessonsCount: "{{count}} уроків",
     lessonsCount_one: "{{count}} урок",
     lessonsCount_few: "{{count}} уроки",

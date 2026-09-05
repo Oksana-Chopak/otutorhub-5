@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -90,7 +91,7 @@ export function ActionItemsCard({ onOpenLesson }: { onOpenLesson?: (lessonId: st
               {r.studentName}
               <span className="font-normal" style={{ color: "var(--ds-sub,#666b82)" }}>
                 {" · "}
-                {new Date(r.startsAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+                {new Date(r.startsAt).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}
               </span>
             </button>
             <ul className="mt-1 space-y-1">

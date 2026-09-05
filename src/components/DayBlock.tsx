@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -142,7 +143,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
   // P3: сьогоднішній МАЙБУТНІЙ урок (>30 хв) — власний стан, а не фолбек у «закрито».
   const nextToday = sorted.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs);
   if (nextToday) {
-    const timeStr = new Date(nextToday.starts_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    const timeStr = new Date(nextToday.starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
     return (<>
       <DayCard emoji="⏰" title={t("dayBlock.nextTodayTitle", { time: timeStr, name: nextToday.studentName })} sub={nextToday.subject}
         action={nextToday.meetingHref ? t("dayBlock.join") : t("dayBlock.addLink")}

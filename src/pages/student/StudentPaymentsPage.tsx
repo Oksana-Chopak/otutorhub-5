@@ -22,7 +22,15 @@ interface Row {
   tutor_id: string;
   tutor_name?: string;
   currency: string;
+  /** Модель боргу 04.09: «До сплати» — лише проведене (+штраф); статус потрібен, щоб відділити майбутнє. */
+  status?: string;
 }
+
+/** Проведене й неоплачене (+штраф за скасування) — клієнтське дзеркало isStudentDebtLesson. */
+const isOwedRow = (r: Row): boolean =>
+  r.student_payment_status !== "paid" &&
+  Number(r.student_price ?? 0) > 0 &&
+  (r.status === "completed" || r.is_cancellation_fee === true);
 
 interface TutorPayInfo {
   tutor_id: string;
@@ -109,6 +117,7 @@ export default function StudentPaymentsPage() {
           subject: l.subject,
           starts_at: l.starts_at,
           tutor_id: l.tutor_id,
+          status: l.status as string,
           student_price: Number(detailsMap[l.id]?.student_price ?? 0),
           student_payment_status: detailsMap[l.id]?.student_payment_status ?? "unpaid",
           is_cancellation_fee: detailsMap[l.id]?.is_cancellation_fee === true,
@@ -125,6 +134,7 @@ export default function StudentPaymentsPage() {
           subject: p.subject,
           starts_at: p.starts_at,
           tutor_id: p.tutor_id,
+          status: p.status as string,
           student_price: Number(p.student_price ?? 0),
           student_payment_status: (p.student_payment_status ?? "unpaid") as string,
           currency: p.currency ?? "UAH",
@@ -188,12 +198,17 @@ export default function StudentPaymentsPage() {
   }, [user?.id, reloadKey]);
 
   // Group totals by currency to avoid mixing currencies in summary cards.
-  const totalsByCurrency = rows.reduce<Record<string, { unpaid: number; paid: number }>>(
+  // Аудит 05.09 (модель 04.09): «До сплати» = лише ПРОВЕДЕНЕ й неоплачене
+  // (+штрафи). Неоплачене майбутнє/непозначене — окремий рядок «Заплановано»,
+  // ніколи не сумується з боргом: учениці показували рахунок за урок,
+  // який ще не відбувся.
+  const totalsByCurrency = rows.reduce<Record<string, { unpaid: number; upcoming: number; paid: number }>>(
     (acc, r) => {
       const c = r.currency ?? "UAH";
-      acc[c] ??= { unpaid: 0, paid: 0 };
+      acc[c] ??= { unpaid: 0, upcoming: 0, paid: 0 };
       if (r.student_payment_status === "paid") acc[c].paid += Number(r.student_price);
-      else acc[c].unpaid += Number(r.student_price);
+      else if (isOwedRow(r)) acc[c].unpaid += Number(r.student_price);
+      else acc[c].upcoming += Number(r.student_price);
       return acc;
     },
     {},
@@ -262,6 +277,15 @@ export default function StudentPaymentsPage() {
                   </p>
                 ))}
               </div>
+              {/* Майбутнє — прогноз, не рахунок */}
+              {currencyEntries.some(([, v]) => v.upcoming > 0) && (
+                <p style={{ marginTop: 6, fontSize: 13, color: "var(--sub,#666b82)" }}>
+                  {t("studentPagesExtra.upcomingSum", {
+                    sum: currencyEntries.filter(([, v]) => v.upcoming > 0)
+                      .map(([c, v]) => formatPrice(v.upcoming, c, { decimals: 0 })).join(" + "),
+                  })}
+                </p>
+              )}
             </div>
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
               <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
@@ -343,9 +367,10 @@ export default function StudentPaymentsPage() {
                     </div>
                     <div className="flex items-center gap-2.5 flex-shrink-0">
                       <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
-                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : "rgba(245,158,11,.16)", color: paid ? "#16a34a" : "#b4740b" }}>
+                      {/* «Очікує» — лише про борг (проведене/штраф); майбутнє — нейтральне «Заплановано» */}
+                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : isOwedRow(r) ? "rgba(245,158,11,.16)" : "rgba(148,155,185,.16)", color: paid ? "#16a34a" : isOwedRow(r) ? "#b4740b" : "var(--sub,#666b82)" }}>
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
-                        {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
+                        {paid ? t("studentPagesExtra.paidStatus") : isOwedRow(r) ? t("studentPagesExtra.awaitingStatus") : t("studentPagesExtra.plannedStatus")}
                       </span>
                       {/* №17: посилання в реквізитах → кнопка «Оплатити» просто в рядку боргу */}
                       {!paid && paymentLinkOf(payInfoFor(r.tutor_id)?.payment_details) && (

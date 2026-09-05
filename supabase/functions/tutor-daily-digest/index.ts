@@ -216,7 +216,10 @@ Deno.serve(async (req) => {
     if (Number(d.student_price ?? 0) <= 0) return false;
     if (l.status === "cancelled") return d.is_cancellation_fee === true;
     if (l.group_id) return false; // групові білються поза parent-рядком (v2: participants)
-    return true; // completed АБО майбутній scheduled — передоплатна модель
+    // Модель 04.09 (аудит 05.09 знайшов розбіжність): борг = ПРОВЕДЕНЕ й
+    // неоплачене — дзеркало isStudentDebtLesson/financials.ts. Інакше цифра
+    // в Telegram не сходилась із «Фінансами», куди веде цей же дайджест.
+    return l.status === "completed";
   };
   const isPayoutDue = (l: any) => {
     const d = detailOf(l) ?? {};

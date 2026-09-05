@@ -450,16 +450,27 @@ export default function PeoplePage() {
 
   // Deep-link from the dashboard FAB (manager): ?add=tutor|student opens the
   // add-person sheet preset to that role, then strips the param.
+  // Аудит 05.09: ?tab=students|tutors|managers відкриває ПОТРІБНУ вкладку —
+  // задача «учень без репетитора» висаджувала менеджера на список репетиторів
+  // (сторінка завжди стартувала з «Репетитор»).
   useEffect(() => {
+    const n = new URLSearchParams(searchParams);
+    let dirty = false;
+    const tab = searchParams.get("tab");
+    if (tab === "students" || tab === "tutors" || tab === "managers") {
+      setActiveRoleTab(tab);
+      n.delete("tab");
+      dirty = true;
+    }
     const add = searchParams.get("add");
     if (add === "tutor" || add === "student") {
       openAddSheet(add);
       if (add === "tutor") setActiveRoleTab("tutors");
       else setActiveRoleTab("students");
-      const n = new URLSearchParams(searchParams);
       n.delete("add");
-      setSearchParams(n, { replace: true });
+      dirty = true;
     }
+    if (dirty) setSearchParams(n, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

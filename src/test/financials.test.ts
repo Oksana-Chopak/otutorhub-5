@@ -119,12 +119,21 @@ describe("sumByCurrency (multi-currency totals for independent tutors)", () => {
 
 describe("isStudentDebtLesson (owner rule 2026-09-04: debt = CONDUCTED and unpaid; overrides 2026-07-06)", () => {
   it("does NOT count unpaid FUTURE lessons as debts — they are expected payments", () => {
-    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid" }))).toBe(false);
-    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid" }))).toBe(true);
+    // Дата — справді майбутня відносно реального Date.now(): аудит 05.09
+    // зробив isExpectedPaymentLesson часо-залежним, і фікстура «2026-07-10»
+    // тихо постаріла б знову.
+    const future = new Date(Date.now() + 7 * 86400000).toISOString();
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: future, student_payment_status: "unpaid" }))).toBe(false);
+    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: future, student_payment_status: "unpaid" }))).toBe(true);
   });
   it("counts unpaid completed lessons; an unclosed past 'scheduled' row is not yet a debt (close the day first)", () => {
     expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-06-20T10:00:00Z", student_payment_status: "unpaid" }))).toBe(false);
     expect(isStudentDebtLesson(mk({ status: "completed", student_payment_status: "unpaid" }))).toBe(true);
+  });
+  it("аудит 05.09: минулий непозначений урок — НЕ «очікуваний платіж» (його місце в «потребують відмітки»)", () => {
+    const past = new Date(Date.now() - 3 * 86400000).toISOString();
+    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: past, student_payment_status: "unpaid" }))).toBe(false);
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: past, student_payment_status: "unpaid" }))).toBe(false);
   });
   it("never counts paid, pending, priceless or NULL-status-paid rows", () => {
     expect(isStudentDebtLesson(mk({ student_payment_status: "paid" }))).toBe(false);
@@ -134,7 +143,7 @@ describe("isStudentDebtLesson (owner rule 2026-09-04: debt = CONDUCTED and unpai
   });
   it("treats a missing payment status as unpaid (no details row yet, priced)", () => {
     expect(isStudentDebtLesson(mk({ status: "completed", student_payment_status: null }))).toBe(true);
-    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: null }))).toBe(true);
+    expect(isExpectedPaymentLesson(mk({ status: "scheduled", starts_at: new Date(Date.now() + 7 * 86400000).toISOString(), student_payment_status: null }))).toBe(true);
   });
   it("cancelled lessons owe ONLY with the explicit fee marker", () => {
     expect(isStudentDebtLesson(mk({ status: "cancelled", student_payment_status: "unpaid" }))).toBe(false);

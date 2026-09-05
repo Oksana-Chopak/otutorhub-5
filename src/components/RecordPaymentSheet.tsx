@@ -28,7 +28,11 @@ export interface PairOption {
   student_id: string;
   tutor_name: string;
   student_name: string;
+  /** Однозначна ставка пари — задана ЛИШЕ коли ставка одна. */
   rate?: number;
+  /** Аудит 05.09: усі ставки пари по предметах — мультиставкова пара не має
+   *  «поточної ставки», якою можна мовчки множити. */
+  rates?: Array<{ subject: string; rate: number }>;
   currency?: string | null;
 }
 
@@ -72,6 +76,14 @@ export function RecordPaymentSheet({
   const [tab, setTab] = useState<"lesson" | "prepay">("lesson");
   const [search, setSearch] = useState("");
   const [pickedPair, setPickedPair] = useState<PairOption | null>(null);
+  // Аудит 05.09: мультиставкова пара — «за поточною ставкою» множити нема чим,
+  // поки менеджер не обрав предметну ставку чипом.
+  const [chosenRate, setChosenRate] = useState<number | null>(null);
+  const pickPair = (p: PairOption | null) => { setPickedPair(p); setChosenRate(null); };
+  const effectiveRate = pickedPair ? (pickedPair.rate ?? chosenRate) : null;
+  const multiRates = (pickedPair?.rates?.length ?? 0) > 1 && pickedPair?.rate == null
+    ? pickedPair!.rates!
+    : null;
 
   // Prepay form
   const [mode, setMode] = useState<"lessons" | "amount">("lessons");
@@ -88,7 +100,7 @@ export function RecordPaymentSheet({
   const [markingId, setMarkingId] = useState<string | null>(null);
 
   const reset = () => {
-    setPickedPair(null);
+    pickPair(null);
     setSearch("");
     setLessonsCount("");
     setAmount("");
@@ -232,7 +244,10 @@ export function RecordPaymentSheet({
         </div>
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 20px" }}>
 
-        <Tabs value={tab} onValueChange={(v) => { setTab(v as any); setPickedPair(null); }}>
+        {/* Аудит 05.09: перемикання «За урок ↔ Передоплата» БІЛЬШЕ НЕ стирає
+            вибрану пару — менеджер знайшов Марину, передумав про режим, і вона
+            лишається вибраною. */}
+        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="lesson">
               <Receipt className="mr-1.5 h-4 w-4" /> {t("recordPaymentExtra.tabLesson")}
@@ -250,12 +265,12 @@ export function RecordPaymentSheet({
                   pairs={filteredPairs}
                   search={search}
                   setSearch={setSearch}
-                  onPick={setPickedPair}
+                  onPick={pickPair}
                 />
               </>
             ) : (
               <>
-                <PickedHeader pair={pickedPair} onBack={() => setPickedPair(null)} />
+                <PickedHeader pair={pickedPair} onBack={() => pickPair(null)} />
                 {pairUnpaid.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
                     {t("recordPaymentExtra.noUnpaidLessons")}
@@ -301,11 +316,11 @@ export function RecordPaymentSheet({
                 pairs={filteredPairs}
                 search={search}
                 setSearch={setSearch}
-                onPick={setPickedPair}
+                onPick={pickPair}
               />
             ) : (
               <>
-                <PickedHeader pair={pickedPair} onBack={() => setPickedPair(null)} />
+                <PickedHeader pair={pickedPair} onBack={() => pickPair(null)} />
 
                 {/* ДС-сегмент: за уроками / на суму */}
                 <div style={{ display: "flex", gap: 2, background: "rgba(15,15,26,.06)", borderRadius: 12, padding: 4 }}>
@@ -347,14 +362,40 @@ export function RecordPaymentSheet({
                         background: "var(--ds-surface,#fff)", outline: "none" }}
                     />
                   )}
-                  {mode === "lessons" && pickedPair.rate && lessonsCount ? (
+                  {/* Аудит 05.09: у пари може бути кілька ставок — тоді «за поточною
+                      ставкою» множити нема чим, поки менеджер не обере предметну
+                      ставку чипом (раніше мовчки бралась остання з вибірки: 4 уроки
+                      англійської оцінювались німецькою у 3 200 замість 2 800). */}
+                  {multiRates && (
+                    <div style={{ marginTop: 10 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", color: "var(--sub,#666b82)", marginBottom: 6 }}>
+                        {t("recordPaymentExtra.pickRateLabel")}
+                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {multiRates.map((r) => (
+                          <button key={`${r.subject}:${r.rate}`} type="button"
+                            onClick={() => setChosenRate(r.rate)}
+                            style={{
+                              height: 34, padding: "0 12px", borderRadius: 999, cursor: "pointer", fontSize: 14, fontWeight: 700,
+                              fontFamily: "Inter, system-ui, sans-serif",
+                              border: chosenRate === r.rate ? "1.5px solid var(--teal,#2BBFAA)" : "1.5px solid var(--ds-border,#eceef3)",
+                              background: chosenRate === r.rate ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface,#fff)",
+                              color: chosenRate === r.rate ? "#0F6E56" : "var(--sub,#666b82)",
+                            }}>
+                            {r.subject ? `${r.subject} · ` : ""}{formatPrice(r.rate, pickedPair.currency ?? "UAH")}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {mode === "lessons" && effectiveRate && lessonsCount ? (
                     <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
-                      ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(parseInt(lessonsCount, 10) * pickedPair.rate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
+                      ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(parseInt(lessonsCount, 10) * effectiveRate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
-                  {mode === "amount" && pickedPair.rate && amount ? (
+                  {mode === "amount" && effectiveRate && amount ? (
                     <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
-                      ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
+                      ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / effectiveRate) })}</b>
                     </p>
                   ) : null}
                 </div>
@@ -449,6 +490,11 @@ function PairPicker({
                 {p.rate ? (
                   <Badge variant="outline" className="shrink-0 text-[14px]">
                     {t("recordPaymentExtra.ratePerLessonCur", { price: formatPrice(p.rate ?? 0, p.currency ?? "UAH") })}
+                  </Badge>
+                ) : (p.rates?.length ?? 0) > 1 ? (
+                  /* Аудит 05.09: дві ставки — показуємо ОБИДВІ, а не довільну «останню» */
+                  <Badge variant="outline" className="shrink-0 text-[14px]">
+                    {p.rates!.map((r) => formatPrice(r.rate, p.currency ?? "UAH")).join(" / ")}
                   </Badge>
                 ) : null}
               </button>
