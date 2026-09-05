@@ -2918,6 +2918,7 @@ export type Database = {
           _amount_delta: number
           _lessons_delta: number
           _note?: string
+          _paid_at?: string
           _student_id: string
           _tutor_id: string
         }
