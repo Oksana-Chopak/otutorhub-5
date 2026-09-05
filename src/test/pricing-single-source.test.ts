@@ -9,7 +9,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
-import { PRICE_TOTAL } from "@/lib/pricing";
+import { PRICE_TOTAL, LIGHT_PRICE_MONTHLY } from "@/lib/pricing";
 
 const FN = "supabase/functions/liqpay-create-payment/index.ts";
 
@@ -27,6 +27,21 @@ describe("ціна — одне джерело правди на два кана
       expect(planUah(src, plan)).toBe(PRICE_TOTAL[plan]);
     });
   }
+
+  /* 05.09: Light приїхав у ДВА файли (pricing.ts + edge), а цикл вище знає лише
+     публічні плани — тобто новий платний план поїхав БЕЗ того самого гейта, який
+     будували саме проти цієї помилки. Клієнтська звірка суми в LiqPayPayButton
+     її ловить, але вже ПЕРЕД людиною, яка саме скасовує підписку: найгірший
+     момент, щоб показати «сума не збіглась». Ловимо в CI. */
+  it(`light: LiqPay виставляє рівно ${LIGHT_PRICE_MONTHLY} ₴`, () => {
+    expect(planUah(src, "light")).toBe(LIGHT_PRICE_MONTHLY);
+  });
+
+  it("кожен план із PayablePlanKey має суму в edge-функції", () => {
+    for (const plan of ["monthly", "halfyear", "yearly", "light"]) {
+      expect(() => planUah(src, plan)).not.toThrow();
+    }
+  });
 
   it("в edge-функції не лишилось конвертації за курсом", () => {
     expect(src).not.toMatch(/nbu|exchange|rate\s*[:=]|usd/i);
