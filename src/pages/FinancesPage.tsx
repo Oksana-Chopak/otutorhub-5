@@ -272,6 +272,13 @@ export default function FinancesPage() {
   // 07.09: кнопка «💳 Позначити передоплату» з Telegram-дайджесту веде на
   // /finances?record=1&tab=prepay — форма відкривається одразу на «Передоплаті».
   const [recordTab, setRecordTab] = useState<"lesson" | "prepay">("lesson");
+  /* Вкладка з діп-лінку ПРИЛИПАЛА: стан жив до кінця сесії, тож наступне
+     відкриття з «+» теж показувало «Передоплату». Менеджер, який хотів
+     закрити борг за конкретний урок, клав гроші в гаманець — суми сходяться
+     (гаманець сам гасить борг), але борг у списку не зникав, як він очікував.
+     Скидаємо на ЗАКРИТТІ, а не в useEffect: ефект на монтуванні змагався б
+     із діп-лінком і гасив би його. */
+  const closeRecord = (o: boolean) => { setRecordOpen(o); if (!o) setRecordTab("lesson"); };
   // Уніфікація флоу «+ Внести оплату» з дашборда менеджера: приходимо сюди з
   // ?record=1 і одразу відкриваємо ЄДИНУ нову форму (RecordPaymentSheet).
   useEffect(() => {
@@ -2890,7 +2897,7 @@ export default function FinancesPage() {
             tutor's record-payment flow unreachable on their own Finances page. */}
         <RecordPaymentSheet
           open={recordOpen}
-          onOpenChange={setRecordOpen}
+          onOpenChange={closeRecord}
           pairs={pairsList}
           unpaidLessons={unpaidLessonsForSheet}
           onMarkLessonPaid={markLessonPaidById}
@@ -3368,7 +3375,7 @@ export default function FinancesPage() {
       {canManagePrepay && (
         <RecordPaymentSheet
           open={recordOpen}
-          onOpenChange={setRecordOpen}
+          onOpenChange={closeRecord}
           pairs={pairsList}
           unpaidLessons={unpaidLessonsForSheet}
           onMarkLessonPaid={markLessonPaidById}

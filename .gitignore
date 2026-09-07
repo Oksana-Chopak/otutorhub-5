@@ -34,7 +34,12 @@ playwright-report/
 .stryker-tmp/
 coverage/
 
-# Пакети для аудиторки та вставки для Lovable — не частина коду
-claude-*.bundle
+# Доставка з хмари: бандли, пуш-скрипти і вставки для Lovable живуть у папці
+# репозиторію, але НІКОЛИ не є частиною коду. Скрипт може містити токен у
+# відкритому вигляді (07.09 такий лежав у claude-push.sh) — один `git add -A`
+# відправив би його в GitHub.
+*.bundle
 claude-push.sh
+push.sh
+push-all.sh
 lovable-paste/
