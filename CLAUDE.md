@@ -161,6 +161,19 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 - `default_hub_id()` повертає школу ЛИШЕ поки вона одна; жодного
   `ORDER BY user_id LIMIT 1` для «менеджера платформи».
 
+### CARRIED-OVER DEBT — імпорт «усе, що є» (07.09) — do not "fix"
+- Перенесений з іншого обліку борг = рядок `lessons` зі `status='cancelled'`
+  + `lesson_details.is_cancellation_fee=true` + `lessons.carried_over=true`
+  (міграція `20260907150000`). Так він Є у грошах (модель боргу 04.09: штраф =
+  борг) і СТРУКТУРНО відсутній у «проведено», серіях, бейджах, рівні, CRM.
+  НЕ перетворювати на `completed` — це змусило б патчити десяток лічильників.
+- Розклад/дашборд/історія учня ховають `carried_over` (фолбек-запит без
+  колонки до міграції); Фінанси/Оплати учня підписують «перенесено».
+- Запис — лише через RPC `import_student_bundle` (усередині канонічні
+  add_or_link_independent_student / update_lesson_details_safe / wallet_topup);
+  замок перевіряється і на сервері (`is_tutor_pro`): імена — завжди, гроші й
+  розклад — лише з живим тріалом/підпискою.
+
 ### SECURITY INVARIANTS — student data surface
 - Students must NEVER see fireflies_* columns (raw AI output). Student-facing
   views/queries expose only the curated `summary` the tutor copied. No fallback

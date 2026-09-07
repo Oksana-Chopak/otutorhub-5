@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
 import { ImportStudentsSheet } from "@/components/ImportStudentsSheet";
 import { supabase } from "@/integrations/supabase/client";
+import { isStudentDebtLesson } from "@/lib/financials";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -175,13 +176,17 @@ export default function MyStudentsPage() {
     setHistoryFor(sid);
     if (historyData[sid]) return;
     setHistoryLoading(sid);
-    const { data: les } = await supabase
+    // 07.09: перенесені борги (carried_over) — не уроки, в історії їх нема.
+    const runHist = (withCarried: boolean) => supabase
       .from("lessons_visible")
-      .select("id, starts_at, status")
+      .select(("id, starts_at, status" + (withCarried ? ", carried_over" : "")) as any)
       .eq("tutor_id", user!.id)
       .eq("student_id", sid)
       .order("starts_at", { ascending: false })
       .limit(10);
+    let { data: les } = await runHist(true);
+    if (les) les = ((les ?? []) as any[]).filter((l) => l.carried_over !== true) as any;
+    else ({ data: les } = await runHist(false));
     const ids = (les ?? []).map((l: any) => l.id);
     const firstLine: Record<string, string> = {};
     if (ids.length) {
@@ -297,7 +302,7 @@ export default function MyStudentsPage() {
       // the base table by 20260715000000).
       supabase
         .from("lessons_visible")
-        .select("student_id, starts_at, status, student_payment_status, student_price")
+        .select("student_id, starts_at, status, student_payment_status, student_price, is_cancellation_fee")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
       (supabase as any)
@@ -339,7 +344,9 @@ export default function MyStudentsPage() {
         next_lesson_at: null as string | null,
       };
       // «Разом» = проведені + заплановані (без скасованих/pending).
-      if (l.status === "completed" && l.student_payment_status === "unpaid") {
+      // Борг — за моделлю 04.09 (isStudentDebtLesson): проведене АБО скасоване
+      // зі штрафом; сюди ж лягають перенесені борги з імпорту (07.09).
+      if (isStudentDebtLesson(l as any)) {
         s.unpaid_count += 1;
         s.unpaid_total += Number(l.student_price ?? 0);
       }

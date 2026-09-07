@@ -122,11 +122,26 @@ Deno.serve(async (req) => {
   if (lessonsErr) {
     return new Response(JSON.stringify({ error: lessonsErr.message }), { status: 500 });
   }
-  const lessons = (lessonsRaw ?? []).map((l: any) => ({
-    ...l,
-    student_payment_status: l.lesson_details?.student_payment_status,
-    student_price: l.lesson_details?.student_price,
-  }));
+  // 07.09: перенесені борги з імпорту (carried_over: cancelled + штраф) — це
+  // саме ті борги, про які репетитор найбільше хоче нагадати. Для нагадувань
+  // вони «проведені» (дата = момент імпорту). До застосування міграції колонки
+  // немає — запит впаде, і ми просто йдемо без них.
+  const { data: carriedRaw, error: carriedErr } = await supabase
+    .from("lessons")
+    .select(
+      "id, tutor_id, student_id, starts_at, status, subject, created_at, lesson_details!inner(student_payment_status, student_price)",
+    )
+    .eq("carried_over", true)
+    .neq("lesson_details.student_payment_status", "paid");
+  const carried = carriedErr ? [] : (carriedRaw ?? []).map((l: any) => ({ ...l, status: "completed" }));
+  const seen = new Set<string>();
+  const lessons = [...(lessonsRaw ?? []), ...carried]
+    .filter((l: any) => (seen.has(l.id) ? false : (seen.add(l.id), true)))
+    .map((l: any) => ({
+      ...l,
+      student_payment_status: l.lesson_details?.student_payment_status,
+      student_price: l.lesson_details?.student_price,
+    }));
   if (lessons.length === 0) {
     return new Response(JSON.stringify({ ok: true, sent: 0, scanned: 0 }));
   }

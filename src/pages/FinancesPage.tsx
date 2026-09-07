@@ -94,6 +94,8 @@ interface LessonRow {
   tutor_paid_at: string | null;
   /** Cancelled lesson whose price is a withheld cancellation fee (billable). */
   is_cancellation_fee?: boolean;
+  /** Перенесений борг з імпорту (07.09): cancelled+штраф у базі, для людини — «перенесено». */
+  carried_over?: boolean;
   /** №8 (ідеї 01.09): для «₴/год» у розрізі по предметах. */
   duration_minutes?: number;
   // Group lessons have lessons.student_id = NULL and one lesson_participants row per
@@ -391,10 +393,10 @@ export default function FinancesPage() {
         // Individual (non-group) lessons only — group lessons have student_id=NULL and are
         // pulled separately below. lessons_visible already hub-scopes managers (source
         // hub/NULL) and masks money per role.
-        const run = (withFee: boolean) => {
+        const run = (withFee: boolean, withCarried: boolean = false) => {
           let q = supabase
             .from("lessons_visible")
-            .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") as any)
+            .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") + (withCarried ? ", carried_over" : "") as any)
             .not("student_id", "is", null)
             .gte("starts_at", oneYearAgo)
             .limit(500);
@@ -404,8 +406,12 @@ export default function FinancesPage() {
         // Migration 20260721000000 adds is_cancellation_fee to lessons_visible; until
         // Lovable applies it the column 400s — retry without it so Finances (frontend
         // ships first via Publish) never renders an empty money list.
-        const res = await run(true);
-        return res.error ? run(false) : res;
+        // 07.09: carried_over (перенесені борги з імпорту) — той самий фолбек:
+        // спершу з обома колонками, далі без нової, далі без обох.
+        const res = await run(true, true);
+        if (!res.error) return res;
+        const res2 = await run(true);
+        return res2.error ? run(false) : res2;
       })(),
       // GROUP lessons (lessons.student_id = NULL) are excluded from the individual query
       // above by `.not("student_id","is",null)`. Pull them separately, then attach the
@@ -525,6 +531,7 @@ export default function FinancesPage() {
       starts_at: l.starts_at,
       status: l.status,
       is_cancellation_fee: l.is_cancellation_fee === true,
+      carried_over: l.carried_over === true,
       student_id: l.student_id,
       tutor_id: l.tutor_id,
       student_price: Number(l.student_price ?? 0),
@@ -1508,7 +1515,7 @@ export default function FinancesPage() {
                     <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                       <span className="truncate">{l.subject}</span>
                       {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
-                      {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.cancellationFeeTag")}</span>}
+                      {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                     </p>
                     <p className="text-[14px]" style={{ color: "var(--sub,#666b82)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
@@ -1734,7 +1741,7 @@ export default function FinancesPage() {
                       <span className="inline-flex items-center gap-1.5">
                         {l.subject}
                         {isGroup && <span style={{ fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
-                        {(l as any).is_cancellation_fee && <span style={{ fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.cancellationFeeTag")}</span>}
+                        {(l as any).is_cancellation_fee && <span style={{ fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                       </span>
                     </td>
                     <td className="px-3 py-3">
@@ -1986,7 +1993,7 @@ export default function FinancesPage() {
       if (ts >= monthStart) {
         if (paid) thisMonth += price;
         if (l.status === "cancelled" && !(l as any).is_cancellation_fee) cancelledLost += price; // P0.10
-        else if (l.status !== "pending") projected += price; // booked total this month
+        else if (l.status !== "pending" && !(l as any).carried_over) projected += price; // booked total this month (перенесений борг — не бронювання)
         if (l.status === "completed") { completedSum += price; completedCount += 1; }
       } else if (ts >= prevStart && ts < prevAlignedEnd) {
         if (paid) lastMonth += price;

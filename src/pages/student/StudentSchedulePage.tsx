@@ -51,14 +51,23 @@ export default function StudentSchedulePage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      const orFilter = await studentLessonsOrFilter(user.id);
+      // 07.09: перенесені борги репетитора (carried_over) — не уроки, у розкладі
+      // учня їх немає (гроші видно на «Оплатах»). До міграції колонки нема —
+      // запит без неї.
+      const run = (withCarried: boolean) => supabase
         .from("lessons")
-        .select("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id")
-        .or(await studentLessonsOrFilter(user.id))
+        .select(("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id" + (withCarried ? ", carried_over" : "")) as any)
+        .or(orFilter)
         .order("starts_at", { ascending: false });
+      const first = await run(true);
+      const res = first.error ? await run(false) : first;
+      const error = res.error;
+      const data: Lesson[] = ((res.data ?? []) as unknown as Array<Lesson & { carried_over?: boolean }>)
+        .filter((l) => l.carried_over !== true);
       if (error) { setLoadError(true); setLoading(false); return; }
       setLoadError(false);
-      const tutorIds = Array.from(new Set(((data ?? []) as Lesson[]).map((l) => l.tutor_id)));
+      const tutorIds = Array.from(new Set(data.map((l) => l.tutor_id)));
       const { data: profiles } = tutorIds.length
         ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
         : { data: [] as any[] };
@@ -66,7 +75,7 @@ export default function StudentSchedulePage() {
       (profiles ?? []).forEach((p: any) => {
         map[p.id] = `${p.first_name} ${p.last_name}`.trim();
       });
-      setLessons(((data ?? []) as Lesson[]).map((l) => ({ ...l, tutor_name: map[l.tutor_id] })));
+      setLessons(data.map((l) => ({ ...l, tutor_name: map[l.tutor_id] })));
       setLoading(false);
     })();
   }, [user?.id, reloadKey]);

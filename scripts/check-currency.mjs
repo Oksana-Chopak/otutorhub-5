@@ -42,7 +42,9 @@ hits.slice(0, 40).forEach((h) => console.log(h));
 // власниці 02.09 (pricing.ts) — тут UAH-літерал і є правилом, не недбалістю.
 // 05.09 пізніше: 45→46 — превʼю імпорту учнів показує розібрану ціну; сам
 // імпорт створює ставки в UAH за задумом v1 (укр. ринок), тож літерал чесний.
-const MAX_UAH_ARGS = 46; // станом на 05.09
+// 07.09: 46→45 — превʼю імпорту тепер бере валюту з IMPORT_CURRENCY
+// (lib/importStudents.ts, єдине місце рішення «імпорт v1 — гривня»).
+const MAX_UAH_ARGS = 45; // станом на 07.09
 const uahArgHits = [];
 function walkUah(dir) {
   for (const f of readdirSync(dir)) {

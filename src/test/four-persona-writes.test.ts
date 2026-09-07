@@ -117,6 +117,9 @@ describe("П3.21 · шар B — трипваєр: guard замка стоїть
     { file: "components/WalletDialog.tsx", handler: "const handleTopUp = async" },
     { file: "components/WalletDialog.tsx", handler: "const handleMarkPaid = async" },
     { file: "components/WalletDialog.tsx", handler: "const handleDelete = async" },
+    // 07.09: імпорт «усе, що є» пише борги/передоплати/розклад — замкнений так
+    // само (самі імена — без замка: guard стоїть лише при needsPro).
+    { file: "components/ImportStudentsSheet.tsx", handler: "const runImport = async" },
   ];
 
   it.each(GUARDED)("$file · $handler", ({ file, handler }) => {

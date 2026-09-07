@@ -16,6 +16,8 @@ interface Row {
   id: string;
   subject: string;
   is_cancellation_fee?: boolean;
+  /** Перенесений борг з імпорту репетитора (07.09) — для учня це «борг зі старого обліку», не штраф. */
+  carried_over?: boolean;
   starts_at: string;
   student_price: number;
   student_payment_status: string;
@@ -96,9 +98,15 @@ export default function StudentPaymentsPage() {
       let detailsRes: any = lessonIds0.length
         ? await supabase
             .from("lesson_details_student" as any)
-            .select("lesson_id, student_price, student_payment_status, is_cancellation_fee")
+            .select("lesson_id, student_price, student_payment_status, is_cancellation_fee, carried_over")
             .in("lesson_id", lessonIds0)
         : { data: [] as any[], error: null };
+      if (detailsRes.error)
+        // pre-apply fallback (07.09: carried_over — перенесені борги з імпорту)
+        detailsRes = await supabase
+          .from("lesson_details_student" as any)
+          .select("lesson_id, student_price, student_payment_status, is_cancellation_fee")
+          .in("lesson_id", lessonIds0);
       if (detailsRes.error)
         // pre-apply fallback (migration 20260721000000 adds the fee column)
         detailsRes = await supabase
@@ -121,6 +129,7 @@ export default function StudentPaymentsPage() {
           student_price: Number(detailsMap[l.id]?.student_price ?? 0),
           student_payment_status: detailsMap[l.id]?.student_payment_status ?? "unpaid",
           is_cancellation_fee: detailsMap[l.id]?.is_cancellation_fee === true,
+          carried_over: detailsMap[l.id]?.carried_over === true,
         }));
       // GROUP lessons: the student's price/payment lives on lesson_participants
       // (the lesson row has student_id=NULL). Pull them in with their own currency.
@@ -370,7 +379,7 @@ export default function StudentPaymentsPage() {
                     <div className="min-w-0">
                       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {r.subject}
-                        {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("studentPagesExtra.cancellationFee")}</span>}
+                        {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{r.carried_over ? t("studentPagesExtra.carriedOverDebt") : t("studentPagesExtra.cancellationFee")}</span>}
                       </p>
                       <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>

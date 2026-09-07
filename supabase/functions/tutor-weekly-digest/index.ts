@@ -127,13 +127,18 @@ Deno.serve(async (req) => {
     .gte("starts_at", nFrom)
     .lt("starts_at", nTo);
 
-  // Unpaid debts
-  const { data: unpaid } = await sb
+  // Unpaid debts — модель 04.09: проведене АБО скасоване зі штрафом (сюди ж
+  // лягають перенесені борги з імпорту, 07.09). Раніше — лише completed.
+  const { data: unpaidRaw } = await sb
     .from("lessons")
-    .select("id, tutor_id, student_id, source, lesson_details(student_price, student_payment_status)")
-    .eq("status", "completed")
+    .select("id, tutor_id, student_id, source, status, lesson_details!inner(student_price, student_payment_status, is_cancellation_fee)")
+    .in("status", ["completed", "cancelled"])
     .eq("lesson_details.student_payment_status", "unpaid")
     .gt("lesson_details.student_price", 0);
+  const unpaid = (unpaidRaw ?? []).filter((l: any) => {
+    const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+    return l.status === "completed" || d?.is_cancellation_fee === true;
+  });
 
   // Student names for debt list
   const debtStudentIds = Array.from(new Set((unpaid ?? []).map((l: any) => l.student_id)));

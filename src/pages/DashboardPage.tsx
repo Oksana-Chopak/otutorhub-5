@@ -365,7 +365,9 @@ export default function DashboardPage() {
         .select("id, starts_at, subject, student_id, tutor_id, status, student_price, student_payment_status")
         .eq("tutor_id", user.id)
         .eq("student_payment_status", "unpaid")
-        .neq("status", "cancelled")
+        // Модель боргу 04.09: скасоване ЗІ ШТРАФОМ — теж борг (сюди ж лягають
+        // перенесені борги з імпорту, 07.09). Просте «не cancelled» їх губило.
+        .or("status.neq.cancelled,is_cancellation_fee.eq.true")
         .neq("status", "pending")
         .limit(200),
     ]);
@@ -452,15 +454,23 @@ export default function DashboardPage() {
       { data: ratesCurrencyData },
       { data: moneyLessonsData },
     ] = await Promise.all([
-      (() => {
-        let q = supabase
-          .from("lessons_visible")
-          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee")
-          .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())  // last 30 days
-          .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())  // next 14 days
-          .limit(150);
-        if (isManager) q = (q as any).neq("source", "independent");
-        return q.order("starts_at", { ascending: true });
+      (async () => {
+        // Перенесені борги (carried_over, 07.09) — залишки старого обліку, не
+        // уроки: у списках і лічильниках дашборда їх немає (гроші беруться з
+        // moneyLessonsData нижче). До міграції колонки немає — фолбек без неї.
+        const run = (withCarried: boolean) => {
+          let q = supabase
+            .from("lessons_visible")
+            .select(("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee" + (withCarried ? ", carried_over" : "")) as any)
+            .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())  // last 30 days
+            .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())  // next 14 days
+            .limit(150);
+          if (isManager) q = (q as any).neq("source", "independent");
+          return q.order("starts_at", { ascending: true });
+        };
+        const res = await run(true);
+        if (!res.error) return { ...res, data: ((res.data ?? []) as any[]).filter((l) => l.carried_over !== true) };
+        return run(false);
       })(),
       supabase.from("profiles").select("id, first_name, last_name").limit(300),
       supabase.from("user_roles").select("user_id, role"),

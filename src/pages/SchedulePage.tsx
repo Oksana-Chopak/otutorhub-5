@@ -258,13 +258,21 @@ export default function SchedulePage() {
     setLoading(true);
 
     const [lessonsRes, profilesRes, rolesRes, tutorRes, ratesRes, defaultsRes] = await Promise.all([
-      supabase
-        .from("lessons_visible")
-        .select("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status")
-        .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
-        .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
-        .order("starts_at", { ascending: false })
-        .limit(300),
+      (async () => {
+        // Перенесені борги (carried_over, 07.09) — не уроки, а залишки старого
+        // обліку: у розкладі їх не показуємо. До застосування міграції колонки
+        // немає — запит без неї (той самий фолбек, що й у Фінансах).
+        const run = (withCarried: boolean) => supabase
+          .from("lessons_visible")
+          .select(("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status" + (withCarried ? ", carried_over" : "")) as any)
+          .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
+          .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
+          .order("starts_at", { ascending: false })
+          .limit(300);
+        const res = await run(true);
+        if (!res.error) return { ...res, data: ((res.data ?? []) as any[]).filter((l) => l.carried_over !== true) };
+        return run(false);
+      })(),
       supabase.from("profiles").select("id, first_name, last_name").limit(300),
       // RLS: non-managers only see their own row here. Used by managers/tutors for filters.
       supabase.from("user_roles").select("user_id, role"),
