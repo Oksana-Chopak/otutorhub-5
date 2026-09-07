@@ -59,15 +59,25 @@ Deno.serve(async (req) => {
   // Раніше 404/409 летіли ДО перевірки прав — функція з service role давала
   // будь-кому перебирати id і читати статус оплати чужих уроків. Тепер
   // «не існує» і «не твій» — та сама відповідь: нема чого перебирати.
-  // Менеджерський арм скоуплено: уроки незалежних — не поле школи.
+  // Менеджерський арм скоуплено: уроки незалежних — не поле школи; з 07.09
+  // (модель «школа = сутність») — лише менеджер ШКОЛИ репетитора уроку
+  // (is_manager_of_tutor: суперадмін або hub_managers × settings.hub_id).
   const { data: isManagerData } = await admin.rpc("check_user_role", {
     _user_id: user.id,
     _role: "manager",
   });
   const isManager = isManagerData === true;
+  let managesTutor = false;
+  if (isManager && lessonRow) {
+    const { data: scoped } = await admin.rpc("is_manager_of_tutor", {
+      _manager: user.id,
+      _tutor: (lessonRow as any).tutor_id,
+    });
+    managesTutor = scoped === true;
+  }
   const authorized = !!lessonRow && (
     (lessonRow as any).tutor_id === user.id ||
-    (isManager && (lessonRow as any).source !== "independent")
+    (managesTutor && (lessonRow as any).source !== "independent")
   );
   if (!authorized) return json({ error: "Lesson not found" }, 404);
 

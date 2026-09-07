@@ -70,7 +70,15 @@ Deno.serve(async (req) => {
     _user_id: user.id,
     _role: 'manager',
   })
-  const isManager = isManagerData === true
+  let isManager = isManagerData === true
+  // Модель «школа = сутність» (07.09): менеджер запрошує лише учня СВОЄЇ школи.
+  if (isManager) {
+    const { data: scoped, error: scopedErr } = await admin.rpc('is_manager_of_user', {
+      _manager: user.id,
+      _user: studentId,
+    })
+    if (!scopedErr) isManager = scoped === true
+  }
 
   let isLinkedTutor = false
   let subjects: string[] = []

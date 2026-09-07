@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ErrorState } from "@/components/ErrorState";
+import { SchoolsCard } from "@/components/admin/SchoolsCard";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
@@ -282,6 +283,8 @@ export default function AdminStatsPage() {
 
         {state === "ready" && stats && (
           <div className="mt-5 space-y-6">
+            {/* ── Школи: підключення онлайн-шкіл (модель «школа = сутність») ── */}
+            <SchoolsCard />
             {/* ── CRM: хто платить, хто відвалюється, кому писати ── */}
             {!stats.crm ? (
               <div className={card}><p className="text-[14px] text-[var(--sub)]">{t("adminCrm.needsDeploy")}</p></div>

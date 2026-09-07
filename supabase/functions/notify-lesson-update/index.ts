@@ -88,7 +88,15 @@ Deno.serve(async (req) => {
       .eq("user_id", callerId)
       .eq("role", "manager")
       .maybeSingle();
-    const isManager = !!managerRow;
+    // Модель «школа = сутність» (07.09): менеджер — лише школи репетитора уроку.
+    let isManager = !!managerRow;
+    if (isManager && lesson.tutor_id !== callerId) {
+      const { data: scoped } = await adminClient.rpc("is_manager_of_tutor", {
+        _manager: callerId,
+        _tutor: lesson.tutor_id,
+      });
+      isManager = scoped === true;
+    }
 
     if (!isManager && lesson.tutor_id !== callerId) {
       return new Response(JSON.stringify({ error: "Only the lesson tutor or manager can notify" }), {

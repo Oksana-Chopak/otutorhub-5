@@ -263,10 +263,21 @@ Deno.serve(async (req) => {
     .select("id", { count: "exact", head: true })
     .gte("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
 
-  // Менеджерські тотали — з ЄДИНОГО джерела правди (та сама функція, що й
-  // самозвірка в застосунку): рахує індивідуальні + групові + виплати.
-  const { data: summaryRows } = await sb.rpc("manager_debts_summary" as any);
-  const summary = Array.isArray(summaryRows) ? summaryRows[0] : summaryRows;
+  // Школи (модель «школа = сутність», 07.09): менеджер бачить у дайджесті лише
+  // уроки/борги репетиторів СВОЄЇ школи. Джерело — hub_managers × settings.hub_id.
+  // До застосування етапу A таблиці ще немає — тоді (і лише тоді) поведінка
+  // стара: усе хабове. manager_debts_summary під service role повертала нулі
+  // (auth.uid() порожній), тому тотали рахуємо тут — тими самими предикатами.
+  const { data: hubMgrRows, error: hubErr } = await sb.from("hub_managers").select("user_id, hub_id");
+  const hubModel = !hubErr;
+  const hubOfManager = new Map<string, string>((hubMgrRows ?? []).map((r: any) => [r.user_id, r.hub_id]));
+  const { data: hubTutorRows } = hubModel
+    ? await sb.from("tutor_workspace_settings").select("tutor_id, hub_id").not("hub_id", "is", null)
+    : { data: [] as any[] };
+  const hubOfTutor = new Map<string, string>((hubTutorRows ?? []).map((r: any) => [r.tutor_id, r.hub_id]));
+  /** Урок належить школі менеджера (або hub-модель ще не застосована). */
+  const inManagerHub = (managerId: string, tutorId: string) =>
+    !hubModel || hubOfTutor.get(tutorId) === hubOfManager.get(managerId);
 
   // Student names
   const studentIds = Array.from(new Set([
@@ -304,8 +315,9 @@ Deno.serve(async (req) => {
     const lines: string[] = [D.hi(esc(firstName), kyivHour)];
 
     if (isManager) {
-      // Manager: see ALL center lessons (source != independent)
-      const myLessons = (todayLessons ?? []).filter((l: any) => l.source !== "independent");
+      // Manager: уроки центру (source != independent) — лише СВОЄЇ школи
+      const mine = (l: any) => l.source !== "independent" && inManagerHub(userId, l.tutor_id);
+      const myLessons = (todayLessons ?? []).filter(mine);
       if (myLessons.length === 0) {
         lines.push(D.mgrNone);
       } else {
@@ -318,8 +330,10 @@ Deno.serve(async (req) => {
         }
         if (myLessons.length > 10) lines.push(D.more(myLessons.length - 10));
       }
-      const sd = Number(summary?.students_debt ?? 0);
-      const po = Number(summary?.payouts_owed ?? 0);
+      // Тотали — ті самі предикати, що й у «Фінансах» (financials.ts), у межах школи.
+      const sd = (unpaidLessons ?? []).filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.student_price ?? 0), 0)
+        + groupDebtRows.filter(mine).reduce((a: number, r: any) => a + r.price, 0);
+      const po = payoutDueLessons.filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.tutor_payout ?? 0), 0);
       if (sd > 0) lines.push(D.debt(`${sd} ₴`));
       // 07.09 (запит власниці): менеджер бачив лише підсумок і не мав «рук».
       // Тепер — хто саме винен (ХАБОВІ борги: source ≠ independent, ті самі
@@ -327,10 +341,10 @@ Deno.serve(async (req) => {
       // менеджер закриває хабові борги — і в застосунку, і тут. Обробляє
       // telegram-poll (hpaid:), автор дії = власник chat_id з роллю manager.
       const hubDebts = new Map<string, number>();
-      for (const l of (unpaidLessons ?? []).filter((l: any) => l.source !== "independent")) {
+      for (const l of (unpaidLessons ?? []).filter(mine)) {
         hubDebts.set(l.student_id, (hubDebts.get(l.student_id) ?? 0) + Number(detailOf(l)?.student_price ?? 0));
       }
-      for (const r of groupDebtRows.filter((r: any) => r.source !== "independent")) {
+      for (const r of groupDebtRows.filter(mine)) {
         hubDebts.set(r.student_id, (hubDebts.get(r.student_id) ?? 0) + r.price);
       }
       if (hubDebts.size > 0) {

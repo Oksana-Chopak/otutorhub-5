@@ -2,6 +2,28 @@ import type { LocaleTranslations } from "./types";
 
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
 export const sv: LocaleTranslations = {
+  adminSchools: {
+    title: "Skolor",
+    subtitle: "Onlineskolor på plattformen: varje skola ser bara sina egna personer, lektioner och pengar.",
+    needsMigration: "Visas när migreringen ”skola = enhet” har körts i Lovable.",
+    retry: "Försök igen",
+    empty: "Inga skolor ännu.",
+    stats: "chef: {{managers}} · lärare: {{tutors}} · elever: {{members}}",
+    rename: "Namn",
+    renameLabel: "Nytt skolnamn",
+    save: "Spara",
+    cancel: "Avbryt",
+    renamed: "Namnet uppdaterat",
+    renameFailed: "Kunde inte byta namn",
+    namePlaceholder: "Skolans namn",
+    emailPlaceholder: "Chefens e-post (registrerad användare)",
+    create: "Anslut skola",
+    hint: "Chefen får rollen och ser en tom skola: lärare och elever läggs till under Personer.",
+    created: "Skolan ”{{name}}” ansluten",
+    managerNotFound: "Ingen användare med den e-posten — hen måste registrera sig först.",
+    alreadyManager: "Den här personen driver redan en skola.",
+    createFailed: "Kunde inte skapa skolan",
+  },
   adminCrm: {
     risk_red: "Brådskande",
     risk_orange: "Obs",

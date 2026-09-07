@@ -199,11 +199,25 @@ async function handleDigestCallback(base: string, db: any, cq: any,
     const { data: roleRow } = await db
       .from('user_roles').select('role').eq('user_id', tutorId).eq('role', 'manager').maybeSingle();
     if (!roleRow) { await answerCb(base, cqId, L.bad); return; }
-    const { data: hubIndiv } = await db
+    // Модель «школа = сутність» (07.09): закриваємо лише уроки репетиторів
+    // ШКОЛИ цього менеджера. До застосування етапу A (таблиці ще немає) —
+    // усе хабове, як раніше.
+    const { data: hm, error: hubErr } = await db
+      .from('hub_managers').select('hub_id').eq('user_id', tutorId).maybeSingle();
+    let hubTutorIds: string[] | null = null; // null = hub-модель ще не застосована
+    if (!hubErr) {
+      if (!hm?.hub_id) { await answerCb(base, cqId, L.bad); return; }
+      const { data: hubTutors } = await db
+        .from('tutor_workspace_settings').select('tutor_id').eq('hub_id', hm.hub_id);
+      hubTutorIds = (hubTutors ?? []).map((t: any) => t.tutor_id as string);
+      if (hubTutorIds.length === 0) { await answerCb(base, cqId, L.nodebt); return; }
+    }
+    const inHub = (q: any) => (hubTutorIds ? q.in('tutor_id', hubTutorIds) : q);
+    const { data: hubIndiv } = await inHub(db
       .from('lessons')
       .select('id, status, lesson_details(student_price, student_payment_status, is_cancellation_fee)')
       .eq('student_id', studentId).neq('source', 'independent')
-      .is('group_id', null).in('status', ['completed', 'cancelled']);
+      .is('group_id', null).in('status', ['completed', 'cancelled']));
     const hubIndivIds: string[] = (hubIndiv ?? []).filter((l: any) => {
       const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
       if (!d || (d.student_payment_status ?? 'unpaid') !== 'unpaid') return false;
@@ -211,9 +225,9 @@ async function handleDigestCallback(base: string, db: any, cq: any,
       if (l.status === 'cancelled') return d.is_cancellation_fee === true;
       return true; // completed
     }).map((l: any) => l.id as string);
-    const { data: hubGrp } = await db
+    const { data: hubGrp } = await inHub(db
       .from('lessons').select('id')
-      .neq('source', 'independent').not('group_id', 'is', null).eq('status', 'completed');
+      .neq('source', 'independent').not('group_id', 'is', null).eq('status', 'completed'));
     const hubGrpIds: string[] = (hubGrp ?? []).map((l: any) => l.id);
     let hubPartIds: string[] = [];
     if (hubGrpIds.length) {
@@ -238,7 +252,7 @@ async function handleDigestCallback(base: string, db: any, cq: any,
     }
     await db.from('manager_audit_log').insert({
       actor_id: tutorId, action: 'mark_paid_via_telegram', entity_type: 'student_debt', entity_id: studentId,
-      before: { unpaid_lessons: hubIndivIds, unpaid_participants: hubPartIds, scope: 'hub' },
+      before: { unpaid_lessons: hubIndivIds, unpaid_participants: hubPartIds, scope: 'hub', hub_id: hm?.hub_id ?? null },
       after: { status: 'paid', source: 'telegram_digest_button_manager', chat_id: chatId },
     });
     await answerCb(base, cqId, L.paid(hubTotal));

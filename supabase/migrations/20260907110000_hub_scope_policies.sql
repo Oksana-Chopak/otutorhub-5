@@ -1,24 +1,44 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- HUB_ID — етап B: скоуп manager-політик на хаб.  (ІДЕМПОТЕНТНО, ЗГЕНЕРОВАНО)
+-- ХАБ — етап B: скоуп менеджерських політик і в'ю на школу.  (ІДЕМПОТЕНТНО)
 -- ═══════════════════════════════════════════════════════════════════════════
 --
--- Згенеровано скриптом із ЖИВИХ визначень політик у історії міграцій (остання
--- CREATE мінус DROP), а не з пам'яті: тест migration-policy-names гарантує, що
--- кожне ім'я тут справді існує. Перетворення одне й механічне:
---     has_role(auth.uid(),'manager')  →  (has_role(...) AND <скоуп таблиці>)
--- де скоуп — із явної мапи «таблиця → ключ»:
---   tutor_id            → is_hub_scoped(tutor_id)
---   lesson_id           → is_hub_scoped((SELECT tutor_id FROM lessons WHERE id=lesson_id))
---   user_id / id        → is_hub_member(...)   (тьютор хабу або учень хабу)
---   student_id          → is_hub_member(student_id)
--- Усе інше в тілі політики лишається дослівно. Тому менеджер продовжує бачити
--- і робити ВСЕ, що бачив і робив, — але лише в межах свого хабу.
+-- ЗАСТОСОВУВАТИ ПІСЛЯ 20260907100000 (етап A: hubs, hub_managers, hub_members,
+-- is_hub_scoped / is_hub_member). Один файл = одна транзакція в Lovable.
 --
--- Поки менеджер один — поведінка ідентична (усі хабові тьютори мають hub_id =
--- цей менеджер після етапу A). Різниця з'явиться з другим менеджером — і саме
--- тоді вона потрібна.
+-- Три частини:
+--   1. 60 політик — згенеровано скриптом із ЖИВИХ визначень (остання CREATE
+--      мінус DROP по всій історії міграцій; тест migration-policy-names
+--      гарантує, що кожне імʼя існує; звірка 07.09: тіла = живі слово в слово).
+--      Перетворення одне й механічне:
+--          has_role(auth.uid(),'manager')  →  (has_role(...) AND <скоуп>)
+--      де скоуп із мапи «таблиця → ключ»:
+--          tutor_id       → is_hub_scoped(tutor_id)
+--          lesson_id      → is_hub_scoped((SELECT tutor_id FROM lessons WHERE id=lesson_id))
+--          group_id       → is_hub_scoped(репетитор групи)
+--          user_id / id   → is_hub_member(...)   (репетитор, учень, pending школи)
+--      Усе інше в тілі — дослівно. Менеджер продовжує бачити й робити все, що
+--      бачив і робив, — але лише в межах своєї школи. Два свідомі відхилення
+--      від механіки: profiles INSERT пускає pending (членство ставить тригер
+--      етапу A), group_enrollments скоупиться репетитором групи, не учнем.
+--   2. 18 армів поза свіпом — кожен окреме рішення (коментарі при кожному):
+--      файли уроків, нотатки й журнал менеджера, запити «знайти репетитора»,
+--      платформенні таблиці (бот, розсилки, реферали) → суперадмін.
+--   3. Три DEFINER-в'ю (lessons_visible, lesson_participants_visible,
+--      group_enrollments_visible) — це головний шлях читання грошей у
+--      застосунку і вони мають ВЛАСНИЙ manager-арм, якого не бачить жоден
+--      скан політик. Перевипущено дослівно + is_hub_scoped(репетитор уроку).
 --
--- ЗАСТОСОВУВАТИ ПІСЛЯ 20260903170000 (етап A). Перед Run — читання аудиторкою.
+-- Поки школа одна — поведінка ідентична (усі хабові репетитори й учні
+-- прикріплені до неї бекфілом етапу A; суперадмін бачить усе). Різниця
+-- з'явиться з другою школою — і саме тоді вона потрібна.
+--
+-- LIVE-MARKER-NONE: політики й в'ю не змінюють форму types.ts. Перевірка
+--   вручну: SELECT count(*) FROM pg_policies WHERE qual ILIKE '%is_hub_%'
+--   OR with_check ILIKE '%is_hub_%'  → ≥ 70; менеджер другої (тестової) школи
+--   на /people не бачить людей першої.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── 1. Свіп: 60 політик ──────────────────────────────────────────────────────
 
 DROP POLICY IF EXISTS "Manager or related student creates request" ON public.availability_requests;
 CREATE POLICY "Manager or related student creates request" ON public.availability_requests FOR INSERT TO authenticated
@@ -51,7 +71,7 @@ CREATE POLICY "Tutor or manager updates request" ON public.availability_requests
 DROP POLICY IF EXISTS "Manager manages hub enrollments only" ON public.group_enrollments;
 CREATE POLICY "Manager manages hub enrollments only" ON public.group_enrollments FOR ALL TO authenticated
   USING (
-    (public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_member(student_id))
+    (public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_scoped((SELECT g.tutor_id FROM public.lesson_groups g WHERE g.id = group_id)))
     AND EXISTS (
       SELECT 1 FROM public.lesson_groups g
       WHERE g.id = group_enrollments.group_id
@@ -60,7 +80,7 @@ CREATE POLICY "Manager manages hub enrollments only" ON public.group_enrollments
     )
   )
   WITH CHECK (
-    (public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_member(student_id))
+    (public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_scoped((SELECT g.tutor_id FROM public.lesson_groups g WHERE g.id = group_id)))
     AND EXISTS (
       SELECT 1 FROM public.lesson_groups g
       WHERE g.id = group_enrollments.group_id
@@ -258,8 +278,10 @@ CREATE POLICY "Manager deletes any profile" ON public.profiles FOR DELETE TO aut
   USING ((public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_member(id)));
 
 DROP POLICY IF EXISTS "Manager inserts profiles" ON public.profiles;
+-- Свіжий pending-профіль ще не член школи (членство ставить AFTER-тригер
+-- attach_hub_member_on_profile), тому менеджер може вставляти ЛИШЕ pending.
 CREATE POLICY "Manager inserts profiles" ON public.profiles FOR INSERT TO authenticated
-  WITH CHECK ((public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_member(id)));
+  WITH CHECK ((public.has_role(auth.uid(),'manager'::app_role) AND (public.is_hub_member(id) OR is_pending = true)));
 
 DROP POLICY IF EXISTS "Manager updates any profile" ON public.profiles;
 CREATE POLICY "Manager updates any profile" ON public.profiles FOR UPDATE TO authenticated USING ((public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_member(id)));
@@ -437,3 +459,307 @@ DROP POLICY IF EXISTS "Manager views all links" ON public.user_telegram_links;
 CREATE POLICY "Manager views all links" ON public.user_telegram_links FOR SELECT
   TO authenticated
   USING ((public.has_role(auth.uid(),'manager'::app_role) AND public.is_hub_member(user_id)));
+
+-- ── 18 менеджерських армів ПОЗА механічним свіпом (кожен — окреме рішення) ──
+
+-- Аватари: бакет публічний (URL читається без політики), а API-читання менеджера —
+-- лише аватари членів своєї школи (шлях у бакеті = <user_id>/…).
+DROP POLICY IF EXISTS "Manager reads any avatar" ON storage.objects;
+CREATE POLICY "Manager reads any avatar" ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND public.has_role(auth.uid(), 'manager'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM public.profiles p
+      WHERE p.id::text = (storage.foldername(name))[1] AND public.is_hub_member(p.id)
+    )
+  );
+
+-- Нотатки менеджера про людину: бачать/правлять менеджери школи, де ця людина.
+DROP POLICY IF EXISTS "Managers view all notes" ON public.manager_notes;
+CREATE POLICY "Managers view all notes" ON public.manager_notes FOR SELECT TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_member(subject_user_id)));
+DROP POLICY IF EXISTS "Managers insert notes" ON public.manager_notes;
+CREATE POLICY "Managers insert notes" ON public.manager_notes FOR INSERT TO authenticated
+  WITH CHECK ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_member(subject_user_id)) AND auth.uid() = author_id);
+DROP POLICY IF EXISTS "Managers update notes" ON public.manager_notes;
+CREATE POLICY "Managers update notes" ON public.manager_notes FOR UPDATE TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_member(subject_user_id)))
+  WITH CHECK ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_member(subject_user_id)));
+DROP POLICY IF EXISTS "Managers delete notes" ON public.manager_notes;
+CREATE POLICY "Managers delete notes" ON public.manager_notes FOR DELETE TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_member(subject_user_id)));
+
+-- Журнал дій: свої дії + дії менеджерів своєї школи; суперадмін — усе.
+DROP POLICY IF EXISTS "Managers view audit log" ON public.manager_audit_log;
+CREATE POLICY "Managers view audit log" ON public.manager_audit_log FOR SELECT TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_member(actor_id)));
+
+-- Файли уроків (шлях = <lesson_id>/…): менеджер — лише уроки репетиторів своєї школи.
+DROP POLICY IF EXISTS "Lesson participants upload attachment files" ON storage.objects;
+CREATE POLICY "Lesson participants upload attachment files" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'lesson-attachments'
+    AND (
+      (public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_scoped(
+        (SELECT l.tutor_id FROM public.lessons l WHERE (l.id)::text = (storage.foldername(objects.name))[1])))
+      OR EXISTS (
+        SELECT 1 FROM public.lessons l
+        WHERE (l.id)::text = (storage.foldername(objects.name))[1]
+          AND (
+            l.tutor_id = auth.uid()
+            OR l.student_id = auth.uid()
+            OR (l.group_id IS NOT NULL AND public.is_group_active_student(l.group_id, auth.uid()))
+            OR EXISTS (
+              SELECT 1 FROM public.lesson_participants lp
+              WHERE lp.lesson_id = l.id AND lp.student_id = auth.uid()
+            )
+          )
+      )
+    )
+  );
+DROP POLICY IF EXISTS "Tutor or manager deletes attachment files" ON storage.objects;
+CREATE POLICY "Tutor or manager deletes attachment files" ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'lesson-attachments'
+    AND (
+      (public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_scoped(
+        (SELECT l.tutor_id FROM public.lessons l WHERE l.id::text = (storage.foldername(name))[1])))
+      OR EXISTS (
+        SELECT 1 FROM public.lessons l
+        WHERE l.id::text = (storage.foldername(name))[1]
+          AND auth.uid() = l.tutor_id
+      )
+      OR auth.uid() = owner
+    )
+  );
+DROP POLICY IF EXISTS "Lesson participants read lesson-attachments" ON storage.objects;
+CREATE POLICY "Lesson participants read lesson-attachments" ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'lesson-attachments'
+    AND (
+      (
+        public.has_role(auth.uid(), 'manager'::app_role)
+        AND EXISTS (
+          SELECT 1
+          FROM public.lesson_attachments am
+          JOIN public.lessons lm ON lm.id = am.lesson_id
+          WHERE am.storage_path = storage.objects.name
+            AND (lm.source = 'hub' OR lm.source IS NULL)
+            AND public.is_hub_scoped(lm.tutor_id)
+        )
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.lesson_attachments a
+        JOIN public.lessons l ON l.id = a.lesson_id
+        WHERE a.storage_path = storage.objects.name
+          AND (
+            auth.uid() = l.tutor_id
+            OR auth.uid() = l.student_id
+            OR (l.group_id IS NOT NULL AND public.is_group_active_student(l.group_id, auth.uid()))
+            OR EXISTS (
+              SELECT 1 FROM public.lesson_participants lp
+              WHERE lp.lesson_id = l.id AND lp.student_id = auth.uid()
+            )
+          )
+      )
+    )
+  );
+
+-- Запити «знайти репетитора»: школа бачить запити СВОЇХ учнів; запити без
+-- школи (самореєстрація, лід із лендінгу: student_id NULL) — суперадмін, який
+-- і розводить їх по школах (notify_managers шле саме йому).
+DROP POLICY IF EXISTS "Manager views all referral requests" ON public.tutor_referral_requests;
+CREATE POLICY "Manager views all referral requests" ON public.tutor_referral_requests FOR SELECT TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND (public.is_superadmin() OR public.is_hub_member(student_id))));
+DROP POLICY IF EXISTS "Manager updates referral requests" ON public.tutor_referral_requests;
+CREATE POLICY "Manager updates referral requests" ON public.tutor_referral_requests FOR UPDATE TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND (public.is_superadmin() OR public.is_hub_member(student_id))))
+  WITH CHECK ((public.has_role(auth.uid(), 'manager'::app_role) AND (public.is_superadmin() OR public.is_hub_member(student_id))));
+DROP POLICY IF EXISTS "Manager deletes referral requests" ON public.tutor_referral_requests;
+CREATE POLICY "Manager deletes referral requests" ON public.tutor_referral_requests FOR DELETE TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND (public.is_superadmin() OR public.is_hub_member(student_id))));
+
+-- Платформенне (один бот, одна розсилка, одна реферальна програма на всіх):
+-- лише суперадмін. Менеджер школи до цього не має стосунку.
+DROP POLICY IF EXISTS "Manager views bot state" ON public.telegram_bot_state;
+CREATE POLICY "Manager views bot state" ON public.telegram_bot_state FOR SELECT TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_superadmin()));
+DROP POLICY IF EXISTS "Manager manages referrals" ON public.referrals;
+CREATE POLICY "Manager manages referrals" ON public.referrals FOR ALL TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_superadmin()))
+  WITH CHECK ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_superadmin()));
+DROP POLICY IF EXISTS "Managers manage campaigns" ON public.marketing_campaigns;
+CREATE POLICY "Managers manage campaigns" ON public.marketing_campaigns FOR ALL TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_superadmin()))
+  WITH CHECK ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_superadmin()));
+DROP POLICY IF EXISTS "Managers view unsubscribes" ON public.marketing_unsubscribes;
+CREATE POLICY "Managers view unsubscribes" ON public.marketing_unsubscribes FOR SELECT TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager'::app_role) AND public.is_superadmin()));
+
+-- Realtime «subscription-requests:<tutor_id>»: менеджер слухає лише свою школу.
+DROP POLICY IF EXISTS "Subscription requests realtime scoped" ON realtime.messages;
+CREATE POLICY "Subscription requests realtime scoped" ON realtime.messages FOR SELECT TO authenticated
+  USING (
+    (realtime.topic() LIKE 'subscription-requests:%')
+    AND (
+      (public.has_role(auth.uid(), 'manager'::public.app_role)
+        AND (public.is_superadmin() OR public.is_hub_scoped(
+          (SELECT p.id FROM public.profiles p WHERE p.id::text = split_part(realtime.topic(), ':', 2)))))
+      OR (auth.uid())::text = split_part(realtime.topic(), ':', 2)
+    )
+  );
+
+-- Словник предметів — спільний для всіх шкіл: додавати може будь-який менеджер,
+-- правити/видаляти (це зачепить чужі уроки) — лише суперадмін.
+DROP POLICY IF EXISTS "subjects_manager_write" ON public.subjects;
+CREATE POLICY "subjects_manager_write" ON public.subjects FOR INSERT TO authenticated
+  WITH CHECK ((public.has_role(auth.uid(), 'manager') AND public.is_hub_member(auth.uid())));
+DROP POLICY IF EXISTS "subjects_superadmin_edit" ON public.subjects;
+CREATE POLICY "subjects_superadmin_edit" ON public.subjects FOR UPDATE TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager') AND public.is_superadmin()))
+  WITH CHECK ((public.has_role(auth.uid(), 'manager') AND public.is_superadmin()));
+DROP POLICY IF EXISTS "subjects_superadmin_delete" ON public.subjects;
+CREATE POLICY "subjects_superadmin_delete" ON public.subjects FOR DELETE TO authenticated
+  USING ((public.has_role(auth.uid(), 'manager') AND public.is_superadmin()));
+
+-- ── 3. DEFINER-в'ю з власним manager-армом ───────────────────────────────────
+
+-- lessons_visible (дослівно 20260903210021 + is_hub_scoped)
+DROP VIEW IF EXISTS public.lessons_visible;
+CREATE VIEW public.lessons_visible WITH (security_invoker = false) AS
+WITH caller AS (
+  SELECT auth.uid() AS uid, public.has_role(auth.uid(),'manager'::app_role) AS is_manager
+)
+SELECT l.id, l.tutor_id, l.student_id, l.created_by, l.subject, l.subject_id,
+  l.starts_at, l.duration_minutes, l.status, l.notes, l.source, l.lesson_type,
+  l.group_id, l.created_at, l.updated_at, l.meeting_url, ld.homework, ld.summary,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.student_id THEN ld.student_notes ELSE NULL::text END AS student_notes,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.student_id OR (c.uid=l.tutor_id AND l.source='independent') THEN ld.student_price ELSE NULL::numeric END AS student_price,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.student_id OR (c.uid=l.tutor_id AND l.source='independent') THEN ld.student_payment_status ELSE NULL::text END AS student_payment_status,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.student_id OR (c.uid=l.tutor_id AND l.source='independent') THEN ld.student_paid_at ELSE NULL::timestamptz END AS student_paid_at,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.student_id OR (c.uid=l.tutor_id AND l.source='independent') THEN ld.is_cancellation_fee ELSE NULL::boolean END AS is_cancellation_fee,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.tutor_id THEN ld.tutor_payout ELSE NULL::numeric END AS tutor_payout,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.tutor_id THEN ld.tutor_payout_status ELSE NULL::text END AS tutor_payout_status,
+  CASE WHEN (c.is_manager AND public.is_hub_scoped(l.tutor_id)) OR c.uid=l.tutor_id THEN ld.tutor_paid_at ELSE NULL::timestamptz END AS tutor_paid_at,
+  -- M4: валюта пари; для групового уроку — валюта участі читача, інакше UAH
+  COALESCE(sr.currency, lp.currency, 'UAH')::text AS currency
+FROM public.lessons l
+LEFT JOIN public.lesson_details ld ON ld.lesson_id = l.id
+CROSS JOIN caller c
+/* РІВНО ОДИН рядок ставки на урок: пара може мати кілька предметів, і
+   простий LEFT JOIN по (tutor_id, student_id) множив урок на їх кількість. */
+LEFT JOIN LATERAL (
+  SELECT r.currency
+  FROM public.student_rates r
+  WHERE r.tutor_id = l.tutor_id
+    AND r.student_id = l.student_id
+    AND r.archived_at IS NULL
+  ORDER BY (r.subject IS NOT DISTINCT FROM l.subject) DESC, r.created_at DESC NULLS LAST
+  LIMIT 1
+) sr ON TRUE
+/* lesson_participants унікальна по (lesson_id, student_id) — дублювати не може. */
+LEFT JOIN public.lesson_participants lp
+  ON lp.lesson_id = l.id AND lp.student_id = c.uid
+WHERE (
+  (c.is_manager AND public.is_hub_scoped(l.tutor_id) AND (l.source = 'hub' OR l.source IS NULL))
+  OR c.uid = l.tutor_id
+  OR c.uid = l.student_id
+  OR (l.lesson_type IN ('pair','group') AND l.group_id IS NOT NULL AND public.is_group_active_student(l.group_id, c.uid))
+);
+REVOKE ALL ON public.lessons_visible FROM PUBLIC, anon;
+GRANT SELECT ON public.lessons_visible TO authenticated;
+
+-- lesson_participants_visible (дослівно 20260720000000 + is_hub_scoped)
+DROP VIEW IF EXISTS public.lesson_participants_visible;
+CREATE VIEW public.lesson_participants_visible WITH (security_invoker = false) AS
+SELECT
+  lp.id,
+  lp.lesson_id,
+  lp.student_id,
+  lp.attendance_status,
+  lp.created_at,
+  lp.currency,
+  l.tutor_id,
+  l.starts_at,
+  l.subject,
+  l.status,
+  l.source,
+  CASE WHEN (
+    (public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_scoped(l.tutor_id) AND (l.source = 'hub' OR l.source IS NULL))
+    OR lp.student_id = auth.uid()
+    OR (l.tutor_id = auth.uid() AND l.source = 'independent')
+  ) THEN lp.student_price END AS student_price,
+  CASE WHEN (
+    (public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_scoped(l.tutor_id) AND (l.source = 'hub' OR l.source IS NULL))
+    OR lp.student_id = auth.uid()
+    OR (l.tutor_id = auth.uid() AND l.source = 'independent')
+  ) THEN lp.student_payment_status END AS student_payment_status,
+  CASE WHEN (
+    (public.has_role(auth.uid(), 'manager'::app_role) AND public.is_hub_scoped(l.tutor_id) AND (l.source = 'hub' OR l.source IS NULL))
+    OR lp.student_id = auth.uid()
+    OR (l.tutor_id = auth.uid() AND l.source = 'independent')
+  ) THEN lp.student_paid_at END AS student_paid_at
+FROM public.lesson_participants lp
+JOIN public.lessons l ON l.id = lp.lesson_id
+WHERE
+  /* exact replica of the table's SELECT RLS: */
+  l.tutor_id = auth.uid()                                   /* tutor_manages_participants */
+  OR lp.student_id = auth.uid()                             /* student_views_participation */
+  OR (                                                      /* manager_manages_hub_participants_only */
+    public.has_role(auth.uid(), 'manager'::app_role)
+    AND public.is_hub_scoped(l.tutor_id)
+    AND (l.source = 'hub' OR l.source IS NULL)
+  );
+
+REVOKE ALL ON public.lesson_participants_visible FROM PUBLIC, anon;
+GRANT SELECT ON public.lesson_participants_visible TO authenticated;
+
+-- group_enrollments_visible (дослівно 20260720000000 + is_hub_scoped)
+DROP VIEW IF EXISTS public.group_enrollments_visible;
+CREATE VIEW public.group_enrollments_visible WITH (security_invoker = false) AS
+SELECT
+  e.id,
+  e.group_id,
+  e.student_id,
+  e.status,
+  e.currency,
+  e.joined_at,
+  e.created_at,
+  e.updated_at,
+  g.tutor_id,
+  CASE WHEN (
+    e.student_id = auth.uid()
+    OR (
+      public.has_role(auth.uid(), 'manager'::app_role)
+      AND public.is_hub_scoped(g.tutor_id)
+      AND NOT EXISTS (
+        SELECT 1 FROM public.tutor_workspace_settings ws
+        WHERE ws.tutor_id = g.tutor_id AND ws.independent_workspace = true
+      )
+    )
+    OR (
+      g.tutor_id = auth.uid()
+      AND EXISTS (
+        SELECT 1 FROM public.tutor_workspace_settings ws
+        WHERE ws.tutor_id = g.tutor_id AND ws.independent_workspace = true
+      )
+    )
+  ) THEN e.price_per_lesson END AS price_per_lesson
+FROM public.group_enrollments e
+JOIN public.lesson_groups g ON g.id = e.group_id
+WHERE
+  g.tutor_id = auth.uid()                                   /* Tutor manages enrollments of own groups */
+  OR e.student_id = auth.uid()                              /* student views own enrollment */
+  OR (                                                      /* Manager manages hub enrollments only */
+    public.has_role(auth.uid(), 'manager'::app_role)
+    AND public.is_hub_scoped(g.tutor_id)
+    AND NOT EXISTS (
+      SELECT 1 FROM public.tutor_workspace_settings ws
+      WHERE ws.tutor_id = g.tutor_id AND ws.independent_workspace = true
+    )
+  );
+
+REVOKE ALL ON public.group_enrollments_visible FROM PUBLIC, anon;
+GRANT SELECT ON public.group_enrollments_visible TO authenticated;

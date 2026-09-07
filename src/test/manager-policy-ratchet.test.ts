@@ -13,7 +13,9 @@ import { globSync } from "glob";
  * is_hub_* (коли модель приїде), або свідомо піднімати baseline У ЦЬОМУ
  * ФАЙЛІ з поясненням, чому без скоупа — інакше тест червоний.
  */
-const BASELINE = 165; // станом на 05.09 (усі міграції до 20260905120000 включно)
+const BASELINE = 165; // станом на 05.09 (усі міграції до 20260905120000 включно);
+// 07.09: етап B (20260907110000) перевипустив усі 78 живих армів скоупленими —
+// у ЖИВІЙ базі голих не лишилось; число тут — історія файлів, воно не падає.
 
 describe("міграції: менеджерські політики без хаб-скоупа (ratchet)", () => {
   it(`«голих» has_role('manager') у CREATE POLICY не більше ніж ${BASELINE}`, () => {
@@ -23,7 +25,10 @@ describe("міграції: менеджерські політики без х�
       const src = readFileSync(f, "utf-8");
       for (const m of src.matchAll(/CREATE POLICY[\s\S]*?;/gi)) {
         const block = m[0];
-        if (/has_role\s*\(\s*auth\.uid\(\)\s*,\s*'manager'/.test(block) && !block.includes("is_hub_")) {
+        // 07.09 (етап B): скоуп на школу — is_hub_*; платформенні таблиці
+        // (бот, розсилки, реферали) скоуплені is_superadmin(); «менеджер
+        // якоїсь школи» — caller_hub_id(). Усе це — скоуплені арми, не голі.
+        if (/has_role\s*\(\s*auth\.uid\(\)\s*,\s*'manager'/.test(block) && !/is_hub_|is_superadmin|caller_hub_id/.test(block)) {
           offenders.push(f);
         }
       }

@@ -1,6 +1,28 @@
 import type { LocaleTranslations } from "./types";
 
 export const en: LocaleTranslations = {
+  adminSchools: {
+    title: "Schools",
+    subtitle: "Online schools on the platform: each sees only its own people, lessons and money.",
+    needsMigration: "Appears once the “school = entity” migration is applied in Lovable.",
+    retry: "Try again",
+    empty: "No schools yet.",
+    stats: "manager: {{managers}} · tutors: {{tutors}} · students: {{members}}",
+    rename: "Name",
+    renameLabel: "New school name",
+    save: "Save",
+    cancel: "Cancel",
+    renamed: "Name updated",
+    renameFailed: "Could not rename",
+    namePlaceholder: "School name",
+    emailPlaceholder: "Manager email (registered user)",
+    create: "Connect school",
+    hint: "The manager gets the role and sees an empty school: tutors and students are added in People.",
+    created: "School “{{name}}” connected",
+    managerNotFound: "No user with that email — they need to sign up first.",
+    alreadyManager: "This person already manages a school.",
+    createFailed: "Could not create the school",
+  },
   adminCrm: {
     risk_red: "Urgent",
     risk_orange: "Attention",

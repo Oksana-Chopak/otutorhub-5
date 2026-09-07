@@ -138,6 +138,29 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   prefill pattern). Tests green = release gate; changing money logic requires
   updating the business model here first, consciously.
 
+### HUB MODEL — «школа = сутність» (07.09, рішення власниці 31.08) — INVIOLABLE
+- `hubs` / `hub_managers` (один менеджер = одна школа) / `hub_members` (учні та
+  pending-профілі школи) / `tutor_workspace_settings.hub_id` (школа репетитора;
+  NULL = незалежний; привілейована колонка — колонковий REVOKE + гард).
+  Повний опис і таблиця скоупів: `docs/SECURITY-ARMS.md`.
+- Скоуп УРОКІВ/ГРОШЕЙ рахується від репетитора уроку: `is_hub_scoped(tutor_id)`.
+  Скоуп ЛЮДЕЙ (profiles, contacts, roles, notes): `is_hub_member(user_id)`.
+  Обидва включають суперадміна. Для RPC — `is_hub_manager_of(tutor)`; для
+  edge під service role — `is_manager_of_tutor` / `is_manager_of_user`.
+- НІКОЛИ не пиши нову manager-політику, RPC чи edge-гілку з голим
+  `has_role(manager)` — тільки зі скоупом (ratchet `manager-policy-ratchet` +
+  `hub-scope-sweep` тримають це в CI). Платформенне (розсилки, бот, реферали,
+  словник предметів на UPDATE/DELETE) — `is_superadmin()`.
+- DEFINER-в'ю (`lessons_visible`, `lesson_participants_visible`,
+  `group_enrollments_visible`) мають ВЛАСНИЙ manager-арм — скани політик його
+  не бачать; будь-який перевипуск цих в'ю мусить зберегти `is_hub_scoped`.
+- Роль `manager` видає лише суперадмін через `create_hub` (адмінка «Школи»);
+  `guard_user_roles_writes` блокує решту. Членство ставлять тригери (pending-
+  профіль від менеджера, роль від менеджера, `student_rates source='hub'`), а
+  `merge_pending_profile` переносить школу з pending-профілю на реальний акаунт.
+- `default_hub_id()` повертає школу ЛИШЕ поки вона одна; жодного
+  `ORDER BY user_id LIMIT 1` для «менеджера платформи».
+
 ### SECURITY INVARIANTS — student data surface
 - Students must NEVER see fireflies_* columns (raw AI output). Student-facing
   views/queries expose only the curated `summary` the tutor copied. No fallback

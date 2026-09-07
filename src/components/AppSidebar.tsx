@@ -42,6 +42,7 @@ import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useSubscriptionRequestCount } from "@/hooks/useSubscriptionRequestCount";
 import { useTheme } from "@/hooks/useTheme";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useMyHub } from "@/hooks/useMyHub";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "@/components/UserAvatar";
 import { AvatarUploader } from "@/components/AvatarUploader";
@@ -124,6 +125,11 @@ export function AppSidebar() {
   const subscriptionBadge = useSubscriptionRequestCount();
   const { theme, toggleTheme } = useTheme();
   const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
+  // Назва школи під роллю (модель «школа = сутність», 07.09). RLS на hubs
+  // віддає школу лише її людям — незалежний і сторонні отримують null, тож
+  // окремої перевірки ролі не потрібно.
+  const { hub: myHub } = useMyHub();
+  const showHubName = !!myHub;
   const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
   // The setup guide (/onboarding) is for EVERY tutor: independent tutors set up their own
   // workspace; hub tutors get the hub-scoped step set (OnboardingFlowB skips the
@@ -382,8 +388,9 @@ export function AppSidebar() {
                   ? `${profile.first_name} ${profile.last_name}`.trim()
                   : user?.email ?? "—"}
               </p>
-              <p className="text-[14px] text-slate-400">
+              <p className="truncate text-[14px] text-slate-400">
                 {primaryRole ? t(roleLabelKey[primaryRole]) : t("roles.none")}
+                {showHubName && myHub ? ` · ${myHub.name}` : ""}
               </p>
             </div>
           </div>

@@ -148,19 +148,33 @@ Deno.serve(async (req) => {
     if (link.chat_id) chatByMgr.set(link.user_id, Number(link.chat_id));
   }
 
-  const lines = payable.map((id: string) => {
-    const sum = sumBy.get(id) ?? 0;
-    const cnt = cntBy.get(id) ?? 0;
-    return `• <b>${escapeHtml(nameById.get(id) ?? "репетитор")}</b> — ${sum.toLocaleString("uk-UA")} ₴ (${cnt} ур.)`;
-  });
-  const plainLines = payable.map((id: string) => {
-    const sum = sumBy.get(id) ?? 0;
-    return `${nameById.get(id) ?? "репетитор"} — ${sum.toLocaleString("uk-UA")} ₴`;
-  });
-  const tgText = `💰 <b>Сьогодні виплати репетиторам</b>\n${lines.join("\n")}\n\nВідкрийте Фінанси, щоб позначити виплаченими.`;
+  // Модель «школа = сутність» (07.09): кожен менеджер отримує лише виплати
+  // репетиторів СВОЄЇ школи (hub_managers × settings.hub_id). До застосування
+  // етапу A таблиці ще немає — тоді список спільний, як раніше.
+  const { data: hubMgrRows, error: hubErr } = await admin.from("hub_managers").select("user_id, hub_id");
+  const hubModel = !hubErr;
+  const hubOfManager = new Map<string, string>((hubMgrRows ?? []).map((r: any) => [r.user_id, r.hub_id]));
+  const { data: hubTutorRows } = hubModel
+    ? await admin.from("tutor_workspace_settings").select("tutor_id, hub_id").in("tutor_id", payable)
+    : { data: [] as any[] };
+  const hubOfTutor = new Map<string, string>((hubTutorRows ?? []).map((r: any) => [r.tutor_id, r.hub_id]));
+  const payableFor = (mgrId: string) =>
+    hubModel ? payable.filter((id: string) => hubOfTutor.get(id) != null && hubOfTutor.get(id) === hubOfManager.get(mgrId)) : payable;
 
   let sent = 0;
   for (const mgrId of managerIds) {
+    const myPayable = payableFor(mgrId);
+    if (myPayable.length === 0) continue;
+    const lines = myPayable.map((id: string) => {
+      const sum = sumBy.get(id) ?? 0;
+      const cnt = cntBy.get(id) ?? 0;
+      return `• <b>${escapeHtml(nameById.get(id) ?? "репетитор")}</b> — ${sum.toLocaleString("uk-UA")} ₴ (${cnt} ур.)`;
+    });
+    const plainLines = myPayable.map((id: string) => {
+      const sum = sumBy.get(id) ?? 0;
+      return `${nameById.get(id) ?? "репетитор"} — ${sum.toLocaleString("uk-UA")} ₴`;
+    });
+    const tgText = `💰 <b>Сьогодні виплати репетиторам</b>\n${lines.join("\n")}\n\nВідкрийте Фінанси, щоб позначити виплаченими.`;
     // Dedup: once per manager per day.
     const dedupType = `payout_due_${todayStr}`;
     const { data: existing } = await admin

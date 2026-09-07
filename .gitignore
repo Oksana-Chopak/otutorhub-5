@@ -33,3 +33,8 @@ playwright-report/
 *.timestamp-*.mjs
 .stryker-tmp/
 coverage/
+
+# Пакети для аудиторки та вставки для Lovable — не частина коду
+claude-*.bundle
+claude-push.sh
+lovable-paste/

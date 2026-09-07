@@ -1,67 +1,126 @@
-# Арми ролі `manager` — інвентаризація і план
+# Арми ролі `manager` — модель «школа = сутність» (07.09.2026)
 
-Джерело: аудит безпеки (серпень 2026) + власний рекон хвилі 45.
+Джерело: аудит безпеки (серпень 2026) → рекон хвилі 45 → рішення власниці
+31.08 («школа = окрема сутність») → хвиля 07.09 (три міграції + edge).
 
-## Головна знахідка рекону
+## Історія коротко
 
-**Моделі належності до хабу в схемі не існує.** Немає ні `hub_id`, ні
-`manager_id`, ні зв'язкової таблиці «тьютор ↔ хаб». `start_manager_chat`
-прямо каже: `-- The hub has a single manager account`, і бере
-`user_roles WHERE role='manager' ORDER BY user_id LIMIT 1`.
+До 07.09 моделі належності до школи в схемі **не існувало**: менеджер
+визначався як «єдиний акаунт із роллю manager» (`start_manager_chat`:
+`ORDER BY user_id LIMIT 1`). Голий `has_role(manager)` писали не з
+недбалості — **скоупити не було по чому**. Поки школа одна, «всі дані
+платформи» = «дані моєї школи», витоку немає. З другою школою кожен такий арм
+— витік: чужі уроки, ставки, гаманці, ростер.
 
-Тобто голий `has_role(manager)` писали не з недбалості: **скоупити не було
-по чому.** Це пояснює всю картину і визначає порядок робіт.
+Хвиля 45 (`20260831160000`) закрила приватне (токени карток, чати, реквізити)
+і перевела платформенне на `is_superadmin()`. Операційні арми чекали на схему.
 
-## Інвентаризація (174 згадки в історії міграцій, 53 таблиці)
+## Модель (етап A — `20260907100000_hub_entity_model.sql`)
 
-| Категорія | Політик | Правильна заміна | Стан |
-|---|---|---|---|
-| 🔴 Приватне | 29 | **нічого** | ✅ хвиля 45 |
-| 🟣 Платформне | 16 | `is_superadmin()` | ✅ частково (error_log — раніше; paywall_events, pro_bonus_ledger — 45) |
-| 🟠 Операційне | 129 | `has_role(manager) AND is_hub_scoped(tutor_id)` | ⛔ **блоковано схемою** |
+| Обʼєкт | Що це | Хто пише |
+|---|---|---|
+| `hubs` | школа (id, name) | `create_hub` / `rename_hub` (RPC) |
+| `hub_managers` | менеджери школи; **один менеджер = одна школа** (UNIQUE user_id) | `create_hub` |
+| `tutor_workspace_settings.hub_id` | школа репетитора; NULL = незалежний; привілейована колонка (колонковий REVOKE + гард) | тригери `set_default_hub_id`, `ensure_hub_tutor_workspace`; `move_tutor_to_hub` (суперадмін) |
+| `hub_members` | учні та pending-профілі школи (учень може бути в кількох школах) | тригери: pending-профіль від менеджера, роль від менеджера, `student_rates source='hub'` |
 
-## Що зроблено (міграція `20260831160000_arm_sweep_private.sql`)
+Предикати (усі `SECURITY DEFINER`, включають суперадміна):
 
-- `liqpay_payments` — менеджер більше не читає рядки з токеном картки.
-- Чати (4 таблиці) — знято читання чужих переписок; власні треди менеджера
-  покриває політика учасника.
-- `profile_financial_contacts` — банківські реквізити закрито.
-- `paywall_events`, `pro_bonus_ledger` — переведено на `is_superadmin()`.
+- `is_hub_scoped(_tutor)` — репетитор у школі того, хто питає (або сам про себе).
+  Скоуп для **уроків і грошей** — рахується від репетитора уроку, тому спільний
+  учень двох шкіл видимий кожній лише в її частині.
+- `is_hub_member(_user)` — людина в школі того, хто питає: репетитор, менеджер,
+  учень/pending (`hub_members`), або учень із хабовою ставкою у репетитора школи.
+  Скоуп для **профілів, контактів, ролей, нотаток**.
+- `is_hub_manager_of(_tutor)` = `has_role(manager) AND is_hub_scoped(_tutor)` —
+  для RPC.
+- `is_manager_of_tutor(_manager, _tutor)`, `is_manager_of_user(_manager, _user)`
+  — серверні двійники для edge-функцій під service role (EXECUTE лише
+  `service_role`).
+- `caller_hub_id()`, `hub_of_user(_user)`, `default_hub_id()` (лише поки школа
+  одна — з другою повертає NULL, ніщо не «прилипає» до першої-ліпшої).
 
-**Видимий наслідок:** сторінка «Чати» показує менеджеру лише його власні
-треди, а не всі переписки тьюторів з учнями.
+Що ще зроблено в етапі A: засів `platform_admins` по обох поштах власниці
+(старий засів шукав не ту адресу — адмінка показувала замок); бекфіл єдиної
+школи; **рядки `tutor_workspace_settings` для хабових репетиторів, створених у
+«Людях»** (їх не було — `handle_new_user` пропускає рядок, коли роль уже є після
+`merge_pending_profile`; тепер і `merge_pending_profile` переносить рядок та
+членство з pending-профілю на реальний акаунт); роль `manager` видає лише
+суперадмін (`guard_user_roles_writes`).
 
-## Що лишається (операційні 129) і чого воно потребує
+## Політики та в'ю (етап B — `20260907110000_hub_scope_policies.sql`)
 
-Поки менеджер один — витоку немає: «всі дані платформи» і «дані мого хабу»
-збігаються. З **другою школою** вони розходяться, і кожна з цих політик стає
-реальним витоком: чужі уроки, ставки, гаманці, ростер.
+78 живих manager-армів (інвентаризація скриптом: остання `CREATE POLICY` мінус
+`DROP` по всій історії, тіла звірено слово в слово):
 
-Мінімальна схема, яка розблоковує скоуп:
+| Група | Скільки | Скоуп |
+|---|---|---|
+| механічний свіп (tutor_id / lesson_id / group / user_id) | 60 | `is_hub_scoped(...)` / `is_hub_member(...)` |
+| файли уроків (storage), нотатки й журнал менеджера | 7 | `is_hub_scoped(репетитор уроку)` / `is_hub_member(subject_user_id \| actor_id)` |
+| запити «знайти репетитора» | 3 | `is_superadmin() OR is_hub_member(student_id)` (запити без школи розводить власниця) |
+| платформенне: бот, розсилки, реферали | 4 | `is_superadmin()` |
+| realtime `subscription-requests:*` | 1 | школа репетитора з топіка |
+| словник `subjects` | 1 → 3 | INSERT — менеджер будь-якої школи; UPDATE/DELETE — суперадмін |
+| аватари | 1 | `is_hub_member(власник шляху)` (бакет публічний, політика лише для API) |
 
-```sql
-alter table public.tutor_workspace_settings
-  add column if not exists hub_id uuid references public.profiles(id);
+Два свідомі відхилення від механіки: `profiles` INSERT пускає `is_pending`
+(свіжий pending-профіль ще не член — членство ставить AFTER-тригер етапу A;
+інакше форма «Люди» не проходила б), `group_enrollments` скоупиться репетитором
+групи, не учнем.
 
--- Наявні хабові тьютори належать єдиному наявному менеджеру:
-update public.tutor_workspace_settings s
-   set hub_id = (select user_id from public.user_roles
-                  where role = 'manager' order by user_id limit 1)
- where s.independent_workspace = false and s.hub_id is null;
+**Три DEFINER-в'ю** (`lessons_visible`, `lesson_participants_visible`,
+`group_enrollments_visible`) — головний шлях читання грошей — мають ВЛАСНИЙ
+manager-арм, якого не бачить жоден скан `pg_policies`. Перевипущено дослівно +
+`is_hub_scoped(l.tutor_id)`.
 
-create or replace function public.is_hub_scoped(_tutor uuid)
-returns boolean language sql stable security definer set search_path = public as $$
-  select exists (
-    select 1 from public.tutor_workspace_settings s
-     where s.tutor_id = _tutor and s.hub_id = auth.uid()
-  );
-$$;
-```
+## Функції (етап C — `20260907120000_hub_scope_rpcs.sql`)
 
-Далі кожна операційна політика переписується як
-`has_role(auth.uid(),'manager') AND public.is_hub_scoped(<tutor_id колонка>)`.
+RLS не захищає `SECURITY DEFINER`: 21 функцію перевипущено дослівно, змінено
+рівно один вираз — роль → роль **і** школа: гроші уроку
+(`update_lesson_details_safe`), виплати (`mark_tutor_payouts_paid`,
+`set_lesson_tutor_payout_status[_bulk]`, `set_tutor_payout_schedule`,
+`backfill_tutor_payouts_for_tutor`), гаманці (`get_wallet_balance`,
+`wallet_topup/adjust/delete_transaction`), зведення (`manager_debts_summary`,
+`manager_debts_by_currency`), профіль репетитора (`get_tutor_level`,
+`get_tutor_monthly_summary`, `generate_referral_code`,
+`get_referral_savings_uah`, `get_tutor_independent_student_count`), чати
+(`get_or_create_chat_thread`), видалення (`manager_purge_user`,
+`purge_user_data`), розсилки (`get_marketing_recipients` → суперадмін).
+Мертві `get_lesson_financials`/`list_lesson_financials` (читали гроші з
+`lessons`, де їх давно немає) — видалено.
 
-**Свідомо не зроблено зараз:** писати `is_hub_scoped()`, який завжди повертає
-true, було б гірше за відсутність — воно виглядало б як виправлення. Схемне
-рішення (де саме живе `hub_id`, що з учнями кількох хабів) належить власниці,
-а не агенту.
+Поза списком свідомо: тригери-гарди (`guard_*`, `protect_*`, `fill_*`,
+`is_group_*`) не віддають даних; `get_people_aggregates` /
+`finances_period_totals` — `SECURITY INVOKER`, самі скоупляться в'ю.
+
+## Edge-функції під service role
+
+`remind-payment`, `notify-lesson-update`, `sync-google-calendar` →
+`is_manager_of_tutor`; `send-student-invite` → `is_manager_of_user`;
+`send-marketing-campaign` → `platform_admins`; дайджести
+(`tutor-daily-digest`, `tutor-weekly-digest`), `payout-reminders`,
+`telegram-poll hpaid` → фільтр уроків школою менеджера (`hub_managers` ×
+`settings.hub_id`; до застосування етапу A таблиці немає — поведінка стара).
+Попутно: `manager_debts_summary` під service role завжди повертала нулі
+(`auth.uid()` порожній) — тотали дайджесту тепер рахуються в самій функції.
+
+## Як тримається
+
+- `src/test/hub-scope-sweep.test.ts` — кожен арм етапу B скоуплений, в'ю без
+  голого арму, кожна функція етапу C перевіряє школу, edge-функції кличуть
+  серверні предикати.
+- `src/test/manager-policy-ratchet.test.ts` — новий голий `has_role(manager)`
+  у `CREATE POLICY` = червоний CI (скоупом вважається `is_hub_*`,
+  `is_superadmin`, `caller_hub_id`).
+- Прогін 07.09 на локальному Postgres 16 (стаб auth/storage/realtime, повна
+  історія міграцій → три нові файли): дві школи, менеджер Б бачить лише свої
+  уроки/борги/профілі, не може позначити виплати школи А, не може видати роль
+  manager; «Люди» (pending → контакти → роль) дає репетитора одразу в школі;
+  реєстрація запрошеного переносить школу; незалежний не бачить шкіл.
+
+## Що далі (не блокує)
+
+- UI: переносити репетитора між школами (`move_tutor_to_hub` є, кнопки немає).
+- Запрошення в школу посиланням (без ручного створення pending-профілю).
+- Кілька менеджерів на школу — модель уже дозволяє (`hub_managers`), RPC
+  «додати менеджера» ще немає.

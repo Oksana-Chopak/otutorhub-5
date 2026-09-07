@@ -78,7 +78,15 @@ Deno.serve(async (req) => {
       .eq("user_id", userData.user.id)
       .eq("role", "manager")
       .maybeSingle();
-    if (!roleCheck) {
+    // Розсилка — платформенна (база незалежних репетиторів УСІЄЇ платформи),
+    // тож із 07.09 (модель «школа = сутність») — лише суперадмін, не менеджер
+    // окремої школи.
+    const { data: adminRow } = await admin
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (!roleCheck || !adminRow) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

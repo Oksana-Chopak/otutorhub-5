@@ -146,6 +146,18 @@ Deno.serve(async (req) => {
     ])
   );
 
+  // Школи (модель «школа = сутність», 07.09): менеджер бачить підсумки лише
+  // СВОЄЇ школи. До застосування етапу A таблиці немає — тоді все хабове.
+  const { data: hubMgrRows, error: hubErr } = await sb.from("hub_managers").select("user_id, hub_id");
+  const hubModel = !hubErr;
+  const hubOfManager = new Map<string, string>((hubMgrRows ?? []).map((r: any) => [r.user_id, r.hub_id]));
+  const { data: hubTutorRows } = hubModel
+    ? await sb.from("tutor_workspace_settings").select("tutor_id, hub_id").not("hub_id", "is", null)
+    : { data: [] as any[] };
+  const hubOfTutor = new Map<string, string>((hubTutorRows ?? []).map((r: any) => [r.tutor_id, r.hub_id]));
+  const inManagerHub = (managerId: string, tutorId: string) =>
+    !hubModel || hubOfTutor.get(tutorId) === hubOfManager.get(managerId);
+
   let sent = 0;
 
   for (const userId of userIds) {
@@ -160,11 +172,12 @@ Deno.serve(async (req) => {
     const lines: string[] = [];
 
     if (isManager) {
-      const wLessons = (lastWeek ?? []).filter((l: any) => l.source !== "independent");
-      const nLessons = (nextWeek ?? []).filter((l: any) => l.source !== "independent");
+      const mine = (l: any) => l.source !== "independent" && inManagerHub(userId, l.tutor_id);
+      const wLessons = (lastWeek ?? []).filter(mine);
+      const nLessons = (nextWeek ?? []).filter(mine);
       const income = wLessons.reduce((s: number, l: any) =>
         s + Number(l.lesson_details?.student_price ?? 0), 0);
-      const wDebts = (unpaid ?? []).filter((l: any) => l.source !== "independent");
+      const wDebts = (unpaid ?? []).filter(mine);
       const debtTotal = wDebts.reduce((s: number, l: any) =>
         s + Number(l.lesson_details?.student_price ?? 0), 0);
       const debtStudents = new Set(wDebts.map((l: any) => l.student_id)).size;
