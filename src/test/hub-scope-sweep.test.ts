@@ -18,6 +18,7 @@ const mig = (f: string) => readFileSync(join(root, "supabase/migrations", f), "u
 const model = mig("20260907100000_hub_entity_model.sql");
 const sweep = mig("20260907110000_hub_scope_policies.sql");
 const rpcs = mig("20260907120000_hub_scope_rpcs.sql");
+const assertLive = mig("20260907130000_hub_scope_assert.sql");
 const code = (s: string) => s.split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
 
 describe("хаб · етап A — модель «школа = сутність»", () => {
@@ -161,5 +162,31 @@ describe("хаб · edge-функції під service role перевіряют
       expect(src, f).toMatch(/hubOfTutor\.get\(/);
     }
     expect(edge("telegram-poll")).toMatch(/from\('hub_managers'\)/);
+  });
+});
+
+/* Аудит 07.09: свіп доводиться ПО ФАЙЛУ, а база може містити політику, якої
+   у файлі немає (створену Lovable або додану після генерації). Саме так
+   ux-step49 мовчки проминув три реальні назви. Етап D дивиться в pg_policies
+   і падає списком — цей блок тестів стереже, щоб перевірку не прибрали. */
+describe("хаб · етап D — перевірка ЖИВОЇ бази", () => {
+  it("сканує pg_policies і pg_proc, а не текст міграції", () => {
+    expect(assertLive).toMatch(/FROM pg_policies/);
+    expect(assertLive).toMatch(/FROM pg_proc p/);
+    expect(assertLive).toMatch(/p\.prosecdef/);
+  });
+  it("падає з переліком, а не пише попередження, яке ніхто не побачить", () => {
+    expect((assertLive.match(/RAISE EXCEPTION/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect(assertLive).toMatch(/string_agg/);
+  });
+  it("шукає саме відсутність хабового предиката (усі чотири форми)", () => {
+    for (const pred of ["is_hub_scoped", "is_hub_member", "caller_hub_id", "is_superadmin"]) {
+      expect(assertLive, pred).toContain(pred);
+    }
+  });
+  it("нічого не створює і не змінює — це чиста перевірка, її можна перезапускати", () => {
+    const c = code(assertLive);
+    expect(c).not.toMatch(/CREATE (TABLE|POLICY|VIEW|FUNCTION)/);
+    expect(c).not.toMatch(/\b(INSERT INTO|UPDATE |DELETE FROM|ALTER TABLE|DROP )/);
   });
 });
