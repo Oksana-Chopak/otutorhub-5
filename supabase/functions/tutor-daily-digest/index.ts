@@ -8,8 +8,8 @@ const DT = {
     hi: (n: string, h: number) => `${h < 12 ? "🌤️" : h < 17 ? "☀️" : "🌙"} Привіт, ${n}!`,
     fallbackName: "там",
     lessons: (n: number) => (n === 1 ? "урок" : n >= 2 && n <= 4 ? "уроки" : "уроків"),
-    mgrNone: "\nСьогодні в центрі занять немає — гарний день для планування чи відпочинку 🌿",
-    mgrToday: (n: number, w: string) => `\n📅 Сьогодні в центрі <b>${n} ${w}</b>:`,
+    mgrNone: "\nСьогодні у школі занять немає — гарний день для планування чи відпочинку 🌿",
+    mgrToday: (n: number, w: string) => `\n📅 Сьогодні у школі <b>${n} ${w}</b>:`,
     more: (n: number) => `  ↳ ще ${n} уроків`,
     debt: (s: string) => `\n💳 Борг учнів: <b>${s}</b>`,
     payout: (s: string) => `👛 До виплати репетиторам: <b>${s}</b>`,
@@ -22,13 +22,15 @@ const DT = {
     btnRemind: (nm: string) => `🔔 Нагадати: ${nm}`,
     btnPaid: (nm: string) => `✅ ${nm} оплатив(ла)`,
     btnName: "учень",
+    btnPrepay: "💳 Позначити передоплату від учня",
+    mgrDebtors: "\n👥 Хто винен:",
   },
   en: {
     hi: (n: string, h: number) => `${h < 12 ? "🌤️" : h < 17 ? "☀️" : "🌙"} Hi, ${n}!`,
     fallbackName: "there",
     lessons: (n: number) => (n === 1 ? "lesson" : "lessons"),
-    mgrNone: "\nNo lessons at the centre today — a good day to plan or rest 🌿",
-    mgrToday: (n: number, w: string) => `\n📅 Today at the centre: <b>${n} ${w}</b>:`,
+    mgrNone: "\nNo lessons at the school today — a good day to plan or rest 🌿",
+    mgrToday: (n: number, w: string) => `\n📅 Today at the school: <b>${n} ${w}</b>:`,
     more: (n: number) => `  ↳ ${n} more`,
     debt: (s: string) => `\n💳 Students' debt: <b>${s}</b>`,
     payout: (s: string) => `👛 Due to tutors: <b>${s}</b>`,
@@ -41,13 +43,15 @@ const DT = {
     btnRemind: (nm: string) => `🔔 Remind: ${nm}`,
     btnPaid: (nm: string) => `✅ ${nm} paid`,
     btnName: "student",
+    btnPrepay: "💳 Record a student prepayment",
+    mgrDebtors: "\n👥 Who owes:",
   },
   sv: {
     hi: (n: string, h: number) => `${h < 12 ? "🌤️" : h < 17 ? "☀️" : "🌙"} Hej, ${n}!`,
     fallbackName: "du",
     lessons: (n: number) => (n === 1 ? "lektion" : "lektioner"),
-    mgrNone: "\nInga lektioner på centret idag — en bra dag att planera eller vila 🌿",
-    mgrToday: (n: number, w: string) => `\n📅 Idag på centret: <b>${n} ${w}</b>:`,
+    mgrNone: "\nInga lektioner i skolan idag — en bra dag att planera eller vila 🌿",
+    mgrToday: (n: number, w: string) => `\n📅 Idag i skolan: <b>${n} ${w}</b>:`,
     more: (n: number) => `  ↳ ${n} till`,
     debt: (s: string) => `\n💳 Elevernas skuld: <b>${s}</b>`,
     payout: (s: string) => `👛 Att betala lärare: <b>${s}</b>`,
@@ -60,6 +64,8 @@ const DT = {
     btnRemind: (nm: string) => `🔔 Påminn: ${nm}`,
     btnPaid: (nm: string) => `✅ ${nm} betalade`,
     btnName: "elev",
+    btnPrepay: "💳 Registrera förskott från elev",
+    mgrDebtors: "\n👥 Vem är skyldig:",
   },
 } as const;
 
@@ -90,7 +96,11 @@ function dayBoundsKyiv(dateStr: string): { from: string; to: string } {
   };
 }
 
-type TgButton = { text: string; callback_data: string };
+// Кнопка або з callback (обробляє telegram-poll), або з url (відкриває застосунок).
+type TgButton = { text: string; callback_data?: string; url?: string };
+const APP_URL = "https://otutorhub.com";
+/** Deep-link у форму «Записати оплату» одразу на вкладці «Передоплата». */
+const PREPAY_URL = `${APP_URL}/finances?record=1&tab=prepay`;
 
 async function sendTg(token: string, chatId: number, text: string, keyboard?: TgButton[][]): Promise<boolean> {
   const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -204,7 +214,7 @@ Deno.serve(async (req) => {
     .from("lessons")
     .select("id, tutor_id, student_id, source, status, starts_at, group_id, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
     .in("status", ["completed", "scheduled", "cancelled"]);
-  const BUILD_TAG = "v25.09-uxstep50";
+  const BUILD_TAG = "v25.09-uxstep51";
   const nowMs = Date.now();
   const detailOf = (l: any) => {
     const d = l.lesson_details;
@@ -232,12 +242,14 @@ Deno.serve(async (req) => {
   const unpaidLessons = (moneyRaw ?? []).filter(isStudentDebt);
   const payoutDueLessons = (moneyRaw ?? []).filter(isPayoutDue);
 
-  // ГРУПОВІ борги — по УЧАСНИКАХ (parent completed|scheduled, учасник unpaid&price>0).
+  // ГРУПОВІ борги — по УЧАСНИКАХ (parent ПРОВЕДЕНИЙ, учасник unpaid&price>0).
+  // 07.09: було completed|scheduled — майбутні групові уроки рахувались боргом,
+  // усупереч моделі 04.09 (борг = проведене) і цифрі у «Фінансах».
   const { data: groupRaw } = await sb
     .from("lessons")
     .select("id, tutor_id, source, status, lesson_participants(student_id, student_price, student_payment_status)")
     .not("group_id", "is", null)
-    .in("status", ["completed", "scheduled"]);
+    .eq("status", "completed");
   const groupDebtRows = (groupRaw ?? []).flatMap((l: any) =>
     (l.lesson_participants ?? [])
       .filter((p: any) => (p.student_payment_status ?? "unpaid") === "unpaid" && Number(p.student_price ?? 0) > 0)
@@ -309,8 +321,32 @@ Deno.serve(async (req) => {
       const sd = Number(summary?.students_debt ?? 0);
       const po = Number(summary?.payouts_owed ?? 0);
       if (sd > 0) lines.push(D.debt(`${sd} ₴`));
+      // 07.09 (запит власниці): менеджер бачив лише підсумок і не мав «рук».
+      // Тепер — хто саме винен (ХАБОВІ борги: source ≠ independent, ті самі
+      // предикати, що й у Фінансах) і кнопка «оплатив(ла)» на кожного: саме
+      // менеджер закриває хабові борги — і в застосунку, і тут. Обробляє
+      // telegram-poll (hpaid:), автор дії = власник chat_id з роллю manager.
+      const hubDebts = new Map<string, number>();
+      for (const l of (unpaidLessons ?? []).filter((l: any) => l.source !== "independent")) {
+        hubDebts.set(l.student_id, (hubDebts.get(l.student_id) ?? 0) + Number(detailOf(l)?.student_price ?? 0));
+      }
+      for (const r of groupDebtRows.filter((r: any) => r.source !== "independent")) {
+        hubDebts.set(r.student_id, (hubDebts.get(r.student_id) ?? 0) + r.price);
+      }
+      if (hubDebts.size > 0) {
+        lines.push(D.mgrDebtors);
+        for (const [sid, amount] of Array.from(hubDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+          lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
+          const nm = shortName(studentName.get(sid), D.btnName);
+          keyboard.push([{ text: D.btnPaid(nm), callback_data: `hpaid:${sid}` }]);
+        }
+        if (hubDebts.size > 5) lines.push(D.moreStudents(hubDebts.size - 5));
+      }
       if (po > 0) lines.push(D.payout(`${po} ₴`));
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
+      // Передоплата — це форма з сумою/кількістю уроків, тож не callback, а
+      // прямий перехід у застосунок на потрібну вкладку.
+      keyboard.push([{ text: D.btnPrepay, url: PREPAY_URL }]);
     } else if (isTutor) {
       // Tutor: their own lessons
       const myLessons = (todayLessons ?? []).filter((l: any) => l.tutor_id === userId);
@@ -360,11 +396,19 @@ Deno.serve(async (req) => {
       } else {
         lines.push(D.allPaid);
       }
+      // Незалежному передоплата — головний спосіб отримати гроші наперед:
+      // одна кнопка веде просто у форму. Хабовому не показуємо: його
+      // передоплати записує менеджер (у застосунку форма йому теж не рендериться).
+      const hasIndependent = (moneyRaw ?? []).some((l: any) => l.tutor_id === userId && l.source === "independent")
+        || (todayLessons ?? []).some((l: any) => l.tutor_id === userId && l.source === "independent");
+      if (hasIndependent) keyboard.push([{ text: D.btnPrepay, url: PREPAY_URL }]);
     } else {
       continue; // Student — не відправляємо
     }
 
-      lines.push(`\n<i>v ${BUILD_TAG}</i>`);
+    // Тег збірки — лише у відповіді функції (для перевірки деплою), НЕ в
+    // повідомленні людині: «v v25.09-uxstep50» у ранковому привітанні — це
+    // сміття, яке власниця побачила першою (07.09).
     const ok = await sendTg(BOT, chatId, lines.join("\n"), keyboard);
     if (ok) {
       await sb.from("tutor_daily_digests").insert({
@@ -374,7 +418,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, date: today, sent }), {
+  return new Response(JSON.stringify({ ok: true, date: today, sent, build: BUILD_TAG }), {
     headers: { "Content-Type": "application/json" },
   });
 });

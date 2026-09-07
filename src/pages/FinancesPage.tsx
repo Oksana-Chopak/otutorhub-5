@@ -269,10 +269,15 @@ export default function FinancesPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [recordOpen, setRecordOpen] = useState(false);
+  // 07.09: кнопка «💳 Позначити передоплату» з Telegram-дайджесту веде на
+  // /finances?record=1&tab=prepay — форма відкривається одразу на «Передоплаті».
+  const [recordTab, setRecordTab] = useState<"lesson" | "prepay">("lesson");
   // Уніфікація флоу «+ Внести оплату» з дашборда менеджера: приходимо сюди з
   // ?record=1 і одразу відкриваємо ЄДИНУ нову форму (RecordPaymentSheet).
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("record") === "1") {
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("record") === "1") {
+      if (qs.get("tab") === "prepay") setRecordTab("prepay");
       setRecordOpen(true);
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -2890,6 +2895,7 @@ export default function FinancesPage() {
           unpaidLessons={unpaidLessonsForSheet}
           onMarkLessonPaid={markLessonPaidById}
           onWalletTopUp={fetchData}
+          defaultTab={recordTab}
         />
         <PageFAB onClick={() => setRecordOpen(true)} label={t("finances.recordPayment")} />
       </>
@@ -3367,6 +3373,7 @@ export default function FinancesPage() {
           unpaidLessons={unpaidLessonsForSheet}
           onMarkLessonPaid={markLessonPaidById}
           onWalletTopUp={fetchData}
+          defaultTab={recordTab}
         />
       )}
 

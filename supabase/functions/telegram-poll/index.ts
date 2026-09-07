@@ -180,7 +180,7 @@ async function handleDigestCallback(base: string, db: any, cq: any,
   const cqId: string = cq.id;
   const data: string = cq.data ?? '';
   const chatId: number | undefined = cq.message?.chat?.id;
-  const m = data.match(/^(rem|paid):([0-9a-f-]{36})$/);
+  const m = data.match(/^(rem|paid|hpaid):([0-9a-f-]{36})$/);
   if (!m || !chatId) { await answerCb(base, cqId, CB.uk.bad); return; }
   const action = m[1]; const studentId = m[2];
 
@@ -190,6 +190,60 @@ async function handleDigestCallback(base: string, db: any, cq: any,
   if (!tutorId) { await answerCb(base, cqId, CB.uk.nolink); return; }
   const { data: tutorProf } = await db.from('profiles').select('preferred_language').eq('id', tutorId).maybeSingle();
   const L = CB[normLang(tutorProf?.preferred_language)];
+
+  // 07.09: «✅ оплатив(ла)» у дайджесті МЕНЕДЖЕРА — закриває ХАБОВІ борги учня
+  // (source ≠ independent) по всіх репетиторах школи. Право: власник chat_id
+  // мусить мати роль manager (user_roles) — це той самий, хто робить це в
+  // застосунку. Незалежні борги тут не чіпаються (їх закриває сам репетитор).
+  if (action === 'hpaid') {
+    const { data: roleRow } = await db
+      .from('user_roles').select('role').eq('user_id', tutorId).eq('role', 'manager').maybeSingle();
+    if (!roleRow) { await answerCb(base, cqId, L.bad); return; }
+    const { data: hubIndiv } = await db
+      .from('lessons')
+      .select('id, status, lesson_details(student_price, student_payment_status, is_cancellation_fee)')
+      .eq('student_id', studentId).neq('source', 'independent')
+      .is('group_id', null).in('status', ['completed', 'cancelled']);
+    const hubIndivIds: string[] = (hubIndiv ?? []).filter((l: any) => {
+      const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+      if (!d || (d.student_payment_status ?? 'unpaid') !== 'unpaid') return false;
+      if (Number(d.student_price ?? 0) <= 0) return false;
+      if (l.status === 'cancelled') return d.is_cancellation_fee === true;
+      return true; // completed
+    }).map((l: any) => l.id as string);
+    const { data: hubGrp } = await db
+      .from('lessons').select('id')
+      .neq('source', 'independent').not('group_id', 'is', null).eq('status', 'completed');
+    const hubGrpIds: string[] = (hubGrp ?? []).map((l: any) => l.id);
+    let hubPartIds: string[] = [];
+    if (hubGrpIds.length) {
+      const { data: parts } = await db
+        .from('lesson_participants').select('id')
+        .in('lesson_id', hubGrpIds).eq('student_id', studentId)
+        .eq('student_payment_status', 'unpaid').gt('student_price', 0);
+      hubPartIds = (parts ?? []).map((p: any) => p.id);
+    }
+    const hubTotal = hubIndivIds.length + hubPartIds.length;
+    if (hubTotal === 0) { await answerCb(base, cqId, L.nodebt); return; }
+    const now = new Date().toISOString();
+    if (hubIndivIds.length) {
+      await db.from('lesson_details')
+        .update({ student_payment_status: 'paid', student_paid_at: now })
+        .in('lesson_id', hubIndivIds).eq('student_payment_status', 'unpaid');
+    }
+    if (hubPartIds.length) {
+      await db.from('lesson_participants')
+        .update({ student_payment_status: 'paid', student_paid_at: now })
+        .in('id', hubPartIds).eq('student_payment_status', 'unpaid');
+    }
+    await db.from('manager_audit_log').insert({
+      actor_id: tutorId, action: 'mark_paid_via_telegram', entity_type: 'student_debt', entity_id: studentId,
+      before: { unpaid_lessons: hubIndivIds, unpaid_participants: hubPartIds, scope: 'hub' },
+      after: { status: 'paid', source: 'telegram_digest_button_manager', chat_id: chatId },
+    });
+    await answerCb(base, cqId, L.paid(hubTotal));
+    return;
+  }
 
   // Борги цієї пари — індивідуальні (lesson_details) і групові (participants)
   const { data: indiv } = await db

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { formatPrice } from "@/lib/currency";
@@ -56,6 +56,8 @@ interface Props {
   onMarkLessonPaid: (lessonId: string) => Promise<void>;
   /** Викликається після успішного поповнення гаманця для рефрешу. */
   onWalletTopUp: () => Promise<void> | void;
+  /** Deep-link (07.09): /finances?record=1&tab=prepay відкриває одразу вкладку «Передоплата». */
+  defaultTab?: "lesson" | "prepay";
 }
 
 const formatDate = (iso: string) =>
@@ -72,9 +74,12 @@ export function RecordPaymentSheet({
   unpaidLessons,
   onMarkLessonPaid,
   onWalletTopUp,
+  defaultTab,
 }: Props) {
   const haptic = useHaptic();
-  const [tab, setTab] = useState<"lesson" | "prepay">("lesson");
+  const [tab, setTab] = useState<"lesson" | "prepay">(defaultTab ?? "lesson");
+  // Deep-link з дайджесту/дашборда: при КОЖНОМУ відкритті стаємо на бажану вкладку.
+  useEffect(() => { if (open) setTab(defaultTab ?? "lesson"); }, [open, defaultTab]);
   const [search, setSearch] = useState("");
   const [pickedPair, setPickedPair] = useState<PairOption | null>(null);
   // Аудит 05.09: мультиставкова пара — «за поточною ставкою» множити нема чим,
