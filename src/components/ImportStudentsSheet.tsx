@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCoreLock } from "@/hooks/useCoreLock";
 import {
   IMPORT_CURRENCY,
+  IMPORT_SCHEDULE_WEEKS,
   parseStudentList,
   netDebtAndPrepay,
   scheduleToStarts,
@@ -18,7 +19,8 @@ import { logEvent } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 
 /** Скільки тижнів розкладу створюємо наперед (рішення власниці 07.09: 4). */
-export const IMPORT_SCHEDULE_WEEKS = 4;
+// Горизонт живе в @/lib/importStudents — тут лише реекспорт для старих імпортів.
+export { IMPORT_SCHEDULE_WEEKS } from "@/lib/importStudents";
 
 /**
  * «Перенести все, що є» (05.09 — учні; 07.09 — борги, передоплати, розклад,

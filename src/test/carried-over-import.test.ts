@@ -69,6 +69,10 @@ describe("імпорт · клієнт і edge бачать перенесені
   });
   it("імпорт сам зводить борг і передоплату в нетто перед записом", () => {
     expect(src("src/components/ImportStudentsSheet.tsx")).toMatch(/netDebtAndPrepay\(r\)/);
-    expect(src("src/components/ImportStudentsSheet.tsx")).toMatch(/IMPORT_SCHEDULE_WEEKS = 4/);
+    // Горизонт 4 тижні живе в чистій бібліотеці, бо на нього спирається і
+    // лендінговий калькулятор. Компонент НЕ має оголошувати власну копію —
+    // дві константи розійшлись би, і лендінг почав би обіцяти не те число.
+    expect(src("src/lib/importStudents.ts")).toMatch(/IMPORT_SCHEDULE_WEEKS = 4/);
+    expect(src("src/components/ImportStudentsSheet.tsx")).not.toMatch(/const IMPORT_SCHEDULE_WEEKS/);
   });
 });

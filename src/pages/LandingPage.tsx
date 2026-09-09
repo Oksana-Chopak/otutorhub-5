@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingTryDemo } from "@/components/LandingTryDemo";
+import { MoneyCalculator } from "@/components/landing/MoneyCalculator";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
 import { PaymentMethodsSection } from "@/components/PaymentMethodsSection";
 import { supabase } from "@/integrations/supabase/client";
@@ -381,6 +382,12 @@ const landingStyles = `
 }
 .landing-root .price-amount--custom { font-size: 26px; line-height: 1.2; padding-top: 10px; }
 @media (max-width: 900px) { .landing-root .price-grid { grid-template-columns: 1fr; } }
+/* Мобілка: без min-width:0 елемент грід-колонки не стискається нижче свого
+   вмісту, і три картки цін розсували документ до 520px при вікні 390 —
+   уся сторінка їздила вбік. Довге «Ціна за домовленістю» в Unbounded не
+   переносилось, тому ще й дозволяємо перенос усередині суми. */
+.landing-root .price-grid > * { min-width: 0; }
+.landing-root .price-amount { overflow-wrap: anywhere; }
 .landing-root .price-card {
   background: var(--white);
   border-radius: var(--l-radius);
@@ -769,10 +776,16 @@ export default function LandingPage() {
           <p className="hero-sub">{tp("landing.hero.sub")}</p>
           <p className="hero-desc">{tp("landing.hero.description")}</p>
           <div className="hero-cta">
-            <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
+            {/* Зворотна реєстрація (09.09): головна дія — порахувати своє,
+                а не «зареєструйся». Стара кнопка лишається поруч для тих,
+                хто вже вирішив, — ми нічого не забираємо, лише міняємо типовий шлях. */}
+            <a href="#calc" className="btn-primary">{t("landingCalc.heroCta")}</a>
+            <Link to={signupHref} className="btn-ghost">{t("landing.hero.ctaPrimary")}</Link>
           </div>
         </div>
       </section>
+
+      <MoneyCalculator signupHref={signupHref} />
 
       {/* PAIN — "Знайомо?" */}
       <section className="pain-section">

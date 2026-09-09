@@ -338,6 +338,12 @@ export interface ImportPayload {
  * гаманець одразу погасив би те, що ми щойно створили. Різні одиниці
  * (уроки vs гроші) зводяться через ставку; без ставки — лишаються як є.
  */
+/**
+ * Горизонт розкладу імпорту = 4 тижні. Живе ТУТ, а не в компоненті, бо на це
+ * число спирається і лендінговий калькулятор: два екрани — одна константа.
+ */
+export const IMPORT_SCHEDULE_WEEKS = 4;
+
 export function netDebtAndPrepay(r: ParsedStudent): ImportPayload {
   let debtAmount = r.debtAmount ?? 0;
   let debtLessons = r.debtLessons ?? 0;
