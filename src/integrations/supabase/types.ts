@@ -568,6 +568,101 @@ export type Database = {
           },
         ]
       }
+      hub_managers: {
+        Row: {
+          created_at: string
+          hub_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hub_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hub_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_managers_hub_id_fkey"
+            columns: ["hub_id"]
+            isOneToOne: false
+            referencedRelation: "hubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hub_managers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hub_members: {
+        Row: {
+          created_at: string
+          hub_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hub_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hub_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_members_hub_id_fkey"
+            columns: ["hub_id"]
+            isOneToOne: false
+            referencedRelation: "hubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hub_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hubs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hubs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_attachments: {
         Row: {
           created_at: string
@@ -2278,6 +2373,7 @@ export type Database = {
           dismissed_tasks: Json
           evening_summary_enabled: boolean
           free_reschedules_per_month: number
+          hub_id: string | null
           independent_workspace: boolean
           liqpay_card_token: string | null
           liqpay_recurring_active: boolean
@@ -2312,6 +2408,7 @@ export type Database = {
           dismissed_tasks?: Json
           evening_summary_enabled?: boolean
           free_reschedules_per_month?: number
+          hub_id?: string | null
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
@@ -2346,6 +2443,7 @@ export type Database = {
           dismissed_tasks?: Json
           evening_summary_enabled?: boolean
           free_reschedules_per_month?: number
+          hub_id?: string | null
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
@@ -2367,6 +2465,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tutor_workspace_settings_hub_id_fkey"
+            columns: ["hub_id"]
+            isOneToOne: false
+            referencedRelation: "hubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tutor_workspace_settings_tutor_id_fkey"
             columns: ["tutor_id"]
@@ -2638,6 +2743,7 @@ export type Database = {
         Args: { _tutor_id: string }
         Returns: number
       }
+      caller_hub_id: { Args: never; Returns: string }
       check_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2646,6 +2752,7 @@ export type Database = {
         Returns: boolean
       }
       claim_referral: { Args: { _code: string }; Returns: Json }
+      create_hub: { Args: { _manager: string; _name: string }; Returns: string }
       create_notification: {
         Args: {
           _body?: string
@@ -2656,6 +2763,7 @@ export type Database = {
         }
         Returns: string
       }
+      default_hub_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2762,6 +2870,7 @@ export type Database = {
             }
             Returns: boolean
           }
+      hub_of_user: { Args: { _user: string }; Returns: string }
       is_group_active_student: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -2770,7 +2879,17 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      is_hub_member: { Args: { _user: string }; Returns: boolean }
+      is_hub_scoped: { Args: { _tutor: string }; Returns: boolean }
       is_independent_tutor: { Args: { _user_id: string }; Returns: boolean }
+      is_manager_of_tutor: {
+        Args: { _manager: string; _tutor: string }
+        Returns: boolean
+      }
+      is_manager_of_user: {
+        Args: { _manager: string; _user: string }
+        Returns: boolean
+      }
       is_pending_email: { Args: { _email: string }; Returns: boolean }
       is_pending_profile: { Args: { _user_id: string }; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
@@ -2825,6 +2944,10 @@ export type Database = {
         }
         Returns: number
       }
+      move_tutor_to_hub: {
+        Args: { _hub: string; _tutor: string }
+        Returns: undefined
+      }
       normalize_subject: { Args: { t: string }; Returns: string }
       notify_managers: {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
@@ -2843,6 +2966,7 @@ export type Database = {
         Args: { _request_id: string; _response?: string }
         Returns: Json
       }
+      rename_hub: { Args: { _hub: string; _name: string }; Returns: undefined }
       resolve_referral_code: {
         Args: { _code: string }
         Returns: {
