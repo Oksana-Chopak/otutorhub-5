@@ -2784,18 +2784,6 @@ export type Database = {
       }
       get_cron_shared_secret: { Args: never; Returns: string }
       get_early_bird_count: { Args: never; Returns: number }
-      get_lesson_financials: {
-        Args: { _lesson_id: string }
-        Returns: {
-          id: string
-          student_paid_at: string
-          student_payment_status: Database["public"]["Enums"]["payment_status"]
-          student_price: number
-          tutor_paid_at: string
-          tutor_payout: number
-          tutor_payout_status: Database["public"]["Enums"]["payment_status"]
-        }[]
-      }
       get_marketing_recipients: {
         Args: { _segment: string }
         Returns: {
@@ -2879,6 +2867,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      is_hub_manager_of: { Args: { _tutor: string }; Returns: boolean }
       is_hub_member: { Args: { _user: string }; Returns: boolean }
       is_hub_scoped: { Args: { _tutor: string }; Returns: boolean }
       is_independent_tutor: { Args: { _user_id: string }; Returns: boolean }
@@ -2902,18 +2891,6 @@ export type Database = {
           _subject: string
         }
         Returns: string
-      }
-      list_lesson_financials: {
-        Args: never
-        Returns: {
-          id: string
-          student_paid_at: string
-          student_payment_status: Database["public"]["Enums"]["payment_status"]
-          student_price: number
-          tutor_paid_at: string
-          tutor_payout: number
-          tutor_payout_status: Database["public"]["Enums"]["payment_status"]
-        }[]
       }
       manager_debts_by_currency: { Args: never; Returns: Json }
       manager_debts_summary: {
