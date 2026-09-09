@@ -1082,6 +1082,7 @@ export type Database = {
       }
       lessons: {
         Row: {
+          carried_over: boolean
           created_at: string
           created_by: string
           duration_minutes: number
@@ -1101,6 +1102,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          carried_over?: boolean
           created_at?: string
           created_by: string
           duration_minutes?: number
@@ -1120,6 +1122,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          carried_over?: boolean
           created_at?: string
           created_by?: string
           duration_minutes?: number
@@ -2565,6 +2568,7 @@ export type Database = {
       }
       lesson_details_student: {
         Row: {
+          carried_over: boolean | null
           created_at: string | null
           homework: string | null
           is_cancellation_fee: boolean | null
@@ -2635,6 +2639,7 @@ export type Database = {
       }
       lessons_visible: {
         Row: {
+          carried_over: boolean | null
           created_at: string | null
           created_by: string | null
           currency: string | null
@@ -2859,6 +2864,26 @@ export type Database = {
             Returns: boolean
           }
       hub_of_user: { Args: { _user: string }; Returns: string }
+      import_student_bundle: {
+        Args: {
+          _currency: string
+          _debt_amount?: number
+          _debt_lessons?: number
+          _duration_minutes?: number
+          _email: string
+          _first_name: string
+          _last_name: string
+          _lesson_starts?: string[]
+          _phone: string
+          _prepay_amount?: number
+          _prepay_lessons?: number
+          _price: number
+          _subject: string
+          _telegram: string
+          _wallet_note?: string
+        }
+        Returns: Json
+      }
       is_group_active_student: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
