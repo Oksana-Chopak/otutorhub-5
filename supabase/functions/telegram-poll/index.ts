@@ -209,8 +209,9 @@ async function handleDigestCallback(base: string, db: any, cq: any,
       if (!hm?.hub_id) { await answerCb(base, cqId, L.bad); return; }
       const { data: hubTutors } = await db
         .from('tutor_workspace_settings').select('tutor_id').eq('hub_id', hm.hub_id);
-      hubTutorIds = (hubTutors ?? []).map((t: any) => t.tutor_id as string);
-      if (hubTutorIds.length === 0) { await answerCb(base, cqId, L.nodebt); return; }
+      const ids = (hubTutors ?? []).map((t: any) => t.tutor_id as string);
+      hubTutorIds = ids;
+      if (ids.length === 0) { await answerCb(base, cqId, L.nodebt); return; }
     }
     const inHub = (q: any) => (hubTutorIds ? q.in('tutor_id', hubTutorIds) : q);
     const { data: hubIndiv } = await inHub(db
