@@ -196,6 +196,11 @@ export function ImportStudentsSheet({
                 if (r.schedule.length > 0) chips.push(r.schedule.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", "));
                 if (r.phone) chips.push("📞");
                 if (r.email) chips.push("✉️");
+                // Аудит 09.09: нерозпізнаний хвіст їде в приватну нотатку про учня,
+                // але в превʼю його не було — репетитор бачив, що зрозуміли предмет,
+                // ціну й час, а свій коментар не бачив і не знав, чи він узагалі
+                // прийнявся. Ехо тим самим патерном, що 📞 і ✉️.
+                if (r.note) chips.push(`📝 ${r.note}`);
                 return (
                   <div key={i} className="text-[14px] text-foreground">
                     <div className="flex items-start gap-2">
