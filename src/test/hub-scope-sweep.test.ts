@@ -4,7 +4,9 @@
  *
  *   A (20260907100000) — сутності, предикати, тригери належності, гард;
  *   B (20260907110000) — 78 manager-політик + 3 DEFINER-в'ю скоуплено;
- *   C (20260907120000) — SECURITY DEFINER-RPC перевіряють школу, не лише роль.
+ *   C (20260907120000) — SECURITY DEFINER-RPC перевіряють школу, не лише роль;
+ *   доповнення (20260907125000) — те, що етап D знайшов на репліці;
+ *   D (20260907130000) — чиста перевірка ЖИВОЇ бази (pg_policies/pg_proc/pg_views).
  *
  * Один незакритий арм = один витік на другій школі.
  */
@@ -18,6 +20,7 @@ const mig = (f: string) => readFileSync(join(root, "supabase/migrations", f), "u
 const model = mig("20260907100000_hub_entity_model.sql");
 const sweep = mig("20260907110000_hub_scope_policies.sql");
 const rpcs = mig("20260907120000_hub_scope_rpcs.sql");
+const addendum = mig("20260907125000_hub_scope_addendum.sql");
 const assertLive = mig("20260907130000_hub_scope_assert.sql");
 const code = (s: string) => s.split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
 
@@ -188,5 +191,70 @@ describe("хаб · етап D — перевірка ЖИВОЇ бази", () =
     const c = code(assertLive);
     expect(c).not.toMatch(/CREATE (TABLE|POLICY|VIEW|FUNCTION)/);
     expect(c).not.toMatch(/\b(INSERT INTO|UPDATE |DELETE FROM|ALTER TABLE|DROP )/);
+  });
+  /* Уточнення 07.09 (репліка): перша версія шукала ILIKE '%manager%' у тілі
+     функції — і падала на 30 хибних (manager_notes у tutor_delete_student,
+     коментарі, тригери-логери, а головне — усі функції етапу C, бо
+     is_hub_manager_of не був у списку прийнятих предикатів). Перевірка, що
+     завжди червона, дорівнює відсутній. */
+  it("арм = справжня has_role(…, 'manager'), не будь-яка згадка слова; тригери поза перевіркою", () => {
+    expect(assertLive).toMatch(/has_role\\s\*\\\(\[\^,\]\*,\\s\*''manager''/);
+    expect(assertLive).not.toMatch(/ILIKE '%manager%'/);
+    expect(assertLive).toMatch(/p\.prorettype <> 'trigger'::regtype/);
+    for (const pred of ["is_hub_manager_of", "hub_of_user", "is_manager_of_tutor", "is_manager_of_user"]) {
+      expect(assertLive, pred).toContain(pred);
+    }
+  });
+  it("перевіряє й DEFINER-в'ю: RLS таблиць їх не рятує", () => {
+    expect(assertLive).toMatch(/FROM pg_views v/);
+    expect(assertLive).toMatch(/security_invoker/);
+    expect((assertLive.match(/RAISE EXCEPTION/g) ?? []).length).toBe(3);
+  });
+});
+
+/* Те, що етап D знайшов, коли його прогнали на репліці з A–C: імена політик
+   без лапок (свіп їх не бачив), групові RPC без школи, «менеджер сповіщає
+   будь-кого». Кожен пункт — окремий витік на другій школі. */
+describe("хаб · доповнення 20260907125000 — знайдене етапом D", () => {
+  const c = code(addendum);
+  it("звернення в застосунку — платформенне: лише суперадмін", () => {
+    for (const name of ["feedback_select_own_or_manager", "feedback_update_manager"]) {
+      const re = new RegExp(`CREATE POLICY ${name} ON public\\.feedback_submissions[\\s\\S]*?;`);
+      const body = c.match(re)?.[0] ?? "";
+      expect(body, name).toMatch(/is_superadmin\(\)/);
+      expect(body, name).not.toMatch(/has_role\(auth\.uid\(\), 'manager'::app_role\)\)\s*;/);
+    }
+  });
+  it("групи: ціна запису й оплата учасників — школа репетитора групи", () => {
+    const price = c.slice(c.indexOf("FUNCTION public.set_group_enrollment_price"), c.indexOf("FUNCTION public.set_group_participant_payment"));
+    expect(price).toMatch(/_is_mgr := public\.is_hub_manager_of\(_group_tutor\)/);
+    const pay = c.slice(c.indexOf("FUNCTION public.set_group_participant_payment"), c.indexOf("FUNCTION public.is_group_tutor"));
+    expect(pay).toMatch(/\(l\.source = 'hub' OR l\.source IS NULL\) AND public\.is_hub_scoped\(l\.tutor_id\)/);
+  });
+  it("предикати груп: менеджер питає лише про свою школу", () => {
+    const gt = c.slice(c.indexOf("FUNCTION public.is_group_tutor"), c.indexOf("FUNCTION public.is_group_active_student"));
+    expect(gt).toMatch(/NOT public\.is_hub_manager_of\(_user_id\)/);
+    const gs = c.slice(c.indexOf("FUNCTION public.is_group_active_student"), c.indexOf("FUNCTION public.create_notification"));
+    expect(gs).toMatch(/has_role\(auth\.uid\(\), 'manager'::app_role\) AND public\.is_hub_member\(_user_id\)/);
+  });
+  it("сповіщення: менеджер — лише свою школу; менеджера — лише його школа або суперадміна будь-хто", () => {
+    const cn = c.slice(c.indexOf("FUNCTION public.create_notification"));
+    expect(cn).toMatch(/has_role\(_caller, 'manager'::app_role\) AND public\.is_hub_member\(_user_id\)/);
+    expect(cn).toMatch(/FROM public\.platform_admins pa WHERE pa\.user_id = _user_id/);
+    expect(cn).toMatch(/hm\.hub_id = public\.hub_of_user\(_caller\)/);
+    expect(cn).toMatch(/m\.user_id = _caller AND m\.hub_id = hm\.hub_id/);
+    // has_role(<інший користувач>) — у проді після 20260602 працює, а до того
+    // завжди false: на ньому не можна будувати дозвіл
+    expect(cn).not.toMatch(/has_role\(_user_id, 'manager'::app_role\)/);
+    // решта відношень (ставка, урок, група, чат) — дослівно як були
+    for (const rel of ["FROM public.student_rates r", "FROM public.lessons l", "JOIN public.group_enrollments ge", "FROM public.chat_threads t"]) {
+      expect(cn, rel).toContain(rel);
+    }
+  });
+  it("нічого не створює нового — доводиться етапом D, ідемпотентно", () => {
+    expect(addendum).toMatch(/LIVE-MARKER-NONE/);
+    expect(c).not.toMatch(/CREATE TABLE/);
+    expect((c.match(/DROP POLICY IF EXISTS/g) ?? []).length).toBe(2);
+    expect((c.match(/CREATE OR REPLACE FUNCTION/g) ?? []).length).toBe(5);
   });
 });

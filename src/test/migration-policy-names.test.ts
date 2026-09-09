@@ -50,11 +50,13 @@ describe("імена політик у міграціях", () => {
 
     for (const f of files) {
       const text = readFileSync(join(migDir, f), "utf8");
-      for (const m of text.matchAll(/CREATE\s+POLICY\s+"([^"]+)"\s+ON\s+(?:public\.|storage\.)?"?(\w+)"?/gi)) {
-        created.add(`${m[2]}::${m[1]}`);
+      // Ім'я політики — у лапках АБО голий ідентифікатор (feedback_select_own_or_manager):
+      // саме голі імена свіп 07.09 не бачив, і дві політики лишились без скоупу.
+      for (const m of text.matchAll(/CREATE\s+POLICY\s+(?:"([^"]+)"|([A-Za-z_]\w*))\s+ON\s+(?:public\.|storage\.)?"?(\w+)"?/gi)) {
+        created.add(`${m[3]}::${m[1] ?? m[2]}`);
       }
-      for (const m of text.matchAll(/DROP\s+POLICY\s+(?:IF\s+EXISTS\s+)?"([^"]+)"\s+ON\s+(?:public\.|storage\.)?"?(\w+)"?/gi)) {
-        drops.push({ key: `${m[2]}::${m[1]}`, file: f });
+      for (const m of text.matchAll(/DROP\s+POLICY\s+(?:IF\s+EXISTS\s+)?(?:"([^"]+)"|([A-Za-z_]\w*))\s+ON\s+(?:public\.|storage\.)?"?(\w+)"?/gi)) {
+        drops.push({ key: `${m[3]}::${m[1] ?? m[2]}`, file: f });
       }
     }
 

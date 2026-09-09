@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsSuperadmin } from "@/hooks/useIsSuperadmin";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
@@ -230,6 +231,10 @@ export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
+  // Хаб-модель 07.09: звернення, розсилки й метрики пейволу — платформенне
+  // (RLS: is_superadmin()). Менеджер ЗВИЧАЙНОЇ школи бачив би порожні екрани —
+  // ховаємо пункти; правда лишається в базі.
+  const { isSuperadmin } = useIsSuperadmin();
   // Live achievements for the profile motivation card (level / streak / badges) —
   // computed for EVERY tutor incl. hub (streak trigger runs on any completion).
   const { level: gamLevel, streak: gamStreak, badges: gamBadges } = useTutorGamification();
@@ -273,7 +278,7 @@ export default function ProfilePage() {
         {
           title: t("profile.groupStudentsRequests"),
           items: [
-            { to: "/feedback-inbox", label: t("profile.itemFeedback") ?? "Звернення", icon: Inbox },
+            ...(isSuperadmin ? [{ to: "/feedback-inbox", label: t("profile.itemFeedback") ?? "Звернення", icon: Inbox }] : []),
             { to: "/referrals", label: t("profile.itemTutorRequests"), icon: HandHeart },
             { to: "/subscription-requests", label: t("profile.itemSubRequests"), icon: Crown },
           ],
@@ -287,8 +292,12 @@ export default function ProfilePage() {
         {
           title: t("profile.groupAnalytics"),
           items: [
-            { to: "/marketing", label: t("profile.emailMarketing") ?? "Email-розсилки", icon: HandHeart },
-            { to: "/paywall-metrics", label: t("profile.itemPaywallMetrics"), icon: BarChart3 },
+            ...(isSuperadmin
+              ? [
+                  { to: "/marketing", label: t("profile.emailMarketing") ?? "Email-розсилки", icon: HandHeart },
+                  { to: "/paywall-metrics", label: t("profile.itemPaywallMetrics"), icon: BarChart3 },
+                ]
+              : []),
             { to: "/audit", label: t("profile.itemAudit"), icon: ShieldAlert },
           ],
         },
