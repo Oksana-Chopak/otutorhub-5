@@ -663,6 +663,36 @@ export type Database = {
           },
         ]
       }
+      landing_funnel_daily: {
+        Row: {
+          day: string
+          hits: number
+          name: string
+          sum_monthly: number
+          sum_owed: number
+          sum_students: number
+          updated_at: string
+        }
+        Insert: {
+          day?: string
+          hits?: number
+          name: string
+          sum_monthly?: number
+          sum_owed?: number
+          sum_students?: number
+          updated_at?: string
+        }
+        Update: {
+          day?: string
+          hits?: number
+          name?: string
+          sum_monthly?: number
+          sum_owed?: number
+          sum_students?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lesson_attachments: {
         Row: {
           created_at: string
@@ -2916,6 +2946,15 @@ export type Database = {
           _subject: string
         }
         Returns: string
+      }
+      log_landing_event: {
+        Args: {
+          _monthly?: number
+          _name: string
+          _owed?: number
+          _students?: number
+        }
+        Returns: undefined
       }
       manager_debts_by_currency: { Args: never; Returns: Json }
       manager_debts_summary: {
