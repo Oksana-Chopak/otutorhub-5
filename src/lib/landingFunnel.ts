@@ -9,17 +9,43 @@
  * user_id уже є. Так уся дорога «вставив список → побачив цифри → зареєструвався»
  * привʼязується до акаунта і видно, де саме люди відвалюються.
  *
- * ЧОГО ЦЕ НЕ ЗАКРИВАЄ (свідомо, і про це сказано власниці): того, хто подивився
- * і ПІШОВ, тут не буде — його подій нікуди зливати. Щоб бачити і таких, потрібен
- * або Pixel/CAPI, або анонімний ендпоінт; і те, й те — окреме рішення, не
- * побічний ефект калькулятора.
+ * ТОГО, ХТО ПІШОВ (10.09): його подій нікуди зливати, тож паралельно кожен крок
+ * іде в анонімний лічильник `log_landing_event` — БЕЗ user_id, IP і пристрою,
+ * лише «сьогодні N разів дійшли до кроку X» (міграція 20260910100000). Дедуп
+ * тут у памʼяті модуля, тому лічильник рахує ЗАХОДИ на сторінку, а не натиски.
+ * localStorage у цьому шляху не бере участі — анонімний відвідувач лишається
+ * анонімним навіть для нашої власної бази.
  */
+import { supabase } from "@/integrations/supabase/client";
+import { logEvent } from "@/lib/analytics";
+import { metaTrack } from "@/lib/metaPixel";
+
 const KEY = "tutorhub.landingFunnel";
 const MAX = 40;
+
+/** Один крок — одна відмітка за завантаження сторінки (памʼять, не сховище). */
+const counted = new Set<string>();
+
+function countAnon(name: string, props: Record<string, unknown>): void {
+  if (counted.has(name)) return;
+  counted.add(name);
+  const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? Math.round(v) : null);
+  try {
+    void (supabase as any)
+      .rpc("log_landing_event", {
+        _name: name,
+        _students: n(props.students),
+        _owed: n(props.owed),
+        _monthly: n(props.monthly),
+      })
+      .then(() => {}, () => {});
+  } catch { /* поки міграції немає — тихо; сторінка важливіша за лічильник */ }
+}
 
 export interface FunnelEvent { name: string; props: Record<string, unknown>; at: string }
 
 export function landingEvent(name: string, props: Record<string, unknown> = {}): void {
+  countAnon(name, props);
   try {
     const buf: FunnelEvent[] = JSON.parse(localStorage.getItem(KEY) || "[]");
     // Дедуп однакових кроків: цифри перераховуються на кожен символ, а подія
@@ -36,6 +62,23 @@ export function takeLandingFunnel(): FunnelEvent[] {
     localStorage.removeItem(KEY);
     return Array.isArray(buf) ? buf : [];
   } catch { return []; }
+}
+
+/**
+ * Злити накопичені кроки в `app_events` — уже з user_id, бо людина ввійшла.
+ * Так у CRM видно повний шлях «побачив → вставив → зареєструвався», а не
+ * тільки хвіст після реєстрації. Разом із цим шлемо в Meta CompleteRegistration
+ * (якщо є ключі й згода) — це та сама подія, під яку оптимізується реклама.
+ */
+export function flushLandingFunnel(): void {
+  const buf = takeLandingFunnel();
+  if (buf.length === 0) return;
+  for (const e of buf) {
+    logEvent(e.name, { ...e.props, at: e.at, from: "landing" });
+  }
+  metaTrack("CompleteRegistration", {
+    students: Number(buf.find((e) => e.name === "landing_rows_parsed")?.props?.students) || 0,
+  });
 }
 
 /** Розпізнаний список — щоб після реєстрації не просити вводити його вдруге. */

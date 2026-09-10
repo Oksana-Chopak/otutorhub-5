@@ -1070,6 +1070,19 @@ export const sv: LocaleTranslations = {
     itemFeedback: "Feedback",
     emailMarketing: "E-postkampanjer",
   },
+  adminFunnel: {
+    title: "Landningstratt · 14 dagar",
+    sub: "Stegräknare utan user_id, IP eller enhet. Enda stället där de som räknade och lämnade syns.",
+    needsMigration: "Räknarna finns inte i databasen än — applicera migration 20260910100000 i Lovable.",
+    empty: "Inga besök de senaste två veckorna än.",
+    avgOwed: "I genomsnitt är folk skyldiga {{amount}}.",
+    step: {
+      landing_view: "Såg kalkylatorn",
+      landing_paste_started: "Började klistra in en lista",
+      landing_numbers_shown: "Såg sina egna siffror",
+      landing_signup_started: "Klickade spara",
+    },
+  },
   landingCalc: {
     prepaidOnly_one: "Du har {{amount}} förskottsbetalt av {{count}} elev — de lektionerna återstår.",
     prepaidOnly_other: "Du har {{amount}} förskottsbetalt av {{count}} elever — de lektionerna återstår.",

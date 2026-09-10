@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -39,15 +39,26 @@ export function ImportStudentsSheet({
   open,
   onOpenChange,
   onImported,
+  initialText,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onImported?: () => void;
+  /** Список, який людина набрала ще на лендінгу, до реєстрації. */
+  initialText?: string;
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const lock = useCoreLock();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText ?? "");
+
+  // Чернетка з лендінгу приїжджає асинхронно (сторінка встигає змонтуватись
+  // раніше). Підставляємо її, лише поки людина сама нічого не набрала —
+  // інакше затерли б її ввід.
+  useEffect(() => {
+    if (initialText && !text) setText(initialText);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialText]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 

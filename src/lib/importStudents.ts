@@ -67,8 +67,30 @@ export interface ParsedStudent {
 }
 
 const SEPARATORS = /[—–;|\t]|(?:\s-\s)|,/g;
-const PRICE_RE = /^\s*(\d{1,6}(?:[.,]\d{1,2})?)\s*(?:грн|uah|₴|kr|sek|€|eur)?\s*$/i;
-const TRAILING_PRICE_RE = /\s+(\d{2,6})\s*(?:грн|uah|₴)?\s*$/i;
+
+/**
+ * Число з пробілом як роздільником тисяч: «1 200», «1 200,50», «1200».
+ * Люди пишуть суми саме так (і Excel так копіює — з нерозривним пробілом).
+ * До 10.09 «борг 1 200» не читався як борг і мовчки їхав у нотатку: гроші
+ * не губились, але й у суму не потрапляли. Варіант з тисячами стоїть ПЕРШИМ,
+ * бо чергування в регексі впорядковане; він вимагає рівно три цифри після
+ * пробілу, тому «борг 2 уроки» лишається уроками.
+ */
+const N = String.raw`\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d{1,2})?|\d{1,6}(?:[.,]\d{1,2})?`;
+
+const DEBT_RE = new RegExp(
+  String.raw`^(?:борг|заборгованість|заборгував(?:ла)?|винен|винна|debt|owes?|skuld)\s*(?:за\s*)?:?\s*(${N})\s*([a-zа-яіїєґ₴€$.]*)$`,
+  "i",
+);
+const PREPAY_RE = new RegExp(
+  String.raw`^(?:передоплата|передплата|аванс|наперед|оплачено наперед|prepaid|prepay|prepayment|förskott)\s*:?\s*(${N})\s*([a-zа-яіїєґ₴€$.]*)$`,
+  "i",
+);
+const PRICE_RE = new RegExp(String.raw`^\s*(${N})\s*(?:грн|uah|₴|kr|sek|€|eur)?\s*$`, "i");
+const TRAILING_PRICE_RE = new RegExp(
+  String.raw`\s+(\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d{2,6})\s*(?:грн|uah|₴)?\s*$`,
+  "i",
+);
 
 const HEADER_WORDS = new Set([
   "імя", "ім'я", "имя", "name", "student", "предмет", "subject", "ціна", "цена", "price", "rate",
@@ -122,7 +144,7 @@ function num(s: string): number {
 
 /** «борг 1200» / «борг 2 уроки» / «винен 600 грн» → {amount} | {lessons} */
 function parseDebt(tok: string): { amount?: number; lessons?: number } | null {
-  const m = /^(?:борг|заборгованість|заборгував(?:ла)?|винен|винна|debt|owes?|skuld)\s*(?:за\s*)?:?\s*(\d{1,6}(?:[.,]\d{1,2})?)\s*([a-zа-яіїєґ₴€$.]*)$/i.exec(tok);
+  const m = DEBT_RE.exec(tok);
   if (!m) return null;
   const n = num(m[1]);
   if (!Number.isFinite(n) || n <= 0) return null;
@@ -133,7 +155,7 @@ function parseDebt(tok: string): { amount?: number; lessons?: number } | null {
 
 /** «передоплата 3» (уроки) / «передоплата 1500 ₴» (гроші) / «аванс 2 уроки» */
 function parsePrepay(tok: string): { amount?: number; lessons?: number } | null {
-  const m = /^(?:передоплата|передплата|аванс|наперед|оплачено наперед|prepaid|prepay|prepayment|förskott)\s*:?\s*(\d{1,6}(?:[.,]\d{1,2})?)\s*([a-zа-яіїєґ₴€$.]*)$/i.exec(tok);
+  const m = PREPAY_RE.exec(tok);
   if (!m) return null;
   const n = num(m[1]);
   if (!Number.isFinite(n) || n <= 0) return null;

@@ -43,7 +43,13 @@ export function setConsent(v: Consent): void {
   } catch {
     /* ignore */
   }
-  if (v === "accepted") loadClarity();
+  if (v === "accepted") {
+    loadClarity();
+    // Meta Pixel має рівно ту саму умову: він ставить куки _fbp, тож без
+    // явної згоди не вантажиться. Імпорт динамічний — інакше clarity.ts і
+    // metaPixel.ts імпортували б одне одного по колу.
+    void import("@/lib/metaPixel").then((m) => m.loadMetaPixel()).catch(() => {});
+  }
 }
 
 // On app start, load Clarity only if the user previously accepted.

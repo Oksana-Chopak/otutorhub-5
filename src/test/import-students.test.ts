@@ -160,3 +160,30 @@ describe("importStudents · хвости 07.09", () => {
     expect(late[0].getDate()).toBe(14);
   });
 });
+
+describe("парсер · числа з пробілом-роздільником тисяч (10.09)", () => {
+  const one = (t: string) => parseStudentList(t)[0];
+
+  it("«борг 1 200» — це борг, а не нотатка", () => {
+    expect(one("Ната — 700 — борг 1 200")).toMatchObject({ price: 700, debtAmount: 1200, note: null });
+    expect(one("Ната — 700 — борг 1 200 грн")).toMatchObject({ debtAmount: 1200 });
+  });
+
+  it("нерозривний пробіл з Excel читається так само", () => {
+    expect(one("Ната — 700 — борг 1 200")).toMatchObject({ debtAmount: 1200 });
+    expect(one("Ната — 1 200")).toMatchObject({ price: 1200 });
+  });
+
+  it("передоплата з тисячами — гроші, без тисяч і без одиниці — уроки", () => {
+    expect(one("Іван — 500 — передоплата 1 500 ₴")).toMatchObject({ prepayAmount: 1500, prepayLessons: null });
+    expect(one("Іван — 500 — передоплата 3")).toMatchObject({ prepayLessons: 3, prepayAmount: null });
+  });
+
+  it("«борг 2 уроки» лишається уроками — пробіл перед словом не робить його тисячами", () => {
+    expect(one("Дана — 500 — борг 2 уроки")).toMatchObject({ debtLessons: 2, debtAmount: null });
+  });
+
+  it("телефон не перетворюється на ціну", () => {
+    expect(one("Тарас; 550; +380 67 123 45 67")).toMatchObject({ price: 550, phone: "+380671234567" });
+  });
+});

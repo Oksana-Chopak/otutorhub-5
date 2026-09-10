@@ -355,6 +355,19 @@ export const uk = {
   },
 
   // Landing page
+  adminFunnel: {
+    title: "Воронка лендінгу · 14 днів",
+    sub: "Лічильники кроків без user_id, IP і пристрою. Єдине місце, де видно тих, хто порахував і пішов.",
+    needsMigration: "Лічильники ще не в базі — вставте міграцію 20260910100000 у Lovable.",
+    empty: "Поки жодного заходу за два тижні.",
+    avgOwed: "У середньому людині винні {{amount}}.",
+    step: {
+      landing_view: "Побачили калькулятор",
+      landing_paste_started: "Почали вставляти список",
+      landing_numbers_shown: "Побачили свої цифри",
+      landing_signup_started: "Натиснули «зберегти»",
+    },
+  },
   landingCalc: {
     prepaidOnly_one: "Ти вже отримала {{amount}} наперед від {{count}} учня — ці уроки ще попереду.",
     prepaidOnly_few: "Ти вже отримала {{amount}} наперед від {{count}} учнів — ці уроки ще попереду.",

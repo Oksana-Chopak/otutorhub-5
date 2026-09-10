@@ -1,10 +1,11 @@
-import { useMemo, useState, useEffect, useId } from "react";
+import { useMemo, useRef, useState, useEffect, useId } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { parseStudentList, IMPORT_CURRENCY } from "@/lib/importStudents";
 import { calcMoneyPreview, CALC_WEEKS } from "@/lib/landingCalc";
 import { formatPrice } from "@/lib/currency";
 import { landingEvent, saveLandingDraft, peekLandingDraft } from "@/lib/landingFunnel";
+import { metaTrack } from "@/lib/metaPixel";
 
 /**
  * «Порахуй свої гроші» — перший екран замість опису продукту (рішення 09.09).
@@ -27,11 +28,24 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
   const { t } = useTranslation();
   const taId = useId();
   const [text, setText] = useState(() => peekLandingDraft() ?? "");
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Поле росте під вставлений список: людина мусить БАЧИТИ, що вставила,
+  // інакше перший учень ховається за скролом рівно тоді, коли вона звіряє
+  // цифри. Стеля — щоб список на 40 імен не з'їв усю сторінку.
+  useEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 420)}px`;
+  }, [text]);
 
   const rows = useMemo(() => parseStudentList(text), [text]);
   const calc = useMemo(() => calcMoneyPreview(rows), [rows]);
   const has = calc.students > 0;
 
+  // Знаменник воронки: скільки взагалі побачили пропозицію порахувати.
+  useEffect(() => { landingEvent("landing_view"); metaTrack("PageView"); }, []);
   useEffect(() => {
     if (text.trim().length > 0) landingEvent("landing_paste_started");
   }, [text]);
@@ -39,6 +53,9 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
     if (calc.students > 0) landingEvent("landing_rows_parsed", { students: calc.students });
     if (calc.students > 0 && (calc.owed > 0 || calc.monthly > 0)) {
       landingEvent("landing_numbers_shown", { owed: calc.owed, monthly: calc.monthly, students: calc.students });
+      // Для реклами «побачив свої цифри» — і є той момент цінності, під який
+      // варто оптимізувати покази. Реєстрація йде далі, окремою подією.
+      metaTrack("Lead", { students: calc.students, owed: calc.owed, monthly: calc.monthly });
     }
   }, [calc.students, calc.owed, calc.monthly]);
 
@@ -55,6 +72,7 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
 
         <label htmlFor={taId} className="sr-only">{t("landingCalc.fieldLabel")}</label>
         <textarea
+          ref={taRef}
           id={taId}
           value={text}
           onChange={(e) => setText(e.target.value)}

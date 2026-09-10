@@ -51,6 +51,92 @@ interface Stats {
 const card = "rounded-[16px] border-[0.5px] border-[var(--border)] bg-card p-4";
 
 
+/**
+ * Воронка лендінгу за 14 днів. Читає лічильники `landing_funnel_daily`
+ * (без user_id, IP і пристрою — лише кроки). Це єдине місце, де видно тих,
+ * хто ПОРАХУВАВ І ПІШОВ: у app_events їх немає за визначенням.
+ */
+function LandingFunnelCard() {
+  const { t } = useTranslation();
+  const [rows, setRows] = useState<{ name: string; hits: number; sum_owed: number; sum_students: number }[] | null>(null);
+  const [state, setState] = useState<"loading" | "ready" | "absent">("loading");
+
+  useEffect(() => {
+    let alive = true;
+    const since = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
+    void (supabase as any)
+      .from("landing_funnel_daily")
+      .select("name,hits,sum_owed,sum_students")
+      .gte("day", since)
+      .then(({ data, error }: { data: unknown; error: unknown }) => {
+        if (!alive) return;
+        if (error || !Array.isArray(data)) { setState("absent"); return; }
+        setRows(data as typeof rows);
+        setState("ready");
+      }, () => { if (alive) setState("absent"); });
+    return () => { alive = false; };
+  }, []);
+
+  const STEPS = ["landing_view", "landing_paste_started", "landing_numbers_shown", "landing_signup_started"] as const;
+  const agg = useMemo(() => {
+    const m = new Map<string, { hits: number; owed: number; students: number }>();
+    for (const r of rows ?? []) {
+      const cur = m.get(r.name) ?? { hits: 0, owed: 0, students: 0 };
+      cur.hits += Number(r.hits) || 0;
+      cur.owed += Number(r.sum_owed) || 0;
+      cur.students += Number(r.sum_students) || 0;
+      m.set(r.name, cur);
+    }
+    return m;
+  }, [rows]);
+
+  if (state === "loading") return null;
+  if (state === "absent") {
+    return <section className={card}><p className="text-[14px] text-[var(--sub)]">{t("adminFunnel.needsMigration")}</p></section>;
+  }
+
+  const base = agg.get("landing_view")?.hits ?? 0;
+  const shown = agg.get("landing_numbers_shown");
+  const avgOwed = shown && shown.hits > 0 ? shown.owed / shown.hits : null;
+
+  return (
+    <section className={card}>
+      <h2 className="text-[15px] font-bold">{t("adminFunnel.title")}</h2>
+      <p className="mt-1 text-[13px] text-[var(--sub)]">{t("adminFunnel.sub")}</p>
+      {base === 0 ? (
+        <p className="mt-3 text-[14px] text-[var(--sub)]">{t("adminFunnel.empty")}</p>
+      ) : (
+        <>
+          <div className="mt-3 space-y-2">
+            {STEPS.map((name) => {
+              const hits = agg.get(name)?.hits ?? 0;
+              const pct = base > 0 ? Math.round((hits / base) * 100) : 0;
+              return (
+                <div key={name}>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[14px]">{t(`adminFunnel.step.${name}`)}</span>
+                    <span className="text-[14px] font-bold tabular-nums">
+                      {hits} <span className="text-[13px] font-medium text-[var(--sub)]">· {pct}%</span>
+                    </span>
+                  </div>
+                  <div className="mt-1 h-2 rounded-full bg-[var(--bg)]">
+                    <div className="h-2 rounded-full bg-[var(--teal)]" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {avgOwed != null && avgOwed > 0 && (
+            <p className="mt-3 text-[14px] text-[var(--sub)]">
+              {t("adminFunnel.avgOwed", { amount: formatPrice(Math.round(avgOwed), "UAH") })}
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 type CrmRow = NonNullable<Stats["crm"]>["tutors"][number];
 
 /** Крок 5: картка репетитора — таймлайн, помилки, платежі, останні уроки, дії. */
@@ -285,6 +371,8 @@ export default function AdminStatsPage() {
           <div className="mt-5 space-y-6">
             {/* ── Школи: підключення онлайн-шкіл (модель «школа = сутність») ── */}
             <SchoolsCard />
+            {/* ── Воронка лендінгу: хто порахував гроші й пішов ── */}
+            <LandingFunnelCard />
             {/* ── CRM: хто платить, хто відвалюється, кому писати ── */}
             {!stats.crm ? (
               <div className={card}><p className="text-[14px] text-[var(--sub)]">{t("adminCrm.needsDeploy")}</p></div>

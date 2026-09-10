@@ -357,6 +357,19 @@ export const en: LocaleTranslations = {
     toggle: "Toggle theme",
   },
 
+  adminFunnel: {
+    title: "Landing funnel · 14 days",
+    sub: "Step counters with no user_id, IP or device. The only place showing those who calculated and left.",
+    needsMigration: "Counters are not in the database yet — apply migration 20260910100000 in Lovable.",
+    empty: "No visits in the last two weeks yet.",
+    avgOwed: "On average people are owed {{amount}}.",
+    step: {
+      landing_view: "Saw the calculator",
+      landing_paste_started: "Started pasting a list",
+      landing_numbers_shown: "Saw their own numbers",
+      landing_signup_started: "Clicked save",
+    },
+  },
   landingCalc: {
     prepaidOnly_one: "You have {{amount}} prepaid by {{count}} student — those lessons are still ahead.",
     prepaidOnly_other: "You have {{amount}} prepaid by {{count}} students — those lessons are still ahead.",

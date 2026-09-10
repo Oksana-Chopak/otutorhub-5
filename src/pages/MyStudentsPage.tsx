@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
 import { ImportStudentsSheet } from "@/components/ImportStudentsSheet";
+import { takeLandingDraft } from "@/lib/landingFunnel";
 import { supabase } from "@/integrations/supabase/client";
 import { isStudentDebtLesson } from "@/lib/financials";
 import { confirmDialog } from "@/hooks/useConfirm";
@@ -744,6 +745,17 @@ export default function MyStudentsPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   // 05.09 (премортем п.2): масовий імпорт списку учнів текстом.
   const [importOpen, setImportOpen] = useState(false);
+
+  // Обіцянка з лендінгу: «створиш акаунт — і цей список уже буде всередині».
+  // Тут вона виконується: чернетку забираємо (одноразово) і одразу відкриваємо
+  // імпорт із нею. Без цього напис на кнопці був би неправдою.
+  const [landingDraft, setLandingDraft] = useState<string | null>(null);
+  useEffect(() => {
+    const draft = takeLandingDraft();
+    if (!draft) return;
+    setLandingDraft(draft);
+    setImportOpen(true);
+  }, []);
   const [subjectOpen, setSubjectOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
@@ -1366,7 +1378,12 @@ export default function MyStudentsPage() {
         />
       )}
       <PageFAB onClick={openCreate} label={t("myStudents.addStudent")} />
-      <ImportStudentsSheet open={importOpen} onOpenChange={setImportOpen} onImported={() => void load()} />
+      <ImportStudentsSheet
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={() => void load()}
+        initialText={landingDraft ?? undefined}
+      />
     </>
   );
 }

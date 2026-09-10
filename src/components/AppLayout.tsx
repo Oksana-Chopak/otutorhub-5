@@ -9,6 +9,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationBell } from "./NotificationBell";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { flushLandingFunnel } from "@/lib/landingFunnel";
 import { supabase } from "@/integrations/supabase/client";
 
 const routeTitleKey: Record<string, string> = {
@@ -54,6 +55,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // мобільному хедері (вимога 29.07 — звільнити перший екран під перший урок).
   // Правило лишається: мобільний заголовок рендерить ТІЛЬКИ AppLayout.
   const { user } = useAuth();
+
+  // Кроки, зроблені ДО реєстрації, лежали в localStorage — тепер є user_id,
+  // і їх можна пришити до акаунта. Одноразово: takeLandingFunnel чистить буфер.
+  useEffect(() => { if (user) flushLandingFunnel(); }, [user]);
   const isDashboard = pathname === "/" || pathname === "/dashboard";
   const [firstName, setFirstName] = useState("");
   useEffect(() => {
