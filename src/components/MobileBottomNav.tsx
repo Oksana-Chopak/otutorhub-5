@@ -5,6 +5,7 @@
  *   іконки й підписи), щоб перехід на /chats чи /achievements не «перемикав»
  *   нижнє меню.
  */
+import { useLayoutEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Home, CalendarDays, Wallet, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,24 @@ import { STUDENT_NAV_DEFS } from "@/components/student/studentNav";
 import { cn } from "@/lib/utils";
 
 export function MobileBottomNav() {
+  // Висота нижньої навігації — у CSS-змінну, щоб банер кук міг сісти НАД нею,
+  // а не накрити її разом із FAB (аудит 10.09, мобілка).
+  const navRef = useRef<HTMLDivElement & HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const publish = () => {
+      const h = navRef.current?.getBoundingClientRect().height ?? 0;
+      if (h > 0) root.style.setProperty("--app-bottom-nav-h", `${Math.ceil(h)}px`);
+      else root.style.removeProperty("--app-bottom-nav-h");
+    };
+    publish();
+    window.addEventListener("resize", publish);
+    return () => {
+      window.removeEventListener("resize", publish);
+      root.style.removeProperty("--app-bottom-nav-h");
+    };
+  });
+
   const unread = useUnreadChats();
   const location = useLocation();
   const { roles } = useAuth();
@@ -26,6 +45,7 @@ export function MobileBottomNav() {
     const mobileItems = STUDENT_NAV_DEFS.filter((i) => i.to !== "/student/profile").slice(0, 5);
     return (
       <nav
+        ref={navRef}
         className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
@@ -78,6 +98,7 @@ export function MobileBottomNav() {
 
   return (
     <div
+      ref={navRef}
       className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden shadow-[0_-4px_20px_-8px_rgba(15,15,26,.12)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div style={{ display: "flex", alignItems: "stretch", padding: "5px 0 3px" }}>

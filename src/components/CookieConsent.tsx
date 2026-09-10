@@ -50,7 +50,10 @@ export function CookieConsent() {
         position: "fixed",
         left: 12,
         right: "auto",
-        bottom: 12,
+        // 10.09: банер сидів поверх нижньої навігації й FAB — на першому візиті
+        // з телефона обидва були недоступні. Тепер він стає НАД навігацією
+        // (її висоту публікує MobileBottomNav), а FAB — над банером.
+        bottom: "calc(12px + var(--app-bottom-nav-h, 0px))",
         zIndex: 60,
         width: "min(380px, calc(100vw - 24px))",
         background: "#0f0f1a",

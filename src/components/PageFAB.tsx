@@ -28,7 +28,10 @@ export function PageFAB({ onClick, label, className }: PageFABProps) {
         background: "var(--teal,#2BBFAA)",
         boxShadow: "0 4px 16px rgba(43,191,170,0.4)",
         // MobileBottomNav grows by the bottom inset on notched devices — keep the FAB above it (BUG-5)
-        bottom: "calc(78px + env(safe-area-inset-bottom, 0px))",
+        // + банер кук (10.09): на першому візиті з телефона він накривав FAB, і
+        // головна дія екрана — «Додати учня» / «Додати репетитора» — просто не
+        // натискалась. CookieConsent публікує свою висоту в --cookie-banner-h.
+        bottom: "calc(78px + env(safe-area-inset-bottom, 0px) + var(--cookie-banner-h, 0px))",
       }}
     >
       <Plus className="h-6 w-6" />

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { globSync } from "glob";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
  * C-хвиля, гейти доступності (ratchet — числа можуть ЛИШЕ падати):
@@ -119,5 +123,37 @@ describe("a11y ratchet (імена полів · цілі дотику · кла
   it(`клікабельних без клавіатури — не більше ${KEYBOARD_BASELINE}`, () => {
     if (r.noKeyboard.length > KEYBOARD_BASELINE) console.error("Без клавіатури:\n" + r.noKeyboard.join("\n"));
     expect(r.noKeyboard.length).toBeLessThanOrEqual(KEYBOARD_BASELINE);
+  });
+});
+
+/**
+ * Мобільний аудит 10.09 — три дефекти, які видно лише на телефоні.
+ * Кожен коштував користувачці дії, яку вона не могла зробити.
+ */
+describe("мобілка · знайдене аудитом 10.09", () => {
+  const read = (p: string) => readFileSync(join(root, p), "utf8");
+
+  it("FAB стоїть над банером кук — інакше головна дія екрана не натискається", () => {
+    // Банер кук фіксований знизу і на першому візиті накривав FAB цілком:
+    // «Додати учня» / «Додати репетитора» просто не реагували на дотик.
+    expect(read("src/components/PageFAB.tsx")).toMatch(/var\(--cookie-banner-h, 0px\)/);
+  });
+
+  it("банер кук стоїть над нижньою навігацією, а не поверх неї", () => {
+    expect(read("src/components/CookieConsent.tsx")).toMatch(/var\(--app-bottom-nav-h, 0px\)/);
+    expect(read("src/components/MobileBottomNav.tsx")).toMatch(/--app-bottom-nav-h/);
+  });
+
+  it("плейсхолдери мають власний колір — дефолт Tailwind дає 2,45:1", () => {
+    const css = read("src/index.css");
+    expect(css).toMatch(/input::placeholder[\s\S]{0,120}color: hsl\(var\(--muted-foreground\)\)/);
+  });
+
+  it("рядок оплат учня переноситься, а не тримає все в одну лінію", () => {
+    // Права група не стискалась, з'їдала ліву колонку (дата налазила на суму)
+    // і виносила кнопку «Оплатити» за екран.
+    const src = read("src/pages/student/StudentPaymentsPage.tsx");
+    expect(src).toMatch(/flexWrap: "wrap"/);
+    expect(src).not.toMatch(/className="flex items-center gap-2\.5 flex-shrink-0">/);
   });
 });

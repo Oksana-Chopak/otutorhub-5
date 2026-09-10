@@ -1644,8 +1644,10 @@ export default function DashboardPage() {
                     {t("dashboardExtra.showAll", { count: upcomingAll.length })}
                   </button>
                 )}
+                {/* amber-400 давав 1,54:1 на світлому тлі — на сонці напису просто
+                    немає. amber-700 лишає сигнал і дає 5,3:1 (аудит 10.09). */}
                 {pendingPayments.length > 0 && (
-                  <span className="inline-flex items-center gap-1 font-medium text-amber-400">
+                  <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400">
                     <Clock className="h-3.5 w-3.5" />
                     {t("pendingPayments.title")}
                   </span>
@@ -2327,7 +2329,7 @@ export default function DashboardPage() {
                   💰 {t("pendingPayments.title")}
                 </p>
                 {pendingPayments.length > 0 && (
-                  <span className="text-[14px] font-semibold" style={{ color: "#f59e0b" }}>
+                  <span className="text-[14px] font-semibold" style={{ color: "var(--warning-text,#B45309)" }}>
                     {pendingPayments.length} {pendingPayments.length === 1 ? t("lessonCard.lesson") : t("lessonCard.lessons")}
                   </span>
                 )}

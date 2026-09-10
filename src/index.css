@@ -27,6 +27,18 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Плейсхолдери. Tailwind preflight ставить gray-400 (#9CA3AF) — це 2.45:1
+   * на світлому тлі при потрібних 4.5:1. Аудит 10.09 знайшов це в КОЖНІЙ формі
+   * застосунку; для користувачок із зором ~80%, які працюють на сонці, підказка
+   * у полі просто зникала. --muted-foreground дає ≥4.5:1 в обох темах.
+   */
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+    opacity: 1;
+  }
+
   :root {
     --background: 180 12% 96%;
     --foreground: 224 71% 9%;
@@ -45,6 +57,9 @@
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
+    /* Бурштиновий ДЛЯ ТЕКСТУ: #F59E0B на світлому тлі — 1,98:1. Заливки й
+       іконки лишаються яскравими, читабельним мусить бути саме текст. */
+    --warning-text: #B45309;
 
     --accent: 220 14% 96%;
     --accent-foreground: 224 71% 9%;
@@ -98,6 +113,7 @@
 
     --muted: 224 30% 16%;
     --muted-foreground: 220 9% 65%;
+    --warning-text: #FBBF24;
 
     --accent: 224 30% 16%;
     --accent-foreground: 210 20% 96%;

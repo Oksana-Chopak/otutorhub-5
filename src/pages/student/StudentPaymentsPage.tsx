@@ -375,21 +375,28 @@ export default function StudentPaymentsPage() {
             {rows.map((r) => {
               const paid = r.student_payment_status === "paid";
               return (
-                <li key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "11px 13px" }}>
-                    <div className="min-w-0">
+                // Аудит 10.09 (мобілка): права група з ціною, статусом і двома
+                // кнопками не стискається, тож на 390px вона з'їдала ліву колонку —
+                // дата налазила на суму, а кнопка «Оплатити» вилазила за екран.
+                // flexWrap переносить групу на власний рядок замість каші.
+                <li key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "11px 13px" }}>
+                    <div className="min-w-0 flex-1" style={{ minWidth: 150 }}>
                       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {r.subject}
                         {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{r.carried_over ? t("studentPagesExtra.carriedOverDebt") : t("studentPagesExtra.cancellationFee")}</span>}
                       </p>
                       <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
-                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                    <div className="flex flex-wrap items-center justify-end gap-2.5" style={{ marginLeft: "auto", minWidth: 0 }}>
                       <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
                       {/* «Очікує» — лише про борг (проведене/штраф); майбутнє — нейтральне «Заплановано» */}
                       <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : isOwedRow(r) ? "rgba(245,158,11,.16)" : "rgba(148,155,185,.16)", color: paid ? "#16a34a" : isOwedRow(r) ? "#b4740b" : "var(--sub,#666b82)" }}>
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
                         {paid ? t("studentPagesExtra.paidStatus") : isOwedRow(r) ? t("studentPagesExtra.awaitingStatus") : t("studentPagesExtra.plannedStatus")}
                       </span>
+                      {/* Кнопки — ОДНА група: інакше при переносі копіювання
+                          зістрибувало на власний рядок саме́ (аудит 10.09). */}
+                      <div className="flex items-center gap-2.5">
                       {/* №17: посилання в реквізитах → кнопка «Оплатити» просто в рядку боргу */}
                       {!paid && paymentLinkOf(payInfoFor(r.tutor_id)?.payment_details) && (
                         <button
@@ -426,6 +433,7 @@ export default function StudentPaymentsPage() {
                           <MessageCircle className="h-3.5 w-3.5" />
                         </Link>
                       )}
+                      </div>
                     </div>
                 </li>
               );
