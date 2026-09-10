@@ -4740,6 +4740,8 @@ export const sv: LocaleTranslations = {
     celebrationXp: "⭐ {{earned}} / {{total}} XP insamlat",
     boostersLabel: "TILLÄGG · {{done}}/{{total}}",
     goToDashboard: "Till instrumentpanelen →",
+    handoffVictory_one: "Din elev är redan här — inget inskrivet två gånger",
+    handoffVictory_other: "Dina {{count}} elever är redan här — inget inskrivet två gånger",
     stepCounter: "Steg {{current}} av {{total}}",
     stepEssentialSuffix: " · grundläggande",
     finishStep: "Slutför →",

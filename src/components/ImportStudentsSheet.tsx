@@ -35,6 +35,14 @@ export { IMPORT_SCHEDULE_WEEKS } from "@/lib/importStudents";
  * грошового «ага»); борги/передоплати/розклад після простроченого тріалу —
  * PaywallSheet, як і будь-який інший грошовий запис. Сервер перевіряє те саме.
  */
+/** Підсумок імпорту — онбордингу треба знати, ЩО саме приїхало, щоб нарахувати XP чесно. */
+export interface ImportResult {
+  students: number;
+  debtTotal: number;
+  scheduled: number;
+  failed: number;
+}
+
 export function ImportStudentsSheet({
   open,
   onOpenChange,
@@ -43,7 +51,7 @@ export function ImportStudentsSheet({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  onImported?: () => void;
+  onImported?: (result: ImportResult) => void;
   /** Список, який людина набрала ще на лендінгу, до реєстрації. */
   initialText?: string;
 }) {
@@ -156,7 +164,7 @@ export function ImportStudentsSheet({
       });
       setText("");
       onOpenChange(false);
-      onImported?.();
+      onImported?.({ students: added + linked, debtTotal, scheduled, failed });
     } else {
       toast.error(t("importStudents.allFailed"));
     }

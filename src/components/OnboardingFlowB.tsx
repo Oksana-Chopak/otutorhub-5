@@ -24,6 +24,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { ImportStudentsSheet, type ImportResult } from "@/components/ImportStudentsSheet";
+import { peekLandingHandoff, consumeLandingHandoff, claimHandoffShown } from "@/lib/landingFunnel";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { cn } from "@/lib/utils";
@@ -1366,7 +1368,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       setProgressLoading(true);
       const [studRes, lesRes, paidRes, defRes, tgRes] = await Promise.all([
         safe(supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
-        safe(supabase.from("lessons").select("id, status").eq("tutor_id", user.id).eq("source","independent").limit(10), {data:[]} as any),
+        safe(supabase.from("lessons").select("id, status, carried_over").eq("tutor_id", user.id).eq("source","independent").limit(10), {data:[]} as any),
         // A5: «Перша оплата» нарешті обчислюється, а не вічно false.
         safe(supabase.from("lessons_visible").select("id").eq("tutor_id", user.id).eq("student_payment_status","paid").limit(1), {data:[]} as any),
         // A6: Zoom-бонус ПИШЕ в tutor_student_defaults — прогрес читає ЗВІДТИ ж.
@@ -1380,8 +1382,10 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
         hasLesson: les.length > 0,
         hasPaidLesson: (((paidRes as any).data?.length ?? 0) > 0),
         /* Крок «гроші» вважається пройденим, якщо в базі вже є проведений
-           неоплачений урок — тобто відповідь на питання вже дана ділом. */
-        hasDebtAnswer: (les as any[]).some((l: any) => l.status === "completed"),
+           неоплачений урок — тобто відповідь на питання вже дана ділом.
+           Перенесений з лендінгу борг (carried_over) — та сама відповідь:
+           інакше крок спитав би «хто винен?» удруге і борг подвоївся б. */
+        hasDebtAnswer: (les as any[]).some((l: any) => l.status === "completed" || l.carried_over === true),
         hasTelegram: (((tgRes as any).data?.length ?? 0) > 0),
         hasMeetingUrl: (((defRes as any).data ?? []) as any[]).some((d:any) => d.default_meeting_url?.trim()),
         hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
@@ -1405,6 +1409,39 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
 
   const reload = useCallback(() => setReloadKey(k => k+1), []);
   const money = useFirstSessionMoney(user?.id, reloadKey);
+
+  // Естафета з лендінгу (10.09): список, який людина вставила в калькулятор
+  // ДО реєстрації, зустрічає її тут — на ПЕРШОМУ екрані після входу, а не на
+  // /my-students, куди новий репетитор не потрапляє. Одне вікно, одна кнопка —
+  // і кроки «учень» / «зустріч» / «гроші» нижче вже стоять із галочками.
+  // Лише там, де в онбордингу Є крок «учень» (у хабового учнів заводить
+  // школа, і кроку немає) — та сама правда, що й у списку кроків.
+  const hasStudentStep = visibleSteps.some((s) => s.action === "student");
+  const [handoff, setHandoff] = useState<string | null>(null);
+  const [handoffOpen, setHandoffOpen] = useState(false);
+  useEffect(() => {
+    if (wsLoading || authLoading || !user || !isTutor || !hasStudentStep) return;
+    const h = peekLandingHandoff(user);
+    if (!h) return;
+    setHandoff(h.text);
+    if (claimHandoffShown()) setHandoffOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wsLoading, authLoading, user?.id, isTutor, hasStudentStep]);
+  const onHandoffImported = (r: ImportResult) => {
+    consumeLandingHandoff(user);
+    setHandoff(null);
+    logEvent("landing_handoff_imported", { ...r }); // воронка: обіцянка лендінгу виконана
+    // XP — рівно за ті кроки, які список закрив ділом: учень завжди, зустріч —
+    // якщо приїхав розклад. Ті самі числа, що й у картках кроків нижче.
+    const studentXp = ALL_STEPS.find(x => x.action === "student")?.xp ?? 0;
+    const lessonXp  = r.scheduled > 0 ? (ALL_STEPS.find(x => x.action === "lesson")?.xp ?? 0) : 0;
+    burst("step");
+    setVictory({ emoji: "🎒", title: t("onboardingFlowB.handoffVictory", { count: r.students }), xp: studentXp + lessonXp, isFinal: false });
+    reload();
+  };
+  const handoffSheet = handoff ? (
+    <ImportStudentsSheet open={handoffOpen} onOpenChange={setHandoffOpen} initialText={handoff} onImported={onHandoffImported} />
+  ) : null;
 
   // Google Calendar OAuth return
   useEffect(() => {
@@ -1485,6 +1522,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       <>
         <style>{styles}</style>
         {victory && <StepVictoryOverlay {...victory} onDone={() => setVictory(null)} />}
+        {handoffSheet}
 
         <div className="min-h-screen" style={{ background: T.bg, fontFamily: T.body }}>
           {/* Centered container — phone width on desktop */}
@@ -1641,6 +1679,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     <>
       <style>{styles}</style>
       {victory && <StepVictoryOverlay {...victory} onDone={() => setVictory(null)} />}
+      {handoffSheet}
 
       <div className="min-h-screen flex flex-col" style={{ background: T.bg, fontFamily: T.body }}>
         {/* Centered phone-width container */}

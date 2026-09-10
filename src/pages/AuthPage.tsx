@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
+import { landingDraftForSignup } from "@/lib/landingFunnel";
 import { BUILD_TAG } from "@/lib/buildInfo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
@@ -454,6 +455,7 @@ export default function AuthPage() {
       isPending = data === true;
     } catch { /* ignore — fall back to normal flow */ }
 
+    const landingDraft = landingDraftForSignup();
     const { data: signUpResult, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -465,6 +467,11 @@ export default function AuthPage() {
           phone: parsed.data.phone || null,
           role: parsed.data.role,
           independent_workspace: parsed.data.role === "tutor",
+          // Естафета з лендінгу (10.09): список, який людина вставила в
+          // калькулятор, їде В АКАУНТІ — лист підтвердження часто відкривають
+          // з іншого пристрою, де localStorage порожній, і обіцянка «список уже
+          // всередині» ламалась рівно там, де народилась довіра.
+          ...(parsed.data.role === "tutor" && landingDraft ? { landing_draft: landingDraft } : {}),
         },
       },
     });

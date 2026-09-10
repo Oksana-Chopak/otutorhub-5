@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
 import { ImportStudentsSheet } from "@/components/ImportStudentsSheet";
-import { takeLandingDraft } from "@/lib/landingFunnel";
+import { peekLandingHandoff, consumeLandingHandoff, claimHandoffShown } from "@/lib/landingFunnel";
 import { supabase } from "@/integrations/supabase/client";
 import { isStudentDebtLesson } from "@/lib/financials";
 import { confirmDialog } from "@/hooks/useConfirm";
@@ -747,15 +747,18 @@ export default function MyStudentsPage() {
   const [importOpen, setImportOpen] = useState(false);
 
   // Обіцянка з лендінгу: «створиш акаунт — і цей список уже буде всередині».
-  // Тут вона виконується: чернетку забираємо (одноразово) і одразу відкриваємо
-  // імпорт із нею. Без цього напис на кнопці був би неправдою.
+  // Тут вона виконується для тих, хто зайшов сюди сам (новий репетитор отримує
+  // те саме вікно ще в онбордингу). Естафета — з усіх трьох джерел
+  // (калькулятор, старий віджет, метадані акаунта); стирається лише ПІСЛЯ
+  // успішного імпорту, а раз на сесію — щоб не нав'язуватись, якщо закрили.
   const [landingDraft, setLandingDraft] = useState<string | null>(null);
   useEffect(() => {
-    const draft = takeLandingDraft();
-    if (!draft) return;
-    setLandingDraft(draft);
-    setImportOpen(true);
-  }, []);
+    const h = peekLandingHandoff(user);
+    if (!h) return;
+    setLandingDraft(h.text);
+    if (claimHandoffShown()) setImportOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   const [subjectOpen, setSubjectOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
@@ -1381,7 +1384,7 @@ export default function MyStudentsPage() {
       <ImportStudentsSheet
         open={importOpen}
         onOpenChange={setImportOpen}
-        onImported={() => void load()}
+        onImported={() => { consumeLandingHandoff(user); setLandingDraft(null); void load(); }}
         initialText={landingDraft ?? undefined}
       />
     </>

@@ -4760,6 +4760,8 @@ export const en: LocaleTranslations = {
     celebrationXp: "⭐ {{earned}} / {{total}} XP collected",
     boostersLabel: "BOOSTERS · {{done}}/{{total}}",
     goToDashboard: "To the dashboard →",
+    handoffVictory_one: "Your student is already here — nothing typed twice",
+    handoffVictory_other: "Your {{count}} students are already here — nothing typed twice",
     stepCounter: "Step {{current}} of {{total}}",
     stepEssentialSuffix: " · essential",
     finishStep: "Finish →",
