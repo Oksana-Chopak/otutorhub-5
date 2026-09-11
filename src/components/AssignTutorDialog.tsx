@@ -342,7 +342,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                       )}
                     </div>
                     {tu.defaultRate != null && (
-                      <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "#25a896", whiteSpace: "nowrap" }}>{formatPrice(tu.defaultRate, "UAH")}{t("assignTutorExtra.perLessonAbbr")}</span>
+                      <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "var(--teal-text,#1a7a6c)", whiteSpace: "nowrap" }}>{formatPrice(tu.defaultRate, "UAH")}{t("assignTutorExtra.perLessonAbbr")}</span>
                     )}
                   </button>
                 ))}
@@ -357,7 +357,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                   )}
                 </div>
                 <button type="button" onClick={() => setTutorId("")}
-                  style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "#25a896", fontFamily: F, fontWeight: 700, fontSize: 15, boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
+                  style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--teal-text,#1a7a6c)", fontFamily: F, fontWeight: 700, fontSize: 15, boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
                   {t("assignTutorExtra.change")}
                 </button>
               </div>

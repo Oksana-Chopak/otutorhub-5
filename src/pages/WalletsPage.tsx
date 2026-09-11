@@ -250,7 +250,7 @@ export default function WalletsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-[15px]">
-                      <span className="font-semibold tabular-nums" style={{ color: "#1f8e7e" }}>
+                      <span className="font-semibold tabular-nums" style={{ color: "var(--teal-text,#1a7a6c)" }}>
                         {r.lessons_balance > 0 && `🎟 ${t("walletsPage.lessonsShort", { count: r.lessons_balance })}`}
                         {r.lessons_balance > 0 && r.amount_balance > 0 && " · "}
                         {r.amount_balance > 0 && formatPrice(r.amount_balance, r.currency, { decimals: 0 })}
@@ -296,14 +296,14 @@ export default function WalletsPage() {
                       <td className="px-4 py-3" style={{ color: "var(--sub,#666b82)" }}>{r.tutor_name}</td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.lessons_balance > 0 ? (
-                          <span className="font-semibold" style={{ color: "#1f8e7e" }}>{r.lessons_balance}</span>
+                          <span className="font-semibold" style={{ color: "var(--teal-text,#1a7a6c)" }}>{r.lessons_balance}</span>
                         ) : (
                           <span style={{ color: "var(--sub,#666b82)" }}>—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.amount_balance > 0 ? (
-                          <span className="font-semibold" style={{ color: "#1f8e7e" }}>
+                          <span className="font-semibold" style={{ color: "var(--teal-text,#1a7a6c)" }}>
                             {formatPrice(r.amount_balance, r.currency, { decimals: 0 })}
                           </span>
                         ) : (
@@ -316,7 +316,7 @@ export default function WalletsPage() {
                       <td className="px-4 py-3 text-right">
                         <button type="button" onClick={() => setActive(r)}
                           className="rounded-[10px] px-4 h-11 text-[14px] font-bold"
-                          style={{ border: "1px solid var(--ds-border,#eceef3)", background: "#f0fdf9", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}>
+                          style={{ border: "1px solid var(--ds-border,#eceef3)", background: "#f0fdf9", color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif" }}>
                           {t("walletsPage.openBtn")}
                         </button>
                       </td>

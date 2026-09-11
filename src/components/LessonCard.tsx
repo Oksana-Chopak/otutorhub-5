@@ -75,17 +75,17 @@ interface LessonCardProps {
 }
 
 const STATUS_META: Record<LessonStatus, { key: string; accent: string; bg: string; fg: string; ring: string; dot: string }> = {
-  pending:   { key: "lessonCard.statusPending",   accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "#b4740b", ring: "rgba(245,158,11,.32)",  dot: "#f59e0b" },
-  scheduled: { key: "lessonCard.statusScheduled", accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "#1f8e7e", ring: "rgba(43,191,170,.3)",   dot: "#2BBFAA" },
-  completed: { key: "lessonCard.statusCompleted", accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "#16a34a", ring: "rgba(34,197,94,.32)",   dot: "#22c55e" },
-  cancelled: { key: "lessonCard.statusCancelled", accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "#7b8198", ring: "rgba(147,152,176,.32)", dot: "#9aa0b4" },
+  pending:   { key: "lessonCard.statusPending",   accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "var(--warning-text,#B45309)", ring: "rgba(245,158,11,.32)",  dot: "#f59e0b" },
+  scheduled: { key: "lessonCard.statusScheduled", accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "var(--teal-text,#1a7a6c)", ring: "rgba(43,191,170,.3)",   dot: "#2BBFAA" },
+  completed: { key: "lessonCard.statusCompleted", accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "var(--success-text,#11803a)", ring: "rgba(34,197,94,.32)",   dot: "#22c55e" },
+  cancelled: { key: "lessonCard.statusCancelled", accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "var(--sub,#666b82)", ring: "rgba(147,152,176,.32)", dot: "#9aa0b4" },
 };
 
 const L = {
   txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
-  surface: "var(--ds-surface,#fff)", surface2: "#f6f5f1", teal: "#2BBFAA", tealD: "#1f8e7e",
-  tealTint: "#f0fdf9", tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", warningD: "#B4740B",
-  coral: "#e0552f", gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
+  surface: "var(--ds-surface,#fff)", surface2: "var(--ds-surface3,#f6f5f1)", teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)",
+  tealTint: "var(--teal-l,#f0fdf9)", tealRing: "rgba(43,191,170,.28)", successD: "var(--success-text,#11803a)", warningD: "var(--warning-text,#B45309)",
+  coral: "var(--danger-text,#c6421d)", gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -361,7 +361,7 @@ function LessonCardImpl({
                 Інваріант «краще відсутність цифри, ніж чужа» лишається — тут не цифра, а
                 позначка «ставку не задано» + єдиний видимий тогл більше не вводить в оману. */}
             {manager && lesson.tutor_payout == null && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#B4740B" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--warning-text,#B45309)" }}>
                 <span aria-hidden>💼</span>
                 <span style={{ fontWeight: 600 }}>{t("lessonCard.payoutMissing")}</span>
               </div>

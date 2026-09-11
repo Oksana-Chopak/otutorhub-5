@@ -94,7 +94,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               {isDashboard ? (
                 <span className="text-[16px] font-bold">
                   {greetEmoji} {t(greetKey)}
-                  {firstName ? <>, <span style={{ color: "var(--teal,#2BBFAA)" }}>{firstName}</span></> : "!"}
+                  {firstName ? <>, <span style={{ color: "var(--teal-text,#1a7a6c)" }}>{firstName}</span></> : "!"}
                 </span>
               ) : (
                 t(titleKey)

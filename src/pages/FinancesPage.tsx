@@ -165,8 +165,11 @@ function legacyFilterToTab(value: string | null): TabKey {
 }
 
 const F = {
-  teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
-  warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
+  teal:"#2BBFAA", tealD:"#25a896", tealL: "var(--teal-l,#f0fdf9)",
+  // 11.09: бірюза бренду як КОЛІР ТЕКСТУ — 2.30:1. Заливки й підкреслення
+  // лишаються брендовими, читабельний текст іде tealText (4.7–5.2:1).
+  tealText:"var(--teal-text,#1a7a6c)",
+  warn:"#f59e0b", warnD:"var(--warning-text,#B45309)", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
   border:"var(--ds-border,#eceef3)", bg:"var(--ds-bg,#F5F4F0)", surface:"var(--ds-surface,#fff)",
   txt:"var(--ds-txt,#0f0f1a)", sub:"var(--sub,#666b82)", muted:"var(--ds-muted,#6f7489)",
   display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
@@ -178,13 +181,15 @@ const Tab = ({ active, onClick, label, count }: { active: boolean; onClick: () =
     style={{
       flex:1, height:44, border:"none", cursor:"pointer", background:"transparent",
       fontFamily:F.display, fontWeight:700, fontSize:15,
-      color: active ? F.teal : F.muted,
+      color: active ? F.tealText : F.muted,
       borderBottom: `2.5px solid ${active ? F.teal : "transparent"}`,
       display:"flex", alignItems:"center", justifyContent:"center", gap:5,
     }}>
     {label}
     {count !== undefined && count > 0 && (
-      <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize: 14,
+      // 11.09: білий на бурштині — 2.15:1, цифру боргу на сонці не прочитати.
+      // Темний напис на тому самому бурштині дає 8.86:1, колір плашки не змінився.
+      <span style={{ background:F.warn, color:"#0f0f1a", borderRadius:999, fontSize: 14,
         fontWeight:800, padding:"0 6px", height:18, display:"inline-flex", alignItems:"center" }}>
         {count}
       </span>
@@ -1514,8 +1519,8 @@ export default function FinancesPage() {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                       <span className="truncate">{l.subject}</span>
-                      {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
-                      {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
+                      {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                      {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                     </p>
                     <p className="text-[14px]" style={{ color: "var(--sub,#666b82)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
@@ -1740,8 +1745,8 @@ export default function FinancesPage() {
                     <td className="px-3 py-3 text-foreground">
                       <span className="inline-flex items-center gap-1.5">
                         {l.subject}
-                        {isGroup && <span style={{ fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
-                        {(l as any).is_cancellation_fee && <span style={{ fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
+                        {isGroup && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                        {(l as any).is_cancellation_fee && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                       </span>
                     </td>
                     <td className="px-3 py-3">
@@ -2118,7 +2123,7 @@ export default function FinancesPage() {
   if (isHubTutor) {
     const H = {
       teal: "#2BBFAA", tealD: "#25a896",
-      warn: "#f59e0b", warnD: "#b4740b", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
+      warn: "#f59e0b", warnD: "var(--warning-text,#B45309)", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
       border: "var(--ds-border,#eceef3)", surface: "var(--ds-surface,#fff)",
       txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
       display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
@@ -2276,7 +2281,7 @@ export default function FinancesPage() {
               </div>
             )}
             <div style={{ borderRadius: 18, padding: "16px 18px", background: "rgba(34,197,94,.06)", border: "1px solid rgba(34,197,94,.2)" }}>
-              <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: "#16a34a", marginBottom: 4 }}>
+              <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: "var(--success-text,#11803a)", marginBottom: 4 }}>
                 ✓ {t("finances.payoutReceived")}: {formatPrice(totalExpense, "UAH")}
               </p>
               <p style={{ fontFamily: H.body, fontSize: 14, color: "#15803d", opacity: 0.85 }}>
@@ -2375,7 +2380,7 @@ export default function FinancesPage() {
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:5 }}>
                   💰 {t("finances.received")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:900, fontSize: incomeByCur.length > 1 ? 24 : 30, color:F.teal,
+                <p style={{ fontFamily:F.display, fontWeight:900, fontSize: incomeByCur.length > 1 ? 24 : 30, color:F.tealText,
                   letterSpacing:"-0.025em", lineHeight:1.1 }}>
                   {fmtCurList(incomeByCur)}
                 </p>
@@ -2406,14 +2411,14 @@ export default function FinancesPage() {
               <button type="button" onClick={() => goTab("analytics")} aria-label={t("finances.tabAnalytics")}
                 style={{ borderRadius:16, padding:"10px 14px", textAlign:"left", cursor:"pointer",
                 background:"rgba(139,92,246,.08)", border:"1px solid rgba(139,92,246,.2)" }}>
-                <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:"#7c3aed",
+                <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:"var(--violet-text,#6d28d9)",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   📊 {t("finances.avgLesson")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:19, color:"#7c3aed" }}>
+                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:19, color:"var(--violet-text,#6d28d9)" }}>
                   {formatPrice(avgLesson, incomeByCur[0]?.[0] ?? "UAH")}
                 </p>
-                <p style={{ fontFamily:F.body, fontSize: 14, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
+                <p style={{ fontFamily:F.body, fontSize: 14, color:"var(--violet-text,#6d28d9)", opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: paidLessonsCount })}
                 </p>
               </button>
@@ -2441,7 +2446,7 @@ export default function FinancesPage() {
                           background: bar.isToday ? F.teal : bar.amt>0 ? "rgba(43,191,170,.3)" : F.border,
                           transition:"height .3s" }} />
                         <span style={{ fontFamily:F.display, fontSize: 14, fontWeight:700,
-                          color: bar.isToday ? F.teal : F.muted }}>{bar.label}</span>
+                          color: bar.isToday ? F.tealText : F.muted }}>{bar.label}</span>
                       </div>
                     ))}
                   </div>
@@ -2518,7 +2523,7 @@ export default function FinancesPage() {
                         <span style={{ flex:1, fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.35 }}>
                           {t("finances.autoReminderHintPre")} <b>{t("finances.autoReminderHintBold")}</b> {t("finances.autoReminderHintPost")}
                         </span>
-                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:"#1f8e7e", flexShrink:0 }}>{t("finances.configureLink")}</span>
+                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:"var(--teal-text,#1a7a6c)", flexShrink:0 }}>{t("finances.configureLink")}</span>
                       </Link>
                       {/* Summary warning */}
                       <div style={{ borderRadius:14, padding:"12px 14px", marginBottom:14,
@@ -2591,7 +2596,7 @@ export default function FinancesPage() {
                                 to={`/chats?with=${l.student_id}`}
                                 title={t("finances.groupChatHint")}
                                 style={{ height:32, padding:"0 12px", borderRadius:9, textDecoration:"none",
-                                  background:"rgba(43,191,170,.12)", color:"#1f8e7e",
+                                  background:"rgba(43,191,170,.12)", color:"var(--teal-text,#1a7a6c)",
                                   fontFamily:F.display, fontWeight:700, fontSize: 14,
                                   flexShrink:0, display:"inline-flex", alignItems:"center", gap:6 }}>
                                 💬 {t("finances.groupChatHint")}
@@ -2616,7 +2621,7 @@ export default function FinancesPage() {
                               onClick={() => togglePayment(l, "student_payment_status")}
                               aria-label={t("finances.statusPaid")}
                               style={{ width:44, height:40, marginLeft:6, borderRadius:10, border:"1.5px solid rgba(43,191,170,.4)",
-                                background:"#f0fdf9", color:"#1f8e7e", cursor:"pointer", flexShrink:0,
+                                background:"#f0fdf9", color:"var(--teal-text,#1a7a6c)", cursor:"pointer", flexShrink:0,
                                 display:"flex", alignItems:"center", justifyContent:"center",
                                 fontWeight:800, fontSize:15 }}>
                               ✓
@@ -3066,7 +3071,7 @@ export default function FinancesPage() {
               {/* Аудит 05.09: минулий непозначений урок — не «очікуваний платіж»
                   і ще не борг. Гроші за те, що вже сталося, чекають ОДНОГО тапа. */}
               {pastUnmarkedCount > 0 && (
-                <p className="mt-1.5 text-[13px] font-medium" style={{ color: "#b4740b" }}>
+                <p className="mt-1.5 text-[13px] font-medium" style={{ color: "var(--warning-text,#B45309)" }}>
                   {t("finances.pastUnmarkedHint", { count: pastUnmarkedCount })}
                 </p>
               )}
@@ -3133,10 +3138,10 @@ export default function FinancesPage() {
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">⚠️</span>
                 <div>
-                  <p className="text-[15px] font-bold" style={{ color: "#b45309" }}>
+                  <p className="text-[15px] font-bold" style={{ color: "var(--warning-text,#B45309)" }}>
                     {t("finances.studentsOweBannerTitle", { sum: formatPrice((pendingIncome), "UAH")})}
                   </p>
-                  <p className="text-[14px]" style={{ color: "#b45309", opacity: 0.8 }}>
+                  <p className="text-[14px]" style={{ color: "var(--warning-text,#B45309)", opacity: 0.8 }}>
                     {t("finances.debtAwaiting", { count: periodStudentDebts.length })}
                   </p>
                 </div>
@@ -3194,7 +3199,7 @@ export default function FinancesPage() {
                   }
                 }}
                 className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[14px] font-bold transition-opacity hover:opacity-80 disabled:opacity-50"
-                style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)" }}>
+                style={{ background: "rgba(245,158,11,.2)", color: "var(--warning-text,#B45309)", border: "1px solid rgba(245,158,11,.4)" }}>
                 {t("people.remindBtn")}
               </button>
             </div>
@@ -3216,13 +3221,13 @@ export default function FinancesPage() {
           {/* === Main tabs: Income / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,var(--ds-border,#eceef3))"}}>
-              <TabsTrigger value="income" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
+              <TabsTrigger value="income" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[color:var(--teal-text,#1a7a6c)] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <ArrowDownLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.incomeTab")}</span>
                 <span className="sm:hidden">{t("finances.incomeTabShort")}</span>
                 <span className="ml-1 text-[14px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
               </TabsTrigger>
-              <TabsTrigger value="debts" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
+              <TabsTrigger value="debts" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[color:var(--teal-text,#1a7a6c)] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.debtsTab")}</span>
                 <span className="sm:hidden">{t("finances.debtsTabShort")}</span>
@@ -3260,7 +3265,7 @@ export default function FinancesPage() {
                   disabled={bulkBusy}
                   onClick={() => bulkMark("tutor_payout_status")}
                   className="flex h-10 items-center gap-1.5 rounded-[12px] border-[0.5px] bg-card px-4 text-[14px] font-bold transition-colors hover:bg-[#f0fdf9] disabled:opacity-50"
-                  style={{ borderColor: "#5DCAA5", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
+                  style={{ borderColor: "#5DCAA5", color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif" }}
                 >
                   <CheckCheck className="h-4 w-4" />
                   {t("finances.markTutorsPaid")}

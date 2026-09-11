@@ -256,7 +256,7 @@ export function WalletDialog({
 
   // ── Design tokens ─────────────────────────────────────────────────────────────
   const F = {
-    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+    teal: "#2BBFAA", tealD: "#25a896", tealL: "var(--teal-l,#f0fdf9)",
     border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
     txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
     display: "Inter, system-ui, sans-serif",
@@ -366,7 +366,7 @@ export function WalletDialog({
               ) : (
                 <>
                   <p style={{ fontSize: 14, fontFamily: F.display, fontWeight: 700,
-                    color: "#b45309", marginBottom: 4 }}>
+                    color: "var(--warning-text,#B45309)", marginBottom: 4 }}>
                     {t("walletDialog.unpaidHeader", { count: unpaidLessons.length })}
                   </p>
                   {unpaidLessons.map(lesson => {

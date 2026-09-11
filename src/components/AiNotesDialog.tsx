@@ -13,8 +13,8 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 const C = {
   txt: "var(--ds-txt,#0f0f1a)", ink2: "#4b5163", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
-  teal: "#2BBFAA", tealD: "#1f8e7e", tealRing: "rgba(43,191,170,.28)",
-  warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)", warnD: "#b4740b",
+  teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", tealRing: "rgba(43,191,170,.28)",
+  warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)", warnD: "var(--warning-text,#B45309)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 

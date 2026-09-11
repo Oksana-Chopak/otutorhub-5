@@ -19,18 +19,18 @@ import { openExternal } from "@/lib/openExternal";
 const R = {
   bg: "var(--ds-bg,#F5F4F0)",
   surface: "var(--ds-surface,#fff)",
-  surface2: "#f6f5f1",
+  surface2: "var(--ds-surface3,#f6f5f1)",
   txt: "var(--ds-txt,#0f0f1a)",
   sub: "var(--sub,#666b82)",
   muted: "var(--ds-muted,#6f7489)",
   border: "var(--ds-border,#eceef3)",
   teal: "#2BBFAA",
-  tealD: "#1f8e7e",
+  tealD: "var(--teal-text,#1a7a6c)",
   tealRing: "rgba(43,191,170,.28)",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
   shadowTeal: "0 8px 20px -8px rgba(43,191,170,.6)",
   shadowSm: "0 1px 4px rgba(15,15,26,.05)",
-  successD: "#16a34a",
+  successD: "var(--success-text,#11803a)",
   display: "Inter, system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -402,8 +402,8 @@ export default function MyReferralsPage() {
                     const name = names[r.referred_id] ?? t("myReferrals.you");
                     const isPro = !!r.upgraded_to_pro_at;
                     const pill = isPro
-                      ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: t("myReferrals.pillSubscription") }
-                      : { bg: "rgba(43,191,170,.12)", fg: "#1f8e7e", ring: "rgba(43,191,170,.28)", label: t("myReferrals.pillTrial") };
+                      ? { bg: "rgba(34,197,94,.14)", fg: "var(--success-text,#11803a)", ring: "rgba(34,197,94,.3)", label: t("myReferrals.pillSubscription") }
+                      : { bg: "rgba(43,191,170,.12)", fg: "var(--teal-text,#1a7a6c)", ring: "rgba(43,191,170,.28)", label: t("myReferrals.pillTrial") };
                     const note = isPro
                       ? (t("myReferrals.noteJoinedPro"))
                       : (t("myReferrals.noteJoinedTrial"));

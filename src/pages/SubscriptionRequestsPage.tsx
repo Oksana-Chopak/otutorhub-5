@@ -41,9 +41,9 @@ const statusMeta: Record<
   RequestStatus,
   { label: string; bg: string; color: string }
 > = {
-  new: { label: t("subscriptionRequests.statusNew"), bg: "rgba(43,191,170,.15)", color: "#1f8e7e" },
-  in_progress: { label: t("subscriptionRequests.statusInProgress"), bg: "rgba(245,158,11,.15)", color: "#b4740b" },
-  completed: { label: t("subscriptionRequests.statusCompleted"), bg: "rgba(34,197,94,.15)", color: "#16a34a" },
+  new: { label: t("subscriptionRequests.statusNew"), bg: "rgba(43,191,170,.15)", color: "var(--teal-text,#1a7a6c)" },
+  in_progress: { label: t("subscriptionRequests.statusInProgress"), bg: "rgba(245,158,11,.15)", color: "var(--warning-text,#B45309)" },
+  completed: { label: t("subscriptionRequests.statusCompleted"), bg: "rgba(34,197,94,.15)", color: "var(--success-text,#11803a)" },
   rejected: { label: t("subscriptionRequests.statusRejected"), bg: "rgba(224,85,47,.12)", color: "#b3441f" },
 };
 
@@ -301,7 +301,7 @@ export default function SubscriptionRequestsPage() {
                             onClick={() => updateStatus(r.id, "in_progress")}
                             disabled={savingId === r.id}
                             style={{ height: 44, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(245,158,11,.35)",
-                              background: "rgba(245,158,11,.12)", color: "#b4740b", cursor: "pointer",
+                              background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
                             {t("subscriptionRequestsExtra.takeBtn")}

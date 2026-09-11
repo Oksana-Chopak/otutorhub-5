@@ -191,7 +191,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const F = {
     teal: "var(--teal,#2BBFAA)", tealD: "var(--teal-d,#25a896)", tealL: "var(--teal-l,#f0fdf9)",
     border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)", txt: "var(--ds-txt,#0f0f1a)",
-    sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", warnD: "#B4740B",
+    sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", warnD: "var(--warning-text,#B45309)",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };

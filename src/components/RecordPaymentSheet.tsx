@@ -358,7 +358,7 @@ export function RecordPaymentSheet({
                       value={lessonsCount}
                       onChange={(e) => setLessonsCount(e.target.value)}
                       style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid var(--ds-border,#eceef3)", padding: "0 14px",
-                        fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#1f8e7e",
+                        fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "var(--teal-text,#1a7a6c)",
                         background: "var(--ds-surface,#fff)", outline: "none" }}
                     />
                   ) : (
@@ -368,7 +368,7 @@ export function RecordPaymentSheet({
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid var(--ds-border,#eceef3)", padding: "0 14px",
-                        fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#1f8e7e",
+                        fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "var(--teal-text,#1a7a6c)",
                         background: "var(--ds-surface,#fff)", outline: "none" }}
                     />
                   )}

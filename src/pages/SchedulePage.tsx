@@ -141,7 +141,7 @@ function SegSwitch<T extends string>({
           className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[15px] transition-all"
           style={
             value === o.value
-              ? { background: "var(--ds-surface,#fff)", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
+              ? { background: "var(--ds-surface,#fff)", color: "var(--teal-text,#1a7a6c)", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
               : { color: "var(--sub,#666b82)", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
           }
         >
@@ -1526,12 +1526,12 @@ export default function SchedulePage() {
           <div className="mb-3 flex items-center gap-2">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 34, padding: "0 8px 0 13px",
               borderRadius: 999, background: "rgba(245,158,11,.14)", border: "1px solid rgba(245,158,11,.35)",
-              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#b4740b" }}>
+              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "var(--warning-text,#B45309)" }}>
               {listFocus === "unpriced" ? t("schedule.focusUnpriced") : t("schedule.focusNoLink")}
               <button type="button" aria-label={t("schedule.clearFilterAria")}
                 onClick={() => { setListFocus(null); const n = new URLSearchParams(searchParams); n.delete("filter"); setSearchParams(n, { replace: true }); }}
                 style={{ width: 22, height: 22, borderRadius: 999, border: "none", cursor: "pointer",
-                  background: "rgba(180,116,11,.15)", color: "#b4740b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, lineHeight: 1 }}>
+                  background: "rgba(180,116,11,.15)", color: "var(--warning-text,#B45309)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, lineHeight: 1 }}>
                 ✕
               </button>
             </span>

@@ -55,9 +55,9 @@ const statusLabel: Record<ReferralRow["status"], string> = lazyRecord(() => ({
   closed: t("referralsPage.statusClosed"),
 })) as Record<ReferralRow["status"], string>;
 const ST: Record<ReferralRow["status"], { dot: string; bg: string; color: string }> = {
-  open: { dot: "#F59E0B", bg: "rgba(245,158,11,.16)", color: "#B4740B" },
-  in_progress: { dot: "var(--teal,#2BBFAA)", bg: "rgba(43,191,170,.14)", color: "#1f8e7e" },
-  fulfilled: { dot: "#22c55e", bg: "rgba(34,197,94,.16)", color: "#16a34a" },
+  open: { dot: "#F59E0B", bg: "rgba(245,158,11,.16)", color: "var(--warning-text,#B45309)" },
+  in_progress: { dot: "var(--teal,#2BBFAA)", bg: "rgba(43,191,170,.14)", color: "var(--teal-text,#1a7a6c)" },
+  fulfilled: { dot: "#22c55e", bg: "rgba(34,197,94,.16)", color: "var(--success-text,#11803a)" },
   closed: { dot: "#9aa0b4", bg: "rgba(147,152,176,.18)", color: "#7b8198" },
 };
 
@@ -81,7 +81,7 @@ function StatusPicker({ status, onChange }: { status: ReferralRow["status"]; onC
                 style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", border: "none", background: k === status ? "var(--ds-bg,#F5F4F0)" : "transparent", cursor: "pointer", padding: "12px 13px", borderRadius: 10, fontFamily: F, fontWeight: 700, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", textAlign: "left" }}>
                 <span style={{ width: 10, height: 10, borderRadius: 999, background: ST[k].dot, flexShrink: 0 }} />
                 {statusLabel[k]}
-                {k === status && <Check size={17} strokeWidth={2.4} style={{ marginLeft: "auto", color: "var(--teal-d,#25a896)" }} />}
+                {k === status && <Check size={17} strokeWidth={2.4} style={{ marginLeft: "auto", color: "var(--teal-text,#1a7a6c)" }} />}
               </button>
             ))}
           </div>
@@ -251,7 +251,7 @@ export default function ReferralsPage() {
                       <div style={{ fontWeight: 600, fontSize: 16, color: "var(--sub,#666b82)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.studentName}</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7, flexShrink: 0 }}>
-                      {r.budget_note && <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "var(--teal-d,#25a896)", whiteSpace: "nowrap" }}>{r.budget_note}</span>}
+                      {r.budget_note && <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "var(--teal-text,#1a7a6c)", whiteSpace: "nowrap" }}>{r.budget_note}</span>}
                       <StatusPicker status={r.status} onChange={(s) => updateStatus(r.id, s)} />
                     </div>
                   </button>
@@ -283,7 +283,7 @@ export default function ReferralsPage() {
                                 <IconC size={19} style={{ color: "var(--ds-muted,#6f7489)", flexShrink: 0 }} />
                                 <span style={{ flex: 1, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{val}</span>
                                 <button type="button" aria-label={t("chatContextPanel.copy")} onClick={() => copy(val.replace(/^@/, ""))}
-                                  style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--teal-d,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
+                                  style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--teal-text,#1a7a6c)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
                                   <Copy size={20} strokeWidth={2} />
                                 </button>
                               </div>
@@ -300,7 +300,7 @@ export default function ReferralsPage() {
                         <div style={{ display: "flex", gap: 10 }}>
                           <button type="button" onClick={() => setAssignTarget(r)}
                             style={{ flex: 1, height: 56, borderRadius: 15, border: "1.5px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--ds-txt,#0f0f1a)", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                            <Users size={20} strokeWidth={2} style={{ color: "var(--teal-d,#25a896)" }} />{t("referralsPageExtra.assignBtn")}
+                            <Users size={20} strokeWidth={2} style={{ color: "var(--teal-text,#1a7a6c)" }} />{t("referralsPageExtra.assignBtn")}
                           </button>
                           <button type="button" onClick={() => writeStudent(r.student_id)}
                             style={{ flex: 1, height: 56, borderRadius: 15, border: "none", cursor: "pointer", background: "linear-gradient(135deg,var(--teal,#2BBFAA),var(--teal-d,#25a896))", color: "#fff", fontFamily: F, fontWeight: 700, fontSize: 16, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>

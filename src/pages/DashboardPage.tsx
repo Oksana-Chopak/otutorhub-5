@@ -1633,7 +1633,7 @@ export default function DashboardPage() {
               {/* Мобільне привітання тепер живе в хедері AppLayout — тут лише десктоп */}
               <h1 className="hidden font-display text-[26px] font-extrabold leading-tight text-foreground lg:block lg:text-[28px]">
                 {timeEmoji}{" "}
-                {greeting}{firstName ? <>{","}{" "}<span style={{ color: "var(--teal)" }}>{firstName}</span></> : "!"}
+                {greeting}{firstName ? <>{","}{" "}<span style={{ color: "var(--teal-text,#1a7a6c)" }}>{firstName}</span></> : "!"}
               </h1>
               <p className="mt-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted-foreground lg:mt-2 lg:text-[16px]">
                 <Link
@@ -1645,7 +1645,7 @@ export default function DashboardPage() {
                 </Link>
                 {!showAllUpcoming && upcomingAll.length > upcomingLessons.length && (
                   <button onClick={() => setShowAllUpcoming(true)}
-                    style={{ border: "none", background: "transparent", padding: 0, color: "var(--teal,#2BBFAA)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                    style={{ border: "none", background: "transparent", padding: 0, color: "var(--teal-text,#1a7a6c)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
                     {t("dashboardExtra.showAll", { count: upcomingAll.length })}
                   </button>
                 )}
@@ -1956,7 +1956,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? t("dashboard.todayFree") : t("dashboard.lessonsToday")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal-text,#1a7a6c)" }}>{todayLessons.length === 0 ? t("dashboard.todayFree") : t("dashboard.lessonsToday")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -1999,7 +1999,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal-text,#1a7a6c)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2306,7 +2306,7 @@ export default function DashboardPage() {
                 disabled={openingManagerChat}
                 onClick={openManagerChat}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-[13px] text-[15px] font-bold transition-opacity active:opacity-80 disabled:opacity-70"
-                style={{ background: "rgba(43,191,170,.12)", color: "#1f8e7e", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.32)" }}
+                style={{ background: "rgba(43,191,170,.12)", color: "var(--teal-text,#1a7a6c)", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.32)" }}
               >
                 {openingManagerChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
                 {t("dashboard.hubManager")}
@@ -2427,7 +2427,7 @@ export default function DashboardPage() {
                 </p>
                 <button
                   className="text-[14px] font-semibold transition-colors hover:underline"
-                  style={{ color: "var(--teal)" }}
+                  style={{ color: "var(--teal-text,#1a7a6c)" }}
                   onClick={() => navigate("/schedule")}
                 >
                   {t("nav.schedule")} →
@@ -2447,7 +2447,7 @@ export default function DashboardPage() {
                           <Button
                             size="sm"
                             className="mt-3 rounded-xl"
-                            style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}
+                            style={{ background: "var(--teal-l)", color: "var(--teal-text,#1a7a6c)", border: "1px solid rgba(43,191,170,0.3)" }}
                             onClick={() => setAddStudentOpen(true)}
                           >
                             <Plus className="h-4 w-4" />
@@ -2464,7 +2464,7 @@ export default function DashboardPage() {
                             <Button
                               size="sm"
                               className="mt-3 rounded-xl"
-                              style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}
+                              style={{ background: "var(--teal-l)", color: "var(--teal-text,#1a7a6c)", border: "1px solid rgba(43,191,170,0.3)" }}
                               // Both tutor kinds get the modern quick dialog (the hub
                               // variant reads hub students + creates source='hub').
                               onClick={() => setQuickLessonOpen(true)}
@@ -2477,7 +2477,7 @@ export default function DashboardPage() {
                             <div className="mt-3">
                               <FindTutorDialog
                                 trigger={
-                                  <Button size="sm" className="rounded-xl" style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}>
+                                  <Button size="sm" className="rounded-xl" style={{ background: "var(--teal-l)", color: "var(--teal-text,#1a7a6c)", border: "1px solid rgba(43,191,170,0.3)" }}>
                                     {t("dashboard.btnRequestTutor")}
                                   </Button>
                                 }

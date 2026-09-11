@@ -46,7 +46,7 @@ interface Props {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+  teal: "#2BBFAA", tealD: "#25a896", tealL: "var(--teal-l,#f0fdf9)", txt: "var(--ds-txt,#0f0f1a)",
   sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
   gold: "#9a6a12", goldBg: "rgba(245,181,68,.16)", goldRing: "rgba(245,181,68,.4)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",

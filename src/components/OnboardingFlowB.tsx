@@ -45,7 +45,7 @@ import i18nInstance from "@/i18n";
 export 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
-  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+  teal: "#2BBFAA", tealD: "#25a896", tealL: "var(--teal-l,#f0fdf9)",
   dark: "#0f0f1a", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
   txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
   success: "#0CA678", warn: "#F59E0B", tg: "#229ED9",

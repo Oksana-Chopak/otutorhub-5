@@ -160,7 +160,11 @@ export function FinanceWeeklyChart({
             }}
             formatter={(v: number) => formatPrice(v, cur)}
           />
-          <Legend wrapperStyle={{ fontSize: 14 }} />
+          {/* 11.09: recharts фарбує підпис легенди КОЛЬОРОМ ЛІНІЇ. Бірюза лінії
+              на білому — 2.30:1, тобто імені репетитора на сонці не видно.
+              Лінії лишаються брендовими, а підписи йдуть кольором тексту. */}
+          <Legend wrapperStyle={{ fontSize: 14 }}
+            formatter={(value) => <span style={{ color: "var(--ds-txt,#0f0f1a)" }}>{value}</span>} />
           {tutorIds.map((tid, idx) => {
             const name = tutorNames[tid] ?? t("shared.noName");
             return (

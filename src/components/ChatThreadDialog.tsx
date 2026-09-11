@@ -219,7 +219,7 @@ export function ChatThreadDialog({
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 18px 10px", flexShrink: 0, borderBottom: "1px solid var(--ds-border,#eceef3)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-            <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "#f0fdf9", boxShadow: "inset 0 0 0 1.5px rgba(43,191,170,.35)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "#f0fdf9", boxShadow: "inset 0 0 0 1.5px rgba(43,191,170,.35)", color: "var(--teal-text,#1a7a6c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <MessageSquare size={18} />
             </span>
             <div style={{ minWidth: 0 }}>

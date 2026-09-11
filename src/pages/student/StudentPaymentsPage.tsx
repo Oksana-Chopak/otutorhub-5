@@ -277,11 +277,11 @@ export default function StudentPaymentsPage() {
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
               <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
-              <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#b4740b" }}>0</p>
+              <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "var(--warning-text,#B45309)" }}>0</p>
             </div>
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
               <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
-              <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#16a34a" }}>0</p>
+              <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "var(--success-text,#11803a)" }}>0</p>
             </div>
           </div>
         ) : (
@@ -290,7 +290,7 @@ export default function StudentPaymentsPage() {
               <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
-                  <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#b4740b" }}>
+                  <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "var(--warning-text,#B45309)" }}>
                     {formatPrice(v.unpaid, c, { decimals: 0 })}
                   </p>
                 ))}
@@ -309,7 +309,7 @@ export default function StudentPaymentsPage() {
               <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
-                  <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#16a34a" }}>
+                  <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "var(--success-text,#11803a)" }}>
                     {formatPrice(v.paid, c, { decimals: 0 })}
                   </p>
                 ))}
@@ -326,7 +326,7 @@ export default function StudentPaymentsPage() {
             </div>
             <ul className="space-y-2">
               {tutorsWithDetails.map((tp) => (
-                <li key={tp.tutor_id} style={{ borderRadius: 12, background: "rgba(255,255,255,.6)", padding: "11px 13px" }}>
+                <li key={tp.tutor_id} style={{ borderRadius: 12, background: "var(--ds-surface2,#fbfbfc)", padding: "11px 13px" }}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
@@ -383,7 +383,7 @@ export default function StudentPaymentsPage() {
                     <div className="min-w-0 flex-1" style={{ minWidth: 150 }}>
                       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {r.subject}
-                        {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{r.carried_over ? t("studentPagesExtra.carriedOverDebt") : t("studentPagesExtra.cancellationFee")}</span>}
+                        {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{r.carried_over ? t("studentPagesExtra.carriedOverDebt") : t("studentPagesExtra.cancellationFee")}</span>}
                       </p>
                       <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
@@ -415,7 +415,7 @@ export default function StudentPaymentsPage() {
                           aria-label={t("studentPagesExtra.copyDetails")}
                           title={t("studentPagesExtra.copyDetails")}
                           className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
-                          style={{ background: "rgba(245,158,11,.12)", color: "#b4740b", border: "none", cursor: "pointer" }}
+                          style={{ background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", border: "none", cursor: "pointer" }}
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </button>

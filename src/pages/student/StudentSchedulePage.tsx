@@ -24,10 +24,10 @@ interface Lesson {
 }
 
 const STATUS_META: Record<string, { accent: string; bg: string; fg: string }> = {
-  pending:   { accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "#b4740b" },
-  scheduled: { accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "#1f8e7e" },
-  completed: { accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "#16a34a" },
-  cancelled: { accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "#7b8198" },
+  pending:   { accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "var(--warning-text,#B45309)" },
+  scheduled: { accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "var(--teal-text,#1a7a6c)" },
+  completed: { accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "var(--success-text,#11803a)" },
+  cancelled: { accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "var(--sub,#666b82)" },
 };
 
 export default function StudentSchedulePage() {
@@ -156,7 +156,7 @@ export default function StudentSchedulePage() {
                     </p>
                   </div>
                   <Link to={`/chats?with=${l.tutor_id}`} aria-label={t("studentPages.chatWithTutorAria")}
-                    style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
+                    style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "var(--teal-text,#1a7a6c)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
                     <MessageCircle size={18} />
                   </Link>
                 </div>

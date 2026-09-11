@@ -1107,7 +1107,7 @@ export default function ChatsPage() {
                             {thread.ctx.text}
                           </span>
                           {thread.ctx.kind === "debt" && (
-                            <span className="ml-auto text-[14px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
+                            <span className="ml-auto text-[14px] font-bold whitespace-nowrap" style={{ color: "var(--warning-text,#B45309)", fontFamily: "Inter, system-ui" }}>
                               {t("chats.remindArrow")}
                             </span>
                           )}
@@ -1169,7 +1169,7 @@ export default function ChatsPage() {
                       {isManager && (
                         <span
                           className="inline-flex items-center gap-1 text-[14px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
-                          style={{ background: "rgba(245,158,11,.15)", color: "#b45309", border: "1px solid rgba(245,158,11,.3)" }}
+                          style={{ background: "rgba(245,158,11,.15)", color: "var(--warning-text,#B45309)", border: "1px solid rgba(245,158,11,.3)" }}
                         >
                           <ShieldCheck className="h-2.5 w-2.5" />
                           {t("chats.centerBadge")}
@@ -1318,7 +1318,7 @@ export default function ChatsPage() {
                                   className="inline-flex items-center gap-1 text-[14px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
                                   style={{
                                     background: "rgba(245,158,11,.18)",
-                                    color: "#b45309",
+                                    color: "var(--warning-text,#B45309)",
                                     fontFamily: "Inter, system-ui",
                                   }}
                                 >

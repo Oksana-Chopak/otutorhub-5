@@ -179,7 +179,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
 }
 
 const P = {
-  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+  teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", tealL: "var(--teal-l,#f0fdf9)",
   border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
   txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif",
@@ -1073,12 +1073,12 @@ export default function ProfilePage() {
                 {subjects.map(s => (
                   <span key={s} style={{ display: "flex", alignItems: "center", gap: 5,
                     padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
-                    background: "rgba(43,191,170,.1)", color: "#25a896",
+                    background: "rgba(43,191,170,.1)", color: "var(--teal-text,#1a7a6c)",
                     border: "1px solid rgba(43,191,170,.3)" }}>
                     {s}
                     <button onClick={() => setSubjects(prev => prev.filter(x => x !== s))}
                       style={{ background: "none", border: "none", cursor: "pointer",
-                        color: "#25a896", padding: 0, lineHeight: 1, fontSize: 16 }}>×</button>
+                        color: "var(--teal-text,#1a7a6c)", padding: 0, lineHeight: 1, fontSize: 16 }}>×</button>
                   </span>
                 ))}
               </div>

@@ -78,7 +78,7 @@ export function StreakCard({ streak, className }: Props) {
         </p>
       )}
       {showProBonus && toNextBonus > 0 && toNextBonus <= 14 && (
-        <p className="mt-3 rounded-[10px] p-2 text-[14px]" style={{ background: "#f0fdf9", color: "#1f8e7e" }}>
+        <p className="mt-3 rounded-[10px] p-2 text-[14px]" style={{ background: "#f0fdf9", color: "var(--teal-text,#1a7a6c)" }}>
           {t("streak.daysToBonus", { count: toNextBonus })}
         </p>
       )}

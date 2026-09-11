@@ -125,7 +125,7 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
 /** P7: хойст — 5 використань ремаунтились на кожен рендер бейджів. */
 const Pill = ({ tone, children }: { tone: string; children: React.ReactNode }) => {
   const colors: Record<string, { bg: string; color: string; border: string }> = {
-    warn:  { bg: "rgba(245,158,11,.12)", color: "#b45309", border: "rgba(245,158,11,.3)" },
+    warn:  { bg: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", border: "rgba(245,158,11,.3)" },
     muted: { bg: "rgba(148,155,185,.12)", color: T.sub,    border: "rgba(148,155,185,.3)" },
     teal:  { bg: "rgba(43,191,170,.12)", color: T.tealD,   border: "rgba(43,191,170,.3)" },
     blue:  { bg: "rgba(99,102,241,.12)", color: "#4f46e5", border: "rgba(99,102,241,.3)" },
@@ -215,7 +215,9 @@ function PersonCardImpl({
       style={{
         display: "flex", alignItems: "center", gap: 13, cursor: "pointer",
         borderRadius: 18, padding: "13px 14px",
-        background: active ? "rgba(43,191,170,0.07)" : "#fff",
+        // 11.09: тло картки було вшите білим літералом — у темній темі рядок лишався
+        // білим, а світлий текст на ньому давав 1.1:1. Токен існує в обох темах.
+        background: active ? "rgba(43,191,170,0.07)" : "var(--ds-surface,#fff)",
         border: active ? "1.5px solid rgba(43,191,170,0.4)" : `1px solid ${T.border}`,
         boxShadow: hover && !active
           ? "0 4px 14px -4px rgba(15,15,26,0.12)"

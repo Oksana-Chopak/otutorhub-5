@@ -200,6 +200,23 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   src/test/security-invariants.test.ts).
 
 ### Theme & colors — INVIOLABLE (added 01.08 after repeated dark-theme bugs)
+- **11.09 — ХВИЛЯ КОНТРАСТУ + ЛАГОДЖЕННЯ ДАРКУ (стояча згода власниці на косметику).**
+  Колір БРЕНДУ і колір ТЕКСТУ — різні речі. `#2BBFAA` як заливка кнопки бездоганний,
+  як колір напису дає 2.30:1 — за ТЗ доступності (зір ~80%, робота на сонці) такі
+  написи зникають. Тому є окремі ТЕКСТОВІ токени, визначені в ОБОХ темах:
+  `--teal-text` · `--success-text` · `--warning-text` · `--danger-text` · `--violet-text`.
+  Заливки, крапки, акценти, градієнти лишаються брендовими — темнішає ЛИШЕ напис.
+  Утиліти `.text-primary/.text-success/.text-warning/.text-destructive` перевизначені
+  в `@layer utilities` на ці токени (112+75 вживань полагоджено однією правкою).
+  **Системна пастка, через яку дарк ламався роками:** 55 місць писали
+  `var(--txt,#0f0f1a)`, `var(--bg,#F5F4F0)`, `var(--surface,#fff)` — а цих змінних
+  НЕ ІСНУВАЛО, тож в ОБОХ темах бралась світла підстраховка з дужок (чорний текст
+  на темній картці, 1.04:1). Тепер вони визначені як псевдоніми `--ds-*` і
+  перемикаються самі. Так само вшиті світлі підкладки `#f6f5f1` / `#f0fdf9` / `#fff`
+  переведені на `--ds-surface3` / `--teal-l` / `--ds-surface`.
+  Стереже `contrast-gate.test.ts` (токени ≥4.5:1 у світлій І темній + псевдоніми
+  визначені + ратчет teal-літералів ≤11). Перевірено роботом у ОБОХ темах на
+  390×844 по чотирьох персонах: 0 порушень контрасту.
 - NEVER hardcode text/background hex in components. Use theme tokens:
   text-foreground / text-muted-foreground / bg-card / bg-secondary /
   border-border / bg-primary+text-primary-foreground, or hsl(var(--token)) in CSS.

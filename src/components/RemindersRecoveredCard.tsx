@@ -93,7 +93,7 @@ export function RemindersRecoveredCard() {
       <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
         💌 {t("remindersRecovered.label")}
       </p>
-      <p className="mt-1 text-[22px] font-extrabold" style={{ color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif", letterSpacing: "-.01em" }}>
+      <p className="mt-1 text-[22px] font-extrabold" style={{ color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif", letterSpacing: "-.01em" }}>
         {sumLabel}
       </p>
       <p className="mt-0.5 text-[14px] text-muted-foreground">

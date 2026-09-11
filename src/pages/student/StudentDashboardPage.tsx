@@ -251,7 +251,7 @@ export default function StudentDashboardPage() {
   }
 
   const DS = {
-    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+    teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", tealL: "var(--teal-l,#f0fdf9)", txt: "var(--ds-txt,#0f0f1a)",
     sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
@@ -417,7 +417,7 @@ export default function StudentDashboardPage() {
           <Link to="/student/payments" style={{ textDecoration: "none" }}>
             <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(245,181,68,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <DollarSign className="h-5 w-5" style={{ color: "#b4740b" }} />
+                <DollarSign className="h-5 w-5" style={{ color: "var(--warning-text,#B45309)" }} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 14, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.awaitingPayment")}</p>

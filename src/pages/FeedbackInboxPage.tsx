@@ -22,8 +22,8 @@ interface Row {
 
 const CAT: Record<Category, { icon: typeof Bug; bg: string; color: string }> = {
   bug: { icon: Bug, bg: "rgba(224,85,47,.12)", color: "#b3441f" },
-  idea: { icon: Lightbulb, bg: "rgba(43,191,170,.14)", color: "#1f8e7e" },
-  question: { icon: HelpCircle, bg: "rgba(245,158,11,.14)", color: "#b4740b" },
+  idea: { icon: Lightbulb, bg: "rgba(43,191,170,.14)", color: "var(--teal-text,#1a7a6c)" },
+  question: { icon: HelpCircle, bg: "rgba(245,158,11,.14)", color: "var(--warning-text,#B45309)" },
   other: { icon: MessageSquare, bg: "rgba(15,15,26,.06)", color: "#6b7280" },
 };
 
@@ -187,7 +187,7 @@ export default function FeedbackInboxPage() {
                       </div>
                     </div>
                     {r.status === "new" && (
-                      <span style={{ flexShrink: 0, height: 22, padding: "0 9px", borderRadius: 999, background: "rgba(43,191,170,.15)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center" }}>NEW</span>
+                      <span style={{ flexShrink: 0, height: 22, padding: "0 9px", borderRadius: 999, background: "rgba(43,191,170,.15)", color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center" }}>NEW</span>
                     )}
                   </div>
 
@@ -202,7 +202,7 @@ export default function FeedbackInboxPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {r.status !== "in_progress" && (
                         <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "in_progress")}
-                          style={{ height: 36, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(245,158,11,.35)", background: "rgba(245,158,11,.12)", color: "#b4740b", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                          style={{ height: 36, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(245,158,11,.35)", background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                           {t("feedbackInbox.takeInProgress")}
                         </button>
                       )}

@@ -28,7 +28,7 @@ interface MyTutor {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#1f8e7e", ink: "#0f0f1a", sub: "var(--sub,#666b82)",
+  teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", ink: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)",
   border: "var(--ds-border,#eceef3)", surface: "var(--ds-surface,#fff)", bg: "var(--ds-bg,#F5F4F0)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui",
 };
@@ -184,7 +184,7 @@ export default function StudentProfilePage() {
                   <p style={{ fontFamily: C.body, fontSize: 15, color: C.sub, marginTop: 3 }}>{user?.email}</p>
                   {/* Role pill — required by STUDENT-CABINET-HANDOFF §7 (hero: avatar, name, email, «🎓 Учень») */}
                   <span className="mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] font-bold"
-                    style={{ background: "rgba(43,191,170,0.12)", color: "var(--teal-d,#25a896)" }}>
+                    style={{ background: "rgba(43,191,170,0.12)", color: "var(--teal-text,#1a7a6c)" }}>
                     🎓 {t("roles.student")}
                   </span>
                 </div>
@@ -271,7 +271,7 @@ export default function StudentProfilePage() {
 
             <button onClick={signOut}
               style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 14, cursor: "pointer",
-                border: `1.5px solid ${C.border}`, background: C.surface, color: "#e0552f", fontFamily: C.display, fontWeight: 600, fontSize: 14 }}>
+                border: `1.5px solid ${C.border}`, background: C.surface, color: "var(--danger-text,#c6421d)", fontFamily: C.display, fontWeight: 600, fontSize: 14 }}>
               <LogOut className="h-4 w-4" />
               {t("common.logout")}
             </button>

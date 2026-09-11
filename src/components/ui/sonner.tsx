@@ -24,10 +24,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       gap={10}
       closeButton
       icons={{
-        success: <CheckCircle2 className="h-5 w-5" style={{ color: "#16a34a" }} />,
-        error: <XCircle className="h-5 w-5" style={{ color: "#e0552f" }} />,
+        success: <CheckCircle2 className="h-5 w-5" style={{ color: "var(--success-text,#11803a)" }} />,
+        error: <XCircle className="h-5 w-5" style={{ color: "var(--danger-text,#c6421d)" }} />,
         info: <Info className="h-5 w-5" style={{ color: "#2BBFAA" }} />,
-        warning: <AlertTriangle className="h-5 w-5" style={{ color: "#B4740B" }} />,
+        warning: <AlertTriangle className="h-5 w-5" style={{ color: "var(--warning-text,#B45309)" }} />,
       }}
       toastOptions={{
         classNames: {

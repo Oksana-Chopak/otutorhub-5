@@ -1103,7 +1103,7 @@ export default function PeoplePage() {
                           type="button"
                           aria-label={t("people.copyAriaLabel")}
                           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] transition-colors hover:bg-[#f0fdf9]"
-                          style={{ color: "#25a896" }}
+                          style={{ color: "var(--teal-text,#1a7a6c)" }}
                           onClick={(e) => {
                             e.stopPropagation();
                             navigator.clipboard.writeText(String(c.v));
@@ -1343,7 +1343,9 @@ export default function PeoplePage() {
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 700,
                 fontSize: 14,
-                background: statusFilter === pill.value ? "#E1F5EE" : "#fff",
+                // 11.09: тло пігулки було вшите білим — у темній темі фільтри лишались
+                // білими плашками зі світлим написом (2.2:1).
+                background: statusFilter === pill.value ? "#E1F5EE" : "var(--ds-surface,#fff)",
                 border: `1.5px solid ${statusFilter === pill.value ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
                 color: statusFilter === pill.value ? "#0F6E56" : "var(--sub,#666b82)",
               }}
@@ -2048,7 +2050,7 @@ export default function PeoplePage() {
                       type="button"
                       aria-label={t("people.copyAriaLabel")}
                       className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
-                      style={{ color: "#25a896" }}
+                      style={{ color: "var(--teal-text,#1a7a6c)" }}
                       onClick={() => { navigator.clipboard.writeText(u.phone!); toast.success(t("people.copied"), { description: u.phone! }); }}
                     >
                       <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
@@ -2063,7 +2065,7 @@ export default function PeoplePage() {
                       type="button"
                       aria-label={t("people.copyAriaLabel")}
                       className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
-                      style={{ color: "#25a896" }}
+                      style={{ color: "var(--teal-text,#1a7a6c)" }}
                       onClick={() => { navigator.clipboard.writeText(u.email!); toast.success(t("people.copied"), { description: u.email! }); }}
                     >
                       <Copy className="h-[19px] w-[19px]" strokeWidth={2} />

@@ -301,7 +301,7 @@ export function AppSidebar() {
         {/* Help: setup guide (independent only) + feedback (everyone) — kept under the
             same "Допомога" heading so support is always in one place. */}
         <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <p className="mb-1.5 px-3 text-[15px] font-semibold uppercase tracking-wider text-slate-500">
+          <p className="mb-1.5 px-3 text-[15px] font-semibold uppercase tracking-wider text-slate-400">
             {t("nav.help")}
           </p>
           {showOnboardingHelp && (
@@ -337,7 +337,7 @@ export function AppSidebar() {
         </div>
 
         <div className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <div className="flex items-center justify-center gap-3 pt-1 text-[14px] text-slate-500">
+          <div className="flex items-center justify-center gap-3 pt-1 text-[14px] text-slate-400">
             <button type="button" onClick={() => { setOpen(false); navigate("/privacy"); }} className="underline hover:text-slate-300">{t("landing.footer.privacy")}</button>
             <span>·</span>
             <button type="button" onClick={() => { setOpen(false); navigate("/terms"); }} className="underline hover:text-slate-300">{t("landing.footer.terms")}</button>

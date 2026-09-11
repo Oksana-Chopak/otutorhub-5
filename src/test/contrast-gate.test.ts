@@ -82,6 +82,48 @@ describe("контраст-гейт (WCAG AA)", () => {
     expect(contrast(hslToken("--warning-foreground"), hslToken("--warning"))).toBeGreaterThanOrEqual(4.5);
   });
 
+  /**
+   * 11.09, хвиля контрасту. Бренд лишається бірюзовим — темнішає ЛИШЕ колір
+   * читабельного тексту. Токени нижче і є тим «лише».
+   */
+  it("текстові токени 11.09 ≥ 4.5:1 у світлій темі (білий І бежевий фон)", () => {
+    for (const name of ["--teal-text", "--success-text", "--danger-text", "--violet-text"]) {
+      const rgb = hexToken(name);
+      expect(contrast(rgb, WHITE), `${name} на білому`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(rgb, BG), `${name} на #F5F4F0`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("ті самі токени ≥ 4.5:1 у ДАРКУ (інакше правка світлої теми ламає темну)", () => {
+    const darkBlocks = css.match(/\.dark \{[\s\S]*?\n {2}\}/g) ?? [];
+    const all = darkBlocks.join("\n");
+    const darkHex = (name: string): [number, number, number] => {
+      const m = all.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`));
+      if (!m) throw new Error(`токен ${name} не знайдено в .dark`);
+      return hexToRgb(m[1]);
+    };
+    const surface = darkHex("--ds-surface");
+    const bg = darkHex("--ds-bg");
+    for (const name of ["--teal-text", "--success-text", "--warning-text", "--danger-text", "--violet-text"]) {
+      const rgb = darkHex(name);
+      expect(contrast(rgb, surface), `${name} на dark surface`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(rgb, bg), `${name} на dark bg`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  /**
+   * Системна пастка, через яку дарк ламався роками: 55 місць писали
+   * `var(--txt,#0f0f1a)` / `var(--bg,#F5F4F0)` / `var(--surface,#fff)`, а самих
+   * змінних НЕ ІСНУВАЛО — тобто в ОБОХ темах бралась світла підстраховка з
+   * дужок, і в темній виходив чорний текст на темній картці (1.04:1).
+   */
+  it("старі імена токенів визначені й ведуть на DS-токени", () => {
+    for (const [legacy, ds] of [["--txt", "--ds-txt"], ["--bg", "--ds-bg"], ["--surface", "--ds-surface"]]) {
+      expect(css, `${legacy} мусить бути псевдонімом ${ds}`)
+        .toMatch(new RegExp(`${legacy}:\\s*var\\(${ds}\\)`));
+    }
+  });
+
   it("ratchet: відомі низькоконтрастні літерали не повертаються", () => {
     const files = globSync("src/**/*.{ts,tsx,css}", { ignore: ["src/test/**"] });
     let dead = 0; // #b0b4c8 (2.06:1) — замінено на #6f7489 хвилею C1; має лишатись 0
@@ -92,6 +134,6 @@ describe("контраст-гейт (WCAG AA)", () => {
       tealText += (src.match(/text-\[#2BBFAA\]|color:\s*["']#2BBFAA["']/g) ?? []).length;
     }
     expect(dead, "#b0b4c8 повернувся — це 2.06:1").toBe(0);
-    expect(tealText, "нових teal-текстів (2.30:1) бути не може").toBeLessThanOrEqual(13);
+    expect(tealText, "нових teal-текстів (2.30:1) бути не може").toBeLessThanOrEqual(11);
   });
 });

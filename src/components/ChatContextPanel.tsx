@@ -209,7 +209,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
                     <p className="text-[14px] uppercase tracking-wide" style={{ color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui" }}>{t("chatContextPanel.phone")}</p>
                     <p className="text-[14px] truncate" style={{ color: "var(--ds-txt,#0f0f1a)" }}>{contact.phone}</p>
                   </div>
-                  <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "#1f8e7e" }} title={t("chatContextPanel.call")}>
+                  <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "var(--teal-text,#1a7a6c)" }} title={t("chatContextPanel.call")}>
                     <Phone size={15} />
                   </a>
                   <button onClick={async () => {

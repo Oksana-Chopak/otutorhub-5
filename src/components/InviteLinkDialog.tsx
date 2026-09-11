@@ -146,7 +146,7 @@ export function InviteLinkDialog({
           {/* Status box */}
           {email && emailSent ? (
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start", borderRadius: 13, border: "1px solid rgba(34,197,94,.4)", background: "rgba(34,197,94,.06)", padding: 13 }}>
-              <MailCheck className="h-[19px] w-[19px] shrink-0" style={{ color: "#16a34a", marginTop: 1 }} />
+              <MailCheck className="h-[19px] w-[19px] shrink-0" style={{ color: "var(--success-text,#11803a)", marginTop: 1 }} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", wordBreak: "break-all" }}>
                   {t("inviteLinkExtra.emailSentLabel", { email })}
@@ -154,7 +154,7 @@ export function InviteLinkDialog({
                 <div style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--sub,#666b82)", marginTop: 3, lineHeight: 1.45 }}>
                   {t("inviteLinkExtra.notReceived")}{" "}
                   <button onClick={handleResendEmail} disabled={resending}
-                    style={{ border: "none", background: "none", padding: 0, cursor: resending ? "default" : "pointer", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: "#16a34a", textDecoration: "underline", textUnderlineOffset: 2, whiteSpace: "nowrap" }}>
+                    style={{ border: "none", background: "none", padding: 0, cursor: resending ? "default" : "pointer", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: "var(--success-text,#11803a)", textDecoration: "underline", textUnderlineOffset: 2, whiteSpace: "nowrap" }}>
                     {resending ? t("inviteLinkExtra.sending") : t("inviteLinkExtra.resendInline")}
                   </button>.
                 </div>

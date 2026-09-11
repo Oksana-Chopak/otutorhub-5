@@ -128,7 +128,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
   const isReady = !!(state.summary || state.transcript?.length || state.recordingUrl);
 
   const L = {
-    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+    teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", tealL: "var(--teal-l,#f0fdf9)", txt: "var(--ds-txt,#0f0f1a)",
     sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
@@ -162,7 +162,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
 
       {canRecord && !isReady && !isProcessing && (
         <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(245,181,68,.35)", background: "rgba(245,181,68,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 14, lineHeight: 1.45, color: L.txt }}>
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#b4740b" }} />
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--warning-text,#B45309)" }} />
           <p>{t("firefliesPanel.recordingWarning")}</p>
         </div>
       )}

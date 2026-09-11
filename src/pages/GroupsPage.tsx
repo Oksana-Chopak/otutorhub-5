@@ -35,7 +35,7 @@ const T = {
   border: "var(--ds-border,#eceef3)",
   bg: "var(--ds-bg,#F5F4F0)",
   gold: "#9a6a12",
-  coral: "#e0552f",
+  coral: "var(--danger-text,#c6421d)",
   tealL: "var(--teal-l, #f0fdf9)",
 };
 const GRAD_TEAL = "linear-gradient(135deg,#2BBFAA,#25a896)";
@@ -188,7 +188,7 @@ export default function GroupsPage() {
                 style={{ borderRadius: 18, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: 14, cursor: "pointer" }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 46, height: 46, borderRadius: 999, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 46, height: 46, borderRadius: 999, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "var(--teal-text,#1a7a6c)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Users2 size={22} />
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
@@ -198,7 +198,7 @@ export default function GroupsPage() {
                     )}
                   </div>
                 </div>
-                <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 12px", borderRadius: 999, background: "#f0fdf9", color: "#1f8e7e", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 12px", borderRadius: 999, background: "#f0fdf9", color: "var(--teal-text,#1a7a6c)", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                   👥 {t("groupsPage.membersCount", { count: enrollCountFor(g.id) })}
                 </div>
               </button>
