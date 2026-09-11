@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 interface LessonRowFull {
   id: string;
@@ -45,6 +46,9 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   const { user, roles } = useAuth();
   const [row, setRow] = useState<LessonRowFull | null>(null);
   const [studentName, setStudentName] = useState("");
+  // Матеріали учня живуть на /my-students — тобто лише в незалежного репетитора.
+  // Менеджер має свій список у «Людях», учень — свою сторінку; їм посилання не даємо.
+  const isTutorViewer = roles.includes("tutor") && !roles.includes("manager");
   const [dtEdit, setDtEdit] = useState(false);
   const [dtVal, setDtVal] = useState("");
   const [durVal, setDurVal] = useState(60);
@@ -170,7 +174,18 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             </div>
             {(studentName || sub) && (
               <div className="text-muted-foreground flex items-center gap-1.5" style={{ fontSize: 15, marginTop: 1, minWidth: 0 }}>
-                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[studentName, sub].filter(Boolean).join(" · ")}</span>
+                {/* 11.09: імʼя учня — вхід у його матеріали. Картку уроку чіпати
+                    не можна (її дизайн під захистом), а тут дотик по імені ні з
+                    чим не конкурує: сам урок уже відкритий. */}
+                {studentName && isTutorViewer && row?.student_id ? (
+                  <Link to={`/my-students?open=${row.student_id}`} onClick={() => onOpenChange(false)}
+                    className="hover:underline"
+                    style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "inherit", textDecoration: "none" }}>
+                    {[studentName, sub].filter(Boolean).join(" · ")}
+                  </Link>
+                ) : (
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[studentName, sub].filter(Boolean).join(" · ")}</span>
+                )}
                 {canReschedule && !dtEdit && (
                   <button type="button" aria-label={t("lessonCard.edit")} onClick={openDtEdit}
                     className="text-muted-foreground hover:text-foreground shrink-0 rounded p-0.5">

@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
 import { ImportStudentsSheet } from "@/components/ImportStudentsSheet";
+import { StudentMaterials } from "@/components/StudentMaterials";
+import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { peekLandingHandoff, consumeLandingHandoff, claimHandoffShown } from "@/lib/landingFunnel";
 import { supabase } from "@/integrations/supabase/client";
 import { isStudentDebtLesson } from "@/lib/financials";
@@ -169,37 +171,6 @@ const CopyMini = ({ value, label }: { value: string; label: string }) => {
 export default function MyStudentsPage() {
   const { t } = useTranslation();
   // Історія уроків на картці: лінива, кешована по учню.
-  const [historyFor, setHistoryFor] = useState<string | null>(null);
-  const [historyLoading, setHistoryLoading] = useState<string | null>(null);
-  const [historyData, setHistoryData] = useState<Record<string, { id: string; starts_at: string; status: string; summary: string | null }[]>>({});
-  const loadHistory = async (sid: string) => {
-    if (historyFor === sid) { setHistoryFor(null); return; }
-    setHistoryFor(sid);
-    if (historyData[sid]) return;
-    setHistoryLoading(sid);
-    // 07.09: перенесені борги (carried_over) — не уроки, в історії їх нема.
-    const runHist = (withCarried: boolean) => supabase
-      .from("lessons_visible")
-      .select(("id, starts_at, status" + (withCarried ? ", carried_over" : "")) as any)
-      .eq("tutor_id", user!.id)
-      .eq("student_id", sid)
-      .order("starts_at", { ascending: false })
-      .limit(10);
-    let { data: les } = await runHist(true);
-    if (les) les = ((les ?? []) as any[]).filter((l) => l.carried_over !== true) as any;
-    else ({ data: les } = await runHist(false));
-    const ids = (les ?? []).map((l: any) => l.id);
-    const firstLine: Record<string, string> = {};
-    if (ids.length) {
-      const { data: det } = await supabase.from("lesson_details").select("lesson_id, summary").in("lesson_id", ids);
-      (det ?? []).forEach((d: any) => {
-        const sm = (d.summary ?? "").trim();
-        if (sm) firstLine[d.lesson_id] = sm.split("\n")[0];
-      });
-    }
-    setHistoryData((p) => ({ ...p, [sid]: (les ?? []).map((l: any) => ({ ...l, summary: firstLine[l.id] ?? null })) }));
-    setHistoryLoading(null);
-  };
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
@@ -746,6 +717,20 @@ export default function MyStudentsPage() {
   // 05.09 (премортем п.2): масовий імпорт списку учнів текстом.
   const [importOpen, setImportOpen] = useState(false);
 
+  // 11.09: /my-students?open=<id> відкриває аркуш учня одразу. Так будь-яке
+  // імʼя учня в застосунку стає посиланням на його матеріали — без того, щоб
+  // монтувати цей аркуш на кожній сторінці окремо.
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (!openId) return;
+    setSelectedStudentId(openId);
+    const n = new URLSearchParams(searchParams);
+    n.delete("open");
+    setSearchParams(n, { replace: true });
+    // лише при першому заході за посиланням
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Обіцянка з лендінгу: «створиш акаунт — і цей список уже буде всередині».
   // Тут вона виконується для тих, хто зайшов сюди сам (новий репетитор отримує
   // те саме вікно ще в онбордингу). Естафета — з усіх трьох джерел
@@ -761,6 +746,8 @@ export default function MyStudentsPage() {
   }, [user?.id]);
   const [subjectOpen, setSubjectOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  // 11.09: із матеріалів учня можна одразу відкрити сам урок.
+  const [lessonDetailsId, setLessonDetailsId] = useState<string | null>(null);
 
   const activeStudents = students.filter((s) => !s.archived_at);
   const archivedStudents = students.filter((s) => !!s.archived_at);
@@ -944,11 +931,10 @@ export default function MyStudentsPage() {
                     </div>
                   </div>
 
-                  {/* B14: найчастіша дія — першою на картці */}
-                  <button onClick={() => setLessonDialog({ open: true, studentId: s.id })}
-                    style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: T.display, fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: "0 8px 18px -8px rgba(43,191,170,.65)" }}>
-                    {t("myStudents.scheduleLesson")}
-                  </button>
+                  {/* 11.09: «Запланувати урок» і «Написати» переїхали ВНИЗ аркуша
+                      тихими кнопками. Тут, угорі, кричущий градієнт на всю ширину
+                      забирав увагу в того, заради чого аркуш і відкривають — у
+                      матеріалів учня. */}
 
                   {/* Debt alert */}
                   {s.unpaid_total > 0 && (
@@ -971,88 +957,37 @@ export default function MyStudentsPage() {
                       зручний час. Рендерить null, якщо квіза немає. */}
                   <StudentGoalCard studentId={s.id} />
 
-                  {/* Історія уроків: конспекти нарешті видно прямо з картки. */}
-                  <button onClick={() => void loadHistory(s.id)}
-                    style={{ width: "100%", height: 44, borderRadius: 14, border: `1px solid ${T.border}`, background: "transparent", color: T.sub, fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-                    🕐 {t("myStudents.history")} {historyFor === s.id ? "▴" : "▾"}
-                  </button>
-                  {historyFor === s.id && (
-                    <div style={{ borderRadius: 16, border: `1px solid ${T.border}`, overflow: "hidden" }}>
-                      {historyLoading === s.id ? (
-                        <div style={{ padding: 14, fontFamily: T.body, fontSize: 14, color: T.sub }}>…</div>
-                      ) : !(historyData[s.id]?.length) ? (
-                        <div style={{ padding: 14, fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.historyEmpty")}</div>
-                      ) : (
-                        historyData[s.id].map((h) => (
-                          <div key={h.id} style={{ padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 10, alignItems: "baseline" }}>
-                            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.txt, flexShrink: 0 }}>
-                              {new Date(h.starts_at).toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" })}
-                            </span>
-                            <span style={{ fontSize: 13, flexShrink: 0 }}>{h.status === "completed" ? "✅" : h.status === "cancelled" ? "✖️" : "🕓"}</span>
-                            <span style={{ fontFamily: T.body, fontSize: 14, color: h.summary ? T.txt : T.sub, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {h.summary ?? t("myStudents.noSummary")}
-                            </span>
-                          </div>
-                        ))
-                      )}
+                  {/* 11.09: матеріали учня — хронологією і РОЗГОРНУТО.
+                      Було: згорнута «Історія» з першим рядком конспекту й без
+                      посилань — щоб щось прочитати, репетиторка стрибала від
+                      уроку до уроку. */}
+                  <div>
+                    <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: T.txt, marginBottom: 10 }}>
+                      🗂 {t("studentMaterials.title")}
                     </div>
-                  )}
-
-                  {/* Stats */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div style={{ borderRadius: 16, padding: 14, background: "var(--ds-surface,#fff)", border: `1px solid ${T.border}` }}>
-                      <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, color: T.txt }}>{(s as any).total_lessons ?? 0}</div>
-                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.totalLessonsLabel")}</div>
-                    </div>
-                    <div style={{ borderRadius: 16, padding: 14, background: "var(--ds-surface,#fff)", border: `1px solid ${T.border}` }}>
-                      <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: (s as any).next_lesson_at ? T.tealD : T.muted }}>{nextLessonLabel}</div>
-                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.nextLessonLabel")}</div>
-                    </div>
+                    <StudentMaterials studentId={s.id} tutorId={user!.id}
+                      onOpenLesson={(id) => { setSelectedStudentId(null); setLessonDetailsId(id); }} />
                   </div>
-
-                  {/* Wallet package */}
-                  {(s.wallet_lessons ?? 0) > 0 && (
-                    <div style={{ borderRadius: 16, padding: "13px 15px", background: "#f0fdf9", border: "1px solid rgba(43,191,170,.28)", display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={{ fontSize: 18 }}>📦</span>
-                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.tealD }}>{t("myStudents.walletPackageLabel", { count: s.wallet_lessons })}</div>
-                    </div>
-                  )}
-
-                  {/* Contacts */}
-                  {contacts.length > 0 && (
-                    <div>
-                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-                        {contacts.map((c) => (
-                          <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)" }}>
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
-                              <div style={{ fontFamily: T.body, fontSize: 15.5, color: T.txt, marginTop: 1 }} className="truncate">{c.value}</div>
-                            </div>
-                            {c.tel && (
-                              <a href={`tel:${c.value}`} aria-label={t("myStudents.callAria")} style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", color: T.tealD }}>
-                                <Phone size={19} strokeWidth={2} />
-                              </a>
-                            )}
-                            <CopyMini value={c.value as string} label={c.label} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Sticky actions */}
-                <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "12px 16px 16px", borderTop: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)" }}>
+                {/* 11.09: дії внизу аркуша і ТИХІ. Раніше «Написати» світилось
+                    градієнтом на всю ширину, а «Запланувати урок» — ще й угорі:
+                    два кричущі прямокутники на екрані, де головне — матеріали.
+                    Тепер рівноцінні кнопки з контуром, 48px — цілі дотику збережено. */}
+                <div style={{ flexShrink: 0, display: "flex", gap: 8, padding: "12px 16px 16px", borderTop: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)" }}>
                   {s.phone && (
-                    <a href={`tel:${s.phone}`}
-                      style={{ flexShrink: 0, height: 50, padding: "0 18px", borderRadius: 14, border: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)", color: T.tealD, fontFamily: T.display, fontWeight: 700, fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                      <Phone size={18} strokeWidth={2} /> {t("people.call")}
+                    <a href={`tel:${s.phone}`} aria-label={t("people.call")}
+                      style={{ flexShrink: 0, width: 48, height: 48, borderRadius: 14, border: `1px solid ${T.border}`, background: "transparent", color: T.sub, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Phone size={19} strokeWidth={1.9} />
                     </a>
                   )}
+                  <button onClick={() => setLessonDialog({ open: true, studentId: s.id })}
+                    style={{ flex: 1, height: 48, borderRadius: 14, border: `1px solid ${T.border}`, background: "transparent", color: T.txt, fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    <CalendarPlus size={19} strokeWidth={1.9} style={{ color: T.tealD }} /> {t("myStudents.scheduleLesson")}
+                  </button>
                   <button onClick={() => navigate(`/chats?with=${s.id}`)}
-                    style={{ flex: 1, height: 50, borderRadius: 14, border: "none", background: `linear-gradient(135deg,${T.teal},${T.tealD})`, color: "#0f0f1a", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
-                    <MessageCircle size={19} strokeWidth={2} /> {t("people.write")}
+                    style={{ flex: 1, height: 48, borderRadius: 14, border: `1px solid ${T.border}`, background: "transparent", color: T.txt, fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    <MessageCircle size={19} strokeWidth={1.9} style={{ color: T.tealD }} /> {t("people.write")}
                   </button>
                 </div>
               </div>
@@ -1381,6 +1316,12 @@ export default function MyStudentsPage() {
         />
       )}
       <PageFAB onClick={openCreate} label={t("myStudents.addStudent")} />
+      <LessonDetailsDialog
+        lessonId={lessonDetailsId}
+        open={!!lessonDetailsId}
+        onOpenChange={(o) => { if (!o) setLessonDetailsId(null); }}
+        onUpdated={() => void load()}
+      />
       <ImportStudentsSheet
         open={importOpen}
         onOpenChange={setImportOpen}

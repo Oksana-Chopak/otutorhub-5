@@ -1134,6 +1134,18 @@ export const sv: LocaleTranslations = {
     chipCancel: "Avgift för sen avbokning",
     chipUnlimited: "Obegränsat antal {{clientsGen}} och {{sessionsGen}}",
   },
+  studentMaterials: {
+    title: "Material",
+    loading: "Samlar material…",
+    failed: "Kunde inte ladda material. Prova att uppdatera sidan.",
+    empty: "Inget material än — det dyker upp efter första sammanfattningen, läxan eller filen ✨",
+    summary: "Sammanfattning",
+    homework: "Läxa",
+    privateNote: "Anteckning — bara du ser den",
+    openLesson: "Öppna lektion",
+    more: "Visa allt",
+    less: "Fäll ihop",
+  },
   landingCalc: {
     prepaidOnly_one: "Du har {{amount}} förskottsbetalt av {{count}} elev — de lektionerna återstår.",
     prepaidOnly_other: "Du har {{amount}} förskottsbetalt av {{count}} elever — de lektionerna återstår.",

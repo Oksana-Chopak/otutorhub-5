@@ -260,13 +260,33 @@ export default function StudentHomeworkPage() {
       <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "var(--ds-surface2,#fbfbfc)", border: "1px solid var(--ds-border,#eceef3)", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)" }}>
         {r.homework}
       </p>
+      {/* 11.09: конспект видно ОДРАЗУ, а не за кнопкою. Учень має бачити
+          матеріали уроку підряд, не стрибаючи й не згадуючи, де що сховано.
+          Довгий обрізаємо — сторінка лишається оглядовою. */}
+      {r.hasAiNote && (() => {
+        const long = r.aiNote.length > 260;
+        const openNote = openNoteId === r.lesson_id;
+        return (
+          <div style={{ marginTop: 10, borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 700, color: "#9a6a12", marginBottom: 5 }}>
+              <Sparkles size={15} strokeWidth={1.9} />{t("studentPagesExtra.summaryBtn")}
+            </div>
+            <p style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)", margin: 0,
+              maxHeight: long && !openNote ? 120 : undefined, overflow: long && !openNote ? "hidden" : undefined }}>
+              {r.aiNote}
+            </p>
+            {long && (
+              <button type="button" className="tap-44" onClick={() => setOpenNoteId(openNote ? null : r.lesson_id)} aria-expanded={openNote}
+                style={{ marginTop: 4, border: "none", background: "transparent", cursor: "pointer", padding: "4px 0", fontSize: 15, fontWeight: 700, color: "#9a6a12" }}>
+                {openNote ? t("studentMaterials.less") : t("studentMaterials.more")}
+              </button>
+            )}
+          </div>
+        );
+      })()}
       {(r.hasAiNote || r.hasFile) && (
         <div style={{ display: "flex", gap: 9, marginTop: 11 }}>
-          {r.hasAiNote && (
-            <button type="button" style={goldBtn} onClick={() => setOpenNoteId(openNoteId === r.lesson_id ? null : r.lesson_id)} aria-expanded={openNoteId === r.lesson_id}>
-              <Sparkles size={16} strokeWidth={1.8} />{t("studentPagesExtra.summaryBtn")}
-            </button>
-          )}
+
           {r.hasFile && (
             <button type="button" style={plainBtn} onClick={() => handleDownload(r)} disabled={downloadingId === r.lesson_id}>
               {downloadingId === r.lesson_id
@@ -295,11 +315,7 @@ export default function StudentHomeworkPage() {
         <Check size={17} strokeWidth={2.4} />
         {done ? t("studentPagesExtra.markedDone") : t("studentPagesExtra.markDone")}
       </button>
-      {r.hasAiNote && openNoteId === r.lesson_id && (
-        <p style={{ marginTop: 10, whiteSpace: "pre-wrap", borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)" }}>
-          {r.aiNote}
-        </p>
-      )}
+
     </li>
     );
   };

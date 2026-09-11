@@ -198,3 +198,44 @@ describe("форма уроку · поля ростуть, зустріч ок�
     expect(sum).toBeLessThan(hw);
   });
 });
+
+/**
+ * Матеріали учня · рішення власниці 11.09.
+ * «Історія» була згорнутим списком дат із першим рядком конспекту й без
+ * посилань — щоб щось прочитати, репетиторка стрибала від уроку до уроку.
+ */
+describe("матеріали учня · хронологія, розгорнуто, з посиланнями", () => {
+  const read = (p: string) => readFileSync(join(root, p), "utf8");
+  const ms = read("src/pages/MyStudentsPage.tsx");
+  const sm = read("src/components/StudentMaterials.tsx");
+
+  it("замість згорнутої історії — розгорнуті матеріали", () => {
+    expect(ms).toMatch(/<StudentMaterials/);
+    expect(ms).not.toMatch(/loadHistory/);
+    expect(ms).not.toMatch(/historyData/);
+  });
+
+  it("матеріали несуть конспект, домашку, нотатку і файли", () => {
+    for (const k of ["summary", "homework", "privateNote", "files"]) {
+      expect(sm).toMatch(new RegExp(`${k}:`));
+    }
+    expect(sm).toMatch(/lesson_attachments/);
+    expect(sm).toMatch(/lesson_tutor_notes/);
+  });
+
+  it("з матеріалів можна відкрити сам урок", () => {
+    expect(sm).toMatch(/onOpenLesson/);
+    expect(ms).toMatch(/setLessonDetailsId/);
+  });
+
+  it("імʼя учня всюди веде в його матеріали через ?open=", () => {
+    expect(ms).toMatch(/searchParams\.get\("open"\)/);
+    expect(read("src/components/LessonDetailsDialog.tsx")).toMatch(/my-students\?open=/);
+  });
+
+  it("учень бачить конспект одразу, а не за кнопкою", () => {
+    const sh = read("src/pages/student/StudentHomeworkPage.tsx");
+    expect(sh).toMatch(/r\.hasAiNote && \(\(\) => \{/);
+    expect(sh).not.toMatch(/onClick=\{\(\) => setOpenNoteId\(openNoteId === r\.lesson_id \? null : r\.lesson_id\)\} aria-expanded/);
+  });
+});

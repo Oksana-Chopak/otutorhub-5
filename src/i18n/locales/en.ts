@@ -421,6 +421,18 @@ export const en: LocaleTranslations = {
     chipCancel: "Late-cancellation fee",
     chipUnlimited: "Unlimited {{clientsGen}} and {{sessionsGen}}",
   },
+  studentMaterials: {
+    title: "Materials",
+    loading: "Collecting materials…",
+    failed: "Could not load materials. Try refreshing the page.",
+    empty: "No materials yet — they appear after the first summary, homework or file ✨",
+    summary: "Summary",
+    homework: "Homework",
+    privateNote: "Note — only you see it",
+    openLesson: "Open lesson",
+    more: "Show all",
+    less: "Collapse",
+  },
   landingCalc: {
     prepaidOnly_one: "You have {{amount}} prepaid by {{count}} student — those lessons are still ahead.",
     prepaidOnly_other: "You have {{amount}} prepaid by {{count}} students — those lessons are still ahead.",
