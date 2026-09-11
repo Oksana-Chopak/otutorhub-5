@@ -1140,9 +1140,9 @@ export default function MyStudentsPage() {
                         </span>
                       ))}
                       <button type="button" onClick={() => { setSubjectOpen((v) => !v); setSubjectDraft(""); }} aria-label={t("myStudents.addSubjectBtn")}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 5, height: 38, padding: subjList.length ? "0 12px" : "0 15px 0 12px", borderRadius: 999, cursor: "pointer",
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5, height: 40, padding: subjList.length ? "0 13px" : "0 16px 0 13px", borderRadius: 999, cursor: "pointer",
                           border: `1.5px ${subjectOpen ? "solid" : "dashed"} ${subjectOpen ? F.teal : F.border}`,
-                          background: subjectOpen ? "#f0fdf9" : "#fff", color: subjectOpen ? F.tealD : F.sub,
+                          background: subjectOpen ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface,#fff)", color: subjectOpen ? F.tealD : F.sub,
                           fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
                         <Plus size={15} strokeWidth={2.4} />{subjList.length ? "" : t("myStudents.addSubjectBtn")}
                       </button>
@@ -1156,13 +1156,13 @@ export default function MyStudentsPage() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10 }}>
                           {subMatches.map((s) => (
                             <button key={s} type="button" onClick={() => addSubject(s)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 15 }}>
+                              style={{ height: 40, padding: "0 14px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 15 }}>
                               {s}
                             </button>
                           ))}
                           {draftIsCustom && (
                             <button type="button" onClick={() => addSubject(subjectDraft)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
+                              style={{ height: 40, padding: "0 14px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
                               + «{subjectDraft.trim()}»
                             </button>
                           )}

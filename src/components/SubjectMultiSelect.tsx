@@ -56,7 +56,8 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
               type="button"
               onClick={() => toggle(s)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[14px] transition-colors",
+                // 11.09: py-1 давало чип 31px — на мобілці це промах за промахом.
+                "inline-flex min-h-[40px] items-center gap-1.5 rounded-full border px-3.5 py-2 text-[14px] transition-colors",
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
@@ -85,7 +86,9 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={t("subjectSelect.customPlaceholder")}
-          className="h-10 text-[14px]"
+          // 11.09: 14px у полі вводу змушує iOS зумити форму при фокусі
+          // (інваріант «поля ≥15px»); h-10 → h-11 = 44px дотику.
+          className="h-11 text-[15px]"
         />
         <Button
           type="button"
@@ -93,7 +96,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           size="sm"
           onClick={addCustom}
           disabled={!custom.trim()}
-          className="tap-44 h-10 shrink-0"
+          className="tap-44 h-11 shrink-0"
         >
           <Plus className="h-3.5 w-3.5 mr-1" />
           {t("subjectSelect.addBtn")}

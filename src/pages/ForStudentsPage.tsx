@@ -76,7 +76,10 @@ export default function ForStudentsPage() {
           <ol className="mt-6 grid gap-4 sm:grid-cols-3">
             {steps.map((s) => (
               <li key={s.n} className="rounded-2xl border border-border bg-card p-5">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center font-black text-white" style={{ background: "#2BBFAA" }}>{s.n}</div>
+                {/* 11.09: білий на брендовій бірюзі — 2.30:1, цифру кроку не видно.
+                    Кружечок лишається бірюзовим, але тієї глибини, на якій
+                    білий напис читається (4.7:1). */}
+                <div className="w-9 h-9 rounded-full flex items-center justify-center font-black text-white" style={{ background: "var(--teal-text,#1a7a6c)" }}>{s.n}</div>
                 <div className="mt-3 font-bold">{s.title}</div>
                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{s.text}</p>
               </li>

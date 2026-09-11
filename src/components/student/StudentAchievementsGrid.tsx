@@ -25,15 +25,17 @@ const TIER_RING: Record<StudentAchievementTier, string> = {
   teal: "rgba(43,191,170,.30)",
   gold: "rgba(245,181,68,.35)",
 };
+// 11.09: підпис «Отримано» — це ТЕКСТ, тож іде текстовими токенами
+// (#25a896 давав 2.95:1 на білому, у дарку був би темним на темному).
 const TIER_EARNED_TEXT: Record<StudentAchievementTier, string> = {
-  teal: "#25a896",
-  gold: "#9a6a12",
+  teal: "var(--teal-text,#1a7a6c)",
+  gold: "var(--warning-text,#B45309)",
 };
 
 /**
  * Student achievements grid — two-tier medal tiles per the approved spec.
  * earned   = colored gradient tile + glow + green ✓ check + "Здобуто" line.
- * unearned = muted tile (#eef0f4 / #c2c6d2 icon) + lock badge + progress bar + have/need.
+ * unearned = приглушена плитка (--ds-surface3 / --ds-muted іконка) + замок + прогрес + маю/треба.
  * The page renders this twice (Здобуті · N / Попереду · M) with filtered subsets.
  */
 export function StudentAchievementsGrid({ achievements, className }: Props) {
@@ -59,11 +61,11 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
               <div
                 className="flex h-16 w-16 items-center justify-center rounded-[20px] text-3xl"
                 style={{
-                  background: earned ? TIER_GRADIENT[tier] : "#eef0f4",
-                  boxShadow: earned ? TIER_GLOW[tier] : "inset 0 0 0 1px #e6e8ee",
-                  color: earned ? "#fff" : "#c2c6d2",
+                  background: earned ? TIER_GRADIENT[tier] : "var(--ds-surface3,#eef0f4)",
+                  boxShadow: earned ? TIER_GLOW[tier] : "inset 0 0 0 1px var(--ds-border,#e6e8ee)",
+                  color: earned ? "#fff" : "var(--ds-muted,#6f7489)",
                   // muted emoji reads as a flat glyph when unearned
-                  filter: earned ? undefined : "grayscale(1) opacity(0.55)",
+                  filter: earned ? undefined : "grayscale(1) opacity(0.8)",
                 }}
               >
                 {def.emoji}
@@ -72,7 +74,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
               {earned ? (
                 <span
                   className="absolute -bottom-1 -right-1 flex h-[26px] w-[26px] items-center justify-center rounded-full shadow-sm"
-                  style={{ background: "#22c55e", border: "2px solid #fff" }}
+                  style={{ background: "#22c55e", border: "2px solid var(--ds-surface,#fff)" }}
                   aria-hidden
                 >
                   <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
@@ -83,7 +85,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                   style={{ border: "1px solid var(--ds-border,#eceef3)" }}
                   aria-hidden
                 >
-                  <Lock className="h-3.5 w-3.5" style={{ color: "#6f7489" }} strokeWidth={2} />
+                  <Lock className="h-3.5 w-3.5" style={{ color: "var(--ds-muted,#6f7489)" }} strokeWidth={2} />
                 </span>
               )}
             </div>
@@ -91,7 +93,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
             {/* title */}
             <div
               className="text-sm font-extrabold leading-tight"
-              style={{ color: earned ? "#0f0f1a" : "var(--sub,#666b82)" }}
+              style={{ color: earned ? "var(--ds-txt,#0f0f1a)" : "var(--sub,#666b82)" }}
             >
               {t(def.nameKey)}
             </div>
@@ -109,7 +111,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
               <div className="flex w-full flex-col items-center gap-1.5">
                 <div
                   className="min-h-[31px] text-[14px] leading-snug"
-                  style={{ color: "#6f7489" }}
+                  style={{ color: "var(--sub,#666b82)" }}
                 >
                   {t(def.descKey)}
                 </div>
@@ -117,7 +119,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                     says no progress bar for those (a 0/1 bar reads as a half-done goal). */}
                 {target > 1 && (
                   <>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "#eef0f4" }}>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "var(--ds-surface3,#eef0f4)" }}>
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${pct}%`, background: TIER_GRADIENT[tier] }}

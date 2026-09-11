@@ -108,6 +108,18 @@ Deno.serve(async (req) => {
 
   const day = startedAt.toISOString().slice(0, 10); // YYYY-MM-DD
   const path = `backup-${day}.json.gz`;
+
+  // 11.09: бакет створюємо САМІ, якщо його немає. Причина конкретна: рядок
+  // `INSERT INTO storage.buckets` з міграції Lovable мовчки не переніс (його
+  // рушій, схоже, не пише у storage.*), тож розклад був живий, а куди класти
+  // файл — ні. О 23:45 це впало б у 500 і ніхто б не дізнався. Тепер бекап
+  // самодостатній: privacy лишається — бакет ПРИВАТНИЙ (public: false).
+  const { error: bucketErr } = await supabase.storage.createBucket(BUCKET, { public: false });
+  // "already exists" — нормальний щоденний шлях, не помилка.
+  if (bucketErr && !/exist/i.test(bucketErr.message)) {
+    return new Response(JSON.stringify({ error: `bucket failed: ${bucketErr.message}` }), { status: 500 });
+  }
+
   const { error: upErr } = await supabase.storage
     .from(BUCKET)
     .upload(path, gzBytes, { contentType: "application/gzip", upsert: true });

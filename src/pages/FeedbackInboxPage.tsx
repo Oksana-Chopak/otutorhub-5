@@ -121,9 +121,9 @@ export default function FeedbackInboxPage() {
               <button key={key} type="button" onClick={() => setFilter(key as any)}
                 style={{ height: 34, padding: "0 14px", borderRadius: 999, cursor: "pointer",
                   fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
-                  background: on ? "#f0fdf9" : "#fff",
+                  background: on ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface,#fff)",
                   border: `1.5px solid ${on ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
-                  color: on ? "#1f8e7e" : "var(--sub,#666b82)" }}>
+                  color: on ? "var(--teal-text,#1a7a6c)" : "var(--sub,#666b82)" }}>
                 {label}
               </button>
             );
@@ -214,7 +214,7 @@ export default function FeedbackInboxPage() {
                   )}
                   {resolved && (
                     <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "new")}
-                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                      style={{ marginTop: 10, height: 40, padding: "0 14px", borderRadius: 9, cursor: "pointer", border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                       {t("feedbackInbox.reopen")}
                     </button>
                   )}

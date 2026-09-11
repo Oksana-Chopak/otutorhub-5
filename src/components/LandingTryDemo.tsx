@@ -278,16 +278,16 @@ function Field({
 const styles = `
 .ltd-section { background: var(--bg2, #eeece6); padding: 72px 2rem; }
 .ltd-inner { max-width: 720px; margin: 0 auto; text-align: center; }
-.ltd-label { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0ABAB5; margin-bottom: 12px; }
+.ltd-label { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--l-accent-text,#0b6b68); margin-bottom: 12px; }
 .ltd-title { font-family: 'Unbounded', sans-serif; font-size: clamp(24px, 3vw, 36px); font-weight: 800; line-height: 1.15; color: #1a1a2e; margin-bottom: 12px; letter-spacing: -0.02em; transition: opacity 0.3s ease; }
-.ltd-accent { color: #0ABAB5; }
-.ltd-sub { font-size: 16px; color: #6b6b8a; margin-bottom: 32px; }
+.ltd-accent { color: var(--l-accent-text,#0b6b68); }
+.ltd-sub { font-size: 16px; color: var(--l-muted,#5d5d78); margin-bottom: 32px; }
 .ltd-fade { opacity: 0.55; transition: opacity 0.3s ease; }
 .ltd-card { background: #fff; border-radius: 20px; border: 1px solid rgba(26,26,46,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08); overflow: hidden; text-align: left; }
 .ltd-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #f7f6f2; border-bottom: 1px solid rgba(26,26,46,0.06); transition: opacity 0.3s ease; }
-.ltd-tab { background: transparent; border: none; cursor: pointer; padding: 16px 8px; font-family: 'Golos Text', sans-serif; font-size: 14px; font-weight: 600; color: #6b6b8a; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s, color 0.15s; border-bottom: 2px solid transparent; }
+.ltd-tab { background: transparent; border: none; cursor: pointer; padding: 16px 8px; font-family: 'Golos Text', sans-serif; font-size: 14px; font-weight: 600; color: var(--l-muted,#5d5d78); display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s, color 0.15s; border-bottom: 2px solid transparent; }
 .ltd-tab:hover { color: #1a1a2e; }
-.ltd-tab.active { background: #fff; color: #0ABAB5; border-bottom-color: #0ABAB5; }
+.ltd-tab.active { background: #fff; color: var(--l-accent-text,#0b6b68); border-bottom-color: var(--l-accent-text,#0b6b68); }
 .ltd-tab-emoji { font-size: 18px; }
 .ltd-body { padding: 28px 28px 32px; transition: opacity 0.3s ease; }
 .ltd-form { display: flex; flex-direction: column; gap: 16px; }
@@ -295,23 +295,23 @@ const styles = `
 .ltd-field { display: flex; flex-direction: column; gap: 6px; }
 .ltd-field-label { font-size: 13px; font-weight: 600; color: #2d2d4a; }
 .ltd-input { font-family: 'Golos Text', sans-serif; font-size: 15px; color: #1a1a2e; padding: 12px 14px; border: 1.5px solid rgba(26,26,46,0.1); border-radius: 10px; background: #fff; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
-.ltd-input:focus { border-color: #0ABAB5; box-shadow: 0 0 0 3px rgba(10,186,181,0.15); }
-.ltd-btn-primary { background: #0ABAB5; color: #fff; font-family: 'Golos Text', sans-serif; font-weight: 600; font-size: 16px; padding: 14px 28px; border-radius: 100px; text-decoration: none; border: none; cursor: pointer; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; display: inline-block; text-align: center; box-shadow: 0 4px 16px rgba(10,186,181,0.3); }
+.ltd-input:focus { border-color: var(--l-accent-text,#0b6b68); box-shadow: 0 0 0 3px rgba(10,186,181,0.15); }
+.ltd-btn-primary { background: var(--l-accent-btn,#0a7d79); color: #fff; font-family: 'Golos Text', sans-serif; font-weight: 600; font-size: 16px; padding: 14px 28px; border-radius: 100px; text-decoration: none; border: none; cursor: pointer; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; display: inline-block; text-align: center; box-shadow: 0 4px 16px rgba(10,186,181,0.3); }
 .ltd-btn-primary:hover:not(:disabled) { background: #2dd4cf; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(10,186,181,0.4); }
 .ltd-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 .ltd-submit { margin-top: 8px; }
 .ltd-success { text-align: center; padding: 12px 0 4px; }
 .ltd-success-title { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 800; color: #1a9e75; margin-bottom: 8px; }
-.ltd-success-sub { font-size: 15px; color: #6b6b8a; margin-bottom: 24px; }
-.ltd-link { display: block; margin: 16px auto 0; background: transparent; border: none; color: #6b6b8a; font-size: 13px; cursor: pointer; text-decoration: underline; font-family: 'Golos Text', sans-serif; }
+.ltd-success-sub { font-size: 15px; color: var(--l-muted,#5d5d78); margin-bottom: 24px; }
+.ltd-link { display: block; margin: 16px auto 0; background: transparent; border: none; color: var(--l-muted,#5d5d78); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: 'Golos Text', sans-serif; }
 .ltd-link:hover { color: #1a1a2e; }
 .ltd-aside { margin-top: 24px; background: #fff; border: 1px solid rgba(26,26,46,0.08); border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; gap: 16px; text-align: left; transition: opacity 0.3s ease; }
 .ltd-aside-icon { font-size: 28px; flex-shrink: 0; }
 .ltd-aside-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .ltd-aside-text strong { font-size: 14px; color: #1a1a2e; font-weight: 700; }
-.ltd-aside-text span { font-size: 13px; color: #6b6b8a; line-height: 1.4; }
-.ltd-btn-ghost { background: transparent; color: #0ABAB5; font-family: 'Golos Text', sans-serif; font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 100px; text-decoration: none; border: 1.5px solid #0ABAB5; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
-.ltd-btn-ghost:hover { background: #0ABAB5; color: #fff; }
+.ltd-aside-text span { font-size: 13px; color: var(--l-muted,#5d5d78); line-height: 1.4; }
+.ltd-btn-ghost { background: transparent; color: var(--l-accent-text,#0b6b68); font-family: 'Golos Text', sans-serif; font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 100px; text-decoration: none; border: 1.5px solid #0ABAB5; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+.ltd-btn-ghost:hover { background: var(--l-accent-btn,#0a7d79); color: #fff; }
 
 @media (max-width: 600px) {
   .ltd-section { padding: 48px 1rem; }

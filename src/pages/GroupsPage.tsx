@@ -636,7 +636,10 @@ function WizardField({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         style={{
-          flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent",
+          // 11.09: поле виглядало на 58-64px, але дотик ловив лише свій рядок
+          // у 30px — тап по іконці чи по відступу не фокусував нічого.
+          // alignSelf: stretch віддає полю всю висоту рамки; вигляд той самий.
+          flex: 1, minWidth: 0, alignSelf: "stretch", border: "none", outline: "none", background: "transparent",
           fontFamily: big ? FONT_D : FONT_B, fontWeight: big ? 700 : 400,
           fontSize: big ? 20 : 17, color: T.txt,
         }}

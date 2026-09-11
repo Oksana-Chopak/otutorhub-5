@@ -258,11 +258,13 @@ export function RecordPaymentSheet({
             вибрану пару — менеджер знайшов Марину, передумав про режим, і вона
             лишається вибраною. */}
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="lesson">
+          {/* 11.09: перемикач режиму в ГРОШОВІЙ формі був 32px заввишки —
+              найважливіша форма застосунку з найдрібнішим дотиком. 44px. */}
+          <TabsList className="grid h-auto w-full grid-cols-2">
+            <TabsTrigger value="lesson" className="min-h-[44px]">
               <Receipt className="mr-1.5 h-4 w-4" /> {t("recordPaymentExtra.tabLesson")}
             </TabsTrigger>
-            <TabsTrigger value="prepay">
+            <TabsTrigger value="prepay" className="min-h-[44px]">
               <Wallet className="mr-1.5 h-4 w-4" /> {t("recordPaymentExtra.tabPrepay")}
             </TabsTrigger>
           </TabsList>

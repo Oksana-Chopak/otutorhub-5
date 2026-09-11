@@ -565,7 +565,7 @@ export function AvailabilityManager() {
 
                   {canEdit && !off && (
                     <button onClick={() => setWeeklyDialog({ open: true, weekday: day, from: "16:00", to: "20:00" })} aria-label={t("availabilityManagerExtra.addHoursAria", { day: WEEKDAYS_FULL_UK[day] })}
-                      style={{ width: 30, height: 30, borderRadius: 999, border: "none", cursor: "pointer", background: A.tealL, color: A.tealD, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      style={{ width: 40, height: 40, borderRadius: 999, border: "none", cursor: "pointer", background: A.tealL, color: A.tealD, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Plus className="h-4 w-4" />
                     </button>
                   )}
@@ -573,8 +573,13 @@ export function AvailabilityManager() {
                   {canEdit && (
                     <button onClick={() => (off ? enableWeekday(day) : clearWeekday(day))} role="switch" aria-checked={!off}
                       aria-label={WEEKDAYS_FULL_UK[day]}
-                      style={{ width: 43, height: 24, flexShrink: 0, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", position: "relative", transition: "background .25s", background: off ? "rgba(15,15,26,.12)" : A.gradTeal }}>
-                      <span style={{ position: "absolute", top: 3, left: off ? 3 : 22, width: 18, height: 18, borderRadius: 999, background: "var(--ds-surface,#fff)", boxShadow: "0 2px 5px rgba(15,15,26,.25)", transition: "left .25s cubic-bezier(.34,1.56,.64,1)" }} />
+                      // 11.09: перемикач лишається 43×24 НА ВИГЛЯД, але зона
+                      // дотику тепер 43×44 — у 24px пальцем не влучиш, а це
+                      // головна дія на екрані (увімкнути/вимкнути день).
+                      style={{ width: 43, height: 44, flexShrink: 0, border: "none", padding: 0, cursor: "pointer", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ width: 43, height: 24, borderRadius: 999, position: "relative", display: "block", transition: "background .25s", background: off ? "rgba(15,15,26,.12)" : A.gradTeal }}>
+                        <span style={{ position: "absolute", top: 3, left: off ? 3 : 22, width: 18, height: 18, borderRadius: 999, background: "var(--ds-surface,#fff)", boxShadow: "0 2px 5px rgba(15,15,26,.25)", transition: "left .25s cubic-bezier(.34,1.56,.64,1)" }} />
+                      </span>
                     </button>
                   )}
                 </div>

@@ -124,6 +124,42 @@ describe("контраст-гейт (WCAG AA)", () => {
     }
   });
 
+  /**
+   * ЛЕНДІНГ має власну палітру (`.landing-root`) — хвиля контрасту в index.css
+   * його не торкалась, і він лишався найгіршою сторінкою: білий напис на
+   * кнопці 2.41:1, акцент як текст 2.23:1, плейсхолдери калькулятора 2.53:1.
+   * Це сторінка, яка вирішує, чи людина взагалі зареєструється.
+   */
+  describe("лендінг — власна палітра", () => {
+    const ld = readFileSync("src/pages/LandingPage.tsx", "utf-8");
+    const LD_BG: [number, number, number] = hexToRgb("#f7f6f2");
+    const ldToken = (name: string): [number, number, number] => {
+      const m = ld.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`));
+      if (!m) throw new Error(`токен ${name} не знайдено в LandingPage`);
+      return hexToRgb(m[1]);
+    };
+
+    it("білий напис на кнопці ≥ 4.5:1", () => {
+      expect(contrast(ldToken("--l-accent-btn"), WHITE)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it("акцент як ТЕКСТ ≥ 4.5:1 на білому і на тлі лендінгу", () => {
+      for (const name of ["--l-accent-text", "--l-warning-text", "--l-success-text", "--l-muted", "--muted2"]) {
+        const rgb = ldToken(name);
+        expect(contrast(rgb, WHITE), `${name} на білому`).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(rgb, LD_BG), `${name} на #f7f6f2`).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+
+    it("брендова бірюза лишилась бірюзою — змінився лише текст", () => {
+      expect(ld).toMatch(/--l-accent:\s*#0ABAB5/i);
+    });
+
+    it("кнопки НЕ заливаються сирим --l-accent (напис на ньому 2.41:1)", () => {
+      expect(ld).not.toMatch(/background:\s*var\(--l-accent\);\s*color:\s*#fff/);
+    });
+  });
+
   it("ratchet: відомі низькоконтрастні літерали не повертаються", () => {
     const files = globSync("src/**/*.{ts,tsx,css}", { ignore: ["src/test/**"] });
     let dead = 0; // #b0b4c8 (2.06:1) — замінено на #6f7489 хвилею C1; має лишатись 0

@@ -724,7 +724,9 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="flex items-center justify-between text-[14px]">
-                    <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
+                    {/* 11.09: сам квадратик 20×20 — замалий для пальця. Підпис і так тисне
+                        той самий чекбокс, тож просто робимо рядок висотою 44px. */}
+                    <label className="flex min-h-[44px] items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
                       <Checkbox
                         checked={remember}
                         onCheckedChange={(v) => setRemember(v === true)}

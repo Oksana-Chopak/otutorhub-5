@@ -2143,7 +2143,10 @@ export default function FinancesPage() {
         style={{
           height: 34, padding: "0 16px", borderRadius: 999, border: "none", cursor: "pointer",
           fontFamily: H.display, fontWeight: 700, fontSize: 14,
-          background: period === p ? H.teal : "#F5F4F0",
+          // 11.09: тло було вшите світлим → у дарку пілюля лишалась білою
+          // плашкою зі світлим написом (2.0:1). Напис на активній теж фіксуємо
+          // темним СВІДОМО: вона залита брендовою бірюзою в обох темах.
+          background: period === p ? H.teal : "var(--ds-bg,#F5F4F0)",
           color: period === p ? "#0f0f1a" : H.sub,
           boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
           transition: "all .15s",

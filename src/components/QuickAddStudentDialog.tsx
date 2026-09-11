@@ -331,9 +331,11 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   return (
                     <button key={s}
                       onMouseDown={e => { e.preventDefault(); setForm(f => ({ ...f, subject: s })); }}
-                      style={{ minHeight: 36, padding: "0 13px", borderRadius: 999, cursor: "pointer",
+                      // 11.09: підказка предмета була 36-38px і вшито біла —
+                      // замалий дотик, а в дарку ще й біла плашка.
+                      style={{ minHeight: 40, padding: "0 14px", borderRadius: 999, cursor: "pointer",
                         border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
-                        background: active ? F.tealL : "#fff",
+                        background: active ? F.tealL : "var(--ds-surface,#fff)",
                         color: active ? F.tealD : F.txt,
                         fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
                       {s}

@@ -58,17 +58,25 @@ const landingStyles = `
 .landing-root {
   --ink: #1a1a2e;
   --ink2: #2d2d4a;
-  --l-muted: #6b6b8a;
-  --muted2: #9494aa;
+  --l-muted: #5d5d78;   /* 11.09: було #6b6b8a — 4.34:1 на --bg2, під нормою */
+  --muted2: #6b6b8a;    /* 11.09: було #9494aa — 2.7:1, у плейсхолдерах не читалось */
   --bg: #f7f6f2;
   --bg2: #eeece6;
   --white: #ffffff;
   --l-accent: #0ABAB5;
   --l-accent2: #2dd4cf;
   --accent-light: #d6f5f3;
+  /* 11.09: бірюза #0ABAB5 — чудова ЗАЛИВКА великих плям, але білий напис на ній
+     дає 2.41:1, а вона сама як ТЕКСТ — 2.23:1 на тлі лендінгу. Лендінг читають
+     з телефона на вулиці, і напис, якого не видно, коштує реєстрації. Нижче —
+     та сама бірюза, доведена до норми; заливки, рамки й тіні лишились як були. */
+  --l-accent-btn: #0a7d79;   /* білий напис на кнопці = 4.97:1 */
+  --l-accent-text: #0b6b68;  /* акцент як колір тексту = 5.85:1 на тлі */
   --l-success: #1a9e75;
+  --l-success-text: #127354;
   --success-light: #e0f5ee;
   --l-warning: #c47a15;
+  --l-warning-text: #965c10;
   --warning-light: #fdf0d8;
   --l-border: rgba(26,26,46,0.1);
   --border2: rgba(26,26,46,0.06);
@@ -116,7 +124,7 @@ const landingStyles = `
 }
 .landing-root .nav-links a:hover { color: var(--ink); }
 .landing-root .btn-nav {
-  background: var(--l-accent); color: #fff;
+  background: var(--l-accent-btn); color: #fff;
   font-family: 'Golos Text', sans-serif;
   font-weight: 600; font-size: 14px;
   padding: 10px 22px; border-radius: 100px;
@@ -124,7 +132,7 @@ const landingStyles = `
   transition: background 0.2s, transform 0.15s;
   display: inline-block;
 }
-.landing-root .btn-nav:hover { background: var(--l-accent2); transform: translateY(-1px); }
+.landing-root .btn-nav:hover { transform: translateY(-1px); }
 
 .landing-root .hero {
   max-width: 1100px; margin: 0 auto;
@@ -147,7 +155,7 @@ const landingStyles = `
   letter-spacing: -0.02em;
   max-width: 880px; margin-left: auto; margin-right: auto;
 }
-.landing-root h1 .accent { color: var(--l-accent); }
+.landing-root h1 .accent { color: var(--l-accent-text); }
 .landing-root .hero-sub {
   font-size: clamp(18px, 2vw, 22px);
   color: var(--ink2);
@@ -164,7 +172,7 @@ const landingStyles = `
   display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center;
 }
 .landing-root .btn-primary {
-  background: var(--l-accent); color: #fff;
+  background: var(--l-accent-btn); color: #fff;
   font-family: 'Golos Text', sans-serif;
   font-weight: 600; font-size: 16px;
   padding: 16px 32px; border-radius: 100px;
@@ -173,7 +181,6 @@ const landingStyles = `
   box-shadow: 0 4px 20px rgba(10,186,181,0.35);
 }
 .landing-root .btn-primary:hover {
-  background: var(--l-accent2);
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(10,186,181,0.4);
 }
@@ -186,7 +193,7 @@ const landingStyles = `
   cursor: pointer; transition: all 0.2s; display: inline-block;
 }
 .landing-root .btn-ghost:hover {
-  border-color: var(--l-accent); color: var(--l-accent);
+  border-color: var(--l-accent-text); color: var(--l-accent-text);
   background: var(--accent-light);
 }
 
@@ -195,7 +202,7 @@ const landingStyles = `
 .landing-root .section-label {
   font-size: 13px; font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--l-accent); margin-bottom: 16px;
+  color: var(--l-accent-text); margin-bottom: 16px;
 }
 .landing-root h2 {
   font-family: 'Unbounded', sans-serif;
@@ -261,7 +268,7 @@ const landingStyles = `
 .landing-root .glance-num {
   font-family: 'Unbounded', sans-serif;
   font-size: 36px; font-weight: 900;
-  color: var(--l-accent); line-height: 1;
+  color: var(--l-accent-text); line-height: 1;
   margin-bottom: 12px;
 }
 .landing-root .glance-text {
@@ -285,7 +292,7 @@ const landingStyles = `
   position: absolute; top: -18px; left: 24px;
   width: 44px; height: 44px;
   border-radius: 50%;
-  background: var(--l-accent); color: #fff;
+  background: var(--l-accent-btn); color: #fff;
   font-family: 'Unbounded', sans-serif;
   font-size: 18px; font-weight: 900;
   display: flex; align-items: center; justify-content: center;
@@ -327,7 +334,7 @@ const landingStyles = `
 .landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); line-height: 1.2; min-height: calc(2.4em); }
 .landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; line-height: 1.5; min-height: calc(3em); }
 .landing-root .btn-white {
-  background: white; color: var(--l-accent);
+  background: white; color: var(--l-accent-text);
   font-family: 'Golos Text', sans-serif;
   font-weight: 700; font-size: 16px;
   padding: 16px 32px; border-radius: 100px;
@@ -414,10 +421,10 @@ const landingStyles = `
   display: inline-block; align-self: flex-start;
   font-size: 13px; font-weight: 700;
   padding: 4px 10px; border-radius: 100px;
-  background: var(--warning-light); color: var(--l-warning);
+  background: var(--warning-light); color: var(--l-warning-text);
 }
 .landing-root .price-card.featured .price-badge {
-  background: var(--accent-light); color: var(--l-accent);
+  background: var(--accent-light); color: var(--l-accent-text);
 }
 .landing-root .price-amount {
   font-family: 'Unbounded', sans-serif;
@@ -436,7 +443,7 @@ const landingStyles = `
 }
 .landing-root .price-cta {
   display: inline-block; text-align: center;
-  background: var(--l-accent); color: #fff;
+  background: var(--l-accent-btn); color: #fff;
   font-weight: 600; font-size: 15px;
   padding: 14px 24px; border-radius: 100px;
   text-decoration: none; transition: all 0.2s;
@@ -446,7 +453,7 @@ const landingStyles = `
   background: transparent; color: var(--ink);
   border: 1.5px solid var(--l-border);
 }
-.landing-root .price-cta.secondary:hover { border-color: var(--l-accent); color: var(--l-accent); }
+.landing-root .price-cta.secondary:hover { border-color: var(--l-accent-text); color: var(--l-accent-text); }
 .landing-root .price-note {
   font-size: 13px; color: var(--muted2); text-align: center; margin-top: 4px;
 }
@@ -476,14 +483,14 @@ const landingStyles = `
 }
 
 .landing-root .persona-word {
-  color: var(--l-accent) !important;
+  color: var(--l-accent-text) !important;
   cursor: pointer;
   border-bottom: 2px dotted var(--l-accent);
   transition: opacity 0.3s ease, transform 0.3s ease;
   display: inline-block;
 }
-.landing-root h1 .persona-word { color: var(--l-accent) !important; }
-.landing-root .persona-accent { color: var(--l-accent) !important; }
+.landing-root h1 .persona-word { color: var(--l-accent-text) !important; }
+.landing-root .persona-accent { color: var(--l-accent-text) !important; }
 .landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
 .landing-root .persona-pills {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -498,10 +505,10 @@ const landingStyles = `
   padding: 8px 16px; border-radius: 100px;
   cursor: pointer; transition: all 0.2s;
 }
-.landing-root .persona-pill:hover { border-color: var(--l-accent); }
+.landing-root .persona-pill:hover { border-color: var(--l-accent-text); }
 .landing-root .persona-pill.active {
-  background: var(--l-accent); color: #fff;
-  border-color: var(--l-accent);
+  background: var(--l-accent-btn); color: #fff;
+  border-color: var(--l-accent-text);
   box-shadow: 0 4px 14px rgba(10,186,181,0.3);
 }
 .landing-root .pain-section {
@@ -512,7 +519,7 @@ const landingStyles = `
 }
 .landing-root .pain-label {
   font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--l-warning); margin-bottom: 12px;
+  text-transform: uppercase; color: var(--l-warning-text); margin-bottom: 12px;
 }
 .landing-root .pain-title {
   font-family: 'Unbounded', sans-serif;

@@ -274,6 +274,44 @@ describe("матеріали учня · хронологія, розгорну�
       .toBeNull();
   });
 
+  /**
+   * Аудит 11.09, робот по кожній формі кожної ролі: дрібні елементи керування
+   * у формах. Пороги нижче — не смак, а те, що робот реально зловив:
+   * 31px чипи предметів, 30px поле назви групи, 32px перемикач у ГРОШОВІЙ
+   * формі, 24px вимикач дня. Плюс поле з 14px змушує iOS зумити всю форму.
+   */
+  describe("форми: дотик і розмір шрифту після аудиту 11.09", () => {
+    const rd = (f: string) => readFileSync(join(root, f), "utf8");
+
+    it("чипи предметів ≥ 40px і поле власного предмета ≥ 15px", () => {
+      const sm = rd("src/components/SubjectMultiSelect.tsx");
+      expect(sm, "чип предмета").toMatch(/min-h-\[40px\]/);
+      expect(sm, "поле з 14px змусить iOS зумити форму").not.toMatch(/className="h-\d+ text-\[14px\]"/);
+    });
+
+    it("перемикач режиму в формі оплати ≥ 44px", () => {
+      expect(rd("src/components/RecordPaymentSheet.tsx")).toMatch(/TabsTrigger value="lesson" className="min-h-\[44px\]"/);
+    });
+
+    it("поле майстра груп забирає всю висоту рамки, а не свій рядок", () => {
+      expect(rd("src/pages/GroupsPage.tsx")).toMatch(/alignSelf: "stretch"/);
+    });
+
+    it("вимикач дня в доступності має 44px зони дотику", () => {
+      expect(rd("src/components/AvailabilityManager.tsx")).toMatch(/width: 43, height: 44/);
+    });
+  });
+
+  /**
+   * Бекап не має залежати від того, чи Lovable переніс рядок про бакет:
+   * 11.09 він його мовчки зрізав, і о 23:45 все впало б у 500 без свідків.
+   */
+  it("нічний бекап створює свій бакет сам і лишає його приватним", () => {
+    const fn = readFileSync(join(root, "supabase/functions/db-backup/index.ts"), "utf8");
+    expect(fn).toMatch(/createBucket\(BUCKET, \{ public: false \}\)/);
+    expect(fn).toMatch(/exist/i);
+  });
+
   it("менеджер має куди прийти: /people?open= відкриває аркуш людини", () => {
     expect(read("src/pages/PeoplePage.tsx")).toMatch(/searchParams\.get\("open"\)/);
   });
