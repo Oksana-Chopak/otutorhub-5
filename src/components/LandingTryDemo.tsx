@@ -229,18 +229,20 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating, onFindClic
           </div>
         </div>
 
-        <div className={cn("ltd-aside", isAnimating && "ltd-fade")}>
-          <div className="ltd-aside-icon">{ASIDE_ICON[personaId] ?? "🎓"}</div>
-          <div className="ltd-aside-text">
-            <strong>{tp("landing.tryDemo.asideTitle")}</strong>
-            <span>{tp("landing.tryDemo.asideText")}</span>
-          </div>
-          {onFindClick && (
+        {/* Блок для учнів показуємо лише там, де є куди вести (10.09: на головній
+            його немає — учні мають свою сторінку /for-students). */}
+        {onFindClick && (
+          <div className={cn("ltd-aside", isAnimating && "ltd-fade")}>
+            <div className="ltd-aside-icon">{ASIDE_ICON[personaId] ?? "🎓"}</div>
+            <div className="ltd-aside-text">
+              <strong>{tp("landing.tryDemo.asideTitle")}</strong>
+              <span>{tp("landing.tryDemo.asideText")}</span>
+            </div>
             <button type="button" className="ltd-btn-ghost" onClick={onFindClick}>
               {tp("landing.tryDemo.asideCta")}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );

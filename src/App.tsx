@@ -59,6 +59,7 @@ const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 const MarketingPage = lazy(() => import("./pages/MarketingPage"));
 const MarketingUnsubscribePage = lazy(() => import("./pages/MarketingUnsubscribePage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const ForStudentsPage = lazy(() => import("./pages/ForStudentsPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const StudentDashboardPage = lazy(() => import("./pages/student/StudentDashboardPage"));
@@ -147,6 +148,7 @@ function AppRoutes() {
           <Route path="/join/:code" element={<JoinPage />} />
           <Route path="/" element={<Index />} />
           <Route path="/landing" element={<LandingPage />} />
+          <Route path="/for-students" element={<ForStudentsPage />} />
           {/* Онбординг — повноекранний, без спільного лейауту */}
           <Route
             path="/onboarding"

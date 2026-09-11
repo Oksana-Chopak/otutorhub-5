@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingTryDemo } from "@/components/LandingTryDemo";
 import { MoneyCalculator } from "@/components/landing/MoneyCalculator";
-import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
+import { LandingDayStory } from "@/components/landing/LandingDayStory";
 import { PaymentMethodsSection } from "@/components/PaymentMethodsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -302,6 +302,10 @@ const landingStyles = `
 }
 
 /* Final CTA */
+.landing-root .students-strip { background: var(--bg); border-top: 0.5px solid var(--border, #e6e8ef); border-bottom: 0.5px solid var(--border, #e6e8ef); }
+.landing-root .students-strip-inner { max-width: 1100px; margin: 0 auto; padding: 18px 2rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; font-size: 15px; color: var(--l-muted); text-align: center; }
+.landing-root .students-strip-link { font-weight: 700; color: var(--txt); text-decoration: none; padding: 10px 0; }
+.landing-root .students-strip-link:hover { text-decoration: underline; }
 .landing-root .cta-section {
   background: var(--ink);
   padding: 80px 2rem;
@@ -549,7 +553,6 @@ export default function LandingPage() {
     regular: priceLabel("monthly"),
     regularY: totalLabel("yearly"),
   };
-  const [quizOpen, setQuizOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -706,19 +709,6 @@ export default function LandingPage() {
     window.location.assign(url);
   };
 
-  const assistantItems = useMemo(() => ([
-    { emoji: "☀️", title: tp("landing.assistant.i1Title"), text: tp("landing.assistant.i1Text") },
-    { emoji: "🔔", title: tp("landing.assistant.i2Title"), text: tp("landing.assistant.i2Text") },
-    { emoji: "⏰", title: tp("landing.assistant.i3Title"), text: tp("landing.assistant.i3Text") },
-    { emoji: "📝", title: tp("landing.assistant.i4Title"), text: tp("landing.assistant.i4Text") },
-    { emoji: "📅", title: tp("landing.assistant.i5Title"), text: tp("landing.assistant.i5Text") },
-    { emoji: "💸", title: tp("landing.assistant.i6Title"), text: tp("landing.assistant.i6Text") },
-    { emoji: "💬", title: tp("landing.assistant.i7Title"), text: tp("landing.assistant.i7Text") },
-    { emoji: "👥", title: tp("landing.assistant.i8Title"), text: tp("landing.assistant.i8Text") },
-    { emoji: "🗓️", title: tp("landing.assistant.i9Title"), text: tp("landing.assistant.i9Text") },
-    { emoji: "♾️", title: tp("landing.assistant.i10Title"), text: tp("landing.assistant.i10Text") },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ]), [displayedPersonaId, t]);
 
   return (
     <>
@@ -801,25 +791,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ASSISTANT — what it does */}
-      <section className="l-section features-bg" id="features">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.assistant.label")}</div>
-          <h2>{withPersonaAccent(tp("landing.assistant.title"))}</h2>
-          <p className="section-sub">{tp("landing.assistant.sub")}</p>
-          <div className="assistant-grid fade-up">
-            {assistantItems.map((it, i) => (
-              <div key={`${displayedPersonaId}-${i}`} className="assistant-card">
-                <div className="assistant-emoji">{it.emoji}</div>
-                <div>
-                  <div className="assistant-title">{it.title}</div>
-                  <p className="assistant-text">{it.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ONE DAY — замість сітки з десяти іконок (10.09): ті самі функції,
+          але як історія одного дня, яку хочеться переслати колезі. */}
+      <LandingDayStory personaVars={displayedPersonaVars} personaId={displayedPersonaId} />
 
       {/* GLANCE */}
       <section className="l-section section-alt" id="glance">
@@ -866,7 +840,6 @@ export default function LandingPage() {
         personaVars={displayedPersonaVars}
         personaId={displayedPersonaId}
         isAnimating={isAnimating}
-        onFindClick={() => setQuizOpen(true)}
       />
 
       {/* PRICING */}
@@ -930,6 +903,16 @@ export default function LandingPage() {
       </section>
       )}
 
+      {/* ДЛЯ УЧНІВ — тонка смужка замість блоку посеред сторінки (10.09):
+          головна говорить із репетитором, а запити на підбір живуть на своїй
+          сторінці /for-students, куди й ведемо. */}
+      <section className="students-strip" aria-label={t("landing.studentsStrip.cta")}>
+        <div className="students-strip-inner">
+          <span>{t("landing.studentsStrip.text")}</span>
+          <Link to="/for-students" className="students-strip-link">{t("landing.studentsStrip.cta")}</Link>
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <section className="cta-section">
         <div className="cta-inner">
@@ -950,14 +933,13 @@ export default function LandingPage() {
             <Link to="/auth">{t("landing.footer.app")}</Link>
             <Link to="/terms">{t("landing.footer.terms")}</Link>
             <Link to="/privacy">{t("landing.footer.privacy")}</Link>
+            <Link to="/for-students">{t("landing.footer.forStudents")}</Link>
             <a href="mailto:hello@otutorhub.com">{t("landing.footer.contact")}</a>
           </div>
           <PaymentMethodsSection />
           <div>{t("landing.footer.copyright")}</div>
         </div>
       </footer>
-
-      <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
 
       {/* WhatsApp floating bubble */}
       <a

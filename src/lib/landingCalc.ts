@@ -11,7 +11,7 @@
  * Прогноз тут — АРИФМЕТИКА, не обіцянка зростання: скільки виходить із того,
  * що людина сама ввела. Жодних «ти зростеш на 30%».
  */
-import { IMPORT_SCHEDULE_WEEKS, netDebtAndPrepay, type ParsedStudent } from "@/lib/importStudents";
+import { IMPORT_SCHEDULE_WEEKS, netDebtAndPrepay, scheduleToStarts, type ParsedStudent } from "@/lib/importStudents";
 
 /** Горизонт беремо з імпорту, а не дублюємо: одна константа на два екрани. */
 export const CALC_WEEKS = IMPORT_SCHEDULE_WEEKS;
@@ -74,4 +74,77 @@ export function calcMoneyPreview(rows: ParsedStudent[]): MoneyPreview {
   }
 
   return out;
+}
+
+/* ── «Твій завтрашній ранок» (10.09) ─────────────────────────────────────────
+   Цифри «винні / за місяць» приємні й забуваються. Те, що людина пересилає
+   колезі, — це коли застосунок говорить про ЇЇ понеділок ще до реєстрації:
+   імена, час, хто винен. Тут — та сама арифметика, що й вище, лише розкладена
+   по людях і днях, як її покаже ранковий дайджест у Telegram. Час для
+   найближчого дня береться з того самого scheduleToStarts, що створює уроки
+   імпорт: дата на лендінгу = дата першого уроку після реєстрації. */
+
+export interface DigestLesson { time: string; name: string }
+export interface DigestDebtor {
+  name: string;
+  /** ₴ (нетто, як його створить імпорт); 0, якщо борг заданий уроками без ставки. */
+  amount: number;
+  /** Борг уроками без ставки — показуємо «2 уроки», а не 0 ₴. */
+  lessons: number;
+}
+export interface DigestPreview {
+  /** Найближчий день із розкладу; null, коли розкладу ніхто не дописав. */
+  day: { date: Date; lessons: DigestLesson[] } | null;
+  /** Хто винен — від найбільшої суми. */
+  debtors: DigestDebtor[];
+}
+
+/** Імʼя як у дайджесті: ім'я, а прізвище — лише щоб розвести тезок. */
+function digestNames(rows: ParsedStudent[]): Map<ParsedStudent, string> {
+  const byFirst = new Map<string, number>();
+  for (const r of rows) byFirst.set(r.firstName, (byFirst.get(r.firstName) ?? 0) + 1);
+  const out = new Map<ParsedStudent, string>();
+  for (const r of rows) {
+    const dup = (byFirst.get(r.firstName) ?? 0) > 1;
+    out.set(r, dup && r.lastName ? `${r.firstName} ${r.lastName[0]}.` : r.firstName);
+  }
+  return out;
+}
+
+export function digestPreview(rows: ParsedStudent[], now: Date = new Date()): DigestPreview {
+  const valid = rows.filter((r) => !r.error);
+  const names = digestNames(valid);
+
+  // Найближчий урок кожного учня → найраніший день → усі уроки того дня.
+  const firsts: Array<{ at: Date; r: ParsedStudent }> = [];
+  for (const r of valid) {
+    if (r.schedule.length === 0) continue;
+    for (const at of scheduleToStarts(r.schedule, 1, now)) firsts.push({ at, r });
+  }
+  let day: DigestPreview["day"] = null;
+  if (firsts.length > 0) {
+    firsts.sort((a, b) => a.at.getTime() - b.at.getTime());
+    const first = firsts[0].at;
+    const sameDay = (d: Date) =>
+      d.getFullYear() === first.getFullYear() && d.getMonth() === first.getMonth() && d.getDate() === first.getDate();
+    const lessons = firsts
+      .filter((f) => sameDay(f.at))
+      .map((f) => ({
+        time: `${String(f.at.getHours()).padStart(2, "0")}:${String(f.at.getMinutes()).padStart(2, "0")}`,
+        name: names.get(f.r) ?? f.r.firstName,
+      }));
+    day = { date: first, lessons };
+  }
+
+  const debtors: DigestDebtor[] = [];
+  for (const r of valid) {
+    const price = r.price ?? 0;
+    const net = netDebtAndPrepay(r);
+    const amount = net.debtAmount + price * net.debtLessons;
+    const lessons = price > 0 ? 0 : net.debtLessons;
+    if (amount > 0 || lessons > 0) debtors.push({ name: names.get(r) ?? r.firstName, amount, lessons });
+  }
+  debtors.sort((a, b) => b.amount - a.amount || b.lessons - a.lessons);
+
+  return { day, debtors };
 }
