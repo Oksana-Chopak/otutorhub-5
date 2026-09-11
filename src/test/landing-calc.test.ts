@@ -9,8 +9,11 @@
  * у застосунку — 1500 ₴.
  */
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { IMPORT_SCHEDULE_WEEKS, parseStudentList, netDebtAndPrepay } from "@/lib/importStudents";
-import { calcMoneyPreview, CALC_WEEKS } from "@/lib/landingCalc";
+import { calcMoneyPreview, CALC_WEEKS, formatDigestDay } from "@/lib/landingCalc";
 
 const P = (t: string) => calcMoneyPreview(parseStudentList(t));
 
@@ -142,5 +145,29 @@ describe("лендінг · дайджест «твій завтрашній р�
   it("тезки розводяться ініціалом прізвища, решта — лише імʼя", () => {
     const d = D("Марія Коваль — 600 — борг 100\nМарія Шевченко — 600 — борг 50\nОля Іванова — 350 — борг 20", fri);
     expect(d.debtors.map((x) => x.name)).toEqual(["Марія К.", "Марія Ш.", "Оля"]);
+  });
+});
+
+describe("дата дайджесту · відмінок", () => {
+  it("день тижня — у називному, а не «пʼятницю»", () => {
+    const d = new Date(2026, 8, 11); // пʼятниця
+    const label = formatDigestDay(d, "uk");
+    // Еталон — Intl із самим weekday: він ЗАВЖДИ дає називний відмінок.
+    const nominative = new Intl.DateTimeFormat("uk", { weekday: "long" }).format(d);
+    expect(label.toLocaleLowerCase("uk")).toContain(nominative.toLocaleLowerCase("uk"));
+    expect(label).toMatch(/^[А-ЯІЇЄҐA-Z]/);           // з великої літери
+    expect(label).toContain(new Intl.DateTimeFormat("uk", { day: "numeric", month: "long" }).format(d));
+  });
+
+  it("не збирає дату одним скелетом — саме він давав знахідний у Chromium", () => {
+    // Джерельний запобіжник: у Node ICU обидва варіанти дають називний, тож
+    // поведінковий тест сам по собі регресію не впіймав би.
+    const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../lib/landingCalc.ts"), "utf8");
+    expect(src).not.toMatch(/weekday:\s*"long",\s*day:/);
+    expect(src).toMatch(/weekday: "long" \}\)/);
+  });
+
+  it("порожня дата не ламає підпис", () => {
+    expect(formatDigestDay(new Date(NaN), "uk")).toBe("");
   });
 });

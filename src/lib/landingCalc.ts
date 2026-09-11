@@ -111,6 +111,26 @@ function digestNames(rows: ParsedStudent[]): Map<ParsedStudent, string> {
   return out;
 }
 
+/**
+ * Дата дайджесту людською мовою: «Пʼятниця, 11 вересня».
+ *
+ * ЧОМУ НЕ ОДНИМ Intl-викликом. Скелет {weekday, day, month} в українській
+ * локалі Chromium дає ЗНАХІДНИЙ відмінок — «пʼятницю, 11 вересня», «суботу,
+ * 12 вересня». Після «Доброго ранку!» це читається як помилка, і саме так
+ * воно й виглядало на першому екрані лендінгу. У Node ICU інша й віддає
+ * називний, тому тест у CI цього не ловив — баг видно лише в браузері.
+ * Тому день тижня форматуємо ОКРЕМО (там завжди називний) і склеюємо самі.
+ */
+export function formatDigestDay(date: Date, locale: string): string {
+  try {
+    const wd = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date);
+    const dm = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(date);
+    return `${wd.charAt(0).toLocaleUpperCase(locale)}${wd.slice(1)}, ${dm}`;
+  } catch {
+    return "";
+  }
+}
+
 export function digestPreview(rows: ParsedStudent[], now: Date = new Date()): DigestPreview {
   const valid = rows.filter((r) => !r.error);
   const names = digestNames(valid);

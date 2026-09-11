@@ -433,7 +433,7 @@ export const en: LocaleTranslations = {
     title: "See your tomorrow morning in 30 seconds",
     sub: "Paste your student list exactly as you keep it — notebook, notes or a spreadsheet. Nothing to reformat: the assistant shows what your morning digest will look like.",
     placeholder: "Maria Koval — English — 600 — debt 1200 — mon 18:00\nIvan Petrenko; maths; 500; prepaid 3\nOlia, 350, tue 16:30",
-    privacy: "🔒 Calculated in your browser. Nothing leaves it until you choose to save.",
+    privacy: "🔒 Calculated in your browser. Nothing goes to the server until you ask for it.",
     owedLabel: "Owed to you right now",
     monthlyLabel: "Over the next {{weeks}} weeks",
     studentsLabel: "Students in the list",

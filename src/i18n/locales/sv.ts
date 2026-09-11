@@ -1146,7 +1146,7 @@ export const sv: LocaleTranslations = {
     title: "Se din morgondag på 30 sekunder",
     sub: "Klistra in din elevlista precis som du har den — anteckningsbok, anteckningar eller kalkylark. Assistenten visar hur din morgonsammanfattning kommer att se ut.",
     placeholder: "Maria Koval — engelska — 600 — skuld 1200 — mån 18:00\nIvan Petrenko; matematik; 500; förskott 3\nOlia, 350, tis 16:30",
-    privacy: "🔒 Räknas i din webbläsare. Inget lämnar den förrän du väljer att spara.",
+    privacy: "🔒 Räknas i din webbläsare. Inget skickas till servern förrän du själv ber om det.",
     owedLabel: "Skyldiga dig just nu",
     monthlyLabel: "Under de kommande {{weeks}} veckorna",
     studentsLabel: "Elever i listan",

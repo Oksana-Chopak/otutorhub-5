@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { openExternal } from "@/lib/openExternal";
 import { parseStudentList, IMPORT_CURRENCY } from "@/lib/importStudents";
-import { calcMoneyPreview, digestPreview, CALC_WEEKS } from "@/lib/landingCalc";
+import { calcMoneyPreview, digestPreview, CALC_WEEKS, formatDigestDay } from "@/lib/landingCalc";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { landingEvent, saveLandingDraft, peekLandingDraft, rememberHandoffToken } from "@/lib/landingFunnel";
@@ -60,10 +60,7 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
   const has = calc.students > 0;
   const dayLabel = useMemo(() => {
     if (!digest.day) return "";
-    try {
-      const s = new Intl.DateTimeFormat(getLocale(), { weekday: "long", day: "numeric", month: "long" }).format(digest.day.date);
-      return s.charAt(0).toLocaleUpperCase() + s.slice(1);
-    } catch { return ""; }
+    return formatDigestDay(digest.day.date, getLocale());
   }, [digest.day]);
   const MAX_NAMES = 3;
 
