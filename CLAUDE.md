@@ -97,10 +97,16 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   (FIRST commit of next session, fresh context — money form is never restyled
   at the tail of a long session).
 - UI CANON — ONE component per concept (tripwires №8-№11): date/time =
-  DateTimeField/DateField/TimeField; lesson create = Schedule inline (багата
-  все-рольова) + QuickLessonDialog (швидка + групи) + OnboardingFlowB (перший
-  урок) + lib/groupLessons — злиття QLD→LessonCreateDialog за
-  docs/UI-MERGE-PLAN.md одразу після Publish-смоуку власниці; lesson view/edit
+  DateTimeField/DateField/TimeField; **lesson create = QuickLessonDialog ONLY**
+  (рішення власниці 11.09) + OnboardingFlowB (перший урок) + lib/groupLessons.
+  Стара інлайн-форма Schedule БІЛЬШЕ НЕ створює уроків із жодного шляху —
+  ані сітка, ані FAB, ані порожній стан, ані `?create=1`; вона лишилась ЛИШЕ
+  під «Копіювати» (переносить ставки й статуси). Посилання «Відкрити повний
+  редактор» видалено разом із пропом `onWantFullForm`. Менеджер користується
+  QuickLessonDialog у variant="manager" (свій вибір репетитора); кнопка
+  «Додати учня» там веде в «Люди», бо `add_or_link_independent_student`
+  завела б НЕЗАЛЕЖНОГО учня під менеджером, чого хабова модель не допускає.
+  Стереже `carried-over-import.test.ts` → «урок створюється ТІЛЬКИ новою формою»; lesson view/edit
   = LessonDetailsDialog; payment = RecordPaymentSheet; student create =
   QuickAddStudentDialog (tutor) + People form (manager; StudentUpsertDialog =
   етап 2 плану); subjects = SubjectSelect/SubjectMultiSelect; lesson status =

@@ -3537,7 +3537,6 @@ export const en: LocaleTranslations = {
   subscriptionPageExtra: {
     billingHalfyear: "6 months",
     totalNote: "One-time charge: {{total}}",
-    nbuNote: "Charged in UAH at the official NBU rate on the payment day",
     pageTitle: "oTutorHub Subscription",
     earlyBirdLeft: "🔥 {{count}} spots left",
     earlyBirdLeft_one: "🔥 {{count}} spot left",
@@ -4312,7 +4311,6 @@ export const en: LocaleTranslations = {
     cancelBtn: "Cancel",
     createLessonBtn: "Create lesson",
     studentsShort: "st.",
-    openFullEditor: "Open full editor",
     addStudentFirst: "Add a student first",
     noStudentsHint: "Add your first student to create a lesson",
     addStudentBtn: "Add student",

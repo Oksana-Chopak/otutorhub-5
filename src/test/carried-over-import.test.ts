@@ -76,3 +76,41 @@ describe("імпорт · клієнт і edge бачать перенесені
     expect(src("src/components/ImportStudentsSheet.tsx")).not.toMatch(/const IMPORT_SCHEDULE_WEEKS/);
   });
 });
+
+/**
+ * Створення уроку · рішення власниці 11.09.
+ * Стара інлайн-форма розкладу застаріла: гірший інтерфейс, дублює нову і не
+ * має навіть «Додати учня». З усіх шляхів СТВОРЕННЯ вона прибрана; лишилась
+ * тільки під «Копіювати», де переносить ставки й статуси.
+ */
+describe("урок створюється ТІЛЬКИ новою формою", () => {
+  const src = (p: string) => readFileSync(join(root, p), "utf8");
+  const sched = src("src/pages/SchedulePage.tsx");
+  const dlg = src("src/components/QuickLessonDialog.tsx");
+
+  it("посилання «Відкрити повний редактор» більше не існує", () => {
+    expect(dlg).not.toMatch(/openFullEditor/);
+    expect(dlg).not.toMatch(/onWantFullForm/);
+    expect(sched).not.toMatch(/onWantFullForm/);
+    expect(src("src/pages/DashboardPage.tsx")).not.toMatch(/onWantFullForm/);
+  });
+
+  it("стару форму відкриває лише «Копіювати»", () => {
+    // Один-єдиний setCreateOpen(true) — усередині openCopy.
+    expect(sched.match(/setCreateOpen\(true\)/g) ?? []).toHaveLength(1);
+    const idx = sched.indexOf("setCreateOpen(true)");
+    expect(sched.slice(0, idx)).toMatch(/const openCopy[\s\S]*$/);
+  });
+
+  it("клітинка сітки, плюс і порожній стан ведуть у нову форму", () => {
+    expect(sched).toMatch(/onSlotClick=\{\(date\) => \{[\s\S]{0,400}?setQuickSlot\(date\)/);
+    expect(sched).not.toMatch(/onSlotClick[\s\S]{0,400}?setCreateOpen/);
+  });
+
+  it("менеджер не заводить НЕЗАЛЕЖНОГО учня з форми уроку", () => {
+    // add_or_link_independent_student під менеджером створив би учня «нічийного»
+    // для школи. Менеджеру — «Люди», решті — кнопка.
+    expect(dlg).toMatch(/!isHubVariant && !isManager/);
+    expect(dlg).toMatch(/\/people\?add=student/);
+  });
+});

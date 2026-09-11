@@ -3517,7 +3517,6 @@ export const sv: LocaleTranslations = {
   subscriptionPageExtra: {
     billingHalfyear: "6 månader",
     totalNote: "Engångsbetalning: {{total}}",
-    nbuNote: "Debiteras i UAH enligt NBU:s officiella kurs på betalningsdagen",
     pageTitle: "oTutorHub-prenumeration",
     earlyBirdLeft: "🔥 {{count}} platser kvar",
     earlyBirdLeft_one: "🔥 {{count}} plats kvar",
@@ -4292,7 +4291,6 @@ export const sv: LocaleTranslations = {
     cancelBtn: "Avbryt",
     createLessonBtn: "Skapa lektion",
     studentsShort: "el.",
-    openFullEditor: "Öppna fullständig redigerare",
     addStudentFirst: "Lägg till en elev först",
     noStudentsHint: "Lägg till din första elev för att skapa en lektion",
     addStudentBtn: "Lägg till elev",

@@ -516,7 +516,6 @@ export default function SubscriptionPage() {
               </div>
               <LiqPayPayButton plan={billing} recurring className="w-full" label={t("subscriptionPageExtra.payBtn")} />
               <div style={{ fontSize: 14, color: S.muted, textAlign: "center", marginTop: 8 }}>{t("subscriptionPageExtra.liqPayNote")}</div>
-              <div style={{ fontSize: 13, color: S.muted, textAlign: "center", marginTop: 4 }}>{t("subscriptionPageExtra.nbuNote")}</div>
             </div>
           )}
 

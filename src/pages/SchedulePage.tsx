@@ -187,6 +187,7 @@ export default function SchedulePage() {
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
+  const [quickStudentId, setQuickStudentId] = useState<string | null>(null);
   const [quickSlot, setQuickSlot] = useState<Date | null>(null);
   const [form, setForm] = useState({
     tutor_id: "",
@@ -968,17 +969,10 @@ export default function SchedulePage() {
     // Deep-link from the dashboard FAB (manager): open the create-lesson dialog,
     // then strip the param so a refresh doesn't re-open it.
     if (searchParams.get("create") === "1" && canCreate) {
-      if (isManager) {
-        // Менеджер отримує НОВУ канонічну форму (QuickLessonDialog manager-mode);
-        // стара інлайн-форма для нього більше не відкривається.
-        setQuickSlot(new Date());
-        setSearchParams({}, { replace: true });
-        return;
-      }
-      setCreateOpen(true);
-      // Optional student prefill (e.g. deep-link from Chats "create lesson").
-      const presetStudent = searchParams.get("student");
-      if (presetStudent) setForm((f) => ({ ...f, student_id: presetStudent }));
+      // 11.09: нова форма для ВСІХ ролей — менеджер сюди вже ходив, тепер і решта.
+      // Передвибір учня з чату («створити урок») переїхав у initialStudentId.
+      setQuickStudentId(searchParams.get("student"));
+      setQuickSlot(new Date());
       const n = new URLSearchParams(searchParams);
       n.delete("create");
       n.delete("student");
@@ -1498,15 +1492,11 @@ export default function SchedulePage() {
           onToday={() => setWeekAnchor(new Date())}
           onSlotClick={(date) => {
             if (!canCreate) return;
-            if (isTutor && !isManager) {
-              // Both tutor kinds get the modern quick dialog (hub variant reads hub
-              // students + creates source='hub'); only the manager needs the full
-              // form (tutor picker).
-              setQuickSlot(date);
-              return;
-            }
-            setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
-            setCreateOpen(true);
+            // 11.09: клітинка сітки веде в нову форму для ВСІХ ролей. Менеджер
+            // теж — QuickLessonDialog має свій вибір репетитора (variant=manager),
+            // і саме так він уже відкривався з ?create=1. Стара інлайн-форма
+            // лишалась тут лише тому, що міграцію не доробили.
+            setQuickSlot(date);
           }}
           onLessonClick={(l) => setDetailsLessonId(l.id)}
           nameOf={(id) => profilesMap[id] ?? "?"}
@@ -1571,7 +1561,12 @@ export default function SchedulePage() {
                 : t('schedule.noLessonsDescWait')
             }
             actionLabel={canCreate ? t('schedule.createFirstLesson') : null}
-            onAction={canCreate ? () => setCreateOpen(true) : undefined}
+            onAction={canCreate ? () => {
+              const d = new Date();
+              d.setMinutes(0, 0, 0);
+              d.setHours(d.getHours() + 1);
+              setQuickSlot(d);
+            } : undefined}
           />
         )
       ) : (
@@ -1687,28 +1682,20 @@ export default function SchedulePage() {
       )}
       <QuickLessonDialog
         open={!!quickSlot}
-        onOpenChange={(v) => !v && setQuickSlot(null)}
+        onOpenChange={(v) => { if (!v) { setQuickSlot(null); setQuickStudentId(null); } }}
         startsAt={quickSlot}
+        initialStudentId={quickStudentId}
         onCreated={() => loadAll()}
-        onWantFullForm={(date) => {
-          setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
-          setCreateOpen(true);
-        }}
         variant={isManager ? "manager" : isIndependentTutor ? "independent" : "hub"}
       />
       {canCreate && (
         <PageFAB
           onClick={() => {
-            if (isTutor && !isManager) {
-              // Tutors land in the modern quick dialog; time defaults to the next
-              // full hour and is editable inside the dialog.
-              const d = new Date();
-              d.setMinutes(0, 0, 0);
-              d.setHours(d.getHours() + 1);
-              setQuickSlot(d);
-              return;
-            }
-            setCreateOpen(true);
+            // Час за замовчуванням — наступна повна година, змінюється всередині.
+            const d = new Date();
+            d.setMinutes(0, 0, 0);
+            d.setHours(d.getHours() + 1);
+            setQuickSlot(d);
           }}
           label={t("schedule.createBtn")}
         />

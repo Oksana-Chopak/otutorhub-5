@@ -3551,7 +3551,6 @@ export const uk = {
   subscriptionPageExtra: {
     billingHalfyear: "Півроку",
     totalNote: "Разовий платіж: {{total}}",
-    nbuNote: "Списання у гривнях за офіційним курсом НБУ на день оплати",
     pageTitle: "Підписка oTutorHub",
     earlyBirdLeft: "🔥 ще {{count}} місць",
     earlyBirdLeft_one: "🔥 ще {{count}} місце",
@@ -4332,7 +4331,6 @@ export const uk = {
     cancelBtn: "Скасувати",
     createLessonBtn: "Створити урок",
     studentsShort: "уч.",
-    openFullEditor: "Відкрити повний редактор",
     addStudentFirst: "Спочатку додайте учня",
     noStudentsHint: "Спочатку додайте першого учня, щоб створити урок",
     addStudentBtn: "Додати учня",

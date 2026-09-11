@@ -1697,7 +1697,6 @@ export default function DashboardPage() {
         onOpenChange={setQuickLessonOpen}
         startsAt={quickLessonOpen ? new Date() : null}
         onCreated={() => { loadData(); obProgress.refetch(); }}
-        onWantFullForm={() => { setQuickLessonOpen(false); navigate("/schedule"); }}
         variant={isManager ? "manager" : isHubTutor ? "hub" : "independent"}
       />
 

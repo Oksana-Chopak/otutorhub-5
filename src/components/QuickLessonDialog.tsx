@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Loader2, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
+import { Link } from "react-router-dom";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
@@ -41,7 +42,6 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   startsAt: Date | null;
   onCreated?: () => void;
-  onWantFullForm?: (startsAt: Date) => void;
   initialStudentId?: string | null;
   /** "hub": the dialog serves a HUB tutor — students come from their hub rates
    * (source='hub'), lessons are created with source='hub', and the add-student
@@ -82,7 +82,6 @@ export function QuickLessonDialog({
   onOpenChange,
   startsAt,
   onCreated,
-  onWantFullForm,
   initialStudentId,
   variant = "independent",
 }: Props) {
@@ -537,13 +536,26 @@ export function QuickLessonDialog({
                 <p style={{ fontSize: 15, color: F.sub, marginBottom: 14, fontFamily: F.body }}>
                   {isHubVariant ? t("quickLessonDialog.hubNoStudentsHint") : t("quickLessonDialog.noStudentsHint")}
                 </p>
-                {!isHubVariant && (
+                {/* «Додати учня» тут заводить НЕЗАЛЕЖНОГО учня під того, хто натиснув
+                    (RPC add_or_link_independent_student). Менеджерові це не підходить:
+                    у школі учень належить школі й прив'язується до репетитора через
+                    «Люди». Тож менеджеру — шлях туди, а не кнопка, що зробить не те. */}
+                {!isHubVariant && !isManager && (
                   <button onClick={() => setAddStudentOpen(true)}
                     style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
                       background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                       fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
                     + {t("quickLessonDialog.addStudentBtn")}
                   </button>
+                )}
+                {isManager && (
+                  <Link to="/people?add=student" onClick={() => onOpenChange(false)}
+                    style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 20px",
+                      borderRadius: 12, textDecoration: "none",
+                      background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
+                      fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
+                    + {t("quickLessonDialog.addStudentBtn")}
+                  </Link>
                 )}
               </div>
             ) : (
@@ -672,7 +684,7 @@ export function QuickLessonDialog({
                         </button>
                       );
                     })}
-                    {!isHubVariant && (
+                    {!isHubVariant && !isManager && (
                       <button onClick={() => setAddStudentOpen(true)}
                         style={{ height: 44, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
                           background: "transparent", color: F.muted, fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
@@ -713,14 +725,9 @@ export function QuickLessonDialog({
                   </div>
                 )}
 
-                {/* Full editor link */}
-                {effStartsAt && onWantFullForm && mode === "individual" && (
-                  <button onClick={() => { onOpenChange(false); onWantFullForm!(effStartsAt!); }}
-                    style={{ alignSelf: "center", background: "transparent", border: "none", cursor: "pointer",
-                      fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.sub, padding: "2px 8px" }}>
-                    {t("quickLessonDialog.openFullEditor")} →
-                  </button>
-                )}
+                {/* 11.09, рішення власниці: посилання на стару інлайн-форму прибрано.
+                    Вона застаріла, дублювала цю саму дію гіршим інтерфейсом і не мала
+                    навіть «Додати учня». Створення уроку живе ТІЛЬКИ тут. */}
               </>
             )}
           </div>
