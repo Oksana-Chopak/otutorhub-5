@@ -874,17 +874,23 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
   const [daily,  setDaily]  = useState(true);
   const [botUrl, setBotUrl] = useState("");
 
+  // 11.09: deep-link ніс user.id, а бот приймає лише 8-значний код із
+  // generate_telegram_link_code — кожен новачок бачив «❌ Код не знайдено», а
+  // крок оптимістично ставав ✓. Тепер код генерується тут (як у TelegramLinkCard),
+  // ім'я бота — з telegram-bot-info, до відповіді — типове.
   useEffect(() => {
     if (!user) return;
-    supabase.functions.invoke("telegram-bot-info").then(({ data }) => {
-      if (data?.bot_username) {
-        setBotUrl(`https://t.me/${data.bot_username}?start=${user.id}`);
-      } else {
-        setBotUrl(`https://t.me/oTutorHubBot?start=${user.id}`);
-      }
-    }).catch(() => {
-      setBotUrl(`https://t.me/oTutorHubBot?start=${user.id}`);
-    });
+    let active = true;
+    (async () => {
+      const [{ data: code }, info] = await Promise.all([
+        supabase.rpc("generate_telegram_link_code", { _user_id: user.id }),
+        supabase.functions.invoke("telegram-bot-info").catch(() => ({ data: null })),
+      ]);
+      if (!active) return;
+      const bot = (info as { data?: { bot_username?: string } | null })?.data?.bot_username || "oTutorHubBot";
+      setBotUrl(typeof code === "string" && code ? `https://t.me/${bot}?start=${code}` : `https://t.me/${bot}`);
+    })();
+    return () => { active = false; };
   }, [user?.id]);
 
   // A2: щойно бот записав chat_id — крок підтверджено навіть без повернення в апку.

@@ -463,6 +463,13 @@ export const en: LocaleTranslations = {
     digestCaption: "This is the digest you will get in Telegram every morning — already with your names.",
     ctaRemind: "Remind everyone about their debt →",
     ctaDaily: "Get this every morning →",
+    tgCta: "Get this in Telegram →",
+    tgOpening: "Opening Telegram…",
+    tgOpen: "Open Telegram →",
+    tgOpened: "The bot sends this digest right away, with a “Create account” button inside: Telegram gets connected automatically.",
+    tgHint: "The list is kept for 24 hours so the bot can send the digest, and disappears if you don't create an account.",
+    tgRateLimited: "Too many attempts from this address — try again in an hour.",
+    tgFailed: "Couldn't prepare the digest. Try again in a minute.",
   },
   landing: {
     nav: {

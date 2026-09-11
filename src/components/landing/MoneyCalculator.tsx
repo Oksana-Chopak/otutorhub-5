@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState, useEffect, useId } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
+import { openExternal } from "@/lib/openExternal";
 import { parseStudentList, IMPORT_CURRENCY } from "@/lib/importStudents";
 import { calcMoneyPreview, digestPreview, CALC_WEEKS } from "@/lib/landingCalc";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
-import { landingEvent, saveLandingDraft, peekLandingDraft } from "@/lib/landingFunnel";
+import { landingEvent, saveLandingDraft, peekLandingDraft, rememberHandoffToken } from "@/lib/landingFunnel";
 import { metaTrack } from "@/lib/metaPixel";
 
 /**
@@ -29,9 +31,15 @@ import { metaTrack } from "@/lib/metaPixel";
  *     Це те, що пересилають колезі: застосунок говорить про твій понеділок ще
  *     до реєстрації. Кнопка під ним — не «зареєструйся», а перша дія в
  *     продукті: нагадати всім про борг (список уже чекає всередині — естафета).
+ *  5. (11.09) «Отримати це в Telegram» — той самий дайджест приходить у
+ *     месенджер ДО реєстрації: список + готовий текст лягають під токен
+ *     (create_landing_handoff, 24 год), відкривається бот із deep-link, а
+ *     кнопка «Створити акаунт» у боті несе той самий токен — Telegram буде
+ *     прив'язаний до акаунта автоматично. Це єдиний момент, коли список іде
+ *     на сервер, і про це сказано під кнопкою.
  */
 export function MoneyCalculator({ signupHref }: { signupHref: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const taId = useId();
   const [text, setText] = useState(() => peekLandingDraft() ?? "");
   const taRef = useRef<HTMLTextAreaElement | null>(null);
@@ -75,6 +83,67 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
   }, [calc.students, calc.owed, calc.monthly]);
 
   const money = (n: number) => formatPrice(Math.round(n), IMPORT_CURRENCY);
+
+  // Текст для Telegram — ТЕ САМЕ, що в бульбашці нижче, рядок у рядок:
+  // бот лише пересилає, тож число в месенджері дорівнює числу на екрані.
+  const digestText = useMemo(() => {
+    if (!has) return "";
+    const lines: string[] = [];
+    lines.push(digest.day
+      ? t("landingCalc.digestDay", { day: dayLabel, count: digest.day.lessons.length })
+      : t("landingCalc.digestNoDay"));
+    if (digest.day) {
+      for (const l of digest.day.lessons.slice(0, 8)) lines.push(`${l.time} ${l.name}`);
+      if (digest.day.lessons.length > 8) lines.push(t("landingCalc.digestMore", { count: digest.day.lessons.length - 8 }));
+    }
+    lines.push("");
+    if (calc.owed > 0) {
+      lines.push(`💸 ${t("landingCalc.owedLabel")}: ${money(calc.owed)}`);
+      const names = digest.debtors.slice(0, MAX_NAMES).map((d) =>
+        d.amount > 0 ? `${d.name} ${money(d.amount)}` : `${d.name} ${t("landingCalc.debtLessons", { count: d.lessons })}`);
+      if (digest.debtors.length > MAX_NAMES) names.push(t("landingCalc.digestMore", { count: digest.debtors.length - MAX_NAMES }));
+      lines.push(names.join(" · "));
+    } else {
+      lines.push(`✅ ${t("landingCalc.zeroOwed")}`);
+    }
+    if (calc.prepaid > 0) {
+      lines.push(t(calc.owed > 0 ? "landingCalc.prepaidLine" : "landingCalc.prepaidOnly", { amount: money(calc.prepaid), count: calc.prepaidStudents }));
+    }
+    lines.push("");
+    lines.push(`📈 ${t("landingCalc.digestMonth", {
+      weeks: CALC_WEEKS, amount: money(calc.monthly),
+      lessons: t("landingCalc.lessons", { count: calc.lessonsPerMonth }),
+      students: t("landingCalc.students", { count: calc.students }),
+    })}`);
+    return lines.join("\n").slice(0, 3900);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [has, digest, dayLabel, calc, i18n.language]);
+
+  const [tgBusy, setTgBusy] = useState(false);
+  const [tgLink, setTgLink] = useState<string | null>(null);
+  const [tgError, setTgError] = useState<string | null>(null);
+  const sendToTelegram = async () => {
+    if (tgBusy || !has) return;
+    setTgBusy(true); setTgError(null);
+    try {
+      const lang = (["uk", "en", "sv"] as const).find((l) => i18n.language?.startsWith(l)) ?? "uk";
+      const { data: token, error } = await (supabase as any).rpc("create_landing_handoff", { _list: text, _digest: digestText, _lang: lang });
+      if (error || typeof token !== "string") {
+        setTgError(/RATE_LIMITED/.test(String(error?.message ?? "")) ? t("landingCalc.tgRateLimited") : t("landingCalc.tgFailed"));
+        return;
+      }
+      rememberHandoffToken(token);
+      saveLandingDraft(text);
+      landingEvent("landing_telegram_started", { students: calc.students, owed: calc.owed });
+      // Ім'я бота — з бази (бот записує його сам); до першого опитування — типове.
+      const { data: bot } = await (supabase as any).rpc("landing_bot_username").catch(() => ({ data: null }));
+      const url = `https://t.me/${typeof bot === "string" && bot ? bot : "oTutorHubBot"}?start=${token}`;
+      setTgLink(url);
+      void openExternal(url);
+    } finally {
+      setTgBusy(false);
+    }
+  };
 
   return (
     <section className="l-section" id="calc" style={{ background: "var(--bg)" }}>
@@ -200,6 +269,41 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
               <p style={{ fontSize: 14, color: "var(--l-muted,#666b82)", marginTop: 10 }}>
                 {t("landingCalc.ctaHint")}
               </p>
+
+              {/* Дайджест у Telegram ДО реєстрації: застосунок уже працює на людину,
+                  а вона ще ніде не реєструвалась. */}
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "0.5px solid var(--border,#e6e8ef)" }}>
+                {tgLink ? (
+                  /* Після await блокувальники спливних вікон часто не пускають
+                     window.open — тому прямий лінк, який спрацьовує від дотику завжди. */
+                  <>
+                    <a href={tgLink} target="_blank" rel="noopener noreferrer" className="btn-ghost">
+                      {t("landingCalc.tgOpen")}
+                    </a>
+                    <p style={{ fontSize: 13, color: "var(--l-muted,#666b82)", marginTop: 8 }}>
+                      {t("landingCalc.tgOpened")}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={() => void sendToTelegram()}
+                      disabled={tgBusy}
+                      aria-busy={tgBusy}
+                    >
+                      {tgBusy ? t("landingCalc.tgOpening") : t("landingCalc.tgCta")}
+                    </button>
+                    <p style={{ fontSize: 13, color: "var(--l-muted,#666b82)", marginTop: 8 }}>
+                      {t("landingCalc.tgHint")}
+                    </p>
+                  </>
+                )}
+                {tgError && (
+                  <p role="alert" style={{ fontSize: 14, marginTop: 6, color: "#b42318" }}>{tgError}</p>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
-import { landingDraftForSignup } from "@/lib/landingFunnel";
+import { landingDraftForSignup, peekHandoffToken, rememberHandoffToken, saveLandingDraft, HANDOFF_TOKEN_RE } from "@/lib/landingFunnel";
 import { BUILD_TAG } from "@/lib/buildInfo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
@@ -194,6 +194,20 @@ export default function AuthPage() {
   useEffect(() => {
     if (!authLoading && user) navigate(nextPath, { replace: true });
   }, [user, authLoading, navigate, nextPath]);
+
+  // Посилання з бота «Створити акаунт» (11.09): ?lh=<токен>. Це інший пристрій
+  // з порожнім localStorage, тож список підтягуємо з сервера в ту саму
+  // естафету, що й із калькулятора, а токен запам'ятовуємо для реєстрації —
+  // тригер прив'яже цей Telegram до нового акаунта.
+  useEffect(() => {
+    const lh = searchParams.get("lh");
+    if (!lh || !HANDOFF_TOKEN_RE.test(lh)) return;
+    rememberHandoffToken(lh);
+    (supabase as any)
+      .rpc("read_landing_handoff", { _token: lh })
+      .then(({ data }: { data: unknown }) => { if (typeof data === "string" && data.trim()) saveLandingDraft(data); })
+      .catch(() => {});
+  }, [searchParams]);
 
   useEffect(() => {
     localStorage.setItem(REMEMBER_KEY, String(remember));
@@ -456,6 +470,7 @@ export default function AuthPage() {
     } catch { /* ignore — fall back to normal flow */ }
 
     const landingDraft = landingDraftForSignup();
+    const handoffToken = peekHandoffToken();
     const { data: signUpResult, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -472,6 +487,9 @@ export default function AuthPage() {
           // з іншого пристрою, де localStorage порожній, і обіцянка «список уже
           // всередині» ламалась рівно там, де народилась довіра.
           ...(parsed.data.role === "tutor" && landingDraft ? { landing_draft: landingDraft } : {}),
+          // Дайджест у Telegram до реєстрації (11.09): токен → тригер
+          // attach_landing_handoff прив'язує цей Telegram до нового акаунта.
+          ...(parsed.data.role === "tutor" && handoffToken ? { landing_handoff: handoffToken } : {}),
         },
       },
     });

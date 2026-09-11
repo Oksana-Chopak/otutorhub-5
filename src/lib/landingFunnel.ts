@@ -195,10 +195,29 @@ export function claimHandoffShown(): boolean {
   } catch { return true; }
 }
 
+/* ── Дайджест у Telegram до реєстрації (11.09) ────────────────────────────────
+   Токен естафети (lh_<32hex>) живе в localStorage, поки людина не
+   зареєструється: реєстрація кладе його в user_metadata.landing_handoff, а
+   тригер attach_landing_handoff прив'язує цей Telegram до нового акаунта. */
+const HANDOFF_TOKEN = "tutorhub.landingHandoffToken";
+export const HANDOFF_TOKEN_RE = /^lh_[0-9a-f]{32}$/;
+
+export function rememberHandoffToken(token: string): void {
+  if (!HANDOFF_TOKEN_RE.test(token)) return;
+  try { localStorage.setItem(HANDOFF_TOKEN, token); } catch { /* ignore */ }
+}
+export function peekHandoffToken(): string | null {
+  try {
+    const v = localStorage.getItem(HANDOFF_TOKEN);
+    return v && HANDOFF_TOKEN_RE.test(v) ? v : null;
+  } catch { return null; }
+}
+
 /** Список перенесено — прибрати з усіх трьох джерел (метадані — best-effort). */
 export function consumeLandingHandoff(user?: MetaUser): void {
   try { localStorage.removeItem(DRAFT); } catch { /* ignore */ }
   try { localStorage.removeItem(DEMO); } catch { /* ignore */ }
+  try { localStorage.removeItem(HANDOFF_TOKEN); } catch { /* ignore */ }
   if (readAccount(user)) {
     try {
       void supabase.auth

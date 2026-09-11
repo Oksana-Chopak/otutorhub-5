@@ -1176,6 +1176,13 @@ export const sv: LocaleTranslations = {
     digestCaption: "Så här ser sammanfattningen ut som du får i Telegram varje morgon — redan med dina namn.",
     ctaRemind: "Påminn alla om skulden →",
     ctaDaily: "Få detta varje morgon →",
+    tgCta: "Få detta i Telegram →",
+    tgOpening: "Öppnar Telegram…",
+    tgOpen: "Öppna Telegram →",
+    tgOpened: "Boten skickar sammanfattningen direkt, med en knapp ”Skapa konto”: Telegram kopplas automatiskt.",
+    tgHint: "Listan sparas i 24 timmar så att boten kan skicka sammanfattningen, och försvinner om du inte skapar ett konto.",
+    tgRateLimited: "För många försök från den här adressen — försök igen om en timme.",
+    tgFailed: "Kunde inte förbereda sammanfattningen. Försök igen om en minut.",
   },
   landing: {
     nav: {

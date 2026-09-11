@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
   const { data: state, error: stateErr } = await supabase
     .from('telegram_bot_state')
-    .select('update_offset')
+    .select('*')   // bot_username з'являється після міграції 20260911120000 — '*' не ламає опитування до неї
     .eq('id', 1)
     .single();
 
@@ -42,6 +42,16 @@ Deno.serve(async (req) => {
 
   let currentOffset = state.update_offset as number;
   let processed = 0;
+
+  // Ім'я бота — в базу (раз), щоб лендінг будував deep-link анонімно
+  // (landing_bot_username) замість хардкоду в клієнті. Помилка не блокує опитування.
+  if (!(state as { bot_username?: string | null }).bot_username) {
+    try {
+      const me = await fetch(`${TG_BASE}/getMe`).then((r) => r.json());
+      const username = me?.result?.username;
+      if (username) await supabase.from('telegram_bot_state').update({ bot_username: username }).eq('id', 1);
+    } catch (e) { console.warn('getMe failed', e); }
+  }
 
   while (true) {
     const elapsed = Date.now() - startTime;
@@ -82,6 +92,11 @@ Deno.serve(async (req) => {
         const code = startMatch[1];
         if (!code) {
           await sendTg(TG_BASE, chatId, `Привіт, ${fromName}! 👋\n\nЩоб отримувати сповіщення з oTutorHub, відкрийте розділ <b>Налаштування → Telegram</b> в апці й натисніть "Підключити Telegram". Скопіюйте отриманий код і надішліть мені:\n\n<code>/start ВАШ_КОД</code>`);
+        } else if (/^lh_[0-9a-f]{32}$/i.test(code)) {
+          // Дайджест ДО реєстрації (10.09): токен з лендінгу → той самий
+          // дайджест сюди + запрошення створити акаунт цим же токеном
+          // (тригер attach_landing_handoff прив'яже цей chat_id при реєстрації).
+          await handleLandingHandoff(TG_BASE, supabase, code.toLowerCase(), chatId, msg.from?.first_name ?? null);
         } else {
           const codeUp = code.trim().toUpperCase();
           const { data: link } = await supabase
@@ -126,11 +141,68 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, processed, finalOffset: currentOffset }));
 });
 
-async function sendTg(base: string, chatId: number, text: string) {
+async function sendTg(base: string, chatId: number, text: string, extra: Record<string, unknown> = {}) {
   await fetch(`${base}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true, ...extra }),
+  });
+}
+
+/* ── Дайджест до реєстрації ─────────────────────────────────────────────────
+   Текст дайджесту готує лендінг тим самим кодом, що малює його на екрані, —
+   тут лише пересилаємо (escape, бо parse_mode HTML) і додаємо кнопку
+   «Створити акаунт» з тим самим токеном. Токен — секрет із 32 hex; чужий або
+   прострочений — ввічлива відмова без деталей. */
+const LH = {
+  uk: {
+    expired: "⌛ Посилання застаріло. Поверніться на otutorhub.com, вставте список ще раз і натисніть «Отримати це в Telegram».",
+    intro: "Ось ваш дайджест — такий приходитиме щоранку о 07:30:",
+    outro: "Хочете отримувати його щодня — з нагадуваннями учням і без ручного вводу? Створіть акаунт за хвилину: список уже всередині, а цей Telegram буде підключено автоматично.",
+    btn: "Створити акаунт →",
+  },
+  en: {
+    expired: "⌛ This link has expired. Go back to otutorhub.com, paste your list again and tap “Get this in Telegram”.",
+    intro: "Here is your digest — you'd get one like this every morning at 07:30:",
+    outro: "Want it daily — with reminders to your students and nothing typed twice? Create an account in a minute: the list is already inside, and this Telegram gets connected automatically.",
+    btn: "Create account →",
+  },
+  sv: {
+    expired: "⌛ Länken har gått ut. Gå tillbaka till otutorhub.com, klistra in listan igen och tryck på ”Få detta i Telegram”.",
+    intro: "Här är din sammanfattning — en sådan får du varje morgon kl. 07:30:",
+    outro: "Vill du ha den dagligen — med påminnelser till eleverna och inget skrivet två gånger? Skapa ett konto på en minut: listan finns redan inne och den här Telegram-chatten kopplas automatiskt.",
+    btn: "Skapa konto →",
+  },
+} as const;
+
+async function handleLandingHandoff(base: string, supabase: any, token: string, chatId: number, firstName: string | null) {
+  const { data: h } = await supabase
+    .from('landing_handoffs')
+    .select('token, digest_text, lang, expires_at, user_id, chat_id')
+    .eq('token', token)
+    .maybeSingle();
+  const lang = (h?.lang === 'en' || h?.lang === 'sv') ? h.lang : 'uk';
+  const T = LH[lang as keyof typeof LH];
+  if (!h || new Date(h.expires_at) < new Date() || h.user_id) {
+    await sendTg(base, chatId, T.expired);
+    return;
+  }
+  // Токен належить тому чату, який відкрив його першим: інший chat_id
+  // отримує відмову — список чужих учнів не має розходитись по чатах.
+  if (h.chat_id && h.chat_id !== chatId) {
+    await sendTg(base, chatId, T.expired);
+    return;
+  }
+  if (!h.chat_id) {
+    await supabase
+      .from('landing_handoffs')
+      .update({ chat_id: chatId, tg_first_name: firstName, claimed_at: new Date().toISOString() })
+      .eq('token', token);
+  }
+  await sendTg(base, chatId, `${escapeHtml(T.intro)}\n\n${escapeHtml(String(h.digest_text))}`);
+  const signup = `https://otutorhub.com/auth?signup=1&role=tutor&lh=${encodeURIComponent(token)}`;
+  await sendTg(base, chatId, escapeHtml(T.outro), {
+    reply_markup: { inline_keyboard: [[{ text: T.btn, url: signup }]] },
   });
 }
 
