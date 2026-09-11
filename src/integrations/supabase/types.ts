@@ -693,6 +693,51 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_handoffs: {
+        Row: {
+          chat_id: number | null
+          claimed_at: string | null
+          created_at: string
+          digest_text: string
+          expires_at: string
+          ip_hash: string | null
+          lang: string
+          list_text: string
+          signed_up_at: string | null
+          tg_first_name: string | null
+          token: string
+          user_id: string | null
+        }
+        Insert: {
+          chat_id?: number | null
+          claimed_at?: string | null
+          created_at?: string
+          digest_text: string
+          expires_at?: string
+          ip_hash?: string | null
+          lang?: string
+          list_text: string
+          signed_up_at?: string | null
+          tg_first_name?: string | null
+          token: string
+          user_id?: string | null
+        }
+        Update: {
+          chat_id?: number | null
+          claimed_at?: string | null
+          created_at?: string
+          digest_text?: string
+          expires_at?: string
+          ip_hash?: string | null
+          lang?: string
+          list_text?: string
+          signed_up_at?: string | null
+          tg_first_name?: string | null
+          token?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       lesson_attachments: {
         Row: {
           created_at: string
@@ -2003,16 +2048,19 @@ export type Database = {
       }
       telegram_bot_state: {
         Row: {
+          bot_username: string | null
           id: number
           update_offset: number
           updated_at: string
         }
         Insert: {
+          bot_username?: string | null
           id: number
           update_offset?: number
           updated_at?: string
         }
         Update: {
+          bot_username?: string | null
           id?: number
           update_offset?: number
           updated_at?: string
@@ -2788,6 +2836,10 @@ export type Database = {
       }
       claim_referral: { Args: { _code: string }; Returns: Json }
       create_hub: { Args: { _manager: string; _name: string }; Returns: string }
+      create_landing_handoff: {
+        Args: { _digest: string; _lang?: string; _list: string }
+        Returns: string
+      }
       create_notification: {
         Args: {
           _body?: string
@@ -2938,6 +2990,7 @@ export type Database = {
       is_pending_profile: { Args: { _user_id: string }; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
       is_tutor_pro: { Args: { _tutor_id: string }; Returns: boolean }
+      landing_bot_username: { Args: never; Returns: string }
       link_student_by_email: {
         Args: {
           _currency?: string
@@ -3003,6 +3056,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      read_landing_handoff: { Args: { _token: string }; Returns: string }
       reject_subscription_request: {
         Args: { _request_id: string; _response?: string }
         Returns: Json
