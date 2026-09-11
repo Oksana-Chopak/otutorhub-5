@@ -12,6 +12,7 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useAutoGrowTextarea } from "@/hooks/useAutoGrowTextarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -65,34 +66,42 @@ function inferPlatform(url: string): string {
   if (u.includes("viber")) return "viber";
   return "other";
 }
-// РЕЛІЗ-БЛОКЕР (фокус): Row МУСИТЬ жити на рівні модуля. Оголошений усередині
-// компонента — новий тип на кожен рендер → textarea перестворюється і губить
-// фокус після ПЕРШОГО символу. Розтяжка №13 стереже. openRow/toggleRow — пропси.
+// РЕЛІЗ-БЛОКЕР (фокус): Section МУСИТЬ жити на рівні модуля. Оголошений
+// усередині компонента — новий тип на кожен рендер → textarea перестворюється
+// і губить фокус після ПЕРШОГО символу. Розтяжка №13 стереже.
 const L = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
   sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
-const Row = ({ emoji, tint, title, preview, k, last, children, openRow, toggleRow }: {
-emoji: string; tint: string; title: string; preview: string; k: string; last?: boolean; children: React.ReactNode;
-openRow: string | null; toggleRow: (k: string) => void;
-}) => {
-  const open = openRow === k;
-  return (
-    <div style={{ borderBottom: last ? "none" : `1px solid ${L.border}` }}>
-      <button type="button" onClick={() => toggleRow(k)}
-        style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", padding: "13px 14px", border: "none", background: "transparent", cursor: "pointer" }}>
-        <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 15, color: L.txt }}>{title}</span>
-          {!open && preview && <span style={{ display: "block", fontSize: 14, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
-        </span>
-        <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
-      </button>
-      {open && <div style={{ padding: "0 14px 14px" }}>{children}</div>}
+
+/**
+ * Картка уроку (11.09, рішення власниці).
+ *
+ * Раніше конспект, домашка й посилання на зустріч жили в одному акордеоні:
+ * щоб прочитати домашку, треба було здогадатись її розгорнути, а прев'ю
+ * показувало лише ПЕРШИЙ рядок. Плюс усе те саме віконце на 3–4 рядки.
+ * Тепер кожен блок — окрема картка, відкрита за замовчуванням: видно без
+ * зайвих кліків. Зустріч відокремлена від конспекту й домашки, бо це інша
+ * річ у часі: посилання потрібне ДО уроку, записи — ПІСЛЯ.
+ *
+ * Заголовки й цілі дотику збільшені: форму заповнюють із телефона однією
+ * рукою, і 34-піксельні кнопки там просто не влучаються.
+ */
+const Section = ({ emoji, tint, title, hint, children }: {
+  emoji: string; tint: string; title: string; hint?: string; children: React.ReactNode;
+}) => (
+  <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "var(--ds-surface,#fff)", padding: 14 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+      <span style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>{emoji}</span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 17, color: L.txt }}>{title}</span>
+        {hint && <span style={{ display: "block", fontSize: 14, color: L.muted, marginTop: 2, lineHeight: 1.35 }}>{hint}</span>}
+      </span>
     </div>
-  );
-};
+    {children}
+  </div>
+);
 
 
 export function LessonWorkspace({
@@ -193,6 +202,13 @@ export function LessonWorkspace({
   const [prevLesson, setPrevLesson] = useState<{ starts_at: string; summary: string | null; homework: string | null } | null>(null);
   const [prevOpen, setPrevOpen] = useState(false);
   const [privateNotesDraft, setPrivateNotesDraft] = useState("");
+
+  // 11.09: поля ростуть під вміст — і поки пишеш, і після збереження.
+  // Домашка на двадцять рядків більше не ховається у віконце на чотири.
+  const homeworkGrow = useAutoGrowTextarea(homeworkDraft);
+  const summaryGrow = useAutoGrowTextarea(summaryDraft);
+  const notesGrow = useAutoGrowTextarea(privateNotesDraft, 600);
+
   const [privateNotesSaved, setPrivateNotesSaved] = useState("");
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [platform, setPlatform] = useState("meet");
@@ -653,7 +669,7 @@ export function LessonWorkspace({
               <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔒</span>
               <span style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, color: L.sub }}>{t("lessonWorkspaceExtra.privateNotesLabel")}</span>
             </div>
-            <textarea aria-label={t("lessonWorkspaceExtra.privateNotesPlaceholder")} rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
+            <textarea ref={notesGrow} aria-label={t("lessonWorkspaceExtra.privateNotesPlaceholder")} rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
               placeholder={t("lessonWorkspaceExtra.privateNotesPlaceholder")}
               style={{ ...fieldCss, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)" }} />
             {privateNotesDraft !== privateNotesSaved && (
@@ -665,85 +681,25 @@ export function LessonWorkspace({
             )}
           </div>
 
-          {/* Accordion */}
-          <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "var(--ds-surface,#fff)" }}>
-            {/* 📚 Homework */}
-            <Row openRow={openRow} toggleRow={toggleRow} emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
-              preview={hwDoneByStudent ? `✅ ${t("lessonWorkspaceExtra.homeworkDoneByStudent")}` : homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
-              {/* №16: петля замкнулась — учень позначив, репетитор бачить */}
-              {isTutor && hwDoneByStudent && (
-                <div style={{ display: "flex", alignItems: "center", gap: 7, borderRadius: 11, padding: "8px 12px", marginBottom: 9, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", fontFamily: L.body, fontSize: 14, fontWeight: 600, color: "#16a34a" }}>
-                  ✅ {t("lessonWorkspaceExtra.homeworkDoneByStudent")}
-                </div>
-              )}
-              <textarea aria-label={t("lessonWorkspaceExtra.homeworkPlaceholder")} rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
-                placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
-              {homeworkDraft !== (homework ?? "") && (
-                <button type="button" disabled={saving === "homework"} onClick={() => updateLessonField("homework", homeworkDraft)}
-                  style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
-                  {saving === "homework" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  {t("lessonWorkspaceExtra.saveBtn")}
-                </button>
-              )}
-            </Row>
+          {/* 11.09: три окремі картки замість акордеона. Зустріч — зверху й
+              окремо (потрібна ДО уроку), записи — нижче (пишуться ПІСЛЯ). */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-            {/* ✨ Summary + AI */}
-            <Row openRow={openRow} toggleRow={toggleRow} emoji="✨" tint="rgba(245,181,68,.14)" title={t("lessonWorkspaceExtra.summaryTitle")}
-              preview={summaryDraft ? summaryDraft.split("\n")[0] : t("lessonWorkspaceExtra.summaryEmptyPreview")} k="ai">
-              {aiAllowed && settings?.ai_notes_auto && (
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 14, color: L.txt, lineHeight: 1.45 }}>
-                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: L.teal }} />
-                  <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoOnSend") : ""}.</span>
-                </div>
+            {/* 🎥 Онлайн-зустріч — окремий блок, не сусід конспекту */}
+            <Section emoji="🎥" tint="rgba(59,130,246,.1)" title={t("lessonWorkspaceExtra.meetingTitle")}
+              hint={`${(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).label} · ${linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentShort") : t("lessonWorkspaceExtra.onceShort")}`}>
+              {effectiveMeetingUrl && (
+                <a className="tap-44" href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
+                  style={{ marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 14, background: L.teal, color: "var(--ds-txt,#0f0f1a)", fontFamily: L.display, fontWeight: 700, fontSize: 16, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                  <ExternalLink className="h-5 w-5" /> {t("lessonWorkspaceExtra.joinBtn")}
+                </a>
               )}
-              <textarea aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => setSummaryDraft(e.target.value)}
-                placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 9, alignItems: "center" }}>
-                {aiAllowed ? (
-                  <button className="tap-44" type="button" onClick={generateAiSummary} disabled={aiLoading}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
-                    {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    {aiLoading ? t("lessonWorkspaceExtra.aiGenerating") : t("lessonWorkspaceExtra.aiBtn")}
-                  </button>
-                ) : (
-                  <button type="button" onClick={() => { trackPaywallClick("ai_summary", "lesson_workspace", { lessonId }); navigate("/subscription?from=ai_summary"); }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "var(--ds-surface,#fff)", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
-                    <Lock className="h-4 w-4" /> {t("lessonWorkspaceExtra.aiBtnPro")}
-                  </button>
-                )}
-                {summaryDraft !== (summary ?? "") && (
-                  <button type="button" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
-                    {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    {t("lessonWorkspaceExtra.saveAndSend")}
-                  </button>
-                )}
-                {!!summaryDraft.trim() && (
-                  <button type="button"
-                    onClick={async () => {
-                      const text = summaryDraft.trim();
-                      try {
-                        if (navigator.share) await navigator.share({ title: t("lessonWorkspaceExtra.shareTitle"), text });
-                        else { await navigator.clipboard.writeText(text); toast({ title: t("lessonWorkspaceExtra.copied"), description: t("lessonWorkspaceExtra.copiedDesc") }); }
-                      } catch { /* user cancelled */ }
-                    }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "var(--ds-surface,#fff)", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
-                    <Share2 className="h-4 w-4" /> {t("lessonWorkspaceExtra.shareBtn")}
-                  </button>
-                )}
-              </div>
-            </Row>
-
-            {/* 🎥 Meeting link */}
-            <Row openRow={openRow} toggleRow={toggleRow} emoji="🎥" tint="rgba(59,130,246,.1)" title={t("lessonWorkspaceExtra.meetingTitle")}
-              preview={`${(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).label} · ${linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentShort") : t("lessonWorkspaceExtra.onceShort")}`}
-              k="link" last>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 10 }}>
                 {PLATFORMS.map((p) => {
                   const on = p.k === platform;
                   return (
-                    <button key={p.k} type="button" onClick={() => setPlatform(p.k)}
-                      style={{ height: 34, padding: "0 12px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "#fff", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 14 }}>
+                    <button key={p.k} type="button" onClick={() => setPlatform(p.k)} className="tap-44"
+                      style={{ height: 40, padding: "0 14px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "#fff", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                       {p.label}
                     </button>
                   );
@@ -754,12 +710,12 @@ export function LessonWorkspace({
                   value={linkMode === "once" ? meetingDraft : defaultUrl}
                   onChange={(e) => (linkMode === "once" ? setMeetingDraft(e.target.value) : setDefaultUrl(e.target.value))}
                   placeholder={(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).ph}
-                  style={{ ...fieldCss, height: 48, padding: "0 14px", flex: 1 }} />
-                <button type="button"
+                  style={{ ...fieldCss, height: 50, padding: "0 14px", flex: 1 }} />
+                <button type="button" aria-label={t("lessonWorkspaceExtra.saveBtn")}
                   disabled={saving === "meeting_url" || saving === "default"}
                   onClick={() => (linkMode === "once" ? updateLessonField("meeting_url", meetingDraft) : saveDefaultMeetingUrl())}
-                  style={{ width: 48, height: 48, flexShrink: 0, borderRadius: 13, border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {saving === "meeting_url" || saving === "default" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  style={{ width: 50, height: 50, flexShrink: 0, borderRadius: 13, border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {saving === "meeting_url" || saving === "default" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                 </button>
               </div>
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.06)", marginTop: 10 }}>
@@ -767,22 +723,81 @@ export function LessonWorkspace({
                   const on = k === linkMode;
                   return (
                     <button key={k} type="button" onClick={() => setLinkMode(k as "permanent" | "once")}
-                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 14, background: on ? "#fff" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
+                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "12px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 15, background: on ? "#fff" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
                       {l}
                     </button>
                   );
                 })}
               </div>
-              <div style={{ fontSize: 14, color: L.muted, marginTop: 7, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 14, color: L.muted, marginTop: 8, lineHeight: 1.4 }}>
                 {linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentHint") : t("lessonWorkspaceExtra.onceHint")}
               </div>
-              {effectiveMeetingUrl && (
-                <a className="tap-44" href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
-                  style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "var(--ds-txt,#0f0f1a)", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
-                  <ExternalLink className="h-4 w-4" /> {t("lessonWorkspaceExtra.joinBtn")}
-                </a>
+            </Section>
+
+            {/* ✨ Конспект уроку */}
+            <Section emoji="✨" tint="rgba(245,181,68,.14)" title={t("lessonWorkspaceExtra.summaryTitle")}>
+              {aiAllowed && settings?.ai_notes_auto && (
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 14, color: L.txt, lineHeight: 1.45 }}>
+                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: L.teal }} />
+                  <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoOnSend") : ""}.</span>
+                </div>
               )}
-            </Row>
+              <textarea ref={summaryGrow} aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => setSummaryDraft(e.target.value)}
+                placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 10, alignItems: "center" }}>
+                {aiAllowed ? (
+                  <button className="tap-44" type="button" onClick={generateAiSummary} disabled={aiLoading}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
+                    {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {aiLoading ? t("lessonWorkspaceExtra.aiGenerating") : t("lessonWorkspaceExtra.aiBtn")}
+                  </button>
+                ) : (
+                  <button type="button" className="tap-44" onClick={() => { trackPaywallClick("ai_summary", "lesson_workspace", { lessonId }); navigate("/subscription?from=ai_summary"); }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "var(--ds-surface,#fff)", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                    <Lock className="h-4 w-4" /> {t("lessonWorkspaceExtra.aiBtnPro")}
+                  </button>
+                )}
+                {summaryDraft !== (summary ?? "") && (
+                  <button type="button" className="tap-44" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                    {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {t("lessonWorkspaceExtra.saveAndSend")}
+                  </button>
+                )}
+                {!!summaryDraft.trim() && (
+                  <button type="button" className="tap-44"
+                    onClick={async () => {
+                      const text = summaryDraft.trim();
+                      try {
+                        if (navigator.share) await navigator.share({ title: t("lessonWorkspaceExtra.shareTitle"), text });
+                        else { await navigator.clipboard.writeText(text); toast({ title: t("lessonWorkspaceExtra.copied"), description: t("lessonWorkspaceExtra.copiedDesc") }); }
+                      } catch { /* user cancelled */ }
+                    }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 15px", borderRadius: 12, cursor: "pointer", border: `1px solid ${L.border}`, background: "var(--ds-surface,#fff)", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                    <Share2 className="h-4 w-4" /> {t("lessonWorkspaceExtra.shareBtn")}
+                  </button>
+                )}
+              </div>
+            </Section>
+
+            {/* 📚 Домашнє завдання */}
+            <Section emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}>
+              {/* №16: петля замкнулась — учень позначив, репетитор бачить */}
+              {isTutor && hwDoneByStudent && (
+                <div style={{ display: "flex", alignItems: "center", gap: 7, borderRadius: 11, padding: "9px 12px", marginBottom: 10, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", fontFamily: L.body, fontSize: 15, fontWeight: 600, color: "#15803d" }}>
+                  ✅ {t("lessonWorkspaceExtra.homeworkDoneByStudent")}
+                </div>
+              )}
+              <textarea ref={homeworkGrow} aria-label={t("lessonWorkspaceExtra.homeworkPlaceholder")} rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
+                placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
+              {homeworkDraft !== (homework ?? "") && (
+                <button type="button" className="tap-44" disabled={saving === "homework"} onClick={() => updateLessonField("homework", homeworkDraft)}
+                  style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                  {saving === "homework" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {t("lessonWorkspaceExtra.saveBtn")}
+                </button>
+              )}
+            </Section>
           </div>
         </section>
       )}

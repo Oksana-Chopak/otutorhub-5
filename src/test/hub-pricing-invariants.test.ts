@@ -105,16 +105,20 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(offenders).toEqual([]);
   });
 
-  // РОЗТЯЖКА №13: Row у LessonWorkspace — ЛИШЕ на рівні модуля (фокус-баг:
-  // компонент усередині компонента = ремоунт textarea на кожен символ).
-  it("Row оголошений поза LessonWorkspace", () => {
+  // РОЗТЯЖКА №13: картки LessonWorkspace — ЛИШЕ на рівні модуля (фокус-баг:
+  // компонент усередині компонента = ремоунт textarea на кожен символ, і
+  // введення гинуло після ПЕРШОЇ літери). 11.09 акордеон Row замінено на
+  // відкриті картки Section — правило те саме, перевірка ширша: ЖОДНОГО
+  // компонента з великої літери всередині самого LessonWorkspace.
+  it("картки оголошені поза LessonWorkspace", () => {
     const src = readFileSync(join(__dirname, "../components/LessonWorkspace.tsx"), "utf8");
     const comp = src.indexOf("function LessonWorkspace");
-    const row = src.indexOf("const Row =");
+    const section = src.indexOf("const Section =");
     expect(comp).toBeGreaterThan(-1);
-    expect(row).toBeGreaterThan(-1);
-    expect(row).toBeLessThan(comp);
-    expect(src.indexOf("const Row =", comp)).toBe(-1);
+    expect(section).toBeGreaterThan(-1);
+    expect(section).toBeLessThan(comp);
+    expect(src.indexOf("const Section =", comp)).toBe(-1);
+    expect(src.slice(comp)).not.toMatch(/\n {2}const [A-Z]\w* = \(/);
   });
 
   // РОЗТЯЖКА №12: BUILD_TAG синхронний у lib, index.html і дайджесті.

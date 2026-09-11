@@ -157,3 +157,44 @@ describe("мобілка · знайдене аудитом 10.09", () => {
     expect(src).not.toMatch(/className="flex items-center gap-2\.5 flex-shrink-0">/);
   });
 });
+
+/**
+ * Форма уроку · рішення власниці 11.09.
+ * Домашка на 20 рядків не має ховатись у віконце на 4, а посилання на
+ * зустріч — жити в одному акордеоні з конспектом.
+ */
+describe("форма уроку · поля ростуть, зустріч окремо", () => {
+  const read = (p: string) => readFileSync(join(root, p), "utf8");
+  const lw = read("src/components/LessonWorkspace.tsx");
+
+  it("домашка, конспект і нотатки ростуть під вміст", () => {
+    expect(lw).toMatch(/useAutoGrowTextarea/);
+    expect(lw).toMatch(/ref=\{homeworkGrow\}/);
+    expect(lw).toMatch(/ref=\{summaryGrow\}/);
+    expect(lw).toMatch(/ref=\{notesGrow\}/);
+  });
+
+  it("стеля росту висока — низька повертає той самий скрол усередині поля", () => {
+    // 20 рядків домашки на телефоні — це ~950px. Стеля 500–600 знову ховала б текст.
+    const hook = read("src/hooks/useAutoGrowTextarea.ts");
+    const m = hook.match(/maxHeight = (\d+)/);
+    expect(m).toBeTruthy();
+    expect(Number(m![1])).toBeGreaterThanOrEqual(1500);
+  });
+
+  it("акордеон замінено відкритими картками — без зайвих кліків", () => {
+    expect(lw).not.toMatch(/<Row\b/);
+    expect(lw).toMatch(/<Section emoji="🎥"/);
+    expect(lw).toMatch(/<Section emoji="✨"/);
+    expect(lw).toMatch(/<Section emoji="📚"/);
+  });
+
+  it("зустріч — окрема картка ПЕРЕД конспектом і домашкою", () => {
+    const meet = lw.indexOf('<Section emoji="🎥"');
+    const sum = lw.indexOf('<Section emoji="✨"');
+    const hw = lw.indexOf('<Section emoji="📚"');
+    expect(meet).toBeGreaterThan(-1);
+    expect(meet).toBeLessThan(sum);
+    expect(sum).toBeLessThan(hw);
+  });
+});
