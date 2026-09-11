@@ -81,3 +81,24 @@ export function canSee(feature: Feature, flags: RoleFlags): boolean {
   if (ANY_TUTOR.has(feature)) return isAnyTutor(flags);
   return false;
 }
+
+/**
+ * Куди веде імʼя учня — на сторінку, де лежать ЙОГО матеріали (конспекти,
+ * домашки, файли, нотатки). Рішення власниці 11.09: «на картці уроку клік по
+ * імені перекидує на матеріали».
+ *
+ * Правило живе тут, а не в картці уроку, рівно з тієї причини, заради якої
+ * написаний цей файл: у кожної ролі своя сторінка — або НЕМАЄ жодної.
+ *   • менеджер            → «Люди» (учні школи; /my-students йому закритий)
+ *   • самостійний репетитор → «Мої учні»
+ *   • хабовий репетитор     → null: сторінки учня в нього НЕМАЄ, і /my-students
+ *     відкидає його на дашборд — посилання вело б у нікуди
+ *   • учень                 → null: він і є той учень
+ * `null` також для групових уроків, де `studentId` порожній.
+ */
+export function studentMaterialsPath(flags: RoleFlags, studentId?: string | null): string | null {
+  if (!studentId) return null;
+  if (flags.isManager) return `/people?open=${studentId}`;
+  if (isIndependentTutor(flags)) return `/my-students?open=${studentId}`;
+  return null;
+}

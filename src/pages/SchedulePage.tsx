@@ -7,12 +7,14 @@ import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { ScheduleSkeleton } from "@/components/PageSkeletons";
 import { lessonToasts } from "@/lib/toasts";
 import { Button } from "@/components/ui/button";
@@ -160,6 +162,9 @@ export default function SchedulePage() {
   const isStudent = roles.includes("student");
   const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  // 11.09: імʼя учня на картці уроку веде в його матеріали (рішення власниці).
+  // Адресу дає roleCapabilities: у хабового репетитора такої сторінки НЕМАЄ.
+  const { flags } = useRoleFlags();
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -1609,6 +1614,7 @@ export default function SchedulePage() {
                         // here too (money masked per-role server-side anyway).
                         showPayout={isManager || lesson.source === "hub"}
                         role={isManager ? "manager" : (isPureStudent && lesson.student_id === user?.id) ? "student" : "tutor"}
+                        studentHref={studentMaterialsPath(flags, lesson.student_id)}
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor={isManager || (isPureStudent && lesson.student_id === user?.id)}

@@ -207,6 +207,60 @@ describe("LessonCard", () => {
     expect(screen.getByText("Марія Петренко")).toBeTruthy();
   });
 
+  /**
+   * 11.09, рішення власниці: «на картці уроку клік по імені перекидує на
+   * матеріали». Картка САМА відкриває урок, тож тут два жести на одній
+   * поверхні — і головне, що вони не злипаються.
+   */
+  describe("імʼя учня веде в матеріали", () => {
+    it("з studentHref імʼя — посилання, без нього — звичайний текст", () => {
+      const { unmount } = render(
+        <MemoryRouter>
+          <LessonCard lesson={baseLesson} studentName="Марія Петренко" studentHref="/my-students?open=s1" />
+        </MemoryRouter>,
+      );
+      expect(screen.getByText("Марія Петренко").closest("a")?.getAttribute("href")).toBe("/my-students?open=s1");
+      unmount();
+      render(
+        <MemoryRouter>
+          <LessonCard lesson={baseLesson} studentName="Марія Петренко" />
+        </MemoryRouter>,
+      );
+      expect(screen.getByText("Марія Петренко").closest("a")).toBeNull();
+    });
+
+    it("клік по імені НЕ відкриває урок (stopPropagation)", () => {
+      const onContentClick = vi.fn();
+      render(
+        <MemoryRouter>
+          <LessonCard lesson={baseLesson} studentName="Марія Петренко" studentHref="/my-students?open=s1" onContentClick={onContentClick} />
+        </MemoryRouter>,
+      );
+      screen.getByText("Марія Петренко").click();
+      expect(onContentClick).not.toHaveBeenCalled();
+    });
+
+    it("клік по предмету відкриває урок — другий жест живий", () => {
+      const onContentClick = vi.fn();
+      render(
+        <MemoryRouter>
+          <LessonCard lesson={baseLesson} studentName="Марія Петренко" studentHref="/my-students?open=s1" onContentClick={onContentClick} />
+        </MemoryRouter>,
+      );
+      screen.getByText("Математика").click();
+      expect(onContentClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("група імені-посилання не має", () => {
+      render(
+        <MemoryRouter>
+          <LessonCard lesson={{ ...baseLesson, lesson_type: "group" as const }} groupName="Група А" studentHref="/my-students?open=s1" />
+        </MemoryRouter>,
+      );
+      expect(screen.getByText("Група А").closest("a")).toBeNull();
+    });
+  });
+
   it("показує предмет", () => {
     render(
       <MemoryRouter>

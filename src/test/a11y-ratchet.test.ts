@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { readFileSync } from "node:fs";
 import { globSync } from "glob";
 import { join, dirname } from "node:path";
@@ -231,6 +232,50 @@ describe("матеріали учня · хронологія, розгорну�
   it("імʼя учня всюди веде в його матеріали через ?open=", () => {
     expect(ms).toMatch(/searchParams\.get\("open"\)/);
     expect(read("src/components/LessonDetailsDialog.tsx")).toMatch(/my-students\?open=/);
+  });
+
+  /**
+   * 11.09: «на картці уроку клік по імені перекидував на матеріали».
+   * Пастка, яку тут замкнено: у ХАБОВОГО репетитора сторінки учня немає —
+   * /my-students відкидає його на дашборд. Тому адресу рахує СТОРІНКА
+   * (вона знає тип репетитора), а не картка, і для хабового це null.
+   */
+  it("адресу рахує сторінка, а не картка — картка ролі не вгадує", () => {
+    const lc = read("src/components/LessonCard.tsx");
+    expect(lc).toMatch(/studentHref\?: string \| null/);
+    // коментарі маршрути згадують навмисно — дивимось на КОД
+    const code = lc.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/^\s*\/\/.*$/gm, "");
+    expect(code).not.toMatch(/my-students\?open=/);
+    expect(code).not.toMatch(/people\?open=/);
+  });
+
+  it("кожна картка уроку отримує studentHref — жодного пропущеного виклику", () => {
+    for (const f of ["src/pages/DashboardPage.tsx", "src/pages/SchedulePage.tsx"]) {
+      const src = read(f);
+      const cards = (src.match(/<LessonCard\b/g) ?? []).length;
+      const hrefs = (src.match(/studentHref=\{studentMaterialsPath\(flags,/g) ?? []).length;
+      expect(cards, f).toBeGreaterThan(0);
+      expect(hrefs, f).toBe(cards);
+    }
+  });
+
+  it("хабовий репетитор і учень посилання не отримують", () => {
+    expect(studentMaterialsPath({ isManager: true, isTutor: false, isIndependent: false, isStudent: false }, "s1"))
+      .toBe("/people?open=s1");
+    expect(studentMaterialsPath({ isManager: false, isTutor: true, isIndependent: true, isStudent: false }, "s1"))
+      .toBe("/my-students?open=s1");
+    // хабовий: /my-students його відкидає на дашборд — посилання вело б у нікуди
+    expect(studentMaterialsPath({ isManager: false, isTutor: true, isIndependent: false, isStudent: false }, "s1"))
+      .toBeNull();
+    expect(studentMaterialsPath({ isManager: false, isTutor: false, isIndependent: false, isStudent: true }, "s1"))
+      .toBeNull();
+    // груповий урок — учня немає
+    expect(studentMaterialsPath({ isManager: false, isTutor: true, isIndependent: true, isStudent: false }, null))
+      .toBeNull();
+  });
+
+  it("менеджер має куди прийти: /people?open= відкриває аркуш людини", () => {
+    expect(read("src/pages/PeoplePage.tsx")).toMatch(/searchParams\.get\("open"\)/);
   });
 
   it("учень бачить конспект одразу, а не за кнопкою", () => {

@@ -475,6 +475,23 @@ export default function PeoplePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 11.09: /people?open=<id> відкриває аркуш людини — так імʼя учня на картці
+  // уроку веде менеджера туди ж, куди репетитора веде /my-students?open=.
+  // Чекаємо на завантаження списку: людину беремо з нього, а не з URL.
+  const [pendingOpenId, setPendingOpenId] = useState<string | null>(() => searchParams.get("open"));
+  useEffect(() => {
+    if (!pendingOpenId) return;
+    const person = users.find((u) => u.id === pendingOpenId);
+    if (!person) return;
+    setSelectedPerson(person);
+    if (person.role === "student") setActiveRoleTab("students");
+    setPendingOpenId(null);
+    const n = new URLSearchParams(searchParams);
+    n.delete("open");
+    setSearchParams(n, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users, pendingOpenId]);
+
   // Refresh on window focus, but throttle to avoid hammering Postgres on every alt-tab.
   useEffect(() => {
     let lastRun = Date.now();

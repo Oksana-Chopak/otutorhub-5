@@ -938,16 +938,21 @@ export default function MyStudentsPage() {
 
                   {/* Debt alert */}
                   {s.unpaid_total > 0 && (
-                    <div style={{ borderRadius: 16, padding: 14, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "#B4740B" }}>{t("myStudents.debtLabel", { amount: formatPrice(s.unpaid_total, s.currency) })}</div>
+                    <div style={{ borderRadius: 16, padding: 14, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                      {/* 11.09, косметика: на мобілці кнопка забирала пів ширини —
+                          підпис боргу ламався на чотири рядки (сума окремо від
+                          валюти). Тепер вузько → текст на всю ширину, кнопка під ним. */}
+                      <div style={{ minWidth: 0, flex: "1 1 190px" }}>
+                        <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "#B4740B" }}>
+                          {t("myStudents.debtLabel", { amount: formatPrice(s.unpaid_total, s.currency).replace(/\s/g, "\u00a0") })}
+                        </div>
                         <div style={{ fontFamily: T.body, fontSize: 14, color: "#9a7a34", marginTop: 2 }}>{t("myStudents.unpaidLessonsCount", { count: s.unpaid_count })}</div>
                       </div>
                       {/* This opens the WalletDialog (record a payment / manage prepay
                           balance), so the label must say that — it previously read
                           "Remind", which did NOT match the action (dead-label bug). */}
                       <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id, studentName: name, tutorName: t("common.you"), rate: s.price })}
-                        style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+                        style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0, flexGrow: 1, minWidth: 160 }}>
                         {t("myStudents.recordPaymentBtn")}
                       </button>
                     </div>

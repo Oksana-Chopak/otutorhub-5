@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAwardBadges } from "@/hooks/useAwardBadges";
 import { priceLabel } from "@/lib/pricing";
 import { ErrorState } from "@/components/ErrorState";
@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
@@ -146,6 +148,9 @@ export default function DashboardPage() {
     navigate(`/chats?with=${data}`);
   };
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  // 11.09: імʼя учня на картці уроку веде в його матеріали (рішення власниці).
+  // Адресу дає roleCapabilities: у хабового репетитора такої сторінки НЕМАЄ.
+  const { flags } = useRoleFlags();
   // Hub tutor = tutor who belongs to a hub (not a manager, not independent).
   const isHubTutor = isTutor && !isManager && !isIndependentTutor;
 
@@ -2370,6 +2375,7 @@ export default function DashboardPage() {
                         <LessonCard
                           lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                           role={isManager ? "manager" : "tutor"}
+                          studentHref={studentMaterialsPath(flags, lesson.student_id)}
                           studentName={studentName}
                           tutorName={tutorName}
                           showTutor
@@ -2496,6 +2502,7 @@ export default function DashboardPage() {
                           key={lesson.id}
                           lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                           role={isManager ? "manager" : "tutor"}
+                          studentHref={studentMaterialsPath(flags, lesson.student_id)}
                           studentName={studentName}
                           tutorName={tutorName}
                           showTutor
@@ -2526,6 +2533,7 @@ export default function DashboardPage() {
                         key={lesson.id}
                         lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                         role={isManager ? "manager" : "tutor"}
+                        studentHref={studentMaterialsPath(flags, lesson.student_id)}
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor={isManager}

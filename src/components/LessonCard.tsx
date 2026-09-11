@@ -42,6 +42,11 @@ interface LessonCardProps {
   /** Force the tutor-payout row (manager / hub lessons). */
   showPayout?: boolean;
   chatPartnerId?: string | null;
+  /** Куди веде імʼя учня (його матеріали). Рахує СТОРІНКА, а не картка:
+   *  у незалежного репетитора це /my-students?open=, у менеджера /people?open=,
+   *  а в хабового репетитора сторінки учня немає взагалі — там має бути null,
+   *  інакше /my-students відкинув би його на дашборд (11.09). */
+  studentHref?: string | null;
   unreadCount?: number;
   meetingUrl?: string | null;
   // Status
@@ -132,6 +137,7 @@ function LessonCardImpl({
   showTutor = false,
   showPayout = false,
   chatPartnerId,
+  studentHref = null,
   unreadCount = 0,
   meetingUrl,
   canEditStatus = false,
@@ -292,7 +298,20 @@ function LessonCardImpl({
               {isGroup ? <Users2 size={22} /> : initials(title)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 17, lineHeight: 1.18, color: L.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+              {/* 11.09, рішення власниці: імʼя учня веде в його матеріали.
+                  Адресу рахує сторінка (проп studentHref) — картка не вгадує роль:
+                  у хабового репетитора сторінки учня НЕМАЄ, там проп лишається null.
+                  stopPropagation обовʼязковий — сама картка відкриває УРОК,
+                  і без нього дотик по імені робив би обидві дії одразу. */}
+              {!isGroup && studentHref ? (
+                <Link to={studentHref} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}
+                  className="hover:underline"
+                  style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 17, lineHeight: 1.18, color: L.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: "none" }}>
+                  {title}
+                </Link>
+              ) : (
+                <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 17, lineHeight: 1.18, color: L.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+              )}
               <div style={{ fontSize: 14, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{lesson.subject}</div>
               {showTutor && tutorName && (
                 <div style={{ fontSize: 13, color: L.sub, marginTop: 1 }}>{t("lessonCard.tutor")}<b style={{ color: L.txt, fontWeight: 600 }}>{tutorName}</b></div>
