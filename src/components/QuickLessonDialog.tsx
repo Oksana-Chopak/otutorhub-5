@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
 import { createGroupLesson } from "@/lib/groupLessons";
+import { createGroupWithStudents } from "@/lib/groups";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
@@ -128,6 +129,13 @@ export function QuickLessonDialog({
   );
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [groupId, setGroupId] = useState<string>("");
+  // 12.09: збирання НОВОЇ групи прямо тут (скарга власниці «можу обрати лише
+  // одного, додавати теж не можу»). Раніше єдиний шлях був через сторінку
+  // «Групи» — і форма уроку про це навіть не натякала.
+  const [newGroupOpen, setNewGroupOpen] = useState(false);
+  const [newGroupPicks, setNewGroupPicks] = useState<string[]>([]);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [creatingGroup, setCreatingGroup] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [whenLocal, setWhenLocal] = useState<Date | null>(null);
   const [timeEditOpen, setTimeEditOpen] = useState(false);
@@ -424,6 +432,13 @@ export function QuickLessonDialog({
     }
   };
 
+  // Якщо груп ще немає — перемикач «Груповий» одразу відкриває збирання нової.
+  // Показувати порожню панель з однією кнопкою «Нова група» означало б змусити
+  // тиснути двічі, щоб дійти туди, куди шлях і так один.
+  useEffect(() => {
+    if (mode === "group" && groups.length === 0) setNewGroupOpen(true);
+  }, [mode, groups.length]);
+
   const canSubmit =
     !submitting &&
     (mode === "individual"
@@ -635,8 +650,12 @@ export function QuickLessonDialog({
                   </div>
                 )}
 
-                {/* Mode toggle (only when groups exist) */}
-                {groups.length > 0 && (
+                {/* 12.09: перемикач показуємо ЗАВЖДИ. Раніше він зʼявлявся лише
+                    коли група вже існує — тож репетиторка без жодної групи не
+                    мала в цій формі ані способу, ані натяку, як зібрати урок на
+                    кількох учнів. Саме це вона й описала як «можу обрати лише
+                    одного, додавати теж не можу». */}
+                {!isHubVariant && (
                   <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.06)" }}>
                     {([["individual","👤 " + t("quickLessonDialog.modeIndividual")], ["group","👥 " + t("quickLessonDialog.modeGroup")]] as const).map(([m, l]) => (
                       <button key={m} onClick={() => setMode(m as Mode)}
@@ -722,6 +741,93 @@ export function QuickLessonDialog({
                         </button>
                       );
                     })}
+
+                    {/* ➕ Нова група просто тут: обрати кількох учнів, назвати,
+                        і урок одразу на них. Без походу в «Групи» й назад. */}
+                    {!newGroupOpen ? (
+                      <button onClick={() => { setNewGroupOpen(true); setNewGroupPicks([]); setNewGroupName(""); }}
+                        style={{ minHeight: 48, borderRadius: 14, border: `1.5px dashed ${F.teal}`, cursor: "pointer",
+                          background: F.tealL, color: F.tealD, fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
+                        ➕ {t("quickLessonDialog.newGroupBtn")}
+                      </button>
+                    ) : (
+                      <div style={{ borderRadius: 16, border: `1.5px solid ${F.teal}`, background: "var(--ds-surface2,#fbfbfc)", padding: 13, display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt }}>
+                          {t("quickLessonDialog.newGroupPick")}
+                        </div>
+                        {students.map(s2 => {
+                          const on = newGroupPicks.includes(s2.student_id);
+                          return (
+                            <button key={s2.student_id}
+                              onClick={() => setNewGroupPicks(p2 => on ? p2.filter(x => x !== s2.student_id) : [...p2, s2.student_id])}
+                              style={{ display: "flex", alignItems: "center", gap: 11, minHeight: 48, padding: "0 12px",
+                                borderRadius: 13, textAlign: "left", cursor: "pointer",
+                                border: `1.5px solid ${on ? F.teal : F.border}`,
+                                background: on ? F.tealL : "var(--ds-surface,#fff)" }}>
+                              <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0,
+                                border: `2px solid ${on ? F.teal : F.muted}`, background: on ? F.teal : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: 14 }}>
+                                {on && "✓"}
+                              </span>
+                              <span style={{ flex: 1, minWidth: 0, fontFamily: F.body, fontWeight: 600, fontSize: 15, color: F.txt,
+                                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s2.name}</span>
+                            </button>
+                          );
+                        })}
+                        {!isManager && (
+                          <button onClick={() => setAddStudentOpen(true)}
+                            style={{ minHeight: 44, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
+                              background: "transparent", color: F.muted, fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
+                            + {t("quickLessonDialog.addStudentBtn")}
+                          </button>
+                        )}
+                        <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)}
+                          aria-label={t("quickLessonDialog.newGroupName")}
+                          placeholder={t("quickLessonDialog.newGroupName")}
+                          style={{ height: 48, borderRadius: 13, padding: "0 13px", fontSize: 15, fontFamily: F.body,
+                            border: `1.5px solid ${F.border}`, background: "var(--ds-surface,#fff)", color: F.txt }} />
+                        <div style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>
+                          {t("quickLessonDialog.newGroupPriceHint")}
+                        </div>
+                        <div style={{ display: "flex", gap: 9 }}>
+                          <button onClick={() => setNewGroupOpen(false)} disabled={creatingGroup}
+                            style={{ minHeight: 46, padding: "0 16px", borderRadius: 12, border: `1px solid ${F.border}`, cursor: "pointer",
+                              background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
+                            {t("common.cancel")}
+                          </button>
+                          <button disabled={creatingGroup || newGroupPicks.length < 2 || !newGroupName.trim()}
+                            onClick={async () => {
+                              if (!user) return;
+                              setCreatingGroup(true);
+                              const res = await createGroupWithStudents({
+                                tutorId: effTutorId ?? user.id,
+                                name: newGroupName,
+                                // Предмет беремо з першого обраного — у групі він спільний; якщо
+                                // його немає, лишаємо порожнім, а не вигадуємо.
+                                subject: students.find(x => x.student_id === newGroupPicks[0])?.subject ?? null,
+                                studentIds: newGroupPicks,
+                              });
+                              setCreatingGroup(false);
+                              if (res.error || !res.groupId) { toast.error(res.error ?? t("quickLessonDialog.newGroupFailed")); return; }
+                              setGroups(g => [{
+                                id: res.groupId!,
+                                name: newGroupName.trim(),
+                                subject: students.find(x => x.student_id === newGroupPicks[0])?.subject ?? null,
+                                participants: newGroupPicks.map(sid => ({ student_id: sid })),
+                              }, ...g]);
+                              setGroupId(res.groupId);
+                              setNewGroupOpen(false);
+                              toast.success(t("quickLessonDialog.newGroupCreated", { count: res.enrolled }));
+                            }}
+                            style={{ flex: 1, minHeight: 46, borderRadius: 12, border: "none",
+                              cursor: creatingGroup || newGroupPicks.length < 2 || !newGroupName.trim() ? "not-allowed" : "pointer",
+                              background: newGroupPicks.length >= 2 && newGroupName.trim() ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(15,15,26,.12)",
+                              color: newGroupPicks.length >= 2 && newGroupName.trim() ? "#0f0f1a" : "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
+                            {creatingGroup ? "…" : t("quickLessonDialog.newGroupCreate", { count: newGroupPicks.length })}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -14,6 +14,7 @@ import { useSubjects } from "@/hooks/useSubjects";
 import { currencySymbol } from "@/lib/currency";
 import { createGroupLesson } from "@/lib/groupLessons";
 import { supabase } from "@/integrations/supabase/client";
+import { createGroupWithStudents } from "@/lib/groups";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -309,22 +310,20 @@ function CreateGroupDialog({
     }
     setSubmitting(true);
     try {
-      const { data: created, error } = await supabase
-        .from("lesson_groups")
-        .insert({
-          tutor_id: isManager ? tutorId : user.id,
-          name: name.trim(),
-          subject: subject || null,
-          subject_id: subjectId || null,
-        })
-        .select("id")
-        .single();
+      // 12.09: запис групи живе в src/lib/groups.ts — щоб форма уроку могла
+      // створювати групу тим самим шляхом, а не другою копією логіки.
+      const res = await createGroupWithStudents({
+        tutorId: isManager ? tutorId : user.id,
+        name: name.trim(),
+        subject,
+        subjectId,
+      });
       setSubmitting(false);
-      if (error) {
-        toast.error(error.message);
+      if (res.error || !res.groupId) {
+        toast.error(res.error ?? t("groupsPage.nameRequired"));
         return;
       }
-      setCreatedGroupId((created as { id: string } | null)?.id ?? null);
+      setCreatedGroupId(res.groupId);
       toast.success(t("groupsPageExtra.created"));
       onCreated();
       setDone(true);

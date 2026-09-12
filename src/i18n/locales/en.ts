@@ -4294,6 +4294,13 @@ export const en: LocaleTranslations = {
     proPromptDesc: "Automatic payment reminders, student-initiated cancellation/rescheduling by your rules, detailed reports and export.",
   },
   quickLessonDialog: {
+    newGroupBtn: "New group",
+    newGroupPick: "Who goes in the group?",
+    newGroupName: "Group name",
+    newGroupCreate: "Create group ({{count}})",
+    newGroupCreated: "Group created — {{count}} students inside ✨",
+    newGroupFailed: "Couldn't create the group. Please try again.",
+    newGroupPriceHint: "Set the per-lesson group price in Groups — it's usually different from the one-to-one rate.",
     selectGroup: "Select a group",
     tutorLabel: "Tutor",
     pickTutor: "Choose a tutor",

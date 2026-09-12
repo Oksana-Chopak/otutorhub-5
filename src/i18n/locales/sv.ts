@@ -4274,6 +4274,13 @@ export const sv: LocaleTranslations = {
     proPromptDesc: "Automatiska betalningspåminnelser, avbokning/ombokning av elev enligt dina regler, detaljerade rapporter och export.",
   },
   quickLessonDialog: {
+    newGroupBtn: "Ny grupp",
+    newGroupPick: "Vilka ska med i gruppen?",
+    newGroupName: "Gruppnamn",
+    newGroupCreate: "Skapa grupp ({{count}})",
+    newGroupCreated: "Gruppen är skapad — {{count}} elever i den ✨",
+    newGroupFailed: "Kunde inte skapa gruppen. Försök igen.",
+    newGroupPriceHint: "Sätt gruppens lektionspris under Grupper — det skiljer sig oftast från enskilt pris.",
     selectGroup: "Välj en grupp",
     tutorLabel: "Lärare",
     pickTutor: "Välj lärare",

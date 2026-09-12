@@ -4316,6 +4316,13 @@ export const uk = {
     proPromptDesc: "Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами, детальні звіти та експорт.",
   },
   quickLessonDialog: {
+    newGroupBtn: "Нова група",
+    newGroupPick: "Кого беремо в групу?",
+    newGroupName: "Назва групи",
+    newGroupCreate: "Створити групу ({{count}})",
+    newGroupCreated: "Групу створено — {{count}} учнів усередині ✨",
+    newGroupFailed: "Не вдалося створити групу. Спробуйте ще раз.",
+    newGroupPriceHint: "Ціну за урок у групі поставиш у «Групах» — вона зазвичай інша, ніж індивідуальна.",
     selectGroup: "Виберіть групу",
     tutorLabel: "Репетитор",
     pickTutor: "Оберіть репетитора",

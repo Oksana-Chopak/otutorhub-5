@@ -370,6 +370,53 @@ describe("матеріали учня · хронологія, розгорну�
     });
   });
 
+  /**
+   * Скарга власниці 12.09: «у груповому уроці не виводить список усіх моїх
+   * учнів, можу обрати лише одного, додавати теж не можу».
+   * Причина: перемикач «Груповий» рендерився ЛИШЕ коли група вже існує, а
+   * зібрати її можна було тільки на іншій сторінці. Репетиторка без жодної
+   * групи бачила в формі уроку список учнів із вибором рівно одного — і
+   * жодного натяку, що груповий урок узагалі можливий.
+   */
+  describe("груповий урок збирається у самій формі", () => {
+    const qld = () => readFileSync(join(root, "src/components/QuickLessonDialog.tsx"), "utf8");
+
+    it("перемикач НЕ залежить від того, чи групи вже є", () => {
+      const src = qld();
+      expect(src, "умова groups.length > 0 на перемикачі — і є той самий баг")
+        .not.toMatch(/\{groups\.length > 0 && \(\s*\n\s*<div style=\{\{ display: "flex", gap: 4/);
+      expect(src).toMatch(/\{!isHubVariant && \(/);
+    });
+
+    it("кількох учнів можна відмітити прямо тут", () => {
+      const src = qld();
+      expect(src).toMatch(/newGroupPicks/);
+      expect(src, "вибір мусить бути множинним, а не заміною одного на іншого")
+        .toMatch(/on \? p2\.filter\(x => x !== s2\.student_id\) : \[\.\.\.p2, s2\.student_id\]/);
+    });
+
+    it("групу пишемо ОДНИМ каноном, а не другою копією логіки", () => {
+      expect(qld()).toMatch(/createGroupWithStudents/);
+      expect(readFileSync(join(root, "src/pages/GroupsPage.tsx"), "utf8"))
+        .toMatch(/createGroupWithStudents/);
+      const lib = readFileSync(join(root, "src/lib/groups.ts"), "utf8");
+      expect(lib).toMatch(/from\("lesson_groups"\)/);
+      expect(lib).toMatch(/from\("group_enrollments"\)/);
+    });
+
+    it("групова ціна НЕ підставляється з індивідуальної ставки", () => {
+      const lib = readFileSync(join(root, "src/lib/groups.ts"), "utf8");
+      expect(lib, "групова ціна зазвичай інша — підстановка тихо виставила б чужу суму")
+        .toMatch(/price_per_lesson: null/);
+      // будь-що, крім null, — це вже підстановка з іншого поля
+      expect(lib).not.toMatch(/price_per_lesson:\s*(?!null\b)[A-Za-z_$]/);
+    });
+
+    it("без груп перемикач одразу відкриває збирання, а не порожню панель", () => {
+      expect(qld()).toMatch(/if \(mode === "group" && groups\.length === 0\) setNewGroupOpen\(true\)/);
+    });
+  });
+
   it("учень бачить конспект одразу, а не за кнопкою", () => {
     const sh = read("src/pages/student/StudentHomeworkPage.tsx");
     expect(sh).toMatch(/r\.hasAiNote && \(\(\) => \{/);
