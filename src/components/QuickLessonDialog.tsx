@@ -439,6 +439,38 @@ export function QuickLessonDialog({
     if (mode === "group" && groups.length === 0) setNewGroupOpen(true);
   }, [mode, groups.length]);
 
+  /* 12.09 — збирання групи має РІВНО одну кнопку, і вона завжди на екрані.
+     Було: панель збирання несла власний рядок дій у кінці свого вмісту, і на
+     390×844 «Створити групу» опинялась на y≈851 — НИЖЧЕ згину. Знизу при цьому
+     світився чужий «Створити урок», який у цю мить нічого не може зробити
+     (групи ще немає). Тобто інтерфейс показував не ту дію, а потрібну ховав.
+     Тепер, поки збирання відкрите, футер діалогу НЕСЕ саме дію збирання. */
+  const groupBuildReady = newGroupPicks.length >= 2 && newGroupName.trim().length > 0;
+
+  const createGroupNow = async () => {
+    if (!user || !groupBuildReady) return;
+    setCreatingGroup(true);
+    const res = await createGroupWithStudents({
+      tutorId: effTutorId ?? user.id,
+      name: newGroupName,
+      // Предмет беремо з першого обраного — у групі він спільний; якщо
+      // його немає, лишаємо порожнім, а не вигадуємо.
+      subject: students.find(x => x.student_id === newGroupPicks[0])?.subject ?? null,
+      studentIds: newGroupPicks,
+    });
+    setCreatingGroup(false);
+    if (res.error || !res.groupId) { toast.error(res.error ?? t("quickLessonDialog.newGroupFailed")); return; }
+    setGroups(g => [{
+      id: res.groupId!,
+      name: newGroupName.trim(),
+      subject: students.find(x => x.student_id === newGroupPicks[0])?.subject ?? null,
+      participants: newGroupPicks.map(sid => ({ student_id: sid })),
+    }, ...g]);
+    setGroupId(res.groupId);
+    setNewGroupOpen(false);
+    toast.success(t("quickLessonDialog.newGroupCreated", { count: res.enrolled }));
+  };
+
   const canSubmit =
     !submitting &&
     (mode === "individual"
@@ -789,43 +821,6 @@ export function QuickLessonDialog({
                         <div style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>
                           {t("quickLessonDialog.newGroupPriceHint")}
                         </div>
-                        <div style={{ display: "flex", gap: 9 }}>
-                          <button onClick={() => setNewGroupOpen(false)} disabled={creatingGroup}
-                            style={{ minHeight: 46, padding: "0 16px", borderRadius: 12, border: `1px solid ${F.border}`, cursor: "pointer",
-                              background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
-                            {t("common.cancel")}
-                          </button>
-                          <button disabled={creatingGroup || newGroupPicks.length < 2 || !newGroupName.trim()}
-                            onClick={async () => {
-                              if (!user) return;
-                              setCreatingGroup(true);
-                              const res = await createGroupWithStudents({
-                                tutorId: effTutorId ?? user.id,
-                                name: newGroupName,
-                                // Предмет беремо з першого обраного — у групі він спільний; якщо
-                                // його немає, лишаємо порожнім, а не вигадуємо.
-                                subject: students.find(x => x.student_id === newGroupPicks[0])?.subject ?? null,
-                                studentIds: newGroupPicks,
-                              });
-                              setCreatingGroup(false);
-                              if (res.error || !res.groupId) { toast.error(res.error ?? t("quickLessonDialog.newGroupFailed")); return; }
-                              setGroups(g => [{
-                                id: res.groupId!,
-                                name: newGroupName.trim(),
-                                subject: students.find(x => x.student_id === newGroupPicks[0])?.subject ?? null,
-                                participants: newGroupPicks.map(sid => ({ student_id: sid })),
-                              }, ...g]);
-                              setGroupId(res.groupId);
-                              setNewGroupOpen(false);
-                              toast.success(t("quickLessonDialog.newGroupCreated", { count: res.enrolled }));
-                            }}
-                            style={{ flex: 1, minHeight: 46, borderRadius: 12, border: "none",
-                              cursor: creatingGroup || newGroupPicks.length < 2 || !newGroupName.trim() ? "not-allowed" : "pointer",
-                              background: newGroupPicks.length >= 2 && newGroupName.trim() ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(15,15,26,.12)",
-                              color: newGroupPicks.length >= 2 && newGroupName.trim() ? "#0f0f1a" : "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
-                            {creatingGroup ? "…" : t("quickLessonDialog.newGroupCreate", { count: newGroupPicks.length })}
-                          </button>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -841,11 +836,28 @@ export function QuickLessonDialog({
           {/* Footer */}
           {!loading && (students.length > 0 || groups.length > 0) && (
             <div style={{ flexShrink: 0, padding: "14px 22px 22px", borderTop: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)", display: "flex", gap: 11 }}>
-              <button onClick={() => onOpenChange(false)}
+              {/* Поки збирається група — футер несе саме цю дію (див. коментар
+                  біля createGroupNow). Показувати «Створити урок», якого ще не
+                  можна зробити, і ховати потрібну кнопку під згин — не можна. */}
+              <button onClick={() => (newGroupOpen ? setNewGroupOpen(false) : onOpenChange(false))}
                 style={{ height: 52, padding: "0 18px", borderRadius: 14, border: `1px solid ${F.border}`,
                   background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                 {t("quickLessonDialog.cancelBtn")}
               </button>
+              {newGroupOpen && (
+                <button disabled={creatingGroup || !groupBuildReady} onClick={createGroupNow}
+                  style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
+                    cursor: groupBuildReady && !creatingGroup ? "pointer" : "not-allowed",
+                    /* Напис лишається темним і в неактивному стані — білий по
+                       світлому тлу зникав (ТЗ доступності: зір ~80%, сонце). */
+                    background: groupBuildReady ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.28)",
+                    color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  {creatingGroup && <Loader2 className="h-[18px] w-[18px] animate-spin" />}
+                  {t("quickLessonDialog.newGroupCreate", { count: newGroupPicks.length })}
+                </button>
+              )}
+              {!newGroupOpen && (
               <button disabled={submitting || !canSubmit} onClick={submit}
                 style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
                   cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
@@ -856,6 +868,7 @@ export function QuickLessonDialog({
                 {submitting && <Loader2 className="h-[18px] w-[18px] animate-spin" />}
                 {t("quickLessonDialog.createLessonBtn")}
               </button>
+              )}
             </div>
           )}
         </DialogContent>

@@ -415,6 +415,29 @@ describe("матеріали учня · хронологія, розгорну�
     it("без груп перемикач одразу відкриває збирання, а не порожню панель", () => {
       expect(qld()).toMatch(/if \(mode === "group" && groups\.length === 0\) setNewGroupOpen\(true\)/);
     });
+
+    /* 12.09, знайдено роботом на 390×844 під час зйомки інструкції: кнопка
+       «Створити групу» стояла в кінці вмісту панелі, тобто на y≈851 — НИЖЧЕ
+       згину екрана, а знизу світився «Створити урок», який у цю мить нічого
+       зробити не може (групи ще немає). Потрібна дія була схована, зайва —
+       на видноті. Тепер поки збирання відкрите, футер несе саме збирання. */
+    it("поки збирається група, потрібна кнопка — у футері, а не під згином", () => {
+      const src = qld();
+      expect(src, "дія збирання мусить жити у футері діалогу")
+        .toMatch(/\{newGroupOpen && \(\s*\n\s*<button disabled=\{creatingGroup \|\| !groupBuildReady\} onClick=\{createGroupNow\}/);
+      expect(src, "«Створити урок» не показуємо, поки групи ще немає")
+        .toMatch(/\{!newGroupOpen && \(\s*\n\s*<button disabled=\{submitting \|\| !canSubmit\}/);
+      expect(src, "другого рядка дій усередині панелі більше бути не може")
+        .not.toMatch(/<button onClick=\{\(\) => setNewGroupOpen\(false\)\} disabled=\{creatingGroup\}/);
+    });
+
+    it("напис на кнопці збирання не зникає, коли вона неактивна", () => {
+      const src = qld();
+      expect(src, "білий напис по світлому тлу — саме те, що ховало кнопку")
+        .not.toMatch(/newGroupPicks\.length >= 2 && newGroupName\.trim\(\) \? "#0f0f1a" : "#fff"/);
+      expect(src, "темний напис тримається в обох станах")
+        .toMatch(/background: groupBuildReady \? "linear-gradient\(135deg,#2BBFAA,#25a896\)" : "rgba\(43,191,170,\.28\)",\s*\n\s*color: "#0f0f1a"/);
+    });
   });
 
   it("учень бачить конспект одразу, а не за кнопкою", () => {
