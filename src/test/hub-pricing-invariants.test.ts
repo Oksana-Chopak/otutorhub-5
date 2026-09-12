@@ -73,9 +73,9 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
   });
 
   // РОЗТЯЖКА №8 (весь src): сирі date/time-інпути заборонені всюди, крім
-  // родини DateTimeField і лендінг-демо (окремий візуальний світ).
+  // родини DateTimeField (лендінг-демо прибрано 12.09 — дублювало калькулятор).
   it("жодних сирих date/time-інпутів поза DateTimeField", () => {
-    const allow = new Set(["DateTimeField.tsx", "LandingTryDemo.tsx"]);
+    const allow = new Set(["DateTimeField.tsx"]);
     const bad: string[] = [];
     const walk = (dir: string) => {
       for (const f of readdirSync(dir)) {

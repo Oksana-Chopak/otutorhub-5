@@ -8,9 +8,9 @@ import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } fr
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { LandingTryDemo } from "@/components/LandingTryDemo";
 import { MoneyCalculator } from "@/components/landing/MoneyCalculator";
 import { LandingDayStory } from "@/components/landing/LandingDayStory";
+import { LandingLiveStats } from "@/components/landing/LandingLiveStats";
 import { PaymentMethodsSection } from "@/components/PaymentMethodsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -309,6 +309,8 @@ const landingStyles = `
 }
 
 /* Final CTA */
+.landing-root .live-stats { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; padding: 10px 16px; border-radius: 999px; background: var(--surface, #fff); border: 0.5px solid var(--border, #e6e8ef); font-size: 14px; color: var(--l-muted); max-width: 100%; }
+.landing-root .live-stats-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal, #2BBFAA); box-shadow: 0 0 0 4px rgba(43,191,170,.18); flex-shrink: 0; }
 .landing-root .students-strip { background: var(--bg); border-top: 0.5px solid var(--border, #e6e8ef); border-bottom: 0.5px solid var(--border, #e6e8ef); }
 .landing-root .students-strip-inner { max-width: 1100px; margin: 0 auto; padding: 18px 2rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; font-size: 15px; color: var(--l-muted); text-align: center; }
 .landing-root .students-strip-link { font-weight: 700; color: var(--txt); text-decoration: none; padding: 10px 0; }
@@ -779,6 +781,8 @@ export default function LandingPage() {
             <a href="#calc" className="btn-primary">{t("landingCalc.heroCta")}</a>
             <Link to={signupHref} className="btn-ghost">{t("landing.hero.ctaPrimary")}</Link>
           </div>
+          {/* Живі лічильники (12.09): рендеряться лише коли числа вже не соромні. */}
+          <LandingLiveStats />
         </div>
       </section>
 
@@ -841,13 +845,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* TRY DEMO */}
-      <LandingTryDemo
-        personaVars={displayedPersonaVars}
-        personaId={displayedPersonaId}
-        isAnimating={isAnimating}
-      />
 
       {/* PRICING */}
       {!native && (

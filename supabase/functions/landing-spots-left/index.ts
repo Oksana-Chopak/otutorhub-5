@@ -35,5 +35,19 @@ Deno.serve(async (req) => {
   const used = error ? 3 : (tutorCount ?? 0);
   const spotsLeft = Math.max(0, TOTAL_FREE_SPOTS - used);
 
-  return json(200, { spotsLeft, total: TOTAL_FREE_SPOTS, used });
+  // Живі лічильники платформи для лендінгу (12.09): скільки зустрічей
+  // помічник провів і про скільки оплат нагадав за 30 днів. Лише агрегати —
+  // жодного імені, суми чи id; клієнт показує їх тільки коли числа вже не
+  // соромні (поріг там), тож на старті смужка просто відсутня.
+  const since = new Date(Date.now() - 30 * 86400000).toISOString();
+  const [lessonsRes, remindersRes] = await Promise.all([
+    admin.from("lessons").select("id", { count: "exact", head: true }).eq("status", "completed").gte("starts_at", since),
+    admin.from("lesson_payment_reminders").select("id", { count: "exact", head: true }).gte("sent_at", since),
+  ]);
+  const stats = {
+    lessonsCompleted30d: lessonsRes.error ? 0 : (lessonsRes.count ?? 0),
+    remindersSent30d: remindersRes.error ? 0 : (remindersRes.count ?? 0),
+    tutors: used,
+  };
+  return json(200, { spotsLeft, total: TOTAL_FREE_SPOTS, used, stats });
 });

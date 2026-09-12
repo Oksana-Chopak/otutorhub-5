@@ -8,6 +8,7 @@ import { calcMoneyPreview, digestPreview, CALC_WEEKS, formatDigestDay } from "@/
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { landingEvent, saveLandingDraft, peekLandingDraft, rememberHandoffToken } from "@/lib/landingFunnel";
+import { shareCardBlob } from "@/lib/shareCard";
 import { metaTrack } from "@/lib/metaPixel";
 
 /**
@@ -115,6 +116,53 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
     return lines.join("\n").slice(0, 3900);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [has, digest, dayLabel, calc, i18n.language]);
+
+  // Картка «мій тиждень» (12.09): без імен і без грошей — лише кількості,
+  // дні й час, і обіцянка продукту. Web Share на телефоні; на десктопі — файл.
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareDone, setShareDone] = useState(false);
+  const shareCard = async () => {
+    if (shareBusy || !has) return;
+    setShareBusy(true); setShareDone(false);
+    try {
+      const byDay = new Map<number, string[]>();
+      for (const r of rows) {
+        if (r.error) continue;
+        for (const sl of r.schedule) {
+          const arr = byDay.get(sl.weekday) ?? [];
+          if (!arr.includes(sl.time)) arr.push(sl.time);
+          byDay.set(sl.weekday, arr);
+        }
+      }
+      const scheduleLines = [...byDay.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([wd, times]) => `${t(`importStudents.day${wd}`)} · ${times.sort().join(", ")}`);
+      const blob = await shareCardBlob({
+        title: t("landingShare.title"),
+        students: t("landingCalc.students", { count: calc.students }),
+        lessons: t("landingShare.lessons", { weeks: CALC_WEEKS, lessons: t("landingCalc.lessons", { count: calc.lessonsPerMonth }) }),
+        scheduleTitle: t("landingShare.schedule"),
+        scheduleLines,
+        promise: t("landingShare.promise"),
+        site: "otutorhub.com",
+      });
+      if (!blob) return;
+      landingEvent("landing_share_card", { students: calc.students });
+      const file = new File([blob], "otutorhub-week.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      if (typeof nav.share === "function" && nav.canShare?.({ files: [file] })) {
+        try { await nav.share({ files: [file], title: t("landingShare.title"), text: t("landingShare.shareText") }); } catch { /* скасовано */ }
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = "otutorhub-week.png"; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+      setShareDone(true);
+    } finally {
+      setShareBusy(false);
+    }
+  };
 
   const [tgBusy, setTgBusy] = useState(false);
   const [tgLink, setTgLink] = useState<string | null>(null);
@@ -300,6 +348,14 @@ export function MoneyCalculator({ signupHref }: { signupHref: string }) {
                 {tgError && (
                   <p role="alert" style={{ fontSize: 14, marginTop: 6, color: "#b42318" }}>{tgError}</p>
                 )}
+                <div style={{ marginTop: 14 }}>
+                  <button type="button" className="btn-ghost" onClick={() => void shareCard()} disabled={shareBusy} aria-busy={shareBusy}>
+                    {t("landingShare.cta")}
+                  </button>
+                  <p style={{ fontSize: 13, color: "var(--l-muted,#666b82)", marginTop: 8 }}>
+                    {shareDone ? t("landingShare.done") : t("landingShare.hint")}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
