@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { studentMaterialsPath } from "@/lib/roleCapabilities";
+import { lessonStateOf } from "@/components/StudentMaterials";
 import { readFileSync } from "node:fs";
 import { globSync } from "glob";
 import { join, dirname } from "node:path";
@@ -314,6 +315,59 @@ describe("матеріали учня · хронологія, розгорну�
 
   it("менеджер має куди прийти: /people?open= відкриває аркуш людини", () => {
     expect(read("src/pages/PeoplePage.tsx")).toMatch(/searchParams\.get\("open"\)/);
+  });
+
+  /**
+   * Питання власниці 12.09: «наступний урок сьогодні о 12:30, а домашку
+   * показує ніби з учорашнього — це я наплутала?». Ні: картка показувала
+   * ЛИШЕ дату, без часу і без ознаки «вже було / ще буде». Домашку нормально
+   * писати наперед, але тоді список зобовʼязаний це сказати.
+   */
+  describe("матеріали: коли саме був урок і чи він уже був", () => {
+    const sm = () => readFileSync(join(root, "src/components/StudentMaterials.tsx"), "utf8");
+
+    it("у шапці картки є і дата, і ЧАС", () => {
+      expect(sm()).toMatch(/\{fmtDate\(it\.startsAt\)\}, \{fmtTime\(it\.startsAt\)\}/);
+    });
+
+    it("час і дата — ОКРЕМІ форматери (комбінований скелет дає інший відмінок у Chromium)", () => {
+      const src = sm();
+      expect(src).toMatch(/toLocaleDateString\(getLocale\(\), \{ day: "numeric", month: "short" \}\)/);
+      expect(src).toMatch(/toLocaleTimeString\(getLocale\(\), \{ hour: "2-digit", minute: "2-digit" \}\)/);
+    });
+
+    it("майбутній урок НЕ виглядає як запис про минуле", () => {
+      const future = new Date(Date.now() + 3 * 3600_000).toISOString();
+      const past = new Date(Date.now() - 3 * 3600_000).toISOString();
+      expect(lessonStateOf("scheduled", future)).toBe("upcoming");
+      // минулий і досі «заплановано» — саме той, що чекає відмітки
+      expect(lessonStateOf("scheduled", past)).toBe("unmarked");
+      expect(lessonStateOf("completed", past)).toBe("done");
+      expect(lessonStateOf("cancelled", past)).toBe("cancelled");
+      // статус у базі важливіший за час: проведений майбутній лишається проведеним
+      expect(lessonStateOf("completed", future)).toBe("done");
+    });
+
+    it("дві вкладки: «Матеріали» фільтрує по вмісту, «Історія» — ні", () => {
+      const src = sm();
+      expect(src).toMatch(/tabMaterials/);
+      expect(src).toMatch(/tabHistory/);
+      expect(src, "історія мусить показувати УСІ уроки")
+        .toMatch(/tab === "materials" \? hasStuff\(i\) : true/);
+    });
+
+    it("картка згортається в один рядок і розгортається назад", () => {
+      const src = sm();
+      expect(src).toMatch(/aria-expanded=\{on\}/);
+      expect(src).toMatch(/setOpenCards\(\(p\) => \(\{ \.\.\.p, \[it\.lessonId\]: !on \}\)\)/);
+      expect(src).toMatch(/collapseAll/);
+    });
+
+    it("домашка теж складається — раніше вона не згорталась узагалі", () => {
+      const src = sm();
+      const hw = src.slice(src.indexOf("studentMaterials.homework"));
+      expect(hw.slice(0, 300), "домашка мусить рендеритись через LongText").toMatch(/<LongText/);
+    });
   });
 
   it("учень бачить конспект одразу, а не за кнопкою", () => {

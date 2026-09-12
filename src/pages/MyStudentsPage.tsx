@@ -946,7 +946,7 @@ export default function MyStudentsPage() {
                         <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "var(--warning-text,#B45309)" }}>
                           {t("myStudents.debtLabel", { amount: formatPrice(s.unpaid_total, s.currency).replace(/\s/g, "\u00a0") })}
                         </div>
-                        <div style={{ fontFamily: T.body, fontSize: 14, color: "#9a7a34", marginTop: 2 }}>{t("myStudents.unpaidLessonsCount", { count: s.unpaid_count })}</div>
+                        <div style={{ fontFamily: T.body, fontSize: 14, color: "var(--warning-text,#B45309)", marginTop: 2 }}>{t("myStudents.unpaidLessonsCount", { count: s.unpaid_count })}</div>
                       </div>
                       {/* This opens the WalletDialog (record a payment / manage prepay
                           balance), so the label must say that — it previously read
@@ -962,17 +962,12 @@ export default function MyStudentsPage() {
                       зручний час. Рендерить null, якщо квіза немає. */}
                   <StudentGoalCard studentId={s.id} />
 
-                  {/* 11.09: матеріали учня — хронологією і РОЗГОРНУТО.
-                      Було: згорнута «Історія» з першим рядком конспекту й без
-                      посилань — щоб щось прочитати, репетиторка стрибала від
-                      уроку до уроку. */}
-                  <div>
-                    <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: T.txt, marginBottom: 10 }}>
-                      🗂 {t("studentMaterials.title")}
-                    </div>
-                    <StudentMaterials studentId={s.id} tutorId={user!.id}
-                      onOpenLesson={(id) => { setSelectedStudentId(null); setLessonDetailsId(id); }} />
-                  </div>
+                  {/* 11.09: матеріали учня — хронологією і з посиланнями.
+                      12.09: компонент сам носить свої вкладки («Матеріали» /
+                      «Історія»), тож окремий заголовок над ними прибрано —
+                      він дублював назву вкладки слово в слово. */}
+                  <StudentMaterials studentId={s.id} tutorId={user!.id}
+                    onOpenLesson={(id) => { setSelectedStudentId(null); setLessonDetailsId(id); }} />
                 </div>
 
                 {/* 11.09: дії внизу аркуша і ТИХІ. Раніше «Написати» світилось
