@@ -34,11 +34,14 @@ export interface MoneyPreview {
   noScheduleStudents: number;
   /** Борг, який неможливо оцінити: заданий уроками, а ставки немає. */
   unvaluedDebtStudents: number;
+  /** «не оплатила», «винен» без суми — борг є, цифри людина не написала. */
+  flaggedDebtStudents: number;
 }
 
 const EMPTY: MoneyPreview = {
   students: 0, withPrice: 0, withoutPrice: 0, lessonsPerMonth: 0, monthly: 0,
   owed: 0, owedStudents: 0, prepaid: 0, prepaidStudents: 0, noScheduleStudents: 0, unvaluedDebtStudents: 0,
+  flaggedDebtStudents: 0,
 };
 
 export function calcMoneyPreview(rows: ParsedStudent[]): MoneyPreview {
@@ -71,6 +74,7 @@ export function calcMoneyPreview(rows: ParsedStudent[]): MoneyPreview {
     if (prepay > 0) { out.prepaid += prepay; out.prepaidStudents++; }
     // Борг заданий уроками, а ставки немає — оцінити нічим (імпорт теж дасть 0).
     if (net.debtLessons > 0 && price <= 0) out.unvaluedDebtStudents++;
+    if (r.debtFlag) out.flaggedDebtStudents++;
   }
 
   return out;
@@ -91,6 +95,8 @@ export interface DigestDebtor {
   amount: number;
   /** Борг уроками без ставки — показуємо «2 уроки», а не 0 ₴. */
   lessons: number;
+  /** «не оплатила» без суми: у списку є, цифри — нема. */
+  unknown?: boolean;
 }
 export interface DigestPreview {
   /** Найближчий день із розкладу; null, коли розкладу ніхто не дописав. */
@@ -163,6 +169,7 @@ export function digestPreview(rows: ParsedStudent[], now: Date = new Date()): Di
     const amount = net.debtAmount + price * net.debtLessons;
     const lessons = price > 0 ? 0 : net.debtLessons;
     if (amount > 0 || lessons > 0) debtors.push({ name: names.get(r) ?? r.firstName, amount, lessons });
+    else if (r.debtFlag) debtors.push({ name: names.get(r) ?? r.firstName, amount: 0, lessons: 0, unknown: true });
   }
   debtors.sort((a, b) => b.amount - a.amount || b.lessons - a.lessons);
 

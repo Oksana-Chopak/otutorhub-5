@@ -24,7 +24,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const src = (f: string) => readFileSync(join(root, f), "utf8");
 const mig = src("supabase/migrations/20260911120000_landing_telegram_handoff.sql");
 const poll = src("supabase/functions/telegram-poll/index.ts");
-const calc = src("src/components/landing/MoneyCalculator.tsx");
+const calc = src("src/components/landing/LandingHero.tsx");
 const auth = src("src/pages/AuthPage.tsx");
 const ob = src("src/components/OnboardingFlowB.tsx");
 
@@ -87,11 +87,11 @@ describe("бот: /start lh_<токен> → дайджест + кнопка з 
 });
 
 describe("клієнт: кнопка, посилання з бота, онбординг", () => {
-  it("калькулятор передає список і ГОТОВИЙ текст дайджесту, ім'я бота бере з бази", () => {
-    expect(calc).toMatch(/rpc\("create_landing_handoff", \{ _list: text, _digest: digestText, _lang: lang \}\)/);
+  it("герой передає КАНОНІЧНИЙ список і ГОТОВИЙ текст дайджесту, ім'я бота бере з бази", () => {
+    expect(calc).toMatch(/rpc\("create_landing_handoff", \{ _list: canonical, _digest: digestText, _lang: lang \}\)/);
     expect(calc).toMatch(/rpc\("landing_bot_username"\)/);
     expect(calc).toMatch(/rememberHandoffToken\(token\)/);
-    expect(calc).toMatch(/landingCalc\.tgHint/); // про 24 години сказано вголос
+    expect(calc).toMatch(/landingHero\.tgHint/); // про 24 години сказано вголос
   });
   it("сторінка входу читає ?lh= і кладе токен у реєстрацію", () => {
     expect(auth).toMatch(/searchParams\.get\("lh"\)/);

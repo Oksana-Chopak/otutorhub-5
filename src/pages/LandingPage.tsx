@@ -3,29 +3,34 @@ import { priceLabel, totalLabel } from "@/lib/pricing";
 import { formatPrice } from "@/lib/currency";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { isNativeApp } from "@/lib/platform";
-import { openExternal } from "@/lib/openExternal";
-import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { MoneyCalculator } from "@/components/landing/MoneyCalculator";
+import { LandingHero } from "@/components/landing/LandingHero";
 import { LandingDayStory } from "@/components/landing/LandingDayStory";
-import { LandingLiveStats } from "@/components/landing/LandingLiveStats";
 import { PaymentMethodsSection } from "@/components/PaymentMethodsSection";
-import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 
+/**
+ * Лендінг — переродження 12.09 (рішення власниці після розносу: «одна дія,
+ * один вау-флоу, чіткість з першого рядка, позиціонування»).
+ *
+ * Було: герой із персоною, що крутиться кожні 2,5 с («для репетитора /
+ * консультанта / психолога / нутриціолога / тренера»), дві кнопки в герої,
+ * окремий калькулятор нижче з трьома кнопками під ним, «Знайомо?», сітка
+ * «як на долоні», «3 кроки», три тарифні картки з кнопками, смужка для
+ * учнів, фінальний CTA, два плаваючі месенджери. Дев'ять секцій, сім
+ * кнопок, жодного чіткого «що це і для кого».
+ *
+ * Стало: ОДНА персона (репетитор — v1 продукту), ОДНА обіцянка в заголовку,
+ * ОДИН потік у герої (вставив → побачив свій завтрашній дайджест → одна
+ * кнопка), далі лише «один день з помічником», ціна без кнопок і фінальна
+ * кнопка. Решта персон — майбутні версії продукту, а не цей лендінг.
+ *
+ * Палітра `.landing-root` — власна (не index.css); текстові токени доведені
+ * до 4,5:1 хвилею контрасту 11.09 і стережуться contrast-gate.test.ts.
+ */
 
-const PERSONA_IDS = ["tutor", "consultant", "psychologist", "nutritionist", "trainer"] as const;
-const PERSONA_EMOJI: Record<string, string> = {
-  tutor: "📚",
-  consultant: "💼",
-  psychologist: "🧠",
-  nutritionist: "🥗",
-  trainer: "💪",
-};
-
-export type PersonaId = typeof PERSONA_IDS[number];
 export type PersonaVars = {
   label: string;
   labelNom: string;
@@ -47,31 +52,24 @@ function capFirst(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
-
 const landingStyles = `
-.landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+.landing-root, .landing-root *, .landing-root *::before, .landing-root *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .landing-root {
   --ink: #1a1a2e;
   --ink2: #2d2d4a;
-  --l-muted: #5d5d78;   /* 11.09: було #6b6b8a — 4.34:1 на --bg2, під нормою */
-  --muted2: #6b6b8a;    /* 11.09: було #9494aa — 2.7:1, у плейсхолдерах не читалось */
+  --l-muted: #5d5d78;
+  --muted2: #6b6b8a;
   --bg: #f7f6f2;
   --bg2: #eeece6;
   --white: #ffffff;
   --l-accent: #0ABAB5;
   --l-accent2: #2dd4cf;
   --accent-light: #d6f5f3;
-  /* 11.09: бірюза #0ABAB5 — чудова ЗАЛИВКА великих плям, але білий напис на ній
-     дає 2.41:1, а вона сама як ТЕКСТ — 2.23:1 на тлі лендінгу. Лендінг читають
-     з телефона на вулиці, і напис, якого не видно, коштує реєстрації. Нижче —
-     та сама бірюза, доведена до норми; заливки, рамки й тіні лишились як були. */
-  --l-accent-btn: #0a7d79;   /* білий напис на кнопці = 4.97:1 */
-  --l-accent-text: #0b6b68;  /* акцент як колір тексту = 5.85:1 на тлі */
+  /* Брендова бірюза — лише ЗАЛИВКА великих плям; усе, що читається, — нижче,
+     доведене до норми 4,5:1 (хвиля контрасту 11.09). */
+  --l-accent-btn: #0a7d79;
+  --l-accent-text: #0b6b68;
   --l-success: #1a9e75;
   --l-success-text: #127354;
   --success-light: #e0f5ee;
@@ -80,902 +78,261 @@ const landingStyles = `
   --warning-light: #fdf0d8;
   --l-border: rgba(26,26,46,0.1);
   --border2: rgba(26,26,46,0.06);
-  --l-radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 2px 24px rgba(10,186,181,0.08);
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.06);
-  font-family: 'Golos Text', sans-serif;
+  --l-radius: 24px;
+  --shadow-card: 0 1px 2px rgba(26,26,46,0.05), 0 18px 48px -20px rgba(26,26,46,0.22);
+  --dark: linear-gradient(135deg, #0f0f1a 0%, #1a1f3a 100%);
+  font-family: 'Golos Text', system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--ink);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  scroll-behavior: smooth;
   min-height: 100vh;
 }
+.landing-root a { color: inherit; }
 
-.landing-root nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(247,246,242,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border2);
-  padding: 0 2rem;
-}
-.landing-root .nav-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 64px;
-}
-.landing-root .logo {
-  font-family: 'Unbounded', sans-serif;
-  font-weight: 700; font-size: 18px;
-  color: var(--ink); text-decoration: none;
-  display: flex; align-items: center; gap: 8px;
-}
-.landing-root .logo-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--l-accent); display: inline-block;
-}
-.landing-root .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
-.landing-root .nav-links a {
-  font-size: 14px; font-weight: 500;
-  color: var(--l-muted); text-decoration: none;
-  transition: color 0.2s;
-}
-.landing-root .nav-links a:hover { color: var(--ink); }
-.landing-root .btn-nav {
-  background: var(--l-accent-btn); color: #fff;
-  font-family: 'Golos Text', sans-serif;
-  font-weight: 600; font-size: 14px;
-  padding: 10px 22px; border-radius: 100px;
-  text-decoration: none; border: none; cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-  display: inline-block;
-}
-.landing-root .btn-nav:hover { transform: translateY(-1px); }
+/* ── NAV ─────────────────────────────────────────────────────────────────── */
+.landing-root nav { position: sticky; top: 0; z-index: 100; background: rgba(247,246,242,0.9); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border2); padding: 0 20px; }
+.landing-root .nav-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 12px; }
+.landing-root .logo { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 19px; text-decoration: none; display: flex; align-items: center; gap: 9px; }
+.landing-root .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--l-accent); display: inline-block; }
+.landing-root .nav-right { display: flex; align-items: center; gap: 8px; }
+.landing-root .nav-login { font-size: 16px; font-weight: 600; text-decoration: none; padding: 10px 16px; border-radius: 999px; min-height: 44px; display: inline-flex; align-items: center; border: 1.5px solid var(--l-border); }
+.landing-root .nav-login:hover { border-color: var(--ink); }
 
-.landing-root .hero {
-  max-width: 1100px; margin: 0 auto;
-  padding: 80px 2rem 60px;
-  text-align: center;
-}
-.landing-root .spots-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: #fff5e6; color: #c47a15;
-  font-size: 13px; font-weight: 700;
-  padding: 8px 16px; border-radius: 100px;
-  margin-bottom: 28px;
-  border: 1px solid rgba(196,122,21,0.2);
-}
-.landing-root h1 {
-  font-family: 'Unbounded', sans-serif;
-  font-size: clamp(34px, 5vw, 60px);
-  font-weight: 900; line-height: 1.05;
-  color: var(--ink); margin-bottom: 24px;
-  letter-spacing: -0.02em;
-  max-width: 880px; margin-left: auto; margin-right: auto;
-}
-.landing-root h1 .accent { color: var(--l-accent-text); }
-.landing-root .hero-sub {
-  font-size: clamp(18px, 2vw, 22px);
-  color: var(--ink2);
-  line-height: 1.5; margin-bottom: 18px;
-  font-weight: 500;
-  max-width: 720px; margin-left: auto; margin-right: auto;
-}
-.landing-root .hero-desc {
-  font-size: 16px; color: var(--l-muted);
-  line-height: 1.7; margin-bottom: 36px;
-  max-width: 640px; margin-left: auto; margin-right: auto;
-}
-.landing-root .hero-cta {
-  display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center;
-}
-.landing-root .btn-primary {
-  background: var(--l-accent-btn); color: #fff;
-  font-family: 'Golos Text', sans-serif;
-  font-weight: 600; font-size: 16px;
-  padding: 16px 32px; border-radius: 100px;
-  text-decoration: none; border: none; cursor: pointer;
-  transition: all 0.2s; display: inline-block;
-  box-shadow: 0 4px 20px rgba(10,186,181,0.35);
-}
-.landing-root .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(10,186,181,0.4);
-}
-.landing-root .btn-ghost {
-  background: transparent; color: var(--ink);
-  font-family: 'Golos Text', sans-serif;
-  font-weight: 500; font-size: 16px;
-  padding: 16px 28px; border-radius: 100px;
-  text-decoration: none; border: 1.5px solid var(--l-border);
-  cursor: pointer; transition: all 0.2s; display: inline-block;
-}
-.landing-root .btn-ghost:hover {
-  border-color: var(--l-accent-text); color: var(--l-accent-text);
-  background: var(--accent-light);
-}
+/* ── HERO ────────────────────────────────────────────────────────────────── */
+.landing-root .hero { position: relative; overflow: hidden; padding: 48px 20px 56px; }
+.landing-root .hero::before { content: ""; position: absolute; inset: -20% -10% auto auto; width: 560px; height: 560px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(10,186,181,0.22), rgba(10,186,181,0)); pointer-events: none; }
+.landing-root .hero-grid { position: relative; max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 28px; }
+.landing-root .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-accent-text); margin-bottom: 18px; }
+.landing-root .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--l-accent); }
+.landing-root h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(32px, 5vw, 56px); font-weight: 800; line-height: 1.04; letter-spacing: -0.025em; color: var(--ink); margin-bottom: 20px; }
+.landing-root .hero-sub { font-size: clamp(18px, 2vw, 22px); line-height: 1.5; color: var(--ink2); max-width: 560px; margin-bottom: 28px; }
 
-.landing-root .l-section { padding: 80px 2rem; }
-.landing-root .section-inner { max-width: 1100px; margin: 0 auto; }
-.landing-root .section-label {
-  font-size: 13px; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--l-accent-text); margin-bottom: 16px;
-}
-.landing-root h2 {
-  font-family: 'Unbounded', sans-serif;
-  font-size: clamp(26px, 3vw, 40px);
-  font-weight: 800; line-height: 1.15;
-  color: var(--ink); margin-bottom: 16px;
-  letter-spacing: -0.02em;
-}
-.landing-root .section-sub {
-  font-size: 17px; color: var(--l-muted);
-  max-width: 640px; line-height: 1.6;
-}
-.landing-root .section-alt { background: var(--bg); }
+.landing-root .paste-card { background: var(--white); border-radius: var(--l-radius); box-shadow: var(--shadow-card); padding: 18px 18px 14px; border: 1px solid var(--border2); }
+.landing-root .paste-label { display: block; font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+.landing-root .paste-field { display: block; width: 100%; min-height: 168px; border: 1.5px solid var(--l-border); border-radius: 16px; padding: 14px 16px; font: 500 17px/1.55 'Golos Text', system-ui, sans-serif; color: var(--ink); background: #fbfaf7; resize: vertical; outline: none; }
+.landing-root .paste-field::placeholder { color: var(--muted2); }
+.landing-root .paste-field:focus { border-color: var(--l-accent); box-shadow: 0 0 0 4px rgba(10,186,181,0.18); background: #fff; }
+.landing-root .paste-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.landing-root .paste-privacy { font-size: 14px; color: var(--l-muted); line-height: 1.4; flex: 1 1 240px; }
+.landing-root .paste-link { background: none; border: none; cursor: pointer; font: 700 15px 'Golos Text', system-ui, sans-serif; color: var(--l-accent-text); min-height: 44px; padding: 0 4px; text-decoration: underline; text-underline-offset: 3px; }
+
+.landing-root .bubble-wrap { position: relative; }
+.landing-root .bubble-tag { display: inline-block; font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 999px; background: var(--accent-light); color: var(--l-accent-text); margin-bottom: 12px; }
+.landing-root .bubble-tag.is-example { background: var(--bg2); color: var(--l-muted); }
+.landing-root .bubble-head { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--l-muted); margin: 0 0 8px 6px; }
+.landing-root .bubble-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#ffd166,#f4a261); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+.landing-root .bubble-sender { font-weight: 700; color: var(--ink); }
+.landing-root .bubble-time { margin-left: auto; }
+.landing-root .bubble { border-radius: 26px 26px 26px 8px; padding: 22px 24px; color: #fff; background: var(--dark); box-shadow: 0 24px 50px -28px rgba(15,15,26,.8); font-size: 17px; line-height: 1.55; animation: bubble-in .35s ease-out; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
+.landing-root .bubble-greet { font-weight: 700; font-size: 18px; }
+.landing-root .bubble-lessons { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; color: rgba(255,255,255,.9); }
+.landing-root .bubble-lesson-time { display: inline-block; min-width: 60px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.62); }
+.landing-root .bubble-muted { color: rgba(255,255,255,.72); margin-top: 8px; }
+.landing-root .bubble-block { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.14); }
+.landing-root .bubble-owed-label { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.66); }
+.landing-root .bubble-owed { font-family: 'Unbounded', sans-serif; font-size: clamp(34px, 5vw, 44px); font-weight: 800; line-height: 1.1; margin-top: 6px; letter-spacing: -0.02em; }
+.landing-root .bubble-names { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+.landing-root .bubble-name { display: inline-flex; align-items: center; white-space: nowrap; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.92); font-size: 16px; font-weight: 600; }
+.landing-root .bubble-name.is-more { background: transparent; color: rgba(255,255,255,.6); padding-left: 2px; }
+.landing-root .bubble-promise { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: rgba(43,191,170,.16); color: #fff; font-weight: 600; font-size: 16px; line-height: 1.45; }
+.landing-root .bubble-zero { font-weight: 600; }
+.landing-root .bubble-month { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.85); font-size: 16px; }
+.landing-root .bubble-hint { font-size: 15px; color: var(--l-muted); margin: 12px 6px 0; line-height: 1.45; }
+
+.landing-root .hero-cta { margin-top: 22px; }
+.landing-root .btn-primary { background: var(--l-accent-btn); color: #fff; font-family: 'Golos Text', system-ui, sans-serif; font-weight: 700; font-size: 17px; padding: 16px 28px; border-radius: 999px; text-decoration: none; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 56px; box-shadow: 0 10px 28px -8px rgba(10,125,121,.55); transition: transform .15s, box-shadow .2s; }
+.landing-root .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -10px rgba(10,125,121,.6); }
+.landing-root .btn-big { width: 100%; font-size: 18px; min-height: 60px; text-align: center; }
+.landing-root .cta-note { font-size: 14px; color: var(--l-muted); margin-top: 10px; line-height: 1.45; }
+.landing-root .cta-error { font-size: 15px; color: #b42318; margin-top: 8px; }
+.landing-root .tg-row { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border2); }
+.landing-root .tg-link { background: none; border: none; cursor: pointer; padding: 0; min-height: 44px; display: inline-flex; align-items: center; font: 700 16px 'Golos Text', system-ui, sans-serif; color: var(--l-accent-text); text-decoration: underline; text-underline-offset: 4px; }
+.landing-root .tg-link[disabled] { opacity: .6; cursor: default; }
+
+/* ── SECTIONS ────────────────────────────────────────────────────────────── */
+.landing-root .l-section { padding: 64px 20px; }
+.landing-root .section-inner { max-width: 1160px; margin: 0 auto; }
+.landing-root .section-label { font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-accent-text); margin-bottom: 14px; }
+.landing-root h2 { font-family: 'Unbounded', sans-serif; font-size: clamp(26px, 3.4vw, 42px); font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
+.landing-root .section-sub { font-size: 18px; color: var(--l-muted); max-width: 640px; line-height: 1.55; }
 .landing-root .features-bg { background: var(--white); }
 
-/* Assistant grid */
-.landing-root .assistant-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 16px; margin-top: 40px;
-}
-.landing-root .assistant-card {
-  background: var(--white);
-  border-radius: var(--l-radius);
-  padding: 22px;
-  border: 1px solid var(--border2);
-  display: flex; gap: 14px; align-items: flex-start;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.landing-root .assistant-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-.landing-root .assistant-emoji {
-  font-size: 26px; line-height: 1;
-  flex-shrink: 0;
-  width: 44px; height: 44px;
-  border-radius: 12px;
-  background: var(--accent-light);
-  display: flex; align-items: center; justify-content: center;
-}
-.landing-root .assistant-title {
-  font-size: 15px; font-weight: 700;
-  color: var(--ink); margin-bottom: 4px;
-  line-height: 1.3;
-}
-.landing-root .assistant-text {
-  font-size: 14px; color: var(--l-muted);
-  line-height: 1.55;
-}
+/* ── PRICING ─────────────────────────────────────────────────────────────── */
+.landing-root .price-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 28px; }
+.landing-root .price-card { background: var(--white); border-radius: var(--l-radius); border: 1px solid var(--border2); box-shadow: var(--shadow-card); padding: 26px 24px; text-align: left; }
+.landing-root .price-card.featured { border: 2px solid var(--l-accent); }
+.landing-root .price-plan { font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--l-muted); }
+.landing-root .price-badge { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 700; color: var(--l-accent-text); background: var(--accent-light); padding: 6px 12px; border-radius: 999px; }
+.landing-root .price-amount { font-family: 'Unbounded', sans-serif; font-size: 44px; font-weight: 800; letter-spacing: -0.02em; margin-top: 14px; line-height: 1; }
+.landing-root .price-period { font-size: 16px; color: var(--l-muted); margin-top: 6px; }
+.landing-root .price-annual { font-size: 15px; color: var(--l-muted); margin-top: 4px; }
+.landing-root .price-features { list-style: none; margin-top: 18px; display: grid; gap: 8px; font-size: 16px; }
+.landing-root .price-note { font-size: 14px; color: var(--l-muted); margin-top: 16px; }
+.landing-root .price-schools { margin-top: 20px; font-size: 16px; color: var(--l-muted); }
+.landing-root .price-schools a { color: var(--l-accent-text); font-weight: 600; }
 
-/* Glance section */
-.landing-root .glance-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 16px; margin-top: 40px;
-}
-.landing-root .glance-card {
-  background: var(--white);
-  border-radius: var(--l-radius);
-  padding: 24px 20px;
-  border: 1px solid var(--border2);
-  text-align: left;
-}
-.landing-root .glance-num {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 36px; font-weight: 900;
-  color: var(--l-accent-text); line-height: 1;
-  margin-bottom: 12px;
-}
-.landing-root .glance-text {
-  font-size: 15px; font-weight: 600;
-  color: var(--ink); line-height: 1.4;
-}
+/* ── STUDENTS LINE + FINAL CTA + FOOTER ──────────────────────────────────── */
+.landing-root .students-strip { padding: 0 20px 56px; }
+.landing-root .students-strip-inner { max-width: 1160px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 18px; font-size: 16px; color: var(--l-muted); text-align: center; }
+.landing-root .students-strip-link { color: var(--l-accent-text); font-weight: 700; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
 
-/* Steps */
-.landing-root .steps-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 24px; margin-top: 48px;
-}
-.landing-root .step-card {
-  background: var(--white);
-  border-radius: var(--l-radius);
-  padding: 32px 24px;
-  border: 1px solid var(--border2);
-  position: relative;
-}
-.landing-root .step-num {
-  position: absolute; top: -18px; left: 24px;
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  background: var(--l-accent-btn); color: #fff;
-  font-family: 'Unbounded', sans-serif;
-  font-size: 18px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px rgba(10,186,181,0.35);
-}
-.landing-root .step-title {
-  font-size: 17px; font-weight: 700;
-  color: var(--ink); margin: 12px 0 8px;
-  line-height: 1.3;
-}
-.landing-root .step-text {
-  font-size: 14px; color: var(--l-muted);
-  line-height: 1.6;
-}
+.landing-root .cta-section { background: var(--dark); color: #fff; padding: 72px 20px; text-align: center; }
+.landing-root .cta-inner { max-width: 720px; margin: 0 auto; }
+.landing-root .cta-section h2 { color: #fff; }
+.landing-root .cta-section p { color: rgba(255,255,255,.8); font-size: 18px; }
+.landing-root .cta-buttons { margin-top: 26px; display: flex; justify-content: center; }
+.landing-root .btn-white { background: #fff; color: var(--ink); font-weight: 700; font-size: 18px; padding: 16px 32px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 60px; }
+.landing-root .cta-footnote { margin-top: 16px; font-size: 14px; color: rgba(255,255,255,.65) !important; }
 
-/* Final CTA */
-.landing-root .live-stats { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; padding: 10px 16px; border-radius: 999px; background: var(--surface, #fff); border: 0.5px solid var(--border, #e6e8ef); font-size: 14px; color: var(--l-muted); max-width: 100%; }
-.landing-root .live-stats-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal, #2BBFAA); box-shadow: 0 0 0 4px rgba(43,191,170,.18); flex-shrink: 0; }
-.landing-root .students-strip { background: var(--bg); border-top: 0.5px solid var(--border, #e6e8ef); border-bottom: 0.5px solid var(--border, #e6e8ef); }
-.landing-root .students-strip-inner { max-width: 1100px; margin: 0 auto; padding: 18px 2rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; font-size: 15px; color: var(--l-muted); text-align: center; }
-.landing-root .students-strip-link { font-weight: 700; color: var(--txt); text-decoration: none; padding: 10px 0; }
-.landing-root .students-strip-link:hover { text-decoration: underline; }
-.landing-root .cta-section {
-  background: var(--ink);
-  padding: 80px 2rem;
-  text-align: center;
-  position: relative; overflow: hidden;
-}
-.landing-root .cta-section::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(10,186,181,0.3) 0%, transparent 60%),
-              radial-gradient(circle at 70% 50%, rgba(45,212,207,0.2) 0%, transparent 60%);
-  pointer-events: none;
-}
-.landing-root .cta-inner { max-width: 720px; margin: 0 auto; position: relative; }
-.landing-root .cta-section .spots-badge {
-  background: rgba(255,255,255,0.1); color: #fff;
-  border-color: rgba(255,255,255,0.15);
-}
-.landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); line-height: 1.2; min-height: calc(2.4em); }
-.landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; line-height: 1.5; min-height: calc(3em); }
-.landing-root .btn-white {
-  background: white; color: var(--l-accent-text);
-  font-family: 'Golos Text', sans-serif;
-  font-weight: 700; font-size: 16px;
-  padding: 16px 32px; border-radius: 100px;
-  text-decoration: none; border: none; cursor: pointer;
-  transition: all 0.2s; display: inline-block;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-.landing-root .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.landing-root .btn-outline-white {
-  background: transparent; color: #fff;
-  font-family: 'Golos Text', sans-serif;
-  font-weight: 600; font-size: 16px;
-  padding: 16px 28px; border-radius: 100px;
-  text-decoration: none; border: 1.5px solid rgba(255,255,255,0.3);
-  cursor: pointer; transition: all 0.2s; display: inline-block;
-}
-.landing-root .btn-outline-white:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
-.landing-root .cta-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.landing-root .cta-footnote { color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 20px; }
+.landing-root footer { padding: 40px 20px 56px; }
+.landing-root .footer-inner { max-width: 1160px; margin: 0 auto; display: grid; gap: 18px; font-size: 15px; color: var(--l-muted); }
+.landing-root .footer-logo { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 18px; color: var(--ink); }
+.landing-root .footer-links { display: flex; gap: 8px 22px; flex-wrap: wrap; }
+.landing-root .footer-links a { color: var(--l-muted); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+.landing-root .footer-links a:hover { color: var(--ink); }
 
-.landing-root footer {
-  background: var(--ink2);
-  padding: 40px 2rem;
-  color: rgba(255,255,255,0.4);
-  font-size: 13px;
+/* ── DESKTOP ─────────────────────────────────────────────────────────────── */
+@media (min-width: 960px) {
+  .landing-root .hero { padding: 72px 32px 88px; }
+  .landing-root .hero-grid { grid-template-columns: 1.12fr 0.88fr; gap: 56px; align-items: start; }
+  .landing-root .hero-result { position: sticky; top: 92px; }
+  .landing-root .l-section { padding: 96px 32px; }
+  .landing-root .price-grid { grid-template-columns: 1fr 1fr; gap: 20px; max-width: 820px; margin-left: auto; margin-right: auto; }
+  .landing-root .cta-section { padding: 96px 32px; }
 }
-.landing-root .footer-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 16px;
-}
-.landing-root .footer-logo {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 16px; font-weight: 700;
-  color: white;
-}
-.landing-root footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
-.landing-root footer a:hover { color: white; }
-
-.landing-root .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
-.landing-root .fade-up.visible { opacity: 1; transform: translateY(0); }
-
-/* Pricing */
-.landing-root .price-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 24px; margin-top: 28px;
-}
-.landing-root .annual-banner {
-  display: inline-flex; align-items: center; gap: 8px;
-  margin-top: 18px; padding: 8px 16px; border-radius: 999px;
-  background: #FFF7E6; border: 1.5px solid #F5B544; color: #9a6a12;
-  font-weight: 700; font-size: 15px;
-}
-.landing-root .price-annual {
-  margin-top: 6px; font-size: 14px; font-weight: 700; color: #9a6a12;
-}
-.landing-root .price-amount--custom { font-size: 26px; line-height: 1.2; padding-top: 10px; }
-@media (max-width: 900px) { .landing-root .price-grid { grid-template-columns: 1fr; } }
-/* Мобілка: без min-width:0 елемент грід-колонки не стискається нижче свого
-   вмісту, і три картки цін розсували документ до 520px при вікні 390 —
-   уся сторінка їздила вбік. Довге «Ціна за домовленістю» в Unbounded не
-   переносилось, тому ще й дозволяємо перенос усередині суми. */
-.landing-root .price-grid > * { min-width: 0; }
-.landing-root .price-amount { overflow-wrap: anywhere; }
-.landing-root .price-card {
-  background: var(--white);
-  border-radius: var(--l-radius);
-  padding: 32px 28px;
-  border: 1px solid var(--border2);
-  display: flex; flex-direction: column; gap: 10px;
-  position: relative;
-}
-.landing-root .price-card.featured {
-  border: 2px solid var(--l-accent);
-  box-shadow: 0 8px 32px rgba(10,186,181,0.12);
-}
-.landing-root .price-plan {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 14px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--l-muted);
-}
-.landing-root .price-badge {
-  display: inline-block; align-self: flex-start;
-  font-size: 13px; font-weight: 700;
-  padding: 4px 10px; border-radius: 100px;
-  background: var(--warning-light); color: var(--l-warning-text);
-}
-.landing-root .price-card.featured .price-badge {
-  background: var(--accent-light); color: var(--l-accent-text);
-}
-.landing-root .price-amount {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 44px; font-weight: 900;
-  color: var(--ink); line-height: 1; margin-top: 8px;
-}
-.landing-root .price-period {
-  font-size: 14px; color: var(--l-muted); margin-bottom: 8px;
-}
-.landing-root .price-features {
-  list-style: none; display: flex; flex-direction: column; gap: 8px;
-  margin: 12px 0 16px;
-}
-.landing-root .price-features li {
-  font-size: 14px; color: var(--ink2); line-height: 1.5;
-}
-.landing-root .price-cta {
-  display: inline-block; text-align: center;
-  background: var(--l-accent-btn); color: #fff;
-  font-weight: 600; font-size: 15px;
-  padding: 14px 24px; border-radius: 100px;
-  text-decoration: none; transition: all 0.2s;
-}
-.landing-root .price-cta:hover { background: var(--l-accent2); transform: translateY(-1px); }
-.landing-root .price-cta.secondary {
-  background: transparent; color: var(--ink);
-  border: 1.5px solid var(--l-border);
-}
-.landing-root .price-cta.secondary:hover { border-color: var(--l-accent-text); color: var(--l-accent-text); }
-.landing-root .price-note {
-  font-size: 13px; color: var(--muted2); text-align: center; margin-top: 4px;
-}
-
-@media (max-width: 600px) {
-  .landing-root .price-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 900px) {
-  .landing-root .assistant-grid { grid-template-columns: 1fr; }
-  .landing-root .glance-grid { grid-template-columns: repeat(2, 1fr); }
-  .landing-root .steps-grid { grid-template-columns: 1fr; gap: 32px; }
-  .landing-root .nav-links { display: none; }
-}
-@media (max-width: 600px) {
-  .landing-root nav { padding: 0 1rem; }
-  .landing-root .nav-inner { height: 56px; gap: 8px; }
-  .landing-root .logo { font-size: 15px; gap: 6px; }
-  .landing-root .btn-nav { padding: 8px 14px; font-size: 13px; }
-  .landing-root .glance-grid { grid-template-columns: 1fr; }
-  .landing-root .hero { padding: 32px 1rem 40px; }
-  .landing-root .hero-cta, .landing-root .cta-buttons { flex-direction: column; align-items: stretch; gap: 10px; }
-  .landing-root .hero-cta .btn-primary,
-  .landing-root .hero-cta .btn-ghost,
-  .landing-root .cta-buttons .btn-white,
-  .landing-root .cta-buttons .btn-outline-white { width: 100%; text-align: center; }
-}
-
-.landing-root .persona-word {
-  color: var(--l-accent-text) !important;
-  cursor: pointer;
-  border-bottom: 2px dotted var(--l-accent);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  display: inline-block;
-}
-.landing-root h1 .persona-word { color: var(--l-accent-text) !important; }
-.landing-root .persona-accent { color: var(--l-accent-text) !important; }
-.landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
-.landing-root .persona-pills {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  justify-content: center; margin: 18px 0 28px;
-}
-.landing-root .persona-pill {
-  background: var(--white);
-  color: var(--l-text);
-  border: 1px solid var(--l-border);
-  font-family: 'Golos Text', sans-serif;
-  font-weight: 600; font-size: 13px;
-  padding: 8px 16px; border-radius: 100px;
-  cursor: pointer; transition: all 0.2s;
-}
-.landing-root .persona-pill:hover { border-color: var(--l-accent-text); }
-.landing-root .persona-pill.active {
-  background: var(--l-accent-btn); color: #fff;
-  border-color: var(--l-accent-text);
-  box-shadow: 0 4px 14px rgba(10,186,181,0.3);
-}
-.landing-root .pain-section {
-  background: var(--bg2); padding: 56px 2rem;
-}
-.landing-root .pain-inner {
-  max-width: 720px; margin: 0 auto; text-align: center;
-}
-.landing-root .pain-label {
-  font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--l-warning-text); margin-bottom: 12px;
-}
-.landing-root .pain-title {
-  font-family: 'Unbounded', sans-serif;
-  font-size: clamp(22px, 2.6vw, 32px); font-weight: 800;
-  color: var(--ink); line-height: 1.3;
-  transition: opacity 0.3s ease;
-}
-.landing-root .pain-question { min-height: calc(1.3em * 3); display: flex; align-items: center; justify-content: center; }
-.landing-root .pain-answer { min-height: calc(1.5em * 3); display: flex; align-items: center; justify-content: center; }
-.landing-root .persona-fade { transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease; }
-.landing-root .persona-fade.swap { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
-.landing-root .chat-bubble {
-  position: fixed; right: 1.5rem; z-index: 50;
-  display: flex; align-items: center; gap: 0.5rem;
-  color: #fff; padding: 0.75rem 1rem; border-radius: 999px;
-  box-shadow: 0 10px 28px rgba(26,26,46,0.18);
-  transition: transform 0.2s ease, filter 0.2s ease;
-  text-decoration: none; font-weight: 700;
-}
-.landing-root .chat-bubble:hover { transform: scale(1.05); filter: brightness(0.94); }
-.landing-root .chat-bubble svg { width: 1.25rem; height: 1.25rem; fill: currentColor; flex-shrink: 0; }
-.landing-root .chat-bubble-whatsapp { bottom: 5rem; background: hsl(142 70% 49%); }
-.landing-root .chat-bubble-telegram { bottom: 1.5rem; background: hsl(200 73% 49%); }
-@media (max-width: 639px) { .landing-root .chat-bubble span { display: none; } }
 `;
 
 export default function LandingPage() {
-  const { t, i18n } = useTranslation();
-  // Тарифи у ГРИВНІ (рішення власниці 02.09; було в USD від 10.08).
-  // Regular — з єдиного джерела src/lib/pricing.ts. Founding лишається тим самим
-  // «мінус ~30% від звичайного», що й був ($5 проти $7), у круглому вигляді.
-  const native = isNativeApp(); // М1: Play забороняє чужі прайси цифрових підписок
+  const { t } = useTranslation();
+  const native = isNativeApp(); // Play забороняє чужі прайси цифрових підписок
   const FOUNDING_PER_MONTH = 199;
-  const FOUNDING_YEAR_TOTAL = 1990; // ≈ −17%, та сама драбинка, що й у Pro
+  const FOUNDING_YEAR_TOTAL = 1990;
   const PRICES = {
     founding: formatPrice(FOUNDING_PER_MONTH, "UAH"),
     foundingY: formatPrice(FOUNDING_YEAR_TOTAL, "UAH"),
     regular: priceLabel("monthly"),
     regularY: totalLabel("yearly"),
   };
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const personaId = PERSONA_IDS[activeIndex];
 
+  // Одна персона — репетитор (v1). Змінні лишились для «одного дня», щоб
+  // майбутні версії (психологи, коучі) отримали свій лендінг без переписування.
   const personaVars: PersonaVars = useMemo(() => {
-    const base = t(`landing.personas.${personaId}`, { returnObjects: true }) as {
-      label: string; labelNom: string; labelAcc: string;
-      client: string; clientNom: string; clientDative: string;
-      clients: string; clientsNom: string; clientsAcc: string; clientsGen: string;
-      session: string; sessions: string; sessionsGen: string;
-    };
-    return {
-      ...base,
-      ClientNom: capFirst(base.clientNom),
-    };
-  }, [personaId, t]);
-
-  // Deferred persona vars: text content updates only after the swap-out animation
-  // finishes, so changes happen while the element is invisible (no jarring flicker).
-  const [displayedPersonaId, setDisplayedPersonaId] = useState(personaId);
-  const [displayedPersonaVars, setDisplayedPersonaVars] = useState(personaVars);
-  useEffect(() => {
-    if (isAnimating) {
-      const timer = setTimeout(() => {
-        setDisplayedPersonaId(personaId);
-        setDisplayedPersonaVars(personaVars);
-      }, 175);
-      return () => clearTimeout(timer);
-    }
-    setDisplayedPersonaId(personaId);
-    setDisplayedPersonaVars(personaVars);
-  }, [personaId, personaVars, isAnimating]);
-
-  const painShort = t(`landing.personas.${displayedPersonaId}.painShort`);
-  const painFull = t(`landing.personas.${displayedPersonaId}.painFull`);
-  const tp = (key: string) => t(key, displayedPersonaVars);
-
-  const stopPersonaRotation = useCallback(() => {
-    setIsPaused(true);
-    if (animationTimeoutRef.current) {
-      clearTimeout(animationTimeoutRef.current);
-      animationTimeoutRef.current = null;
-    }
-  }, []);
-
-  const withPersonaAccent = (text: string) => {
-    const label = displayedPersonaVars.label;
-    const normalizedLabel = label.trim();
-    const start = text.toLocaleLowerCase().indexOf(normalizedLabel.toLocaleLowerCase());
-    if (start === -1) return text;
-
-    return (
-      <>
-        {text.slice(0, start)}
-        <span className="persona-accent">{text.slice(start, start + normalizedLabel.length)}</span>
-        {text.slice(start + normalizedLabel.length)}
-      </>
-    );
-  };
+    const base = t("landing.personas.tutor", { returnObjects: true }) as Omit<PersonaVars, "ClientNom">;
+    return { ...base, ClientNom: capFirst(base.clientNom) };
+  }, [t]);
 
   useEffect(() => {
-    /* Перевірка 03.09 у браузері: заголовок вкладки переписувався разом із
-       персоною, а вона крутиться КОЖНІ 2,5 с — тобто підпис вкладки блимав
-       «для репетитора / для психолога / для нутриціолога…» без упину, і в
-       закладку потрапляла випадкова професія. Ставимо один раз, за
-       замовчуванням — репетитор (головна персона продукту). */
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("visible");
-            obs.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.12 },
-    );
-    document.querySelectorAll(".landing-root .fade-up").forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personaId]);
-
-  // Заголовок — один раз на вхід, поза ротацією персон.
-  useEffect(() => {
-    document.title = `oTutorHub — ${t("landing.hero.titlePrefix")} ${t("landing.personas.tutor.label")}`;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-rotate persona every 2.5s until user pauses
-  useEffect(() => {
-    if (isPaused) return;
-    const timer = setInterval(() => {
-      setIsAnimating(true);
-      animationTimeoutRef.current = setTimeout(() => {
-        setActiveIndex((i) => (i + 1) % PERSONA_IDS.length);
-        setIsAnimating(false);
-        animationTimeoutRef.current = null;
-      }, 300);
-    }, 2500);
-    return () => {
-      clearInterval(timer);
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-        animationTimeoutRef.current = null;
-      }
-    };
-  }, [isPaused]);
-
-  // Safety net: never let the swap animation linger as a blank screen.
-  useEffect(() => {
-    if (!isAnimating) return;
-    const t = setTimeout(() => setIsAnimating(false), 800);
-    return () => clearTimeout(t);
-  }, [isAnimating]);
-
-  useEffect(() => () => {
-    if (pickTimeoutRef.current) clearTimeout(pickTimeoutRef.current);
-  }, []);
-
-  const pickPersona = (i: number) => {
-    stopPersonaRotation();
-    if (pickTimeoutRef.current) clearTimeout(pickTimeoutRef.current);
-    setIsAnimating(true);
-    pickTimeoutRef.current = setTimeout(() => {
-      setActiveIndex(i);
-      setIsAnimating(false);
-      pickTimeoutRef.current = null;
-    }, 200);
-  };
-
-  const handlePersonaPick = (i: number) => (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    pickPersona(i);
-  };
+    document.title = `oTutorHub — ${t("landingHero.docTitle")}`;
+  }, [t]);
 
   const signupHref = "/auth?signup=1&role=tutor";
-  const whatsappUrl = "https://api.whatsapp.com/send?phone=46700266274";
   const telegramUrl = "https://t.me/oksana_chopak";
-
-
-  const openChatLink = (url: string) => (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-
-    try {
-      void openExternal(url); const opened = true; // P4: натив — системний браузер
-      if (opened) return;
-    } catch {
-      // Fallback below handles iframe/browser restrictions.
-    }
-
-    window.location.assign(url);
-  };
-
+  const whatsappUrl = "https://api.whatsapp.com/send?phone=46700266274";
 
   return (
     <>
       <OfflineBanner />
-    <div className="landing-root" onClickCapture={stopPersonaRotation}>
-      <style>{landingStyles}</style>
+      <div className="landing-root">
+        <style>{landingStyles}</style>
 
-      {/* NAV */}
-      <nav>
-        <div className="nav-inner">
-          <a href="#top" className="logo">
-            <span className="logo-dot"></span>
-            oTutorHub
-          </a>
-          <ul className="nav-links">
-            <li><a href="#features">{t("landing.nav.features")}</a></li>
-            <li><a href="#how">{t("landing.nav.howItWorks")}</a></li>
-            <li><a href="#glance">{t("landing.nav.dashboard")}</a></li>
-          </ul>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <LanguageSwitcher variant="ghost" size="sm" />
-            <Link to={signupHref} className="btn-nav">{t("landing.nav.tryFree")}</Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }}>
-        <div className="hero">
-          <h1>
-            {t("landing.hero.titlePrefix")}{" "}
-            <span
-              className={cn("persona-word", isAnimating && "swap")}
-              onClick={stopPersonaRotation}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); stopPersonaRotation(); } }}
-              title={t("landing.hero.fixHint")}
-            >
-              {personaVars.label}
-            </span>
-          </h1>
-          <div className="persona-pills">
-            {PERSONA_IDS.map((pid, i) => (
-              <button
-                key={pid}
-                type="button"
-                onClick={handlePersonaPick(i)}
-                className={cn("persona-pill", activeIndex === i && "active")}
-              >
-                {PERSONA_EMOJI[pid]} {t(`landing.personas.${pid}.label`)}
-              </button>
-            ))}
-          </div>
-          <p className="hero-sub">{tp("landing.hero.sub")}</p>
-          <p className="hero-desc">{tp("landing.hero.description")}</p>
-          <div className="hero-cta">
-            {/* Зворотна реєстрація (09.09): головна дія — порахувати своє,
-                а не «зареєструйся». Стара кнопка лишається поруч для тих,
-                хто вже вирішив, — ми нічого не забираємо, лише міняємо типовий шлях. */}
-            <a href="#calc" className="btn-primary">{t("landingCalc.heroCta")}</a>
-            <Link to={signupHref} className="btn-ghost">{t("landing.hero.ctaPrimary")}</Link>
-          </div>
-          {/* Живі лічильники (12.09): рендеряться лише коли числа вже не соромні. */}
-          <LandingLiveStats />
-        </div>
-      </section>
-
-      <MoneyCalculator signupHref={signupHref} />
-
-      {/* PAIN — "Знайомо?" */}
-      <section className="pain-section">
-        <div className="pain-inner">
-          <div className="pain-label">{t("landing.pain.label")}</div>
-          <h2 className="pain-title pain-question">
-            {painFull}
-          </h2>
-          <p className="pain-title pain-answer"
-             style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
-            {painShort}
-          </p>
-        </div>
-      </section>
-
-      {/* ONE DAY — замість сітки з десяти іконок (10.09): ті самі функції,
-          але як історія одного дня, яку хочеться переслати колезі. */}
-      <LandingDayStory personaVars={displayedPersonaVars} personaId={displayedPersonaId} />
-
-      {/* GLANCE */}
-      <section className="l-section section-alt" id="glance">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.glance.label")}</div>
-          <h2>{withPersonaAccent(tp("landing.glance.title"))}</h2>
-          <p className="section-sub">{tp("landing.glance.sub")}</p>
-          <div className="glance-grid fade-up">
-            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{tp("landing.glance.i1")}</div></div>
-            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{tp("landing.glance.i2")}</div></div>
-            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{tp("landing.glance.i3")}</div></div>
-            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{tp("landing.glance.i4")}</div></div>
-          </div>
-        </div>
-      </section>
-
-      {/* STEPS */}
-      <section className="l-section features-bg" id="how">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.steps.label")}</div>
-          <h2>{withPersonaAccent(tp("landing.steps.title"))}</h2>
-          <div className="steps-grid fade-up">
-            <div className="step-card">
-              <div className="step-num">{t("landing.steps.s1Num")}</div>
-              <div className="step-title">{tp("landing.steps.s1Title")}</div>
-              <p className="step-text">{tp("landing.steps.s1Text")}</p>
-            </div>
-            <div className="step-card">
-              <div className="step-num">{t("landing.steps.s2Num")}</div>
-              <div className="step-title">{tp("landing.steps.s2Title")}</div>
-              <p className="step-text">{tp("landing.steps.s2Text")}</p>
-            </div>
-            <div className="step-card">
-              <div className="step-num">{t("landing.steps.s3Num")}</div>
-              <div className="step-title">{tp("landing.steps.s3Title")}</div>
-              <p className="step-text">{tp("landing.steps.s3Text")}</p>
+        <nav>
+          <div className="nav-inner">
+            <a href="#top" className="logo"><span className="logo-dot" />oTutorHub</a>
+            <div className="nav-right">
+              <LanguageSwitcher variant="ghost" size="sm" />
+              <Link to="/auth" className="nav-login">{t("landing.nav.login")}</Link>
             </div>
           </div>
-        </div>
-      </section>
+        </nav>
 
-      {/* PRICING */}
-      {!native && (
-      <section className="l-section section-alt" id="pricing">
-        <div className="section-inner" style={{ textAlign: "center" }}>
-          <div className="section-label">{t("landing.pricing.label")}</div>
-          <h2>{t("landing.pricing.title")}</h2>
-          <div className="annual-banner">💛 {t("landing.pricing.annualBanner")}</div>
-          <div className="price-grid">
-            <div className="price-card featured">
-              <div className="price-plan">{t("landing.pricing.foundingPlan")}</div>
-              <div className="price-badge">🎓 {t("landing.pricing.foundingBadge")}</div>
-              <div className="price-amount">{PRICES.founding}</div>
-              <div className="price-period">{t("landing.pricing.perMonth")}</div>
-              <div className="price-annual">{t("landing.pricing.annualLine", { y: PRICES.foundingY })}</div>
-              <ul className="price-features">
-                <li>✓ {t("landing.pricing.includesRegular")}</li>
-                <li>✓ {t("landing.pricing.pro1")}</li>
-                <li>✓ {t("landing.pricing.pro2")}</li>
-                <li>✓ {t("landing.pricing.pro3")}</li>
-              </ul>
-              <Link to={signupHref} className="price-cta">{t(native ? "landing.pricing.ctaNative" : "landing.pricing.foundingCta", { price: PRICES.founding })}</Link>
-              <div className="price-note">{t("landing.pricing.foundingNote")}</div>
+        {/* ОДИН потік: обіцянка → список → дайджест → одна кнопка. */}
+        <LandingHero signupHref={signupHref} />
+
+        {/* Що робить помічник щодня — історія одного дня, не прайс-лист функцій. */}
+        <LandingDayStory personaVars={personaVars} personaId="tutor" />
+
+        {!native && (
+          <section className="l-section" id="pricing">
+            <div className="section-inner" style={{ textAlign: "center" }}>
+              <div className="section-label">{t("landing.pricing.label")}</div>
+              <h2>{t("landing.pricing.leadTitle")}</h2>
+              <p className="section-sub" style={{ margin: "0 auto" }}>{t("landing.pricing.leadSub")}</p>
+              <div className="price-grid">
+                <div className="price-card featured">
+                  <div className="price-plan">{t("landing.pricing.proPlan")}</div>
+                  <div className="price-badge">{t("landing.pricing.proBadge")}</div>
+                  <div className="price-amount">{PRICES.regular}</div>
+                  <div className="price-period">{t("landing.pricing.perMonth")}</div>
+                  <div className="price-annual">{t("landing.pricing.annualLine", { y: PRICES.regularY })}</div>
+                  <ul className="price-features">
+                    <li>✓ {t("landing.pricing.pro1")}</li>
+                    <li>✓ {t("landing.pricing.pro2")}</li>
+                    <li>✓ {t("landing.pricing.pro3")}</li>
+                    <li>✓ {t("landing.pricing.pro4")}</li>
+                    <li>✓ {t("landing.pricing.pro7")}</li>
+                  </ul>
+                  <div className="price-note">{t("landing.pricing.proNote")}</div>
+                </div>
+                <div className="price-card">
+                  <div className="price-plan">{t("landing.pricing.foundingPlan")}</div>
+                  <div className="price-badge">🎓 {t("landing.pricing.foundingBadge")}</div>
+                  <div className="price-amount">{PRICES.founding}</div>
+                  <div className="price-period">{t("landing.pricing.perMonth")}</div>
+                  <div className="price-annual">{t("landing.pricing.annualLine", { y: PRICES.foundingY })}</div>
+                  <ul className="price-features">
+                    <li>✓ {t("landing.pricing.includesRegular")}</li>
+                  </ul>
+                  <div className="price-note">{t("landing.pricing.foundingNote")}</div>
+                </div>
+              </div>
+              <p className="price-schools">
+                {t("landing.pricing.schoolsLine")}{" "}
+                <a href="mailto:hello@otutorhub.com?subject=Online%20school%20oTutorHub">hello@otutorhub.com</a>
+              </p>
             </div>
+          </section>
+        )}
 
-            <div className="price-card">
-              <div className="price-plan">{t("landing.pricing.regularPlan")}</div>
-              <div className="price-badge">{t("landing.pricing.proBadge")}</div>
-              <div className="price-amount">{PRICES.regular}</div>
-              <div className="price-period">{t("landing.pricing.perMonth")}</div>
-              <div className="price-annual">{t("landing.pricing.annualLine", { y: PRICES.regularY })}</div>
-              <ul className="price-features">
-                <li>✓ {t("landing.pricing.pro1")}</li>
-                <li>✓ {t("landing.pricing.pro2")}</li>
-                <li>✓ {t("landing.pricing.pro3")}</li>
-                <li>✓ {t("landing.pricing.pro4")}</li>
-                <li>✓ {t("landing.pricing.pro5")}</li>
-                <li>✓ {t("landing.pricing.pro6")}</li>
-                <li>✓ {t("landing.pricing.pro7")}</li>
-              </ul>
-              <Link to={signupHref} className="price-cta secondary">{t("landing.pricing.proCta")}</Link>
-              <div className="price-note">{t("landing.pricing.regularNote")}</div>
+        {/* Учні й батьки — один рядок: запити на підбір живуть на /for-students. */}
+        <section className="students-strip" aria-label={t("landing.studentsStrip.cta")}>
+          <div className="students-strip-inner">
+            <span>{t("landing.studentsStrip.text")}</span>
+            <Link to="/for-students" className="students-strip-link">{t("landing.studentsStrip.cta")}</Link>
+          </div>
+        </section>
+
+        <section className="cta-section">
+          <div className="cta-inner">
+            <h2>{t("landing.finalCta.title2")}</h2>
+            <p>{t("landing.finalCta.sub2")}</p>
+            <div className="cta-buttons">
+              <Link to={signupHref} className="btn-white">{t("landing.finalCta.cta2")}</Link>
             </div>
+            <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
+          </div>
+        </section>
 
-            <div className="price-card">
-              <div className="price-plan">{t("landing.pricing.enterprisePlan")}</div>
-              <div className="price-badge">{t("landing.pricing.enterpriseBadge")}</div>
-              <div className="price-amount price-amount--custom">{t("landing.pricing.enterprisePrice")}</div>
-              <ul className="price-features">
-                <li>✓ {t("landing.pricing.enterprise1")}</li>
-                <li>✓ {t("landing.pricing.enterprise2")}</li>
-                <li>✓ {t("landing.pricing.enterprise3")}</li>
-              </ul>
-              <a href="mailto:hello@otutorhub.com?subject=Enterprise%20oTutorHub" className="price-cta secondary">
-                {t("landing.pricing.enterpriseCta")}
-              </a>
+        <footer>
+          <div className="footer-inner">
+            <div className="footer-logo">oTutorHub</div>
+            <div className="footer-links">
+              <Link to="/auth">{t("landing.nav.login")}</Link>
+              <Link to="/for-students">{t("landing.footer.forStudents")}</Link>
+              <Link to="/terms">{t("landing.footer.terms")}</Link>
+              <Link to="/privacy">{t("landing.footer.privacy")}</Link>
+              <a href={telegramUrl} target="_blank" rel="noopener noreferrer">{t("landing.footer.askTelegram")}</a>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+              <a href="mailto:hello@otutorhub.com">hello@otutorhub.com</a>
             </div>
+            <PaymentMethodsSection />
+            <div>{t("landing.footer.copyright")}</div>
           </div>
-        </div>
-      </section>
-      )}
-
-      {/* ДЛЯ УЧНІВ — тонка смужка замість блоку посеред сторінки (10.09):
-          головна говорить із репетитором, а запити на підбір живуть на своїй
-          сторінці /for-students, куди й ведемо. */}
-      <section className="students-strip" aria-label={t("landing.studentsStrip.cta")}>
-        <div className="students-strip-inner">
-          <span>{t("landing.studentsStrip.text")}</span>
-          <Link to="/for-students" className="students-strip-link">{t("landing.studentsStrip.cta")}</Link>
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="cta-section">
-        <div className="cta-inner">
-          <h2 style={{ marginTop: 16 }}>{tp("landing.finalCta.title")}</h2>
-          <p>{tp("landing.finalCta.sub")}</p>
-          <div className="cta-buttons">
-            <Link to={signupHref} className="btn-white">{t("landing.finalCta.ctaPrimary")}</Link>
-          </div>
-          <p className="cta-footnote">{tp("landing.finalCta.footnote")}</p>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-logo">oTutorHub</div>
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-            <Link to="/auth">{t("landing.footer.app")}</Link>
-            <Link to="/terms">{t("landing.footer.terms")}</Link>
-            <Link to="/privacy">{t("landing.footer.privacy")}</Link>
-            <Link to="/for-students">{t("landing.footer.forStudents")}</Link>
-            <a href="mailto:hello@otutorhub.com">{t("landing.footer.contact")}</a>
-          </div>
-          <PaymentMethodsSection />
-          <div>{t("landing.footer.copyright")}</div>
-        </div>
-      </footer>
-
-      {/* WhatsApp floating bubble */}
-      <a
-        href={whatsappUrl}
-        onClick={openChatLink(whatsappUrl)}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="WhatsApp"
-        className="chat-bubble chat-bubble-whatsapp"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.507A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.727.977.995-3.636-.235-.374A9.818 9.818 0 1112 21.818z" />
-        </svg>
-        <span className="hidden sm:inline">WhatsApp</span>
-      </a>
-
-      {/* Telegram floating bubble */}
-      <a
-        href={telegramUrl}
-        onClick={openChatLink(telegramUrl)}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Telegram"
-        className="chat-bubble chat-bubble-telegram"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.013l-2.95-.924c-.64-.203-.652-.64.136-.953l11.57-4.461c.537-.194 1.006.131.326.573z" />
-        </svg>
-        <span className="hidden sm:inline">Telegram</span>
-      </a>
-    </div>
+        </footer>
+      </div>
     </>
   );
 }

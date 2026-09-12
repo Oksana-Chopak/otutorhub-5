@@ -1,48 +1,73 @@
 /**
- * Лендінг після переродження (10.09): рішення власниці, які не мають тихо
- * відкотитись наступною правкою.
- *  - результат калькулятора — дайджест (імена, час), а не таблиця цифр;
- *  - кнопка під ним — перша дія в продукті, а не «зареєструйся»;
- *  - «один день з помічником» замість сітки з десяти іконок;
- *  - учні мають свою сторінку /for-students; на головній — лише смужка й футер,
- *    жодного блоку «ви учень?» посеред розмови з репетитором;
- *  - копія калькулятора — на «ви», без жіночих форм («ти отримала»).
+ * Лендінг після переродження 12.09 — рішення власниці, які не мають тихо
+ * відкотитись наступною правкою («одна дія, один вау-флоу, чіткість з
+ * першого рядка, позиціонування»):
+ *  - одна персона (репетитор), жодної ротації «для консультанта / психолога»;
+ *  - герой = поле «хто вам винен» + дайджест + ОДНА кнопка; жодних дублів
+ *    («Спробуй прямо зараз», шерна картка, три кнопки під результатом);
+ *  - поле читає список у режимі «debts» — «Артем 1500» це борг, а не ціна;
+ *  - в естафету їде канонічний текст, який імпорт читає так само;
+ *  - учні — на /for-students; на головній лише рядок і футер;
+ *  - палітра лендінгу лишається у LandingPage.tsx (її стереже contrast-gate).
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const src = (f: string) => readFileSync(join(root, f), "utf8");
 const landing = src("src/pages/LandingPage.tsx");
-const calc = src("src/components/landing/MoneyCalculator.tsx");
+const hero = src("src/components/landing/LandingHero.tsx");
 const uk = src("src/i18n/locales/uk.ts");
 
-describe("лендінг · переродження 10.09", () => {
-  it("калькулятор показує дайджест з іменами й часом і кличе до першої дії", () => {
-    expect(calc).toMatch(/digestPreview\(rows\)/);
-    expect(calc).toMatch(/landingCalc\.digestDay/);
-    expect(calc).toMatch(/landingCalc\.ctaRemind/);
-    expect(calc).toMatch(/landingCalc\.ctaDaily/);
-    expect(calc).not.toMatch(/landingCalc\.cta"/);
+describe("лендінг · переродження 12.09", () => {
+  it("одна персона — репетитор; ротації персон і пілюль немає", () => {
+    expect(landing).not.toMatch(/PERSONA_IDS|persona-pill|setActiveIndex|isAnimating/);
+    expect(landing).toMatch(/landing\.personas\.tutor/);
+    expect(landing).toMatch(/personaId="tutor"/);
   });
-  it("«один день» замість сітки з десяти іконок; секція лишає id=features для навігації", () => {
-    expect(landing).toMatch(/<LandingDayStory/);
-    expect(landing).not.toMatch(/assistant-grid fade-up/);
-    expect(src("src/components/landing/LandingDayStory.tsx")).toMatch(/id="features"/);
+  it("герой — один потік: поле → дайджест → одна кнопка; дублі прибрано", () => {
+    expect(landing).toMatch(/<LandingHero signupHref=\{signupHref\} \/>/);
+    expect(landing).not.toMatch(/MoneyCalculator|LandingTryDemo|LandingLiveStats|shareCard|chat-bubble/);
+    expect(existsSync(join(root, "src/components/landing/MoneyCalculator.tsx"))).toBe(false);
+    expect(existsSync(join(root, "src/lib/shareCard.ts"))).toBe(false);
+    // рівно одна первинна кнопка в герої і одна у фінальному блоці
+    expect(hero.match(/className="btn-primary btn-big"/g)).toHaveLength(1);
+    expect(landing.match(/className="btn-white"/g)).toHaveLength(1);
+    expect(hero).not.toMatch(/landingShare|shareCard/);
   });
-  it("учні — на своїй сторінці: маршрут є, на головній лише смужка й футер", () => {
+  it("поле читає список у режимі «debts», естафета отримує канонічний текст", () => {
+    expect(hero).toMatch(/parseStudentList\(source, \{ mode: "debts" \}\)/);
+    expect(hero).toMatch(/toCanonicalText\(rows, kw\)/);
+    expect(hero).toMatch(/saveLandingDraft\(canonical\)/);
+    expect(hero).toMatch(/_list: canonical/);
+  });
+  it("порожнє поле показує дайджест із прикладу, а не порожній екран", () => {
+    expect(hero).toMatch(/const source = isExample \? sample : text/);
+    expect(hero).toMatch(/landingHero\.exampleTag/);
+    expect(hero).toMatch(/landingHero\.tryExample/);
+  });
+  it("Telegram: після await посилання рендериться явно, мобілка — перехід у тій самій вкладці", () => {
+    expect(hero).toMatch(/window\.location\.assign\(url\)/);
+    expect(hero).toMatch(/<a href=\{tgLink\}/);
+  });
+  it("учні — на своїй сторінці; на головній лише рядок і футер", () => {
     expect(src("src/App.tsx")).toMatch(/path="\/for-students"/);
     expect(landing).not.toMatch(/LandingFindTutorQuizDialog/);
-    expect(landing).not.toMatch(/onFindClick=/);
     expect(landing).toMatch(/to="\/for-students" className="students-strip-link"/);
     expect(landing).toMatch(/landing\.footer\.forStudents/);
-    expect(src("src/pages/ForStudentsPage.tsx")).toMatch(/<LandingFindTutorQuizDialog/);
   });
-  it("копія калькулятора — на «ви», без жіночих форм", () => {
-    const i = uk.indexOf("  landingCalc: {");
+  it("копія героя — на «ви», позиціонування в першому рядку", () => {
+    const i = uk.indexOf("  landingHero: {");
     const block = uk.slice(i, uk.indexOf("\n  },\n", i));
+    expect(block).toMatch(/title: "Учні платять вчасно/);
+    expect(block).toMatch(/eyebrow: "Помічник репетитора"/);
     expect(block).not.toMatch(/\bти\b|\bТи\b|отримала|винна\b|сама\b/);
+  });
+  it("шрифти лендінгу не дрібні: базовий ≥ 17px, поле ≥ 17px, кнопка ≥ 56px", () => {
+    expect(landing).toMatch(/\.landing-root \{[^}]*font-size: 18px/);
+    expect(landing).toMatch(/\.paste-field \{[^}]*17px/);
+    expect(landing).toMatch(/\.btn-primary \{[^}]*min-height: 56px/);
   });
 });
