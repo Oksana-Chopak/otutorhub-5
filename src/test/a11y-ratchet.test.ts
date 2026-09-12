@@ -440,6 +440,16 @@ describe("матеріали учня · хронологія, розгорну�
     });
   });
 
+  /* 12.09, спіймано при зйомці інструкції: у профілі світився напис
+     «undefined undefined», бо рівень підписувався з полів обʼєкта, який міг
+     прийти іншої форми. Інваріант «відсутнє рендериться як відсутнє». */
+  it("рівень у профілі не підписується полями, яких може не бути", () => {
+    const pp = read("src/pages/ProfilePage.tsx");
+    expect(pp, "гола перевірка на істинність обʼєкта давала «undefined undefined»")
+      .not.toMatch(/\{gamLevel \? `\$\{gamLevel\.emoji\} \$\{gamLevel\.name\}`/);
+    expect(pp).toMatch(/gamLevel\?\.name \? `\$\{gamLevel\.emoji \?\? "🏅"\} \$\{gamLevel\.name\}`/);
+  });
+
   it("учень бачить конспект одразу, а не за кнопкою", () => {
     const sh = read("src/pages/student/StudentHomeworkPage.tsx");
     expect(sh).toMatch(/r\.hasAiNote && \(\(\) => \{/);

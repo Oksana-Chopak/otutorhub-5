@@ -804,7 +804,10 @@ export default function ProfilePage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontFamily: P.display, fontWeight: 700, fontSize: 15, color: P.txt }}>
-                  {gamLevel ? `${gamLevel.emoji} ${gamLevel.name}` : (t("profile.itemAchievements"))}
+                  {/* Інваріант «відсутнє рендериться як відсутнє»: рівень підписуємо лише
+                      коли назва СПРАВДІ прийшла. Порожній обʼєкт від RPC — і тут
+                      світилося б «undefined undefined» просто в профілі. */}
+                  {gamLevel?.name ? `${gamLevel.emoji ?? "🏅"} ${gamLevel.name}` : (t("profile.itemAchievements"))}
                 </p>
                 <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 1 }}>
                   {(gamStreak?.current_streak ?? 0) > 0 || gamBadges.length > 0
