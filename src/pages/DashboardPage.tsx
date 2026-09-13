@@ -1812,7 +1812,11 @@ export default function DashboardPage() {
               </div>
 
               {/* Desktop bento: 4 compact cards — height ~56px */}
-              <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
+              {/* 13.09: коли рівня чи серії ще немає, тут малювались ПОРОЖНІ
+                  картки з рамкою — на головному екрані вони читаються як «щось
+                  не завантажилось». Інваріант «відсутнє рендериться як
+                  відсутнє»: замість заглушки сітка просто стає вужчою. */}
+              <div className={`hidden lg:grid lg:gap-3 ${level && streak ? "lg:grid-cols-4" : level || streak ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
                 {/* 1. Profit */}
                 <Link to="/finances" className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 56 }}>
@@ -1865,9 +1869,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </Link>
-                ) : (
-                  <div className="rounded-[14px] border bg-card" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }} />
-                )}
+                ) : null}
 
                 {/* 4. Streak */}
                 {streak ? (
@@ -1885,9 +1887,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </Link>
-                ) : (
-                  <div className="rounded-[14px] border bg-card" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }} />
-                )}
+                ) : null}
               </div>
 
             </>
@@ -2342,10 +2342,10 @@ export default function DashboardPage() {
               {pendingPayments.length === 0 ? (
                 /* Empty state — all paid */
                 <div
-                  className="flex flex-col items-center gap-3 rounded-[16px] bg-card px-5 py-7 text-center"
+                  className="flex flex-col items-center gap-2 rounded-[16px] bg-card px-5 py-5 text-center"
                   style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}
                 >
-                  <span className="text-3xl">☀️</span>
+                  <span className="text-2xl">☀️</span>
                   <div>
                     <p className="text-[15px] font-semibold" style={{ color: "var(--txt, #0f0f1a)" }}>
                       {t("dashboard.allPaidTitle")}
@@ -2436,9 +2436,12 @@ export default function DashboardPage() {
               <div className={`space-y-2.5 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
                   <div
-                    className="flex flex-col items-center gap-3 rounded-[16px] bg-card px-5 py-7 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                    /* 13.09: px-5 py-7 + 3xl-емодзі робили порожній стан
+                       найважчим блоком екрана — на десктопі він перекрикував
+                       і нотатки, і сам список уроків. Повітря вдвічі менше. */
+                    className="flex flex-col items-center gap-2 rounded-[16px] bg-card px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                   >
-                    <span className="text-3xl">☀️</span>
+                    <span className="text-2xl">☀️</span>
                     <div>
                       {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
                         <>
@@ -2698,12 +2701,6 @@ export default function DashboardPage() {
             <>
               {/* Місячний підсумок — ціль тоста «Подивитись» (раніше якір не існував → клік нічого не робив) */}
               <div id="monthly-summary-anchor">
-                {/* B-D4: афірмація переїхала з hero під сітку — верх лишається робочим. */}
-                {phraseOfDay && (
-                  <div className="rounded-[18px] border px-4 py-3 text-[15px] italic text-muted-foreground" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface,#fff)" }}>
-                    ✨ {phraseOfDay}
-                  </div>
-                )}
                 <MonthlySummaryCard />
               </div>
               {/* Streak — after lessons+tasks on mobile, hidden on desktop (shows in right col) */}
@@ -2724,6 +2721,25 @@ export default function DashboardPage() {
           {isHubTutor && streak && (
             <div className="lg:hidden">
               <StreakCard streak={streak} />
+            </div>
+          )}
+
+          {/* 13.09, рішення власниці: фраза дня — у САМОМУ низу і тихо.
+              Була в рамці посеред екрана й читалась як ще одне поле для
+              заповнення. Це не елемент керування, а підпис під днем: тонка
+              риска, курсив, по центру — його помічають, коли дочитали. */}
+          {phraseOfDay && (
+            <div className="pb-1 pt-3 text-center">
+              <div
+                className="mx-auto mb-3.5 h-px w-20"
+                style={{ background: "linear-gradient(90deg,transparent,var(--ds-border,#eceef3),transparent)" }}
+              />
+              <p
+                className="mx-auto max-w-[460px] px-4 text-[15px] italic leading-relaxed"
+                style={{ color: "var(--sub,#62677E)" }}
+              >
+                <span aria-hidden>✨</span> {phraseOfDay}
+              </p>
             </div>
           )}
         </div>

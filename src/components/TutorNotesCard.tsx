@@ -57,7 +57,14 @@ export function TutorNotesCard() {
   };
 
   return (
-    <div className="space-y-1">
+    /* 13.09: на десктопі це був самотній тонкий рядок на пів екрана — поруч із
+       повітряною карткою «вільний час» він читався як службове поле, а не як
+       «мої нотатки». Тепер це картка з підписом: та сама висота на телефоні,
+       але на широкому екрані вона має вагу, співмірну із сусідами. */
+    <div className="rounded-[16px] bg-card p-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.05)] sm:p-4">
+      <p className="mb-2.5 text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
+        {t("tutorNotes.title")}
+      </p>
       {/* Input row */}
       <div className="flex items-end gap-2">
         <textarea aria-label={t("tutorNotes.placeholder")}
@@ -66,8 +73,8 @@ export function TutorNotesCard() {
           onChange={(e) => setText(e.target.value)}
           placeholder={t("tutorNotes.placeholder")}
           maxLength={500}
-          rows={1}
-          className="flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2 text-[15px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+          rows={2}
+          className="min-h-[72px] flex-1 resize-none rounded-xl border border-border bg-background px-3.5 py-2.5 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); add(); }
           }}
@@ -90,6 +97,7 @@ export function TutorNotesCard() {
       </div>
 
       {/* Notes list — plain, no cards, no borders */}
+      <div className={notes.length ? "mt-2.5 space-y-0.5" : ""}>
       {notes.map((note) => (
         <div
           key={note.id}
@@ -105,6 +113,7 @@ export function TutorNotesCard() {
           </button>
         </div>
       ))}
+      </div>
     </div>
   );
 }

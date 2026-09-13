@@ -4419,7 +4419,7 @@ export const uk = {
     seriesCreated_one: "🔁 Серію створено: {{count}} урок щотижня — {{name}}, {{time}}",
     seriesCreated_few: "🔁 Серію створено: {{count}} уроки щотижня — {{name}}, {{time}}",
     seriesCreated_many: "🔁 Серію створено: {{count}} уроків щотижня — {{name}}, {{time}}",
-    newLessonTitle: "Швидкий урок",
+    newLessonTitle: "Новий урок",
     cancelBtn: "Скасувати",
     createLessonBtn: "Створити урок",
     studentsShort: "уч.",

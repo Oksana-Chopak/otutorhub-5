@@ -4389,7 +4389,7 @@ export const en: LocaleTranslations = {
     seriesCreated_one: "🔁 Series created: {{count}} lesson weekly — {{name}}, {{time}}",
     seriesCreated_few: "🔁 Series created: {{count}} lessons weekly — {{name}}, {{time}}",
     seriesCreated_other: "🔁 Series created: {{count}} lessons weekly — {{name}}, {{time}}",
-    newLessonTitle: "Quick lesson",
+    newLessonTitle: "New lesson",
     cancelBtn: "Cancel",
     createLessonBtn: "Create lesson",
     studentsShort: "st.",

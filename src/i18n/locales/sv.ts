@@ -4369,7 +4369,7 @@ export const sv: LocaleTranslations = {
     seriesCreated_one: "🔁 Serie skapad: {{count}} lektion varje vecka — {{name}}, {{time}}",
     seriesCreated_few: "🔁 Serie skapad: {{count}} lektioner varje vecka — {{name}}, {{time}}",
     seriesCreated_other: "🔁 Serie skapad: {{count}} lektioner varje vecka — {{name}}, {{time}}",
-    newLessonTitle: "Snabb lektion",
+    newLessonTitle: "Ny lektion",
     cancelBtn: "Avbryt",
     createLessonBtn: "Skapa lektion",
     studentsShort: "el.",

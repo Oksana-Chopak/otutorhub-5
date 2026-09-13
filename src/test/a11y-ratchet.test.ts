@@ -497,6 +497,57 @@ describe("матеріали учня · хронологія, розгорну�
     });
   });
 
+  /* 13.09, правки власниці по дашборду: ваги блоків на десктопі й «красиво»
+     замість «топорно» внизу. */
+  describe("дашборд: ваги блоків і низ екрана", () => {
+    it("нотатки — картка з підписом, а не самотній рядок", () => {
+      const tn = read("src/components/TutorNotesCard.tsx");
+      expect(tn, "без рамки на десктопі це читалось як службове поле")
+        .toMatch(/rounded-\[16px\] bg-card p-3\.5/);
+      expect(tn).toMatch(/t\("tutorNotes\.title"\)/);
+      expect(tn, "однорядкове поле на широкому екрані — нитка").toMatch(/rows=\{2\}/);
+    });
+
+    it("порожній стан уроків не важить більше за сусідів", () => {
+      const dp = read("src/pages/DashboardPage.tsx");
+      expect(dp).not.toMatch(/gap-3 rounded-\[16px\] bg-card px-5 py-7 text-center/);
+      expect(dp).toMatch(/items-center gap-2 rounded-\[16px\] bg-card px-5 py-5 text-center/);
+    });
+
+    it("порожніх карток-заглушок у сітці показників немає", () => {
+      const dp = read("src/pages/DashboardPage.tsx");
+      expect(dp, "рамка без вмісту читається як «щось не завантажилось»")
+        .not.toMatch(/<div className="rounded-\[14px\] border bg-card" style=\{\{ borderColor: "var\(--border,var\(--ds-border,#eceef3\)\)", minHeight: 56 \}\} \/>/);
+      expect(dp, "сітка звужується під кількість карток")
+        .toMatch(/level && streak \? "lg:grid-cols-4" : level \|\| streak \? "lg:grid-cols-3" : "lg:grid-cols-2"/);
+    });
+
+    it("«Поділитись» компактна, але тримає 44px дотику", () => {
+      const ms = read("src/components/MonthlySummaryCard.tsx");
+      expect(ms, "кнопка на всю ширину важила більше за сам підсумок")
+        .not.toMatch(/onClick=\{handleShare\} disabled=\{sharing\} className="flex-1"/);
+      expect(ms).toMatch(/className="h-11 rounded-full px-5"/);
+      expect(ms).toMatch(/className="h-11 w-11 rounded-full p-0"/);
+    });
+
+    it("фраза дня — у самому низу і без рамки", () => {
+      const dp = read("src/pages/DashboardPage.tsx");
+      expect(dp, "у рамці посеред екрана вона читалась як ще одне поле")
+        .not.toMatch(/rounded-\[18px\] border px-4 py-3 text-\[15px\] italic text-muted-foreground/);
+      expect(dp).toMatch(/linear-gradient\(90deg,transparent,var\(--ds-border,#eceef3\),transparent\)/);
+      // і саме ПІСЛЯ картки місяця, а не перед нею
+      expect(dp.indexOf("MonthlySummaryCard"), "фраза дня мусить іти після підсумку місяця")
+        .toBeLessThan(dp.indexOf("linear-gradient(90deg,transparent"));
+    });
+
+    it("картка місяця не малюється з порожньою цифрою", () => {
+      const ms = read("src/components/MonthlySummaryCard.tsx");
+      expect(ms).toMatch(/typeof summary\.completed_count !== "number"\) return null/);
+      expect(ms, "undefined проходив перевірку !== null і давав голий «%»")
+        .toMatch(/typeof summary\.on_time_payment_pct === "number"/);
+    });
+  });
+
   /* Фінальний прогін 13.09: кнопки, у яких на мобілці лишається сама іконка,
      і перший екран нового користувача. */
   describe("фінальний прогін: назви й зони дотику", () => {

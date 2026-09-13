@@ -96,7 +96,11 @@ export function MonthlySummaryCard() {
     );
   }
   // Помилка RPC ≠ «місяць порожній»: без даних картки просто немає.
-  if (!summary) return null;
+  /* 13.09: «є обʼєкт» ≠ «є число». Якщо RPC поверне рядок без completed_count
+     (інша версія, часткові дані), картка малювалась із ПОРОЖНІМ місцем замість
+     цифри: «уроків проведено 📚» ні про що. Інваріант «відсутнє рендериться як
+     відсутнє» — тоді краще не показувати картку взагалі. */
+  if (!summary || typeof summary.completed_count !== "number") return null;
 
   if (quietMonth) {
     // Тихий місяць показуємо лише коли є КОГО повернути — інакше картка
@@ -189,7 +193,7 @@ export function MonthlySummaryCard() {
             <span className="text-5xl font-bold">{summary.completed_count}</span>
             <span className="text-sm opacity-90">{t("monthlySummaryExtra.lessonsLabel")}</span>
           </div>
-          {summary.on_time_payment_pct !== null && (
+          {typeof summary.on_time_payment_pct === "number" && (
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold">{summary.on_time_payment_pct}%</span>
               <span className="text-sm opacity-90">{t("monthlySummaryExtra.paymentsLabel")}</span>
@@ -202,12 +206,17 @@ export function MonthlySummaryCard() {
           )}
         </div>
       </div>
-      <div className="flex gap-2 p-3">
-        <Button onClick={handleShare} disabled={sharing} className="flex-1">
+      {/* 13.09, рішення власниці: «Поділитись» була на всю ширину картки й
+          важила більше за сам підсумок. Дія другорядна — поділитись хочеться
+          не щодня. Дві компактні пігулки по центру: висота 44px за ТЗ дотику,
+          ширина по вмісту. */}
+      <div className="flex items-center justify-center gap-2 px-3 pb-3.5 pt-3">
+        <Button onClick={handleShare} disabled={sharing} className="h-11 rounded-full px-5">
           {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
           {t("monthlySummary.shareBtn")}
         </Button>
         <Button onClick={handleDownloadImage} variant="outline" disabled={sharing}
+          className="h-11 w-11 rounded-full p-0"
           aria-label={t("monthlySummary.downloadBtn")} title={t("monthlySummary.downloadBtn")}>
           <Download className="h-4 w-4" />
         </Button>
