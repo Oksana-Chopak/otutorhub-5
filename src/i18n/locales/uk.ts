@@ -748,6 +748,8 @@ export const uk = {
       foundingBadge: "Для випускників AI-курсу",
       foundingCta: "Приєднатись за {{price}}",
       foundingNote: "Тариф для підписників Instagram · ціна фіксується назавжди",
+      foundingBot: "Бот курсу «AI за 5 днів»",
+      foundingInstagram: "Instagram Оксани",
       includesRegular: "Усе з тарифу Regular",
       regularPlan: "Regular",
       regularNote: "Скасувати можна будь-коли",

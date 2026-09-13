@@ -732,6 +732,8 @@ export const en: LocaleTranslations = {
       foundingBadge: "For AI-course graduates",
       foundingCta: "Join for {{price}}",
       foundingNote: "For Instagram community · price locked forever",
+      foundingBot: "«AI in 5 days» course bot",
+      foundingInstagram: "Oksana on Instagram",
       includesRegular: "Everything in Regular",
       regularPlan: "Regular",
       regularNote: "Cancel anytime",

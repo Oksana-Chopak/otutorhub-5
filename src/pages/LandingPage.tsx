@@ -48,6 +48,11 @@ export type PersonaVars = {
   sessionsGen: string;
 };
 
+/* Адреси, де тариф Founding оголошено, і де школа домовляється про співпрацю.
+   Живуть у коді, а не в i18n: це не переклад — вони однакові всіма мовами. */
+const COURSE_BOT_URL = "https://t.me/Ai5days_bot";
+const INSTAGRAM_URL = "https://instagram.com/oksana_in_sweden";
+
 function capFirst(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
@@ -194,6 +199,17 @@ const landingStyles = `
 .landing-root .price-note { font-size: 14px; color: var(--l-muted); margin-top: 16px; }
 .landing-root .price-schools { margin-top: 20px; font-size: 16px; color: var(--l-muted); }
 .landing-root .price-schools a { color: var(--l-accent-text); font-weight: 600; }
+/* Пігулки-адреси: звідки взявся тариф Founding і де домовлятись школі.
+   Підпис «для випускників курсу · для підписників Instagram» без адреси —
+   обіцянка, яку нема куди піти перевірити, а саме ця перевірка й вирішує,
+   чи людина натисне «почати». */
+.landing-root .price-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.landing-root .price-link { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 14px;
+  border-radius: 999px; border: 1px solid var(--l-border); background: var(--white); color: var(--l-accent-text);
+  font-size: 14px; font-weight: 700; text-decoration: none; line-height: 1;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.landing-root .price-link:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -10px rgba(0,0,0,.35); }
+.landing-root .price-schools .price-links { justify-content: center; }
 
 /* ── STUDENTS LINE + FINAL CTA + FOOTER ──────────────────────────────────── */
 .landing-root .students-strip { padding: 0 20px 56px; }
@@ -307,6 +323,14 @@ export default function LandingPage() {
                     <li>✓ {t("landing.pricing.includesRegular")}</li>
                   </ul>
                   <div className="price-note">{t("landing.pricing.foundingNote")}</div>
+                  <div className="price-links">
+                    <a className="price-link" href={COURSE_BOT_URL} target="_blank" rel="noopener noreferrer">
+                      ✈️ {t("landing.pricing.foundingBot")}
+                    </a>
+                    <a className="price-link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                      📷 {t("landing.pricing.foundingInstagram")}
+                    </a>
+                  </div>
                 </div>
               </div>
               <p className="price-schools">

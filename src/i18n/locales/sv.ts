@@ -1445,6 +1445,8 @@ export const sv: LocaleTranslations = {
       foundingBadge: "För AI-kursens alumner",
       foundingCta: "Gå med för {{price}}",
       foundingNote: "För Instagram-följare · priset låses för alltid",
+      foundingBot: "Kursbot «AI på 5 dagar»",
+      foundingInstagram: "Oksana på Instagram",
       includesRegular: "Allt i Regular",
       regularPlan: "Regular",
       regularNote: "Avsluta när som helst",
