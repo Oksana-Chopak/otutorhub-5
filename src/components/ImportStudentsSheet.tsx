@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -11,12 +11,87 @@ import {
   parseStudentList,
   netDebtAndPrepay,
   scheduleToStarts,
+  applyOverride,
+  unsureNote,
+  resolveUnsure,
+  unrecognizedShape,
   type ParsedStudent,
   type ImportWarning,
+  type RowOverride,
+  type UnsureChoice,
 } from "@/lib/importStudents";
-import { formatPrice } from "@/lib/currency";
+import { currencySymbol, formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
+
+/** Грошове поле, яке людина може поправити дотиком. */
+type EditableField = "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons";
+const FIELD_LABEL_KEY: Record<EditableField, string> = {
+  price: "fieldPrice", debtAmount: "fieldDebt", debtLessons: "fieldDebtLessons", prepayAmount: "fieldPrepay", prepayLessons: "fieldPrepayLessons",
+};
+
+/**
+ * Чип превʼю з правкою дотиком (13.09, екран підтвердження). Дотик → поле
+ * вводу прямо в чипі; Enter/дотик поза — зберегти; Esc — скасувати; порожнє —
+ * прибрати значення. 44px зони дотику і 15px шрифт у полі (iOS не зумить).
+ */
+function EditChip({
+  label, value, unit, editing, onEdit, onCommit, onCancel, tone, editLabel, doneLabel,
+}: {
+  label: string;
+  value: number | null;
+  unit: string;
+  editing: boolean;
+  onEdit: () => void;
+  onCommit: (v: number | null) => void;
+  onCancel: () => void;
+  tone?: "warn";
+  editLabel: string;
+  doneLabel: string;
+}) {
+  const [draft, setDraft] = useState(value === null ? "" : String(value));
+  useEffect(() => { if (editing) setDraft(value === null ? "" : String(value)); }, [editing, value]);
+  const commit = () => {
+    const n = Number(draft.replace(/\s/g, "").replace(",", "."));
+    onCommit(draft.trim() === "" || !Number.isFinite(n) || n <= 0 ? null : n);
+  };
+  if (editing) {
+    return (
+      <span className="inline-flex h-11 items-center gap-1 rounded-full border-[0.5px] border-primary bg-background pl-3 pr-1">
+        <input
+          autoFocus
+          inputMode="decimal"
+          aria-label={editLabel}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } if (e.key === "Escape") onCancel(); }}
+          onBlur={commit}
+          className="w-[72px] bg-transparent text-[15px] text-foreground focus:outline-none"
+        />
+        <span className="text-[14px] text-muted-foreground">{unit}</span>
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={commit}
+          className="ml-1 h-9 rounded-full px-3 text-[14px] font-semibold text-primary">
+          {doneLabel}
+        </button>
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onEdit}
+      aria-label={editLabel}
+      className={
+        "inline-flex h-11 items-center gap-1 rounded-full border-[0.5px] border-dashed px-3 text-[14px] " +
+        (tone === "warn"
+          ? "border-amber-500 text-amber-700 dark:text-amber-400"
+          : value === null ? "border-border text-muted-foreground" : "border-border bg-secondary text-foreground")
+      }
+    >
+      {label}<span aria-hidden className="text-muted-foreground">✎</span>
+    </button>
+  );
+}
 
 /** Скільки тижнів розкладу створюємо наперед (рішення власниці 07.09: 4). */
 // Горизонт живе в @/lib/importStudents — тут лише реекспорт для старих імпортів.
@@ -70,9 +145,26 @@ export function ImportStudentsSheet({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
-  const rows = useMemo(() => parseStudentList(text), [text]);
+  const parsed = useMemo(() => parseStudentList(text), [text]);
+  // 13.09, екран підтвердження: правки дотиком живуть окремо від тексту, з ключем
+  // по оригінальному рядку — зміниш рядок у полі, і правка до нього відпаде сама.
+  const [overrides, setOverrides] = useState<Record<string, RowOverride>>({});
+  const [editing, setEditing] = useState<{ raw: string; field: EditableField } | null>(null);
+  const resolvedLog = useRef<Array<{ shape: string; chosen: UnsureChoice }>>([]);
+  const rows = useMemo(() => parsed.map((r) => applyOverride(r, overrides[r.raw])), [parsed, overrides]);
   const valid = rows.filter((r) => !r.error);
   const broken = rows.filter((r) => r.error);
+  const unsureOf = (r: ParsedStudent) => unsureNote(parsed.find((p) => p.raw === r.raw) ?? r, overrides[r.raw]);
+  const unsureCount = valid.filter((r) => unsureOf(r)).length + broken.length;
+  const setField = (raw: string, field: EditableField, v: number | null) =>
+    setOverrides((o) => ({ ...o, [raw]: { ...(o[raw] ?? {}), [field]: v } }));
+  const answerUnsure = (r: ParsedStudent, choice: UnsureChoice) => {
+    const base = parsed.find((p) => p.raw === r.raw) ?? r;
+    const u = unsureNote(base, overrides[r.raw]);
+    if (u) resolvedLog.current.push({ shape: unrecognizedShape(u.fragment), chosen: choice });
+    setOverrides((o) => ({ ...o, [r.raw]: resolveUnsure(base, o[r.raw], choice) }));
+  };
+  const sym = currencySymbol(IMPORT_CURRENCY);
 
   const hasMoneyOrSchedule = (r: ParsedStudent) =>
     r.debtAmount !== null || r.debtLessons !== null || r.prepayLessons !== null || r.prepayAmount !== null || r.schedule.length > 0;
@@ -166,6 +258,16 @@ export function ImportStudentsSheet({
     setBusy(false);
     setProgress(null);
     logEvent("students_imported", { added, linked, failed, total: valid.length, debtTotal, scheduled });
+    // 13.09: анонімні «форми» невпізнаного — щоб словник парсера ріс із реальних
+    // нотаток. Жодних імен і сум: цифри → #, слова з великої → Х; рядки без
+    // імені — лише структура. Це те, на чому вирішуватимемо, чи потрібен AI.
+    const shapes = [
+      ...resolvedLog.current.map((x) => ({ shape: x.shape, chosen: x.chosen })),
+      ...valid.map((r) => unsureOf(r)).filter(Boolean).map((u) => ({ shape: unrecognizedShape(u!.fragment), chosen: "unresolved" })),
+      ...broken.map((r) => ({ shape: `no_name:${r.raw.split(/\s+/).length}w:${(r.raw.match(/\d+/g) ?? []).length}n`, chosen: "skipped" })),
+    ];
+    if (shapes.length) logEvent("import_unrecognized", { shapes: shapes.slice(0, 40) });
+    resolvedLog.current = [];
     if (added + linked > 0) {
       const parts: string[] = [];
       if (debtTotal > 0) parts.push(t("importStudents.doneDebts", { sum: formatPrice(debtTotal, IMPORT_CURRENCY) }));
@@ -217,47 +319,91 @@ export function ImportStudentsSheet({
           />
 
           {rows.length > 0 && (
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-3">
               <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
-                {t("importStudents.previewLabel", { count: valid.length })}
+                {t("importStudents.confirmLabel", { count: valid.length })}
+                {unsureCount > 0 && <span className="ml-2 normal-case tracking-normal text-amber-700 dark:text-amber-400">· 🤔 {t("importStudents.unsureCount", { count: unsureCount })}</span>}
               </p>
-              {valid.slice(0, 40).map((r, i) => {
-                const net = netDebtAndPrepay(r);
-                const chips: string[] = [];
-                if (r.subject) chips.push(r.subject);
-                chips.push(r.price !== null ? formatPrice(r.price, IMPORT_CURRENCY) : t("importStudents.noPrice"));
-                if (net.debtAmount > 0) chips.push(t("importStudents.chipDebt", { sum: formatPrice(net.debtAmount, IMPORT_CURRENCY) }));
-                if (net.debtLessons > 0) chips.push(t("importStudents.chipDebtLessons", { count: net.debtLessons }));
-                if (net.prepayLessons > 0) chips.push(t("importStudents.chipPrepayLessons", { count: net.prepayLessons }));
-                if (net.prepayAmount > 0) chips.push(t("importStudents.chipPrepay", { sum: formatPrice(net.prepayAmount, IMPORT_CURRENCY) }));
-                if (r.schedule.length > 0) chips.push(r.schedule.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", "));
-                if (r.phone) chips.push("📞");
-                if (r.email) chips.push("✉️");
-                // Аудит 09.09: нерозпізнаний хвіст їде в приватну нотатку про учня,
-                // але в превʼю його не було — репетитор бачив, що зрозуміли предмет,
-                // ціну й час, а свій коментар не бачив і не знав, чи він узагалі
-                // прийнявся. Ехо тим самим патерном, що 📞 і ✉️.
-                if (r.note) chips.push(`📝 ${r.note}`);
+              <p className="text-[13px] text-muted-foreground">{t("importStudents.tapToFix")}</p>
+              {valid.slice(0, 40).map((r, idx) => {
+                const isEd = (f: EditableField) => editing?.raw === r.raw && editing.field === f;
+                const chip = (field: EditableField, label: string, value: number | null, unit: string, tone?: "warn") => (
+                  <EditChip
+                    key={field}
+                    label={label}
+                    value={value}
+                    unit={unit}
+                    tone={tone}
+                    editing={isEd(field)}
+                    editLabel={t("importStudents.editLabel", { field: t(`importStudents.${FIELD_LABEL_KEY[field]}`) })}
+                    doneLabel={t("importStudents.editDone")}
+                    onEdit={() => setEditing({ raw: r.raw, field })}
+                    onCancel={() => setEditing(null)}
+                    onCommit={(v) => { setField(r.raw, field, v); setEditing(null); }}
+                  />
+                );
+                const u = unsureOf(r);
+                const info: string[] = [];
+                if (r.schedule.length > 0) info.push(r.schedule.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", "));
+                if (r.phone) info.push("📞");
+                if (r.email) info.push("✉️");
+                // Аудит 09.09: нерозпізнаний хвіст їде в приватну нотатку — людина
+                // мусить бачити, що він прийнявся (📝), а не губити свій коментар.
+                if (r.note && !u) info.push(`📝 ${r.note}`);
+                if (r.note && u && u.rest) info.push(`📝 ${u.rest}`);
                 return (
-                  <div key={i} className="text-[14px] text-foreground">
+                  <div key={`${idx}:${r.raw}`} className="text-[14px] text-foreground">
                     <div className="flex items-start gap-2">
                       <span aria-hidden style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>
-                      <span className="min-w-0">
-                        <span className="font-semibold">{r.firstName} {r.lastName}</span>
-                        <span className="text-muted-foreground"> · {chips.join(" · ")}</span>
-                      </span>
+                      <span className="min-w-0 font-semibold">{r.firstName} {r.lastName}</span>
+                      {r.subject && <span className="text-muted-foreground">· {r.subject}</span>}
+                    </div>
+                    <div className="ml-6 mt-1.5 flex flex-wrap items-center gap-1.5">
+                      {chip("price", r.price !== null ? t("importStudents.chipPrice", { sum: formatPrice(r.price, IMPORT_CURRENCY) }) : t("importStudents.noPrice"), r.price, sym)}
+                      {(r.debtAmount !== null || r.debtFlag) && chip("debtAmount",
+                        r.debtAmount !== null ? t("importStudents.chipDebt", { sum: formatPrice(r.debtAmount, IMPORT_CURRENCY) }) : t("importStudents.chipDebtUnknown"),
+                        r.debtAmount, sym, r.debtAmount === null ? "warn" : undefined)}
+                      {r.debtLessons !== null && chip("debtLessons", t("importStudents.chipDebtLessons", { count: r.debtLessons }), r.debtLessons, t("importStudents.unitLessons"))}
+                      {r.prepayAmount !== null && chip("prepayAmount", t("importStudents.chipPrepay", { sum: formatPrice(r.prepayAmount, IMPORT_CURRENCY) }), r.prepayAmount, sym)}
+                      {r.prepayLessons !== null && chip("prepayLessons", t("importStudents.chipPrepayLessonsShort", { count: r.prepayLessons }), r.prepayLessons, t("importStudents.unitLessons"))}
+                      {info.map((s, i) => <span key={i} className="text-muted-foreground">{s}</span>)}
                     </div>
                     {r.warnings.map((w) => (
-                      <p key={w} className="ml-6 text-[13px] text-amber-700 dark:text-amber-400">⚠️ {warnText(w)}</p>
+                      <p key={w} className="ml-6 mt-1 text-[13px] text-amber-700 dark:text-amber-400">⚠️ {warnText(w)}</p>
                     ))}
+                    {u && (
+                      <div className="ml-6 mt-1.5">
+                        <p className="text-[14px] text-amber-700 dark:text-amber-400">🤔 {t("importStudents.unsureQuestion", { fragment: u.fragment })}</p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {/* Те саме правило, що в парсері: ≤ 30 — це уроки, більше — гроші.
+                              «борг 800 уроків» і «борг 2 грн» як варіанти лише збивають. */}
+                          {([
+                            ...(u.value > 30 ? [
+                              ["debtAmount", t("importStudents.unsureDebt", { sum: formatPrice(u.value, IMPORT_CURRENCY) })],
+                              ["prepayAmount", t("importStudents.unsurePrepay", { sum: formatPrice(u.value, IMPORT_CURRENCY) })],
+                              ["price", t("importStudents.unsurePrice", { sum: formatPrice(u.value, IMPORT_CURRENCY) })],
+                            ] : [
+                              ["debtLessons", t("importStudents.unsureDebtLessons", { count: u.value })],
+                              ["prepayLessons", t("importStudents.unsurePrepayLessons", { count: u.value })],
+                            ]),
+                            ["note", t("importStudents.unsureNote")],
+                          ] as Array<[UnsureChoice, string]>).map(([choice, label]) => (
+                            <button key={choice} type="button" onClick={() => answerUnsure(r, choice)}
+                              className={"h-11 rounded-full border-[0.5px] px-3 text-[14px] " + (choice === "note" ? "border-border text-muted-foreground" : "border-primary text-primary font-semibold")}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
               {valid.length > 40 && <p className="text-[13px] text-muted-foreground">{t("importStudents.moreRows", { count: valid.length - 40 })}</p>}
               {broken.map((r, i) => (
-                <div key={`b${i}`} className="flex items-center gap-2 text-[14px] text-muted-foreground">
-                  <span aria-hidden>⚠️</span>
-                  <span className="min-w-0 truncate">{r.raw} — {t("importStudents.lineSkipped")}</span>
+                <div key={`b${i}`} className="flex items-start gap-2 text-[14px] text-amber-700 dark:text-amber-400">
+                  <span aria-hidden>🤔</span>
+                  <span className="min-w-0">{t("importStudents.noNameLine", { line: r.raw.length > 60 ? r.raw.slice(0, 59) + "…" : r.raw })}</span>
                 </div>
               ))}
             </div>

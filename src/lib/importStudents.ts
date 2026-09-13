@@ -105,8 +105,15 @@ const W = String.raw`[a-zа-яіїєґёʼ'’]`; // «буква» — \b і \w
 const L = `${W}*`;                          // «хвіст слова»: борг|борги|боргу…
 const LESSON_U = String.raw`(?:ур\.?|урок|уроки|уроків|уроку|занятт?я|занять|заняття|зан\.?|lessons?|l\.?|lektion(?:er)?|classes|class|sessions?)`;
 const MONEY_U = String.raw`(?:грн\.?|гривень|гривні|гривня|₴|uah|kr|sek|€|eur|\$|usd)`;
-const DEBT_KW = String.raw`(?:борг${L}|заборгован${L}|заборгува${L}|винен|винна|винні|винний|має заплатити|мають заплатити|не\s*(?:о|за|до)плат${L}|неоплач${L}|не\s*оплачен${L}|не\s*оплачено|не\s*заплачено|debts?|owes?|owed|owing|unpaid|skuld|obetald${L})`;
+// 13.09: «ще не розрахувалась», «не розплатився» — з реальних нотаток (точність
+// важливіша за повноту: «не закрила» навмисно НЕ тут — «не закрила тему» ≠ борг).
+const DEBT_KW = String.raw`(?:борг${L}|заборгован${L}|заборгува${L}|винен|винна|винні|винний|має заплатити|мають заплатити|не\s*(?:о|за|до)плат${L}|неоплач${L}|не\s*оплачен${L}|не\s*оплачено|не\s*заплачено|не\s*розрахува${L}|не\s*розплат${L}|debts?|owes?|owed|owing|unpaid|skuld|obetald${L})`;
 const PREPAY_KW = String.raw`(?:передоплат${L}|передплат${L}|аванс${L}|prepaid|prepayment|prepay|förskott|наперед|вперед|in advance)`;
+/** Борг УРОКАМИ десь у хвості: «борг 2 уроки», «винна за 3 заняття», «2 уроки не оплачено». */
+const LESSON_DEBT_RE = new RegExp(String.raw`(?:${DEBT_KW}\s*:?\s*(?:(?:за|мені|ще|уже|вже|з|у|в)\s+){0,3}(?:${N})\s*(?:(?:${W}+)\s+){0,2}?${LESSON_U}(?!${W})|(?<![\d.,])(?:${N})\s*(?:(?:${W}+)\s+){0,2}?${LESSON_U}\s*(?:(?:${W}+)\s+){0,2}?${DEBT_KW}(?!${W}))`, "i");
+/** «мама Олена платить 1 числа» — рядок про батьків, а не про учня: краще чесно
+ * «не впізнав імʼя», ніж учень на імʼя «мама». */
+const RELATION_RE = /^(?:мама|мати|тато|батько|батьки|бабуся|дідусь|опікун|mom|mum|mother|dad|father|parents?|mamma|pappa|förälder)$/i;
 const PAID_KW = String.raw`(?:оплатив|оплатила|оплатили|заплатив|заплатила|заплатили|оплачено|сплатив|сплатила|paid|betalat|betald)`;
 const PRICE_KW = String.raw`(?:по|ціна|ставка|вартість|коштує|price|rate|pris)`;
 const PER_KW = String.raw`(?:за|/|per)`;
@@ -256,7 +263,7 @@ interface Tail {
   words: string;
 }
 
-function parseTail(tokRaw: string, mode: ParseMode, ctx: { price: number | null; debt: Money | null }): Tail {
+function parseTail(tokRaw: string, mode: ParseMode, ctx: { price: number | null; debt: Money | null; bareIsPrice?: boolean }): Tail {
   const out: Tail = { words: "" };
   let s = tokRaw.replace(/[()[\]«»"“”]/g, " ").replace(/\s+/g, " ").trim();
   if (!s) return out;
@@ -264,7 +271,18 @@ function parseTail(tokRaw: string, mode: ParseMode, ctx: { price: number | null;
   // Контакти — цілим токеном, як і раніше (телефон із пробілами не має ставати сумою).
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) { out.email = s.toLowerCase(); return out; }
   if (/^@[a-z0-9_]{4,}$/i.test(s)) { out.telegram = s; return out; }
-  if (/^\+?[\d\s()-]{9,}$/.test(s) && s.replace(/\D/g, "").length >= 9) { out.phone = s.replace(/[\s()-]/g, ""); return out; }
+  // Телефон: починається з «+» або «0», 10–13 цифр (13.09: раніше будь-які ≥9
+  // цифр із пробілами — і «1200 800 400» ставало «телефоном», а суми зникали).
+  const ph = /(?<![\d+\w])(\+\d[\d\s()-]{8,}\d|0\d[\d\s()-]{7,}\d)(?!\d)/.exec(s);
+  if (ph) {
+    const digits = ph[1].replace(/\D/g, "").length;
+    if (digits >= 10 && digits <= 13) {
+      out.phone = ph[1].replace(/[\s()-]/g, "");
+      s = (s.slice(0, ph.index) + " " + s.slice(ph.index + ph[0].length)).replace(/\s+/g, " ").trim();
+      s = s.replace(/^(?:тел\.?|телефон|phone|tel\.?|telefon|mob\.?|моб\.?)\s*:?\s*$/i, ""); // сам підпис без номера — не нотатка
+      if (!s) return out;
+    }
+  }
 
   // Розклад — цілим токеном або фразою всередині.
   const whole = parseSchedule(s);
@@ -285,6 +303,17 @@ function parseTail(tokRaw: string, mode: ParseMode, ctx: { price: number | null;
   if (pm) {
     const n = num(pm[1]);
     if (Number.isFinite(n) && n > 0) { out.price = n; s = (s.slice(0, pm.index) + " " + s.slice(pm.index + pm[0].length)).replace(/\s+/g, " ").trim(); }
+  }
+
+  // 13.09: «600 борг 2 уроки» — число ПЕРЕД боргом в уроках читається як ставка
+  // («по 600, винен 2 уроки»), а не як ще один борг і не як нотатка. Лише коли
+  // далі йде саме борг УРОКАМИ: «1200 борг» без уроків — це борг 1200.
+  if (out.price === undefined && ctx.price === null) {
+    const pb = new RegExp(String.raw`^(${N})\s*(?:${MONEY_U})?\s+(?=${DEBT_KW}\s*:?\s*(?:(?:за|мені|ще|уже|вже)\s+){0,2}(?:${N})\s*(?:(?:${W}+)\s+){0,2}?${LESSON_U})`, "i").exec(s);
+    if (pb) {
+      const n = num(pb[1]);
+      if (Number.isFinite(n) && n > 0) { out.price = n; s = s.slice(pb[0].length).trim(); }
+    }
   }
 
   // Борг: «борг 1200», «винна за 2 уроки», «заборгувала 3 заняття», «не оплатила
@@ -339,6 +368,10 @@ function parseTail(tokRaw: string, mode: ParseMode, ctx: { price: number | null;
     }
     if (mode === "debts") {
       if (out.price !== undefined || ctx.price !== null) return false;
+      // 13.09: «Марко — 600 — борг 2 уроки» — число ПЕРЕД боргом в уроках є
+      // ставкою (порядок канону «імʼя — ціна — борг»), а число ПІСЛЯ («винна
+      // за 2 уроки — 1200») — підсумком (нижче). Так «600» не стає другим боргом.
+      if (ctx.bareIsPrice) { out.price = n; return true; }
       // «Артем 1500», «Маша 1200 грн» у списку «хто винен» — це борг.
       if (!out.debt && !ctx.debt) { out.debt = unitValue(n, unit, "auto"); return true; }
       // Борг уроками вже названо, тепер сума без слова — це підсумок («2 уроки — 800»),
@@ -400,8 +433,16 @@ export function parseStudentLine(rawLine: string, opts: ParseOptions = {}): Pars
   // Кожен хвіст — окремо; контекст (уже знайдена ціна/борг) передається далі,
   // бо «Артем 1500» і «Аня — 2 уроки — 800» читаються різно залежно від того,
   // що вже відомо. «Марк Іваненко 600» без роздільників іде тим самим шляхом.
-  for (const tail of tails) {
-    const t = parseTail(tail, mode, { price, debt: debtAmount !== null || debtLessons !== null ? { amount: debtAmount ?? undefined, lessons: debtLessons ?? undefined } : null });
+  // 13.09 (лендінг, режим «debts»): якщо ДАЛІ в рядку є борг УРОКАМИ, голе число
+  // перед ним — ставка, а не ще один борг.
+  const lessonsDebtAt = mode === "debts" ? tails.findIndex((t) => LESSON_DEBT_RE.test(t)) : -1;
+  for (let ti = 0; ti < tails.length; ti++) {
+    const tail = tails[ti];
+    const t = parseTail(tail, mode, {
+      price,
+      debt: debtAmount !== null || debtLessons !== null ? { amount: debtAmount ?? undefined, lessons: debtLessons ?? undefined } : null,
+      bareIsPrice: lessonsDebtAt > ti,
+    });
     if (t.email && email === null) email = t.email;
     if (t.telegram && telegram === null) telegram = t.telegram;
     if (t.phone && phone === null) phone = t.phone;
@@ -431,11 +472,7 @@ export function parseStudentLine(rawLine: string, opts: ParseOptions = {}): Pars
 
   const { firstName, lastName } = splitName(name);
   const okPrice = price !== null && Number.isFinite(price) && price > 0 ? price : null;
-  const warnings: ImportWarning[] = [];
-  if (debtLessons !== null && okPrice === null) warnings.push("debt_lessons_need_price");
-  else if (debtAmount !== null && okPrice === null) warnings.push("debt_without_price");
-  if ((debtAmount !== null || debtLessons !== null) && (prepayLessons !== null || prepayAmount !== null)) warnings.push("prepay_covers_debt");
-  if (schedule.length > 0 && okPrice === null) warnings.push("schedule_without_price");
+  const fields = { price: okPrice, debtAmount, debtLessons, prepayLessons, prepayAmount, schedule };
 
   return {
     raw,
@@ -454,9 +491,99 @@ export function parseStudentLine(rawLine: string, opts: ParseOptions = {}): Pars
     email,
     telegram,
     note: noteParts.length ? noteParts.join(" · ") : null,
-    warnings,
-    error: firstName ? null : "empty_name",
+    warnings: computeWarnings(fields),
+    error: firstName && !RELATION_RE.test(firstName) ? null : "empty_name",
   };
+}
+
+/** Попередження рахуються з ПОЛІВ, а не в парсері — щоб після правки дотиком вони перераховувались так само. */
+export function computeWarnings(f: Pick<ParsedStudent, "price" | "debtAmount" | "debtLessons" | "prepayLessons" | "prepayAmount" | "schedule">): ImportWarning[] {
+  const warnings: ImportWarning[] = [];
+  if (f.debtLessons !== null && f.price === null) warnings.push("debt_lessons_need_price");
+  else if (f.debtAmount !== null && f.price === null) warnings.push("debt_without_price");
+  if ((f.debtAmount !== null || f.debtLessons !== null) && (f.prepayLessons !== null || f.prepayAmount !== null)) warnings.push("prepay_covers_debt");
+  if (f.schedule.length > 0 && f.price === null) warnings.push("schedule_without_price");
+  return warnings;
+}
+
+// ── Екран підтвердження (13.09): правка дотиком і «не впізнав» ────────────────
+/**
+ * Що людина поправила дотиком у превʼю. Ключ — оригінальний рядок (raw): якщо
+ * текст рядка змінився, правка до нього більше не стосується і сама відпадає.
+ * `noteResolved` — людина сказала «це просто нотатка», питання більше не ставимо.
+ */
+export type RowOverride = Partial<Pick<ParsedStudent, "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons" | "note">> & {
+  noteResolved?: boolean;
+};
+
+/** Рядок + правки людини → той самий ParsedStudent із перерахованими попередженнями. */
+export function applyOverride(r: ParsedStudent, o: RowOverride | undefined): ParsedStudent {
+  if (!o) return r;
+  const { noteResolved: _nr, ...fields } = o;
+  const merged: ParsedStudent = { ...r, ...fields };
+  // Борг «без суми» зникає, щойно сума або уроки зʼявились.
+  merged.debtFlag = r.debtFlag && merged.debtAmount === null && merged.debtLessons === null;
+  merged.warnings = computeWarnings(merged);
+  return merged;
+}
+
+/**
+ * Невпізнане з числом: парсер не знайшов, ЩО це за число («за минулий місяць
+ * 800»), і поклав фрагмент у нотатку. Для грошей це небезпечно мовчки — тому
+ * екран підтвердження питає «що це?» і дає один дотик: борг ₴ / борг уроками /
+ * передоплата / ціна / нотатка. Повертає фрагмент і число або null.
+ */
+export function unsureNote(r: ParsedStudent, o?: RowOverride): { fragment: string; value: number; rest: string | null } | null {
+  if (o?.noteResolved) return null;
+  const note = o && "note" in o ? o.note : r.note;
+  if (!note) return null;
+  const parts = note.split(" · ");
+  const hasMoney = (o?.debtAmount ?? r.debtAmount) !== null || (o?.prepayAmount ?? r.prepayAmount) !== null;
+  // «1200 (за 2 уроки)» — «2 уроки» пояснює суму, а не ховає ще одну; дата
+  // («1 числа», «15-го») — теж не гроші.
+  // «винна за 2 уроки — 1200»: фразу з уроками парсер лишає в нотатці як
+  // пояснення підсумку (replaceLessons) — це теж не питання.
+  const annotation = new RegExp(String.raw`^\d+\s*(?:${LESSON_U})$`, "i");
+  const idx = parts.findIndex((p) => /\d/.test(p) && !/\d\s*(?:числ|-?го\b)/i.test(p) && !(hasMoney && (annotation.test(p) || LESSON_DEBT_RE.test(p))));
+  if (idx < 0) return null;
+  const m = /(\d[\d\s]*(?:[.,]\d+)?)/.exec(parts[idx]);
+  if (!m) return null;
+  const value = Number(m[1].replace(/\s/g, "").replace(",", "."));
+  if (!Number.isFinite(value) || value <= 0) return null;
+  const rest = parts.filter((_, i) => i !== idx);
+  return { fragment: parts[idx], value, rest: rest.length ? rest.join(" · ") : null };
+}
+
+export type UnsureChoice = "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons" | "price" | "note";
+
+/** Відповідь на «що це?» → правка рядка. Число НІКОЛИ не вигадується — лише те, що стояло у фрагменті. */
+export function resolveUnsure(r: ParsedStudent, o: RowOverride | undefined, choice: UnsureChoice): RowOverride {
+  const u = unsureNote(r, o);
+  const base: RowOverride = { ...(o ?? {}) };
+  if (!u) return { ...base, noteResolved: true };
+  if (choice === "note") return { ...base, noteResolved: true };
+  const cur = applyOverride(r, o);
+  const next: RowOverride = { ...base, note: u.rest };
+  if (choice === "price") next.price = u.value;
+  if (choice === "debtAmount") next.debtAmount = (cur.debtAmount ?? 0) + u.value;
+  if (choice === "debtLessons") next.debtLessons = (cur.debtLessons ?? 0) + u.value;
+  if (choice === "prepayAmount") next.prepayAmount = (cur.prepayAmount ?? 0) + u.value;
+  if (choice === "prepayLessons") next.prepayLessons = (cur.prepayLessons ?? 0) + u.value;
+  return next;
+}
+
+/**
+ * Анонімна «форма» невпізнаного фрагмента для навчання словника: цифри → #,
+ * слова з великої (імена) → Х. Жодних імен, сум, телефонів — лише конструкція.
+ */
+export function unrecognizedShape(fragment: string): string {
+  return fragment
+    .replace(/\d+/g, "#")
+    .replace(/(^|[\s(«"'])([А-ЯІЇЄҐA-Z][^\s]*)/g, "$1Х")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
 }
 
 // ── Таблиця з Excel / Google Таблиць ──────────────────────────────────────────

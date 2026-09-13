@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { openExternal } from "@/lib/openExternal";
 import { isNativeApp } from "@/lib/platform";
-import { parseStudentList, toCanonicalText, IMPORT_CURRENCY, type CanonicalWords } from "@/lib/importStudents";
+import { parseStudentList, toCanonicalText, unsureNote, IMPORT_CURRENCY, type CanonicalWords } from "@/lib/importStudents";
 import { calcMoneyPreview, digestPreview, CALC_WEEKS, formatDigestDay } from "@/lib/landingCalc";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
@@ -162,9 +162,20 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
   };
 
   const ctaLabel = isExample ? t("landingHero.ctaEmpty") : calc.owed > 0 || digest.debtors.length > 0 ? t("landingHero.ctaRemind") : t("landingHero.ctaDaily");
-  const hint = !isExample && has
-    ? calc.unvaluedDebtStudents > 0 ? t("landingHero.hintNoPrice", { count: calc.unvaluedDebtStudents })
-      : calc.noScheduleStudents > 0 ? t("landingHero.hintNoSchedule") : null
+  // 13.09: невпізнане не мовчить. Рядок без імені або число, яке парсер не зміг
+  // віднести до боргу/ціни/передоплати, — людина мусить бачити це ДО кнопки,
+  // інакше «нічого не порахувало» повторюється мовчки в бульбашці.
+  const unsure = useMemo(() => {
+    if (isExample) return [] as string[];
+    const cut = (s: string) => (s.length > 28 ? s.slice(0, 27) + "…" : s);
+    return rows
+      .filter((r) => r.error || unsureNote(r))
+      .map((r) => cut(r.error ? r.raw.trim() : (unsureNote(r)?.fragment ?? r.raw.trim())));
+  }, [rows, isExample]);
+  const hint = !isExample && (has || unsure.length > 0)
+    ? unsure.length > 0 ? t("landingHero.hintUnsure", { count: unsure.length, lines: unsure.slice(0, 2).map((s) => `«${s}»`).join(", ") })
+      : calc.unvaluedDebtStudents > 0 ? t("landingHero.hintNoPrice", { count: calc.unvaluedDebtStudents })
+        : calc.noScheduleStudents > 0 ? t("landingHero.hintNoSchedule") : null
     : null;
 
   return (
