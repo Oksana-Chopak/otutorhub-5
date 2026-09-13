@@ -758,9 +758,15 @@ export default function FinancesPage() {
   // Prepays always go to bucket 2 (paid income, sorted by created_at desc).
   const nowTs = Date.now();
   const lessonBucket = (l: LessonRow): number => {
+    // 13.09: «потребує уваги» мусить збігатися з тим, що сторінка РАХУЄ.
+    // Після міграції автовиплат кожен урок одразу отримує рядок деталей із
+    // tutor_payout = 0 і статусом 'unpaid' (раніше там був NULL), тож без
+    // перевірки суми у верх списку піднімались усі уроки без заданої ставки —
+    // при тому що `isPayoutDueLesson` їх у борг НЕ рахує. Виходило «вгорі
+    // повно боргів, а сума боргу нуль». Сума й підсвітка тепер про одне й те саме.
     const anyUnpaid =
-      l.student_payment_status === "unpaid" ||
-      (!isIndependentTutor && l.tutor_payout_status === "unpaid");
+      (l.student_payment_status === "unpaid" && Number(l.student_price ?? 0) > 0) ||
+      (!isIndependentTutor && l.tutor_payout_status === "unpaid" && Number(l.tutor_payout ?? 0) > 0);
     if (anyUnpaid) return 1;
     const ts = new Date(l.starts_at).getTime();
     return ts <= nowTs ? 2 : 3;

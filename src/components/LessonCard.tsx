@@ -190,6 +190,21 @@ function LessonCardImpl({
   const tPaid = lesson.tutor_payout_status === "paid";
   const canTogglePay = !!onPayChange || !!onTogglePayment;
 
+  /* 13.09, після міграції автовиплат: «не задано» тепер приходить з бази НУЛЕМ,
+     а не NULL — тригер `ensure_lesson_details_on_lesson_insert` створює рядок
+     деталей одразу з 0/0, і якщо ставки нема, нуль там і лишається.
+     Через це `!= null` переставав відрізняти «ціни нема» від «ціна є»:
+     на уроці без ціни малювався рядок з нулем і перемикачем оплати, а в
+     менеджера ЗНИКАЛО попередження «ставку не задано» — він бачив спокійний
+     нуль до виплати і міг позначити його виплаченим.
+     Тому ознака «задано» тут одна на весь файл і рахує 0 як НЕ задано — рівно
+     так, як це вже роблять `countLessonsMissingPrice` і попередження у формі
+     уроку. Безкоштовних уроків продукт не має: 0 завжди означає «не поставили». */
+  const hasAmount = (v: number | string | null | undefined) => v != null && Number(v) > 0;
+  const showStudentPay = hasAmount(lesson.student_price);
+  const showPayoutRow = withPayout && hasAmount(lesson.tutor_payout);
+  const payoutMissing = withPayout && manager && !hasAmount(lesson.tutor_payout);
+
   const tap = onContentClick ?? onEdit;
   const overflowItems = [
     onAiNotes ? { ic: Sparkles, t: t("lessonCard.aiNotes"), fn: onAiNotes } : null,
@@ -340,27 +355,27 @@ function LessonCardImpl({
         </div>
 
         {/* Payment rows */}
-        {(lesson.student_price != null || withPayout) && (
+        {(showStudentPay || showPayoutRow || payoutMissing) && (
           <div style={{ borderTop: `1px solid ${L.border}`, padding: "11px 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
             {/* Student payment row only when a real student_price is present. For a HUB
                 tutor student_price is masked to NULL (they must not see/mark the student→hub
                 payment), so this row is hidden and only their payout row shows — no phantom
                 zero-price tappable toggle. */}
-            {lesson.student_price != null && (
+            {showStudentPay && (
               <PayRow currency={lesson.currency} icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid")} pendLabel={t("lessonCard.pending")}
                 onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />
             )}
             {/* FINANCE INVARIANT: tutor_payout НІКОЛИ не підмінюється student_price.
                 Якщо сторінка не завантажила payout — рядок не рендеримо взагалі:
                 краще відсутність цифри, ніж чужа цифра (баг «виплата = оплата», 10.06–01.08). */}
-            {withPayout && lesson.tutor_payout != null && (
+            {showPayoutRow && (
               <PayRow currency={lesson.currency} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut")} pendLabel={t("lessonCard.toPayout")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />
             )}
             {/* 04.09: для МЕНЕДЖЕРА відсутня виплата — не «нічого», а ПРОБЛЕМА, яку видно.
                 Інваріант «краще відсутність цифри, ніж чужа» лишається — тут не цифра, а
                 позначка «ставку не задано» + єдиний видимий тогл більше не вводить в оману. */}
-            {manager && lesson.tutor_payout == null && (
+            {payoutMissing && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--warning-text,#B45309)" }}>
                 <span aria-hidden>💼</span>
                 <span style={{ fontWeight: 600 }}>{t("lessonCard.payoutMissing")}</span>

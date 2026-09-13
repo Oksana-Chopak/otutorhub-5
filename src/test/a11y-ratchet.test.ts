@@ -549,6 +549,33 @@ describe("матеріали учня · хронологія, розгорну�
         .toBeGreaterThan(refEnd);
     });
 
+    it("нуль з бази читається як «не задано», а не як сума", () => {
+      const lc = read("src/components/LessonCard.tsx");
+      // Після міграції автовиплат (13.09) рядок деталей створює ТРИГЕР одразу
+      // з 0/0 — NULL більше не приходить. Тому перевірка «!= null» тихо
+      // перетворювала «ціни нема» на «ціна 0 ₴ з перемикачем», а в менеджера
+      // ЗНИКАЛО попередження «ставку не задано».
+      expect(lc, "єдина ознака «задано» на весь файл")
+        .toMatch(/const hasAmount = \(v: number \| string \| null \| undefined\) => v != null && Number\(v\) > 0;/);
+      expect(lc, "рядок оплати учня — лише за реальної суми")
+        .not.toMatch(/\{lesson\.student_price != null && \(/);
+      expect(lc, "рядок виплати — лише за реальної суми")
+        .not.toMatch(/\{withPayout && lesson\.tutor_payout != null && \(/);
+      expect(lc, "попередження менеджеру мусить ловити і 0, і NULL")
+        .not.toMatch(/\{manager && lesson\.tutor_payout == null && \(/);
+      expect(lc).toMatch(/const payoutMissing = withPayout && manager && !hasAmount\(lesson\.tutor_payout\);/);
+      // і сама рамка рядків оплат не малюється порожньою
+      expect(lc).toMatch(/\{\(showStudentPay \|\| showPayoutRow \|\| payoutMissing\) && \(/);
+    });
+
+    it("«потребує уваги» у фінансах збігається з тим, що рахується в борг", () => {
+      const fp = read("src/pages/FinancesPage.tsx");
+      expect(fp, "нульові уроки піднімались у верх списку, не даючи жодної суми")
+        .toMatch(/l\.student_payment_status === "unpaid" && Number\(l\.student_price \?\? 0\) > 0/);
+      expect(fp)
+        .toMatch(/l\.tutor_payout_status === "unpaid" && Number\(l\.tutor_payout \?\? 0\) > 0/);
+    });
+
     it("фраза дня — у самому низу і без рамки", () => {
       const dp = read("src/pages/DashboardPage.tsx");
       expect(dp, "у рамці посеред екрана вона читалась як ще одне поле")
