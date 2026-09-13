@@ -12,7 +12,14 @@ const DT = {
     mgrToday: (n: number, w: string) => `\n📅 Сьогодні у школі <b>${n} ${w}</b>:`,
     more: (n: number) => `  ↳ ще ${n} уроків`,
     debt: (s: string) => `\n💳 Борг учнів: <b>${s}</b>`,
-    payout: (s: string) => `👛 До виплати репетиторам: <b>${s}</b>`,
+    owe: (s: string) => `\n👛 Ви винні репетиторам: <b>${s}</b>`,
+    oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
+    payoutToday: " · ⏰ сьогодні день виплати",
+    moreTutors: (n: number) => `  ↳ ще ${n} репетиторів`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} без ставки виплати. Поставте ставку — і сума зʼявиться тут.`,
+    btnPayoutPaid: (nm: string) => `👛 Виплатив(ла): ${nm}`,
+    btnRate: (nm: string) => `⚙️ Ставка: ${nm}`,
+    btnTutorName: "репетитор",
     errors: (n: number) => `🛠 Технічні помилки за добу: <b>${n}</b> — сторінка /errors`,
     tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Сьогодні <b>${n} ${w}</b>:`,
@@ -33,7 +40,14 @@ const DT = {
     mgrToday: (n: number, w: string) => `\n📅 Today at the school: <b>${n} ${w}</b>:`,
     more: (n: number) => `  ↳ ${n} more`,
     debt: (s: string) => `\n💳 Students' debt: <b>${s}</b>`,
-    payout: (s: string) => `👛 Due to tutors: <b>${s}</b>`,
+    owe: (s: string) => `\n👛 You owe your tutors: <b>${s}</b>`,
+    oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
+    payoutToday: " · ⏰ payout day is today",
+    moreTutors: (n: number) => `  ↳ ${n} more tutors`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} without a payout rate. Set the rate and the amount will show up here.`,
+    btnPayoutPaid: (nm: string) => `👛 Paid out: ${nm}`,
+    btnRate: (nm: string) => `⚙️ Rate: ${nm}`,
+    btnTutorName: "tutor",
     errors: (n: number) => `🛠 Technical errors in 24 h: <b>${n}</b> — see /errors`,
     tutNone: "\nA free day today — recharge! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Today: <b>${n} ${w}</b>:`,
@@ -54,7 +68,14 @@ const DT = {
     mgrToday: (n: number, w: string) => `\n📅 Idag i skolan: <b>${n} ${w}</b>:`,
     more: (n: number) => `  ↳ ${n} till`,
     debt: (s: string) => `\n💳 Elevernas skuld: <b>${s}</b>`,
-    payout: (s: string) => `👛 Att betala lärare: <b>${s}</b>`,
+    owe: (s: string) => `\n👛 Du är skyldig dina lärare: <b>${s}</b>`,
+    oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
+    payoutToday: " · ⏰ utbetalningsdag idag",
+    moreTutors: (n: number) => `  ↳ ${n} lärare till`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} utan utbetalningssats. Ange satsen så visas beloppet här.`,
+    btnPayoutPaid: (nm: string) => `👛 Utbetalt: ${nm}`,
+    btnRate: (nm: string) => `⚙️ Sats: ${nm}`,
+    btnTutorName: "lärare",
     errors: (n: number) => `🛠 Tekniska fel senaste dygnet: <b>${n}</b> — se /errors`,
     tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Idag: <b>${n} ${w}</b>:`,
@@ -73,6 +94,7 @@ const DT = {
 // Idempotent per (user_id, digest_date) via tutor_daily_digests.
 // Invoked by pg_cron at 06:00 UTC (08:00 EET / 09:00 EEST).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isPayoutDueToday, kyivNow } from "../_shared/payoutSchedule.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -241,6 +263,20 @@ Deno.serve(async (req) => {
   };
   const unpaidLessons = (moneyRaw ?? []).filter(isStudentDebt);
   const payoutDueLessons = (moneyRaw ?? []).filter(isPayoutDue);
+  // 13.09 (запит власниці): менеджерка з трьома репетиторами не отримала ЖОДНОГО
+  // слова про те, що САМА винна репетиторам. Був лише голий підсумок «до виплати»,
+  // а коли ставки виплат не поставлені — і його не було: tutor_payout = null, тож
+  // борг школи перед репетитором СТРУКТУРНО невидимий. Тому окремо збираємо
+  // проведені уроки БЕЗ ставки виплати — це і є невидимий борг, і менеджер
+  // мусить його бачити в тому самому ранковому повідомленні.
+  const isConductedUnrated = (l: any) => {
+    const d = detailOf(l) ?? {};
+    if (l.group_id || l.status === "cancelled") return false;
+    if (d.tutor_payout_status === "paid") return false;
+    if (Number(d.tutor_payout ?? 0) > 0) return false;
+    return l.status === "completed" || new Date(l.starts_at).getTime() <= nowMs;
+  };
+  const unratedLessons = (moneyRaw ?? []).filter((l: any) => l.source !== "independent" && isConductedUnrated(l));
 
   // ГРУПОВІ борги — по УЧАСНИКАХ (parent ПРОВЕДЕНИЙ, учасник unpaid&price>0).
   // 07.09: було completed|scheduled — майбутні групові уроки рахувались боргом,
@@ -293,6 +329,26 @@ Deno.serve(async (req) => {
       p.id,
       `${(p.first_name ?? "")} ${(p.last_name ?? "")}`.trim() || "—", // мова невідома на цьому рівні
     ])
+  );
+
+  // Репетитори, яким школа винна або в яких є проведені уроки без ставки: імена
+  // (profiles) і графік виплат (tutor_details) — один запит на всіх, до циклу.
+  const payoutTutorIds = Array.from(new Set([
+    ...payoutDueLessons.filter((l: any) => l.source !== "independent").map((l: any) => l.tutor_id),
+    ...unratedLessons.map((l: any) => l.tutor_id),
+  ]));
+  const { data: payoutTutors } = payoutTutorIds.length
+    ? await sb.from("profiles").select("id, first_name, last_name").in("id", payoutTutorIds)
+    : { data: [] };
+  const tutorName = new Map<string, string>(
+    (payoutTutors ?? []).map((p: any) => [p.id, `${(p.first_name ?? "")} ${(p.last_name ?? "")}`.trim() || "—"])
+  );
+  const { data: schedules } = payoutTutorIds.length
+    ? await sb.from("tutor_details").select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor").in("user_id", payoutTutorIds)
+    : { data: [] };
+  const kyivToday = kyivNow();
+  const payoutDueTodayFor = new Set<string>(
+    (schedules ?? []).filter((s: any) => isPayoutDueToday(s, kyivToday)).map((s: any) => s.user_id)
   );
 
   let sent = 0;
@@ -356,7 +412,38 @@ Deno.serve(async (req) => {
         }
         if (hubDebts.size > 5) lines.push(D.moreStudents(hubDebts.size - 5));
       }
-      if (po > 0) lines.push(D.payout(`${po} ₴`));
+      // 13.09 (запит власниці): «я сліпа, коли йдеться про борги репетиторам».
+      // Замість голого підсумку — хто саме, скільки, за скільки уроків, чи
+      // сьогодні день виплати за графіком, і кнопка «Виплатив(ла)» на кожного
+      // (обробляє telegram-poll, tpaid:; ті самі уроки, що й RPC
+      // mark_tutor_payouts_paid — проведені, неоплачені, зі ставкою > 0).
+      const owed = new Map<string, { sum: number; n: number }>();
+      for (const l of payoutDueLessons.filter(mine)) {
+        const cur = owed.get(l.tutor_id) ?? { sum: 0, n: 0 };
+        cur.sum += Number(detailOf(l)?.tutor_payout ?? 0);
+        cur.n += 1;
+        owed.set(l.tutor_id, cur);
+      }
+      if (po > 0 && owed.size > 0) {
+        lines.push(D.owe(`${po} ₴`));
+        const sorted = Array.from(owed.entries()).sort((a, b) => b[1].sum - a[1].sum);
+        for (const [tid, v] of sorted.slice(0, 5)) {
+          const today = payoutDueTodayFor.has(tid) ? D.payoutToday : "";
+          lines.push(D.oweLine(esc(tutorName.get(tid)), `${v.sum} ₴`, v.n, D.lessons(v.n)) + today);
+          const nm = shortName(tutorName.get(tid), D.btnTutorName);
+          keyboard.push([{ text: D.btnPayoutPaid(nm), callback_data: `tpaid:${tid}` }]);
+        }
+        if (sorted.length > 5) lines.push(D.moreTutors(sorted.length - 5));
+      }
+      // Проведені уроки без ставки виплати — невидимий борг школи: сума невідома
+      // не тому, що її немає, а тому, що ставку не поставили. Кнопка веде
+      // просто в картку репетитора в «Людях».
+      const unrated = new Map<string, number>();
+      for (const l of unratedLessons.filter(mine)) unrated.set(l.tutor_id, (unrated.get(l.tutor_id) ?? 0) + 1);
+      for (const [tid, n] of Array.from(unrated.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3)) {
+        lines.push(D.noRate(esc(tutorName.get(tid)), n, D.lessons(n)));
+        keyboard.push([{ text: D.btnRate(shortName(tutorName.get(tid), D.btnTutorName)), url: `${APP_URL}/people?open=${tid}` }]);
+      }
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
       // Передоплата — це форма з сумою/кількістю уроків, тож не callback, а
       // прямий перехід у застосунок на потрібну вкладку.

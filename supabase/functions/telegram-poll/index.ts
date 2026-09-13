@@ -214,6 +214,8 @@ const CB = {
     paid: (n: number) => `✅ Позначено оплаченими: ${n} ур. Застосунок уже знає.`,
     remDone: (ch: string[]) => `🔔 Надіслано: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "застосунок" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Сьогодні вже нагадували — учень отримав. Наступне — через 24 год.",
+    nopayout: "Цьому репетитору зараз нічого не винні ✅",
+    payoutDone: (n: number, s: number) => `✅ Виплату позначено: ${n} ур., ${s} ₴. Застосунок уже знає.`,
   },
   en: {
     bad: "Unknown action", nolink: "Telegram is not linked to an account",
@@ -221,6 +223,8 @@ const CB = {
     paid: (n: number) => `✅ Marked as paid: ${n} lessons. The app already knows.`,
     remDone: (ch: string[]) => `🔔 Sent via: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "app" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Already reminded today — the student got it. Next one in 24 h.",
+    nopayout: "Nothing is owed to this tutor right now ✅",
+    payoutDone: (n: number, s: number) => `✅ Payout recorded: ${n} lessons, ${s} ₴. The app already knows.`,
   },
   sv: {
     bad: "Okänd åtgärd", nolink: "Telegram är inte kopplat till kontot",
@@ -228,6 +232,8 @@ const CB = {
     paid: (n: number) => `✅ Markerat som betalt: ${n} lektioner. Appen vet redan.`,
     remDone: (ch: string[]) => `🔔 Skickat via: ${ch.map((c) => ({ telegram: "Telegram", email: "e-post", inapp: "appen" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Redan påmint idag — eleven fick den. Nästa om 24 h.",
+    nopayout: "Inget att betala den här läraren just nu ✅",
+    payoutDone: (n: number, s: number) => `✅ Utbetalning noterad: ${n} lektioner, ${s} ₴. Appen vet redan.`,
   },
 } as const;
 
@@ -252,7 +258,7 @@ async function handleDigestCallback(base: string, db: any, cq: any,
   const cqId: string = cq.id;
   const data: string = cq.data ?? '';
   const chatId: number | undefined = cq.message?.chat?.id;
-  const m = data.match(/^(rem|paid|hpaid):([0-9a-f-]{36})$/);
+  const m = data.match(/^(rem|paid|hpaid|tpaid):([0-9a-f-]{36})$/);
   if (!m || !chatId) { await answerCb(base, cqId, CB.uk.bad); return; }
   const action = m[1]; const studentId = m[2];
 
@@ -329,6 +335,54 @@ async function handleDigestCallback(base: string, db: any, cq: any,
       after: { status: 'paid', source: 'telegram_digest_button_manager', chat_id: chatId },
     });
     await answerCb(base, cqId, L.paid(hubTotal));
+    return;
+  }
+
+  // 13.09: «👛 Виплатив(ла)» у дайджесті МЕНЕДЖЕРА — позначає виплаченими
+  // проведені неоплачені уроки ОДНОГО репетитора своєї школи (callback_data —
+  // tutor_id). Дзеркало RPC mark_tutor_payouts_paid (там auth.uid() під service
+  // role порожній, тому право перевіряємо тут: власник chat_id = manager, а
+  // репетитор — у ЙОГО школі). Свідома відмінність від RPC: чіпаємо лише рядки
+  // зі ставкою > 0 — саме ті, що складають показану суму; уроки без ставки
+  // лишаються unpaid, щоб backfill після встановлення ставки їх підхопив.
+  if (action === 'tpaid') {
+    const targetTutorId = studentId; // у tpaid: другий сегмент — id репетитора
+    const { data: roleRow } = await db
+      .from('user_roles').select('role').eq('user_id', tutorId).eq('role', 'manager').maybeSingle();
+    if (!roleRow) { await answerCb(base, cqId, L.bad); return; }
+    const { data: hm } = await db
+      .from('hub_managers').select('hub_id').eq('user_id', tutorId).maybeSingle();
+    if (!hm?.hub_id) { await answerCb(base, cqId, L.bad); return; }
+    const { data: member } = await db
+      .from('tutor_workspace_settings').select('tutor_id').eq('tutor_id', targetTutorId).eq('hub_id', hm.hub_id).maybeSingle();
+    if (!member) { await answerCb(base, cqId, L.bad); return; }
+    const { data: rows } = await db
+      .from('lessons')
+      .select('id, status, starts_at, lesson_details(tutor_payout, tutor_payout_status)')
+      .eq('tutor_id', targetTutorId).neq('source', 'independent').is('group_id', null)
+      .in('status', ['completed', 'scheduled']);
+    const nowMs = Date.now();
+    let sum = 0;
+    const ids: string[] = (rows ?? []).filter((l: any) => {
+      const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+      if (!d || d.tutor_payout_status === 'paid') return false;
+      if (Number(d.tutor_payout ?? 0) <= 0) return false;
+      if (!(l.status === 'completed' || new Date(l.starts_at).getTime() <= nowMs)) return false;
+      sum += Number(d.tutor_payout);
+      return true;
+    }).map((l: any) => l.id as string);
+    if (ids.length === 0) { await answerCb(base, cqId, L.nopayout); return; }
+    const now = new Date().toISOString();
+    await db.from('lesson_details')
+      .update({ tutor_payout_status: 'paid', tutor_paid_at: now })
+      .in('lesson_id', ids).or('tutor_payout_status.is.null,tutor_payout_status.neq.paid'); // NULL = unpaid (COALESCE у RPC)
+    await db.from('tutor_details').update({ payout_last_marked_at: now }).eq('user_id', targetTutorId);
+    await db.from('manager_audit_log').insert({
+      actor_id: tutorId, action: 'mark_payout_paid_via_telegram', entity_type: 'tutor_payout', entity_id: targetTutorId,
+      before: { unpaid_lessons: ids, sum, hub_id: hm.hub_id },
+      after: { status: 'paid', source: 'telegram_digest_button_manager', chat_id: chatId },
+    });
+    await answerCb(base, cqId, L.payoutDone(ids.length, sum));
     return;
   }
 
