@@ -174,7 +174,7 @@ export default function WalletsPage() {
             <Wallet className="h-6 w-6 text-primary" />
             <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("walletsPage.title")}</h1>
           </div>
-          <p className="text-sm" style={{ color: "var(--sub,#666b82)" }}>
+          <p className="text-sm" style={{ color: "var(--sub,#62677E)" }}>
             {t("walletsPage.subtitle")}
           </p>
         </header>
@@ -182,7 +182,7 @@ export default function WalletsPage() {
         <div className="flex flex-wrap items-center gap-2">
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
-              <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
+              <Search size={20} style={{ color: "var(--sub,#62677E)", flexShrink: 0 }} />
               <input aria-label={t("walletsPage.searchPlaceholder")}
                 autoFocus
                 placeholder={t("walletsPage.searchPlaceholder")}
@@ -191,13 +191,13 @@ export default function WalletsPage() {
                 style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--ds-txt,#0f0f1a)", minWidth: 0 }}
               />
               <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
-                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={17} />
               </button>
             </div>
           ) : (
             <button onClick={() => setSearchOpen(true)} aria-label={t("walletsPage.searchPlaceholder")}
-              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={21} strokeWidth={2} />
             </button>
           )}
@@ -245,7 +245,7 @@ export default function WalletsPage() {
                     </div>
                     <div className="min-w-0">
                       <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{r.student_name}</div>
-                      <div className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>↔ {r.tutor_name}</div>
+                      <div className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>↔ {r.tutor_name}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
@@ -255,7 +255,7 @@ export default function WalletsPage() {
                         {r.lessons_balance > 0 && r.amount_balance > 0 && " · "}
                         {r.amount_balance > 0 && formatPrice(r.amount_balance, r.currency, { decimals: 0 })}
                         {r.lessons_balance === 0 && r.amount_balance === 0 && (
-                          <span style={{ color: "var(--sub,#666b82)" }}>—</span>
+                          <span style={{ color: "var(--sub,#62677E)" }}>—</span>
                         )}
                       </span>
                     </div>
@@ -266,7 +266,7 @@ export default function WalletsPage() {
                       {t("walletsPage.topUpBtn")}
                     </button>
                   </div>
-                  <div className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                  <div className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                     {t("walletsPage.lastTransaction")}: {fmtDate(r.last_transaction_at)}
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function WalletsPage() {
             {/* Desktop: table */}
             <div className="hidden md:block overflow-x-auto rounded-[16px]" style={{ border: "1px solid var(--ds-border,#eceef3)" }}>
               <table className="w-full text-[15px]">
-                <thead className="text-[14px] uppercase" style={{ background: "var(--ds-surface2,#fbfbfc)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                <thead className="text-[14px] uppercase" style={{ background: "var(--ds-surface2,#fbfbfc)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                   <tr>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.studentCol")}</th>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.tutorCol")}</th>
@@ -293,12 +293,12 @@ export default function WalletsPage() {
                       style={{ borderTop: "1px solid var(--ds-border,#eceef3)" }} className="hover:bg-muted/50"
                     >
                       <td className="px-4 py-3 font-medium">{r.student_name}</td>
-                      <td className="px-4 py-3" style={{ color: "var(--sub,#666b82)" }}>{r.tutor_name}</td>
+                      <td className="px-4 py-3" style={{ color: "var(--sub,#62677E)" }}>{r.tutor_name}</td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.lessons_balance > 0 ? (
                           <span className="font-semibold" style={{ color: "var(--teal-text,#1a7a6c)" }}>{r.lessons_balance}</span>
                         ) : (
-                          <span style={{ color: "var(--sub,#666b82)" }}>—</span>
+                          <span style={{ color: "var(--sub,#62677E)" }}>—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
@@ -307,10 +307,10 @@ export default function WalletsPage() {
                             {formatPrice(r.amount_balance, r.currency, { decimals: 0 })}
                           </span>
                         ) : (
-                          <span style={{ color: "var(--sub,#666b82)" }}>—</span>
+                          <span style={{ color: "var(--sub,#62677E)" }}>—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                         {fmtDate(r.last_transaction_at)}
                       </td>
                       <td className="px-4 py-3 text-right">

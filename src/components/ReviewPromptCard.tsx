@@ -188,7 +188,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
           className="hover:bg-black/5"
           style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
-          <X size={16} style={{ color: "var(--sub,#666b82)" }} />
+          <X size={16} style={{ color: "var(--sub,#62677E)" }} />
         </button>
       </div>
 

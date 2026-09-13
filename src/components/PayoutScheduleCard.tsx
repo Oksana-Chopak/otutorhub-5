@@ -6,7 +6,7 @@ import { Loader2, CalendarClock } from "lucide-react";
 import { WEEKDAYS_UK, describePayoutSchedule, type PayoutSchedule } from "@/lib/payoutSchedule";
 
 const C = {
-  teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", ink: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", border: "var(--ds-border,#eceef3)",
+  teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", ink: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", border: "var(--ds-border,#eceef3)",
   display: "Inter, system-ui, sans-serif",
 };
 

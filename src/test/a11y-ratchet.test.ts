@@ -497,6 +497,36 @@ describe("матеріали учня · хронологія, розгорну�
     });
   });
 
+  /* Фінальний прогін 13.09: кнопки, у яких на мобілці лишається сама іконка,
+     і перший екран нового користувача. */
+  describe("фінальний прогін: назви й зони дотику", () => {
+    it("перемикач вигляду розкладу має назву, коли підпис схований", () => {
+      const sp = read("src/pages/SchedulePage.tsx");
+      expect(sp, "на мобілці підпис hidden sm:inline — лишається сама іконка")
+        .toMatch(/aria-label=\{o\.label\}/);
+    });
+
+    it("кнопка завантаження картки місяця має назву", () => {
+      const ms = read("src/components/MonthlySummaryCard.tsx");
+      expect(ms).toMatch(/aria-label=\{t\("monthlySummary\.downloadBtn"\)\}/);
+    });
+
+    it("вкладки «Вхід/Реєстрація» тримають 44px — це перший екран", () => {
+      const ap = read("src/pages/AuthPage.tsx");
+      const tabs = ap.match(/<TabsTrigger value="sign(in|up)" className="[^"]*"/g) ?? [];
+      expect(tabs.length).toBe(2);
+      for (const t of tabs) expect(t, t).toMatch(/min-h-\[44px\]/);
+    });
+
+    it("гроші учня підписані токенами, а не брендовим зеленим", () => {
+      const sp = read("src/pages/student/StudentPaymentsPage.tsx");
+      expect(sp, "#16a34a на світло-зеленій пігулці — 2.88:1")
+        .not.toMatch(/color: paid \? "#16a34a"/);
+      expect(sp).toMatch(/var\(--success-text,#107836\)/);
+      expect(sp).toMatch(/var\(--warning-text,#A74D08\)/);
+    });
+  });
+
   /* 13.09, аудит готовності самостійних репетиторів до запуску. Три дефекти,
      кожен ламав саме те, заради чого людина відкриває застосунок. */
   describe("готовність самостійного репетитора (13.09)", () => {

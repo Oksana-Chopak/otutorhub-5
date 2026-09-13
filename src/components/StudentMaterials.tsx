@@ -207,7 +207,7 @@ export function StudentMaterials({
     new Date(iso).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
 
   const CHIP: Record<LessonState, { key: string; fg: string; bg: string }> = {
-    cancelled: { key: "lessonCard.statusCancelled", fg: "var(--sub,#666b82)", bg: "rgba(147,152,176,.16)" },
+    cancelled: { key: "lessonCard.statusCancelled", fg: "var(--sub,#62677E)", bg: "rgba(147,152,176,.16)" },
     done:      { key: "lessonCard.statusCompleted", fg: "var(--success-text,#11803a)", bg: "rgba(34,197,94,.14)" },
     upcoming:  { key: "lessonCard.statusScheduled", fg: "var(--teal-text,#1a7a6c)", bg: "rgba(43,191,170,.14)" },
     unmarked:  { key: "studentMaterials.statusUnmarked", fg: "var(--warning-text,#B45309)", bg: "rgba(245,158,11,.16)" },
@@ -235,17 +235,17 @@ export function StudentMaterials({
 
   if (all === null) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 2px", fontSize: 15, color: "var(--sub,#666b82)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 2px", fontSize: 15, color: "var(--sub,#62677E)" }}>
         <Loader2 className="h-4 w-4 animate-spin" /> {t("studentMaterials.loading")}
       </div>
     );
   }
   if (failed) {
-    return <p style={{ fontSize: 15, color: "var(--sub,#666b82)", padding: "10px 2px" }}>{t("studentMaterials.failed")}</p>;
+    return <p style={{ fontSize: 15, color: "var(--sub,#62677E)", padding: "10px 2px" }}>{t("studentMaterials.failed")}</p>;
   }
 
   const TEXT = { fontSize: 15, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)", margin: 0, whiteSpace: "pre-wrap" as const };
-  const LABEL = { fontSize: 14, fontWeight: 700, color: "var(--sub,#666b82)", marginBottom: 4 };
+  const LABEL = { fontSize: 14, fontWeight: 700, color: "var(--sub,#62677E)", marginBottom: 4 };
 
   /** Довгий текст із власним «показати повністю ↔ згорнути». */
   const LongText = ({ id, value }: { id: string; value: string }) => {
@@ -274,7 +274,7 @@ export function StudentMaterials({
         style={{
           flex: 1, minHeight: 44, border: "none", cursor: "pointer", background: "transparent",
           fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15,
-          color: on ? "var(--teal-text,#1a7a6c)" : "var(--sub,#666b82)",
+          color: on ? "var(--teal-text,#1a7a6c)" : "var(--sub,#62677E)",
           borderBottom: `2.5px solid ${on ? "#2BBFAA" : "transparent"}`,
         }}>
         {label}
@@ -297,7 +297,7 @@ export function StudentMaterials({
       )}
 
       {items.length === 0 && (
-        <p style={{ fontSize: 15, color: "var(--sub,#666b82)", padding: "10px 2px" }}>
+        <p style={{ fontSize: 15, color: "var(--sub,#62677E)", padding: "10px 2px" }}>
           {tab === "materials" ? t("studentMaterials.empty") : t("studentMaterials.historyEmpty")}
         </p>
       )}
@@ -316,7 +316,7 @@ export function StudentMaterials({
                 width: "100%", minHeight: 52, padding: "10px 12px", border: "none", background: "transparent",
                 cursor: "pointer", display: "flex", alignItems: "center", gap: 9, textAlign: "left",
               }}>
-              <ChevronDown size={18} style={{ flexShrink: 0, color: "var(--sub,#666b82)", transform: on ? "none" : "rotate(-90deg)", transition: "transform .2s" }} />
+              <ChevronDown size={18} style={{ flexShrink: 0, color: "var(--sub,#62677E)", transform: on ? "none" : "rotate(-90deg)", transition: "transform .2s" }} />
               {/* Дата й ЧАС — перший рядок і ніколи не обрізаються: саме вони
                   відповідають на «це вже було чи ще буде». Предмет і позначки
                   того, що всередині, — другий рядок. */}
@@ -324,7 +324,7 @@ export function StudentMaterials({
                 <span style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap" }}>
                   {fmtDate(it.startsAt)}, {fmtTime(it.startsAt)}
                 </span>
-                <span style={{ display: "block", fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ display: "block", fontSize: 14, color: "var(--sub,#62677E)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {[it.subject, on ? null : (mk.length ? mk.join(" ") : t("studentMaterials.noContent"))].filter(Boolean).join(" · ")}
                 </span>
               </span>

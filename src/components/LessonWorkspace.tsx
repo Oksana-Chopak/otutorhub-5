@@ -73,7 +73,7 @@ function inferPlatform(url: string): string {
 // і губить фокус після ПЕРШОГО символу. Розтяжка №13 стереже.
 const L = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "var(--teal-l,#f0fdf9)", txt: "var(--ds-txt,#0f0f1a)",
-  sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)",
+  sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 

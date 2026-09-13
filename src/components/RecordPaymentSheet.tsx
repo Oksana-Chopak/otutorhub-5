@@ -243,12 +243,12 @@ export function RecordPaymentSheet({
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
               {t("recordPayment.title")}
             </div>
-            <div style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 2 }}>
+            <div style={{ fontSize: 15, color: "var(--sub,#62677E)", marginTop: 2 }}>
               {t("recordPaymentExtra.subtitle")}
             </div>
           </div>
           <button onClick={close} aria-label={t("common.close")}
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -350,7 +350,7 @@ export function RecordPaymentSheet({
 
                 {/* Велике поле на ДС-картці */}
                 <div style={{ borderRadius: 16, padding: 14, background: "var(--ds-surface2,#fbfbfc)", border: "1px solid var(--ds-border,#eceef3)" }}>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 8 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#62677E)", marginBottom: 8 }}>
                     {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
                   </p>
                   {mode === "lessons" ? (
@@ -380,7 +380,7 @@ export function RecordPaymentSheet({
                       англійської оцінювались німецькою у 3 200 замість 2 800). */}
                   {multiRates && (
                     <div style={{ marginTop: 10 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", color: "var(--sub,#666b82)", marginBottom: 6 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", color: "var(--sub,#62677E)", marginBottom: 6 }}>
                         {t("recordPaymentExtra.pickRateLabel")}
                       </p>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -392,7 +392,7 @@ export function RecordPaymentSheet({
                               fontFamily: "Inter, system-ui, sans-serif",
                               border: chosenRate === r.rate ? "1.5px solid var(--teal,#2BBFAA)" : "1.5px solid var(--ds-border,#eceef3)",
                               background: chosenRate === r.rate ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface,#fff)",
-                              color: chosenRate === r.rate ? "#0F6E56" : "var(--sub,#666b82)",
+                              color: chosenRate === r.rate ? "#0F6E56" : "var(--sub,#62677E)",
                             }}>
                             {r.subject ? `${r.subject} · ` : ""}{formatPrice(r.rate, pickedPair.currency ?? "UAH")}
                           </button>
@@ -401,12 +401,12 @@ export function RecordPaymentSheet({
                     </div>
                   )}
                   {mode === "lessons" && effectiveRate && lessonsCount ? (
-                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#62677E)" }}>
                       ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(parseInt(lessonsCount, 10) * effectiveRate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
                   {mode === "amount" && effectiveRate && amount ? (
-                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#62677E)" }}>
                       ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / effectiveRate) })}</b>
                     </p>
                   ) : null}
@@ -415,7 +415,7 @@ export function RecordPaymentSheet({
                 {/* 04.09: Дата внесення — вручну. Кейс: учень заплатив у понеділок,
                     менеджер позначив у четвер; транзакція має жити в понеділку. */}
                 <div>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 6 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#62677E)", marginBottom: 6 }}>
                     {t("recordPaymentExtra.paidOnLabel")}
                   </p>
                   <DateTimeField value={paidOn} onChange={setPaidOn} />
@@ -423,7 +423,7 @@ export function RecordPaymentSheet({
 
                 {/* Коментар */}
                 <div>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 6 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#62677E)", marginBottom: 6 }}>
                     {t("recordPaymentExtra.commentLabel")}
                   </p>
                   <input aria-label={t("recordPaymentExtra.commentPlaceholder")}

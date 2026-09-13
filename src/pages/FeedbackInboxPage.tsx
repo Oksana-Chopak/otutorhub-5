@@ -105,7 +105,7 @@ export default function FeedbackInboxPage() {
           <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
             {t("feedbackInbox.title")}
           </h1>
-          <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("feedbackInbox.subtitle")}</p>
+          <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("feedbackInbox.subtitle")}</p>
         </div>
 
         {/* Фільтри статусу */}
@@ -123,7 +123,7 @@ export default function FeedbackInboxPage() {
                   fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                   background: on ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface,#fff)",
                   border: `1.5px solid ${on ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
-                  color: on ? "var(--teal-text,#1a7a6c)" : "var(--sub,#666b82)" }}>
+                  color: on ? "var(--teal-text,#1a7a6c)" : "var(--sub,#62677E)" }}>
                 {label}
               </button>
             );
@@ -159,8 +159,8 @@ export default function FeedbackInboxPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "44px 16px", borderRadius: 18, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
-            <Inbox className="mx-auto h-8 w-8" style={{ color: "var(--sub,#666b82)" }} />
-            <p className="mt-2 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("feedbackInbox.empty")}</p>
+            <Inbox className="mx-auto h-8 w-8" style={{ color: "var(--sub,#62677E)" }} />
+            <p className="mt-2 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("feedbackInbox.empty")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -179,7 +179,7 @@ export default function FeedbackInboxPage() {
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                           {r.user_id ? (names[r.user_id] ?? "…") : t("feedbackInbox.anonymous")}
                         </p>
-                        <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                        <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                           <span style={{ color: cat.color, fontWeight: 700 }}>{t(`feedbackInbox.category_${r.category}`)}</span>
                           {" · "}{new Date(r.created_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}
                           {r.rating ? ` · ${"★".repeat(r.rating)}` : ""}
@@ -195,7 +195,7 @@ export default function FeedbackInboxPage() {
                     {r.message}
                   </p>
                   {r.page_url && (
-                    <p className="mt-1.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{r.page_url}</p>
+                    <p className="mt-1.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{r.page_url}</p>
                   )}
 
                   {!resolved && (
@@ -214,7 +214,7 @@ export default function FeedbackInboxPage() {
                   )}
                   {resolved && (
                     <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "new")}
-                      style={{ marginTop: 10, height: 40, padding: "0 14px", borderRadius: 9, cursor: "pointer", border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                      style={{ marginTop: 10, height: 40, padding: "0 14px", borderRadius: 9, cursor: "pointer", border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                       {t("feedbackInbox.reopen")}
                     </button>
                   )}

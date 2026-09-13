@@ -47,7 +47,7 @@ interface Props {
 
 const C = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "var(--teal-l,#f0fdf9)", txt: "var(--ds-txt,#0f0f1a)",
-  sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
+  sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
   gold: "#9a6a12", goldBg: "rgba(245,181,68,.16)", goldRing: "rgba(245,181,68,.4)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -201,7 +201,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                       onChange={(e) => setPlanChecked((p) => ({ ...p, [r.id]: e.target.checked }))}
                       style={{ width: 18, height: 18, accentColor: "#2BBFAA" }} />
                     <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 15 }}>{r.name}</span>
-                    <span style={{ fontSize: 14, color: "var(--sub,#666b82)", flexShrink: 0 }}>
+                    <span style={{ fontSize: 14, color: "var(--sub,#62677E)", flexShrink: 0 }}>
                       {next.toLocaleDateString(getLocale(), { weekday: "short" })} {r.time}
                     </span>
                   </label>
@@ -213,7 +213,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
               {planBusy ? "…" : t("closeDaySummary.createAll", { count: planCount })}
             </button>
             <button type="button" onClick={() => setPhase("summary")}
-              style={{ height: 40, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#666b82)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              style={{ height: 40, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#62677E)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
               {t("closeDaySummary.back")}
             </button>
           </div>
@@ -230,7 +230,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
           <DialogTitle className="sr-only">{t("closeDaySummary.title")}</DialogTitle>
           <div className="flex flex-col gap-3 py-1">
             <p style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.title")}</p>
-            <p style={{ fontSize: 14, color: "var(--sub,#666b82)", margin: 0 }}>
+            <p style={{ fontSize: 14, color: "var(--sub,#62677E)", margin: 0 }}>
               {t("closeDaySummary.subtitle", { count: doneStat.count })}
             </p>
             <NextStepBar icon="✍️"

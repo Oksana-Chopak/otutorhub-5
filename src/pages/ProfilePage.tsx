@@ -50,7 +50,7 @@ function PushSettingsCard() {
       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
         {t("pushNotif.cardTitle")}
       </p>
-      <p className="mt-0.5 mb-3 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+      <p className="mt-0.5 mb-3 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
         {t("pushNotif.cardDesc")}
       </p>
       <PushNotificationToggle />
@@ -82,7 +82,7 @@ function SettingToggleCard({
           <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
             {t(titleKey)}
           </p>
-          <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+          <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
             {t(descKey)}
           </p>
         </div>
@@ -181,7 +181,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
 const P = {
   teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", tealL: "var(--teal-l,#f0fdf9)",
   border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
-  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -915,7 +915,7 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "var(--ds-txt,#0f0f1a)", marginBottom: 4 }}>
                 {t("profile.editTitle")}
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#666b82)", marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#62677E)", marginBottom: 16 }}>
                 {t("profile.editSubtitle")}
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
@@ -950,7 +950,7 @@ export default function ProfilePage() {
                 />
               </div>
               {/* Primary contacts inline — one expressive form instead of a hop */}
-              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 13, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--sub,#666b82)", margin: "16px 0 8px" }}>
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 13, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--sub,#62677E)", margin: "16px 0 8px" }}>
                 {t("profile.editContacts")}
               </p>
               <div style={{ marginBottom: 12 }}>
@@ -1007,12 +1007,12 @@ export default function ProfilePage() {
                   gap: 8, padding: "13px 14px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)",
                   background: "var(--ds-surface,#fff)", cursor: "pointer" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Mail size={18} style={{ color: "var(--sub,#666b82)" }} />
+                  <Mail size={18} style={{ color: "var(--sub,#62677E)" }} />
                   <span style={{ textAlign: "left" }}>
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
                       {t("profile.editSocials")}
                     </span>
-                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "var(--sub,#666b82)" }}>
+                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "var(--sub,#62677E)" }}>
                       {[contacts.instagram_url && "Instagram", contacts.facebook_url && "Facebook", contacts.messenger_url && "Messenger"].filter(Boolean).join(" · ") || (t("profile.editSocialsHint") || "Instagram, Facebook, Messenger")}
                     </span>
                   </span>
@@ -1031,12 +1031,12 @@ export default function ProfilePage() {
                       <Star size={15} style={{ color: "#F5B400", fill: "#F5B400" }} />
                       {/* №7: середнє за ВСІМА оцінками (не за останніми 20) */}
                       {(ratingAgg ? ratingAgg.avg : reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
-                      <span style={{ color: "var(--sub,#666b82)", fontWeight: 600 }}>({ratingAgg ? ratingAgg.count : reviews.length})</span>
+                      <span style={{ color: "var(--sub,#62677E)", fontWeight: 600 }}>({ratingAgg ? ratingAgg.count : reviews.length})</span>
                     </span>
                   )}
                 </div>
                 {reviews.length === 0 ? (
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#666b82)", padding: "10px 0" }}>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#62677E)", padding: "10px 0" }}>
                     {t("profile.reviewsEmpty")}
                   </p>
                 ) : (
@@ -1104,7 +1104,7 @@ export default function ProfilePage() {
                     <button key={s} onClick={() => setSubjects(prev => [...prev, s])}
                       style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
                         background: "transparent", border: "1px solid var(--ds-border,#eceef3)", cursor: "pointer",
-                        color: "var(--sub,#666b82)" }}>
+                        color: "var(--sub,#62677E)" }}>
                       + {s}
                     </button>
                   ))}

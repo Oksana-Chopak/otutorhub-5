@@ -207,7 +207,8 @@ export function MonthlySummaryCard() {
           {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
           {t("monthlySummary.shareBtn")}
         </Button>
-        <Button onClick={handleDownloadImage} variant="outline" disabled={sharing}>
+        <Button onClick={handleDownloadImage} variant="outline" disabled={sharing}
+          aria-label={t("monthlySummary.downloadBtn")} title={t("monthlySummary.downloadBtn")}>
           <Download className="h-4 w-4" />
         </Button>
       </div>

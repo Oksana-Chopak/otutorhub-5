@@ -21,7 +21,7 @@ const R = {
   surface: "var(--ds-surface,#fff)",
   surface2: "var(--ds-surface3,#f6f5f1)",
   txt: "var(--ds-txt,#0f0f1a)",
-  sub: "var(--sub,#666b82)",
+  sub: "var(--sub,#62677E)",
   muted: "var(--ds-muted,#6f7489)",
   border: "var(--ds-border,#eceef3)",
   teal: "#2BBFAA",

@@ -11,7 +11,7 @@ interface RewardRow {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#25a896", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)",
+  teal: "#2BBFAA", tealD: "#25a896", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)",
   border: "var(--ds-border,#eceef3)", display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 

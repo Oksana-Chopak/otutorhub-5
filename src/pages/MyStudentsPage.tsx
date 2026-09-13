@@ -140,7 +140,7 @@ const emptyForm: FormData = {
 
 const T = {
   teal: "#2BBFAA", tealD: "#25a896", border: "var(--ds-border,#eceef3)",
-  bg: "var(--ds-bg,#F5F4F0)", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
+  bg: "var(--ds-bg,#F5F4F0)", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -1020,7 +1020,7 @@ export default function MyStudentsPage() {
           {(() => {
             const F = {
               border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
-              txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", gold: "#9a6a12",
+              txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)", gold: "#9a6a12",
               display: "Inter, system-ui, sans-serif",
               body: "'Plus Jakarta Sans', system-ui, sans-serif",
             };

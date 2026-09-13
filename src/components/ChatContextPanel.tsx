@@ -188,25 +188,25 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
             <div className="rounded-[14px] overflow-hidden" style={{ border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
               {contact.email && (
                 <div className="flex items-center gap-3 px-3.5 py-2.5" style={{ borderBottom: contact.phone ? "1px solid #f3f4f8" : "none" }}>
-                  <span style={{ color: "var(--sub,#666b82)", flexShrink: 0 }}>📧</span>
+                  <span style={{ color: "var(--sub,#62677E)", flexShrink: 0 }}>📧</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] uppercase tracking-wide" style={{ color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui" }}>Email</p>
+                    <p className="text-[14px] uppercase tracking-wide" style={{ color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui" }}>Email</p>
                     <p className="text-[14px] truncate" style={{ color: "var(--ds-txt,#0f0f1a)" }}>{contact.email}</p>
                   </div>
                   <button onClick={async () => {
                     if (await copyToClipboard(contact.email!)) toast.success(t("chatContextPanel.emailCopied"), { description: contact.email! });
                     else toast.error(t("common.copyFailed"));
                   }}
-                    className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "var(--sub,#666b82)" }} title={t("chatContextPanel.copy")}>
+                    className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "var(--sub,#62677E)" }} title={t("chatContextPanel.copy")}>
                     <Copy size={19} strokeWidth={2} />
                   </button>
                 </div>
               )}
               {contact.phone && (
                 <div className="flex items-center gap-3 px-3.5 py-2.5">
-                  <span style={{ color: "var(--sub,#666b82)", flexShrink: 0 }}>📞</span>
+                  <span style={{ color: "var(--sub,#62677E)", flexShrink: 0 }}>📞</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] uppercase tracking-wide" style={{ color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui" }}>{t("chatContextPanel.phone")}</p>
+                    <p className="text-[14px] uppercase tracking-wide" style={{ color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui" }}>{t("chatContextPanel.phone")}</p>
                     <p className="text-[14px] truncate" style={{ color: "var(--ds-txt,#0f0f1a)" }}>{contact.phone}</p>
                   </div>
                   <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "var(--teal-text,#1a7a6c)" }} title={t("chatContextPanel.call")}>
@@ -216,7 +216,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
                     if (await copyToClipboard(contact.phone!)) toast.success(t("chatContextPanel.phoneCopied"), { description: contact.phone! });
                     else toast.error(t("common.copyFailed"));
                   }}
-                    className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "var(--sub,#666b82)" }} title={t("chatContextPanel.copy")}>
+                    className="p-1.5 rounded-full hover:bg-muted flex-shrink-0" style={{ color: "var(--sub,#62677E)" }} title={t("chatContextPanel.copy")}>
                     <Copy size={19} strokeWidth={2} />
                   </button>
                 </div>

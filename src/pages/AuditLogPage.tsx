@@ -248,7 +248,7 @@ export default function AuditLogPage() {
         <div className="flex flex-wrap items-center gap-2">
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 44, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
-              <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
+              <Search size={20} style={{ color: "var(--sub,#62677E)", flexShrink: 0 }} />
               <input aria-label={t("auditLog.searchPlaceholder")}
                 autoFocus
                 placeholder={t("auditLog.searchPlaceholder")}
@@ -257,13 +257,13 @@ export default function AuditLogPage() {
                 style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--ds-txt,#0f0f1a)", minWidth: 0 }}
               />
               <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
-                style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={16} />
               </button>
             </div>
           ) : (
             <button onClick={() => setSearchOpen(true)} aria-label={t("auditLog.searchPlaceholder")}
-              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={21} strokeWidth={2} />
             </button>
           )}
@@ -362,7 +362,7 @@ export default function AuditLogPage() {
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={metaVariant}>{metaLabel}</Badge>
-                        <span className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                        <span className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                           {formatDate(e.created_at)}
                         </span>
                       </div>

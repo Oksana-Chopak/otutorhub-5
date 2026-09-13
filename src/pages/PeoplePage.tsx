@@ -1098,7 +1098,7 @@ export default function PeoplePage() {
                       { v: u.telegram, label: "telegram" },
                     ].filter((c) => !!c.v).map((c) => (
                       <span key={c.label} className="flex items-center gap-1.5 min-w-0">
-                        <span className="truncate text-[15px]" style={{ color: "var(--sub,#666b82)" }}>{c.v}</span>
+                        <span className="truncate text-[15px]" style={{ color: "var(--sub,#62677E)" }}>{c.v}</span>
                         <button
                           type="button"
                           aria-label={t("people.copyAriaLabel")}
@@ -1231,7 +1231,7 @@ export default function PeoplePage() {
         <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "0.5px solid var(--border, #f0f1f5)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
-              <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
+              <Search size={20} style={{ color: "var(--sub,#62677E)", flexShrink: 0 }} />
               <input aria-label={t("people.searchPlaceholder")}
                 autoFocus
                 placeholder={t("people.searchPlaceholder")}
@@ -1240,13 +1240,13 @@ export default function PeoplePage() {
                 style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--ds-txt,#0f0f1a)", minWidth: 0 }}
               />
               <button onClick={() => { setSearchQuery(""); setSearchOpen(false); }} aria-label={t("common.close")}
-                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={17} />
               </button>
             </div>
           ) : (
             <button onClick={() => setSearchOpen(true)} aria-label={t("people.searchPlaceholder")}
-              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={21} strokeWidth={2} />
             </button>
           )}
@@ -1308,7 +1308,7 @@ export default function PeoplePage() {
                 style={{
                   fontFamily: "Inter, system-ui, sans-serif",
                   fontSize: 14,
-                  color: activeRoleTab === tab ? "#1f8e7e" : "var(--sub,#666b82)",
+                  color: activeRoleTab === tab ? "#1f8e7e" : "var(--sub,#62677E)",
                   borderBottom: activeRoleTab === tab ? "2px solid #2BBFAA" : "2px solid transparent",
                   fontWeight: activeRoleTab === tab ? 700 : 600,
                 }}
@@ -1347,7 +1347,7 @@ export default function PeoplePage() {
                 // білими плашками зі світлим написом (2.2:1).
                 background: statusFilter === pill.value ? "#E1F5EE" : "var(--ds-surface,#fff)",
                 border: `1.5px solid ${statusFilter === pill.value ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
-                color: statusFilter === pill.value ? "#0F6E56" : "var(--sub,#666b82)",
+                color: statusFilter === pill.value ? "#0F6E56" : "var(--sub,#62677E)",
               }}
             >
               {pill.label}
@@ -1429,10 +1429,10 @@ export default function PeoplePage() {
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("people.dialogTutorRateTitle")}</div>
-              <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogTutorRateDesc")}</div>
+              <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogTutorRateDesc")}</div>
             </div>
             <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
-              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
           </div>
@@ -1490,7 +1490,7 @@ export default function PeoplePage() {
           </div>
           <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}
-              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
             </button>
             <button type="button" onClick={saveTutorRate}
@@ -1512,10 +1512,10 @@ export default function PeoplePage() {
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("people.dialogStudentPriceTitle")}</div>
-              <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogStudentPriceDesc")}</div>
+              <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogStudentPriceDesc")}</div>
             </div>
             <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
-              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
           </div>
@@ -1570,7 +1570,7 @@ export default function PeoplePage() {
           </div>
           <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))}
-              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
             </button>
             <button type="button" onClick={saveStudentPrice}
@@ -1595,10 +1595,10 @@ export default function PeoplePage() {
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("people.dialogAddTutorTitle")}</div>
-              <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}</div>
+              <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}</div>
             </div>
             <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
-              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
           </div>
@@ -1733,7 +1733,7 @@ export default function PeoplePage() {
           </div>
           <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
-              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
             </button>
             <button type="button" onClick={saveAddTutorToStudent}
@@ -1795,10 +1795,10 @@ export default function PeoplePage() {
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("people.dialogAddTitle")}</div>
-                  <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddDesc")}</div>
+                  <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddDesc")}</div>
                 </div>
                 <button type="button" onClick={() => setAddOpen(false)} aria-label={t("common.close")}
-                  style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <X size={18} />
                 </button>
               </div>
@@ -1888,7 +1888,7 @@ export default function PeoplePage() {
               </div>
               <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
                 <button type="button" onClick={() => setAddOpen(false)} disabled={adding}
-                  style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+                  style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                   {t("people.cancelBtn")}
                 </button>
                 <button type="button" onClick={addPerson} disabled={adding}
@@ -1987,7 +1987,7 @@ export default function PeoplePage() {
                     <p className="text-[22px] font-extrabold leading-tight text-foreground truncate">
                       {fullName(u)}
                     </p>
-                    <p className="text-[14px] mt-0.5" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-[14px] mt-0.5" style={{ color: "var(--sub,#62677E)" }}>
                       {u.role === "tutor" ? t("roles.tutor")
                         : u.role === "manager" ? t("roles.manager")
                         : t("roles.student")}
@@ -2000,7 +2000,7 @@ export default function PeoplePage() {
                       <button
                         type="button"
                         className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                        style={{ color: "var(--sub,#666b82)" }}
+                        style={{ color: "var(--sub,#62677E)" }}
                         onClick={() => archivePerson(u)}
                         aria-label={t("people.archiveBtn")}
                       >
@@ -2022,7 +2022,7 @@ export default function PeoplePage() {
                       <button
                         type="button"
                         className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                        style={{ color: "var(--sub,#666b82)" }}
+                        style={{ color: "var(--sub,#62677E)" }}
                         onClick={() => openEditFor(u)}
                         aria-label={t("people.editContactsBtn")}
                       >
@@ -2032,7 +2032,7 @@ export default function PeoplePage() {
                     <button
                       type="button"
                       className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                      style={{ color: "var(--sub,#666b82)" }}
+                      style={{ color: "var(--sub,#62677E)" }}
                       onClick={() => setSelectedPerson(null)}
                       aria-label={t("common.close")}
                     >
@@ -2044,7 +2044,7 @@ export default function PeoplePage() {
                 {/* Contact rows */}
                 {u.phone && (
                   <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-                    <Phone className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#666b82)" }} />
+                    <Phone className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#62677E)" }} />
                     <span className="flex-1 text-[15px] text-foreground">{u.phone}</span>
                     <button
                       type="button"
@@ -2059,7 +2059,7 @@ export default function PeoplePage() {
                 )}
                 {u.email && (
                   <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-                    <Mail className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#666b82)" }} />
+                    <Mail className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#62677E)" }} />
                     <span className="flex-1 text-[15px] text-foreground truncate">{u.email}</span>
                     <button
                       type="button"
@@ -2076,7 +2076,7 @@ export default function PeoplePage() {
                 {/* Rate row — tutor subjects */}
                 {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
                   <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-                    <Tag className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#666b82)" }} />
+                    <Tag className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#62677E)" }} />
                     <div className="flex-1 min-w-0">
                       {u.subjects.map((s) => {
                         const r = tutorSubjectRates[u.id]?.[s];
@@ -2086,7 +2086,7 @@ export default function PeoplePage() {
                           </p>
                         );
                       })}
-                      <p className="text-sm mt-0.5" style={{ color: "var(--sub,#666b82)" }}>
+                      <p className="text-sm mt-0.5" style={{ color: "var(--sub,#62677E)" }}>
                         {t("people.subjectRateHint")}
                       </p>
                     </div>
@@ -2094,7 +2094,7 @@ export default function PeoplePage() {
                       <button
                         type="button"
                         className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                        style={{ color: "var(--sub,#666b82)" }}
+                        style={{ color: "var(--sub,#62677E)" }}
                         onClick={() => {
                           setTutorDialog({
                             open: true,
@@ -2116,7 +2116,7 @@ export default function PeoplePage() {
                 {/* Rate rows — student pairs (subject · tutor · price) */}
                 {u.role === "student" && studentPairs.length > 0 && (
                   <div className="flex items-start gap-3 px-4 py-3 border-b border-border">
-                    <Tag className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--sub,#666b82)" }} />
+                    <Tag className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--sub,#62677E)" }} />
                     <div className="flex-1 min-w-0">
                       {studentPairs.map((r) => (
                         <div key={r.id} className="flex items-center gap-2">
@@ -2131,7 +2131,7 @@ export default function PeoplePage() {
                               <button
                                 type="button"
                                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                                style={{ color: "var(--sub,#666b82)" }}
+                                style={{ color: "var(--sub,#62677E)" }}
                                 onClick={() => {
                                   setWalletPair({ student: u, tutorId: r.tutor_id, tutorName: tutorNameOf(r.tutor_id) });
                                   setWalletOpen(true);
@@ -2144,7 +2144,7 @@ export default function PeoplePage() {
                               <button
                                 type="button"
                                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                                style={{ color: "var(--sub,#666b82)" }}
+                                style={{ color: "var(--sub,#62677E)" }}
                                 onClick={() => openRateFor(r)}
                                 aria-label={t("people.actionRate")}
                               >
@@ -2154,7 +2154,7 @@ export default function PeoplePage() {
                           )}
                         </div>
                       ))}
-                      <p className="text-sm mt-0.5" style={{ color: "var(--sub,#666b82)" }}>
+                      <p className="text-sm mt-0.5" style={{ color: "var(--sub,#62677E)" }}>
                         {t("people.subjectRateHint")}
                       </p>
                     </div>
@@ -2164,7 +2164,7 @@ export default function PeoplePage() {
                 {/* Onboarding progress — tutor only */}
                 {tutorProgress && (
                   <div className="px-4 py-3 border-b border-border">
-                    <div className="flex justify-between text-[14px] mb-1.5" style={{ color: "var(--sub,#666b82)" }}>
+                    <div className="flex justify-between text-[14px] mb-1.5" style={{ color: "var(--sub,#62677E)" }}>
                       {/* 46: заголовок уже ніс дріб — «Прогрес · 2/3   2/3». Ліворуч назва, праворуч число. */}
                       <span>{t("people.progressLabel")}</span>
                       <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount}/{tutorProgress.steps.length}</span>
@@ -2239,8 +2239,8 @@ export default function PeoplePage() {
                         setSelectedPerson(null);
                       }}
                     >
-                      <Wallet className="h-5 w-5" style={{ color: "var(--sub,#666b82)" }} />
-                      <span className="text-[14px] font-medium" style={{ color: "var(--sub,#666b82)" }}>{t("people.actionWallet")}</span>
+                      <Wallet className="h-5 w-5" style={{ color: "var(--sub,#62677E)" }} />
+                      <span className="text-[14px] font-medium" style={{ color: "var(--sub,#62677E)" }}>{t("people.actionWallet")}</span>
                     </button>
                     <button
                       type="button"
@@ -2248,8 +2248,8 @@ export default function PeoplePage() {
                       style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,var(--ds-border,#eceef3))" }}
                       onClick={() => openRateFor(studentPairs[0])}
                     >
-                      <Tag className="h-5 w-5" style={{ color: "var(--sub,#666b82)" }} />
-                      <span className="text-[14px] font-medium" style={{ color: "var(--sub,#666b82)" }}>{t("people.actionRate")}</span>
+                      <Tag className="h-5 w-5" style={{ color: "var(--sub,#62677E)" }} />
+                      <span className="text-[14px] font-medium" style={{ color: "var(--sub,#62677E)" }}>{t("people.actionRate")}</span>
                     </button>
                   </div>
                   )

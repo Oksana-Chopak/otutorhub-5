@@ -276,18 +276,18 @@ export default function StudentPaymentsPage() {
         {loadError ? null : currencyEntries.length === 0 ? (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "var(--warning-text,#B45309)" }}>0</p>
             </div>
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "var(--success-text,#11803a)" }}>0</p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "var(--warning-text,#B45309)" }}>
@@ -297,7 +297,7 @@ export default function StudentPaymentsPage() {
               </div>
               {/* Майбутнє — прогноз, не рахунок */}
               {currencyEntries.some(([, v]) => v.upcoming > 0) && (
-                <p style={{ marginTop: 6, fontSize: 13, color: "var(--sub,#666b82)" }}>
+                <p style={{ marginTop: 6, fontSize: 13, color: "var(--sub,#62677E)" }}>
                   {t("studentPagesExtra.upcomingSum", {
                     sum: currencyEntries.filter(([, v]) => v.upcoming > 0)
                       .map(([c, v]) => formatPrice(v.upcoming, c, { decimals: 0 })).join(" + "),
@@ -306,7 +306,7 @@ export default function StudentPaymentsPage() {
               )}
             </div>
             <div style={{ borderRadius: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "var(--success-text,#11803a)" }}>
@@ -369,7 +369,7 @@ export default function StudentPaymentsPage() {
         ) : loadError ? (
           <ErrorState onRetry={() => setReloadKey((k) => k + 1)} retrying={loading} />
         ) : rows.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", fontSize: 14, color: "var(--sub,#666b82)" }}>{t("studentPagesExtra.noLessonsCard")}</div>
+          <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", fontSize: 14, color: "var(--sub,#62677E)" }}>{t("studentPagesExtra.noLessonsCard")}</div>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {rows.map((r) => {
@@ -385,12 +385,12 @@ export default function StudentPaymentsPage() {
                         {r.subject}
                         {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{r.carried_over ? t("studentPagesExtra.carriedOverDebt") : t("studentPagesExtra.cancellationFee")}</span>}
                       </p>
-                      <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
+                      <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2.5" style={{ marginLeft: "auto", minWidth: 0 }}>
                       <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
                       {/* «Очікує» — лише про борг (проведене/штраф); майбутнє — нейтральне «Заплановано» */}
-                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : isOwedRow(r) ? "rgba(245,158,11,.16)" : "rgba(148,155,185,.16)", color: paid ? "#16a34a" : isOwedRow(r) ? "#b4740b" : "var(--sub,#666b82)" }}>
+                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : isOwedRow(r) ? "rgba(245,158,11,.16)" : "rgba(148,155,185,.16)", color: paid ? "var(--success-text,#107836)" : isOwedRow(r) ? "var(--warning-text,#A74D08)" : "var(--sub,#62677E)" }}>
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
                         {paid ? t("studentPagesExtra.paidStatus") : isOwedRow(r) ? t("studentPagesExtra.awaitingStatus") : t("studentPagesExtra.plannedStatus")}
                       </span>

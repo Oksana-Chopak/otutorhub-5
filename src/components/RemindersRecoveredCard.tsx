@@ -90,7 +90,7 @@ export function RemindersRecoveredCard() {
         border: "1px solid rgba(43,191,170,.3)",
       }}
     >
-      <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
+      <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
         💌 {t("remindersRecovered.label")}
       </p>
       <p className="mt-1 text-[22px] font-extrabold" style={{ color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif", letterSpacing: "-.01em" }}>

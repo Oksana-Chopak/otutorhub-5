@@ -138,11 +138,12 @@ function SegSwitch<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
+          aria-label={o.label}
           className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[15px] transition-all"
           style={
             value === o.value
               ? { background: "var(--ds-surface,#fff)", color: "var(--teal-text,#1a7a6c)", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
-              : { color: "var(--sub,#666b82)", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
+              : { color: "var(--sub,#62677E)", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
           }
         >
           {o.icon}

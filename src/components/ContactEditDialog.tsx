@@ -30,7 +30,7 @@ function Field({
     <div className="space-y-1.5">
       <Label htmlFor={htmlFor} className="text-[14px] font-medium text-[#666b82]">{label}</Label>
       <div className="relative">
-        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sub,#666b82)]" />
+        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sub,#62677E)]" />
         {children}
       </div>
     </div>
@@ -41,7 +41,7 @@ function Field({
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-[var(--sub,#666b82)]">{label}</div>
+      <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-[var(--sub,#62677E)]">{label}</div>
       {children}
     </section>
   );
@@ -248,12 +248,12 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
               {t("contactEditExtra.titleFormat", { name: userName })}
             </div>
-            <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>
               {t("contactEdit.visibilityHint")}
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label={t("common.close")}
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -300,7 +300,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
                 value={cardInput} onChange={(e) => setCardInput(e.target.value)} />
             </Field>
             <div className="flex items-start gap-2 rounded-[12px] bg-[#F5F4F0] px-3 py-2.5">
-              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[var(--sub,#666b82)]" />
+              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[var(--sub,#62677E)]" />
               <p className="text-[14px] leading-snug text-[#666b82]">{t("contactEditExtra.securityNote")}</p>
             </div>
           </Section>

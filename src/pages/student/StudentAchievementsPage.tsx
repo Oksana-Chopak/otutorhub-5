@@ -121,7 +121,7 @@ export default function StudentAchievementsPage() {
             {/* Earned section */}
             {earnedN > 0 && (
               <div className="space-y-3">
-                <div className="text-[14px] font-bold uppercase tracking-[0.09em]" style={{ color: "var(--sub,#666b82)" }}>
+                <div className="text-[14px] font-bold uppercase tracking-[0.09em]" style={{ color: "var(--sub,#62677E)" }}>
                   {t("studentAchievements.earnedSection", { n: earnedN })}
                 </div>
                 <StudentAchievementsGrid achievements={earned} />
@@ -131,7 +131,7 @@ export default function StudentAchievementsPage() {
             {/* Locked / upcoming section */}
             {locked.length > 0 && (
               <div className="space-y-3">
-                <div className="text-[14px] font-bold uppercase tracking-[0.09em]" style={{ color: "var(--sub,#666b82)" }}>
+                <div className="text-[14px] font-bold uppercase tracking-[0.09em]" style={{ color: "var(--sub,#62677E)" }}>
                   {earnedN > 0
                     ? t("studentAchievements.upcomingSection", { n: locked.length })
                     : t("studentAchievements.allSection", { n: locked.length })}

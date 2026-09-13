@@ -59,13 +59,13 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
             {t(`studentProgress.level_${level.key}`)}
           </span>
           {next && (
-            <span style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 600 }}>
+            <span style={{ fontSize: 14, color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 600 }}>
               {next.min - completedCount} {t("studentProgress.toNext")}
             </span>
           )}
         </div>
         <Progress value={progress} className="h-2.5" />
-        <p style={{ marginTop: 6, fontSize: 14, color: "var(--sub,#666b82)" }}>
+        <p style={{ marginTop: 6, fontSize: 14, color: "var(--sub,#62677E)" }}>
           {t("studentProgress.progressTitle")}: <span style={{ color: "var(--ds-txt,#0f0f1a)", fontWeight: 700 }}>{completedCount}</span>{next ? ` / ${next.min}` : ""}
         </p>
       </div>

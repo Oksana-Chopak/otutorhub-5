@@ -76,7 +76,7 @@ export function ActionItemsCard({ onOpenLesson }: { onOpenLesson?: (lessonId: st
 
   return (
     <div className="rounded-[16px] bg-card p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]" style={{ borderLeft: "3.5px solid #8b5cf6" }}>
-      <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
+      <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
         ✨ {t("actionItemsCard.title")}
       </p>
       <div className="mt-2.5 space-y-3">

@@ -405,7 +405,7 @@ export default function PaywallMetricsPage() {
                         <TableCell className="text-sm">
                           {FEATURE_LABELS[e.feature_key] ?? e.feature_key}
                         </TableCell>
-                        <TableCell className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{e.source}</TableCell>
+                        <TableCell className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{e.source}</TableCell>
                         <TableCell>
                           <Badge
                             variant={

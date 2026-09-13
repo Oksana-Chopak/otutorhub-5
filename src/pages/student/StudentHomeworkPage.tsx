@@ -249,7 +249,7 @@ export default function StudentHomeworkPage() {
         <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: done ? "rgba(34,197,94,.14)" : "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{done ? "✅" : "📚"}</span>
         <div style={{ minWidth: 0, flex: 1 }}>
           <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
-          <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
+          <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
         </div>
         {done && (
           <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "rgba(34,197,94,.16)", color: "#15803d", fontSize: 14, fontWeight: 800 }}>
@@ -327,7 +327,7 @@ export default function StudentHomeworkPage() {
       <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
         <div style={{ fontSize: 38 }}>📚</div>
         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", marginTop: 8 }}>{emptyTitle}</p>
-        <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
+        <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
       </div>
     ) : (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -348,7 +348,7 @@ export default function StudentHomeworkPage() {
           <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
             <div style={{ fontSize: 38 }}>📚</div>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", marginTop: 8 }}>{t("studentPagesExtra.noHomeworkTitle")}</p>
-            <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
+            <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
           </div>
         ) : (
           <Tabs defaultValue="active">
@@ -360,7 +360,7 @@ export default function StudentHomeworkPage() {
               {renderList(active, t("studentPagesExtra.noHomeworkTitle"))}
             </TabsContent>
             <TabsContent value="archive" className="mt-4">
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--sub,#666b82)", margin: "0 2px 14px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--sub,#62677E)", margin: "0 2px 14px" }}>
                 <Clock size={15} strokeWidth={1.8} style={{ color: "#6f7489", flexShrink: 0 }} />
                 {t("studentPagesExtra.homeworkArchiveHint")}
               </div>

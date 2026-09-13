@@ -171,7 +171,7 @@ const F = {
   tealText:"var(--teal-text,#1a7a6c)",
   warn:"#f59e0b", warnD:"var(--warning-text,#B45309)", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
   border:"var(--ds-border,#eceef3)", bg:"var(--ds-bg,#F5F4F0)", surface:"var(--ds-surface,#fff)",
-  txt:"var(--ds-txt,#0f0f1a)", sub:"var(--sub,#666b82)", muted:"var(--ds-muted,#6f7489)",
+  txt:"var(--ds-txt,#0f0f1a)", sub:"var(--sub,#62677E)", muted:"var(--ds-muted,#6f7489)",
   display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -1529,7 +1529,7 @@ export default function FinancesPage() {
                       {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                       {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                     </p>
-                    <p className="text-[14px]" style={{ color: "var(--sub,#666b82)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#62677E)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && !isGroup && (
                     <div
@@ -2132,7 +2132,7 @@ export default function FinancesPage() {
       teal: "#2BBFAA", tealD: "#25a896",
       warn: "#f59e0b", warnD: "var(--warning-text,#B45309)", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
       border: "var(--ds-border,#eceef3)", surface: "var(--ds-surface,#fff)",
-      txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
+      txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)",
       display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
     };
     // Their own lessons, individual only (group lessons carry no tutor payout), newest
@@ -3008,7 +3008,7 @@ export default function FinancesPage() {
                         height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
-                        color: period === p ? "#0f0f1a" : "var(--sub,#666b82)",
+                        color: period === p ? "#0f0f1a" : "var(--sub,#62677E)",
                         boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
                         transition: "all .15s",
                       }}
@@ -3224,7 +3224,7 @@ export default function FinancesPage() {
             <button
               onClick={() => setExportOpen(true)}
               className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors hover:bg-muted"
-              style={{ color: "var(--sub,#666b82)", border: "1px solid var(--border,var(--ds-border,#eceef3))" }}
+              style={{ color: "var(--sub,#62677E)", border: "1px solid var(--border,var(--ds-border,#eceef3))" }}
               title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />
               CSV
@@ -3289,7 +3289,7 @@ export default function FinancesPage() {
                 onClick={() => setSelected(new Set())}
                 aria-label={t("common.close")}
                 className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-                style={{ color: "var(--sub,#666b82)" }}
+                style={{ color: "var(--sub,#62677E)" }}
               >
                 <X className="h-4 w-4" />
               </button>

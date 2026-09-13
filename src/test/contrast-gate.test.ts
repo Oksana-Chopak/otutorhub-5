@@ -173,3 +173,31 @@ describe("контраст-гейт (WCAG AA)", () => {
     expect(tealText, "нових teal-текстів (2.30:1) бути не може").toBeLessThanOrEqual(11);
   });
 });
+
+/* 13.09, фінальний прогін перед живими користувачами. Токени підбирались під
+   ПЛОСКЕ тло сторінки; на власній кольоровій підкладці (пігулка статусу,
+   тонована картка) ті самі написи падали до 4.01–4.47. Тут — перевірка саме
+   на таких підкладках, бо на них люди й дивляться. */
+describe("текстові токени тримають 4.5:1 і на кольорових підкладках", () => {
+  const over = (tint: [number, number, number], a: number, base: [number, number, number]): [number, number, number] =>
+    [tint[0] * a + base[0] * (1 - a), tint[1] * a + base[1] * (1 - a), tint[2] * a + base[2] * (1 - a)];
+  const WHITE: [number, number, number] = [255, 255, 255];
+  const PAGE: [number, number, number] = [245, 244, 240];
+
+  const cases: [string, [number, number, number][]][] = [
+    ["--success-text", [over([34, 197, 94], 0.1, WHITE), over([34, 197, 94], 0.1, PAGE), over([34, 197, 94], 0.16, WHITE)]],
+    ["--danger-text", [over([239, 68, 68], 0.1, WHITE), over([239, 68, 68], 0.1, PAGE), over([239, 68, 68], 0.16, WHITE)]],
+    ["--warning-text", [[252, 229, 188], [244, 237, 223], over([245, 158, 11], 0.1, WHITE)]],
+    ["--sub", [[236, 233, 245], [236, 236, 241], [238, 239, 244], PAGE, WHITE]],
+  ];
+
+  for (const [token, bgs] of cases) {
+    it(`${token} читається на своїх підкладках`, () => {
+      const fg = hexToken(token);
+      for (const bg of bgs) {
+        const r = contrast(fg, bg as [number, number, number]);
+        expect(r, `${token} на rgb(${bg.map(Math.round).join(",")})`).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+  }
+});

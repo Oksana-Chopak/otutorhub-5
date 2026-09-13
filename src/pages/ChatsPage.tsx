@@ -943,7 +943,7 @@ export default function ChatsPage() {
                   <p className="hidden lg:block font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
                     {t("chats.title")}
                   </p>
-                  <p className="hidden lg:block text-[14px] mt-0.5" style={{ color: "var(--sub,#666b82)" }}>
+                  <p className="hidden lg:block text-[14px] mt-0.5" style={{ color: "var(--sub,#62677E)" }}>
                     {isManager
                       ? t("chats.activeDialogsCount", { count: threads.length })
                       : t("chats.pageSubtitleOther")}
@@ -968,7 +968,7 @@ export default function ChatsPage() {
               <div className="relative">
                 <Search
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
-                  style={{ color: "var(--sub,#666b82)" }}
+                  style={{ color: "var(--sub,#62677E)" }}
                 />
                 <input aria-label={t("chats.searchPlaceholder")}
                   value={search}
@@ -985,7 +985,7 @@ export default function ChatsPage() {
                   <PopoverTrigger asChild>
                     <button className="tap-44 inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[14px] font-bold"
                       style={{ background: "var(--ds-surface,#fff)", border: "1px solid var(--border,var(--ds-border,#eceef3))", color: "var(--txt,#0f0f1a)", fontFamily: "Inter, system-ui" }}>
-                      <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--sub,#666b82)" }} />
+                      <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--sub,#62677E)" }} />
                       {t("chats.filters")}
                     </button>
                   </PopoverTrigger>
@@ -995,7 +995,7 @@ export default function ChatsPage() {
                         className="flex w-full items-center justify-between rounded-[8px] px-3 py-2.5 text-left text-[14px] font-semibold"
                         style={sortMode === mode
                           ? { background: "var(--bg,#F5F4F0)", color: "var(--txt,#0f0f1a)" }
-                          : { color: "var(--sub,#666b82)" }}>
+                          : { color: "var(--sub,#62677E)" }}>
                         {mode === "recent" ? t("chats.sortRecent") : mode === "unread" ? t("chats.sortUnread") : t("chats.sortName")}
                         {sortMode === mode && <span style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>}
                       </button>
@@ -1011,16 +1011,16 @@ export default function ChatsPage() {
             <div className="mt-auto min-h-0 overflow-y-auto" style={{ padding: "10px 12px", background: "var(--ds-bg,#F5F4F0)", borderRadius: "16px 16px 0 0" }}>
               {visibleThreads.length === 0 ? (
                 <div className="px-4 py-8 text-center space-y-2">
-                  <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                  <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                     {search ? t("chats.noResults") : t("chats.noChats")}
                   </p>
                   {!search && !isManager && (
-                    <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                       {t("chats.searchHint")}
                     </p>
                   )}
                   {!search && isManager && (
-                    <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                       {t("chats.managerStartHint")}
                     </p>
                   )}
@@ -1060,7 +1060,7 @@ export default function ChatsPage() {
                             >
                               {tName}
                             </p>
-                            <span className="text-[14px] flex-shrink-0" style={{ color: "var(--sub,#666b82)" }}>
+                            <span className="text-[14px] flex-shrink-0" style={{ color: "var(--sub,#62677E)" }}>
                               {timeShort(thread.last_message_at)}
                             </span>
                           </div>
@@ -1068,7 +1068,7 @@ export default function ChatsPage() {
                             <p
                               className="text-[14px] truncate"
                               style={{
-                                color: isUnread ? "#0f0f1a" : "var(--sub,#666b82)",
+                                color: isUnread ? "#0f0f1a" : "var(--sub,#62677E)",
                                 fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
                                 fontWeight: isUnread ? 600 : 400,
                               }}
@@ -1177,7 +1177,7 @@ export default function ChatsPage() {
                       )}
                     </div>
                     {isManager ? (
-                      <p className="text-[14px] truncate" style={{ color: "var(--sub,#666b82)" }}>
+                      <p className="text-[14px] truncate" style={{ color: "var(--sub,#62677E)" }}>
                         {t("chats.centerThreadSubtitle", { name: fullName(profiles[selectedThread.tutor_id]) })}
                       </p>
                     ) : (
@@ -1194,7 +1194,7 @@ export default function ChatsPage() {
                         onClick={() => setShowContextPanel(true)}
                         aria-label={t("chatContext.openBtn")}
                       >
-                        <Info className="h-4 w-4" style={{ color: "var(--sub,#666b82)" }} />
+                        <Info className="h-4 w-4" style={{ color: "var(--sub,#62677E)" }} />
                       </button>
                     )}
                   </div>
@@ -1211,7 +1211,7 @@ export default function ChatsPage() {
                     <div className="flex justify-center mb-4">
                       <button
                         className="px-3 py-1 rounded-full text-[14px] transition-colors hover:bg-black/5"
-                        style={{ color: "var(--sub,#666b82)" }}
+                        style={{ color: "var(--sub,#62677E)" }}
                         onClick={() =>
                           setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
                         }
@@ -1233,7 +1233,7 @@ export default function ChatsPage() {
                     </div>
                   )}
                   {messages.length === 0 ? (
-                    <p className="text-center text-[14px] py-8" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-center text-[14px] py-8" style={{ color: "var(--sub,#62677E)" }}>
                       {t("chats.noMessagesYet")}
                     </p>
                   ) : (
@@ -1255,7 +1255,7 @@ export default function ChatsPage() {
                                 className="px-3 py-1 rounded-full text-[14px] font-semibold"
                                 style={{
                                   background: "rgba(15,15,26,.08)",
-                                  color: "var(--sub,#666b82)",
+                                  color: "var(--sub,#62677E)",
                                   fontFamily: "Inter, system-ui",
                                 }}
                               >
@@ -1275,7 +1275,7 @@ export default function ChatsPage() {
                               <p
                                 className="text-[14px] mb-1 px-3 truncate max-w-[75%]"
                                 style={{
-                                  color: senderIsManager ? "#b45309" : "var(--sub,#666b82)",
+                                  color: senderIsManager ? "#b45309" : "var(--sub,#62677E)",
                                   fontFamily: "Inter, system-ui",
                                   fontWeight: 600,
                                   whiteSpace: "nowrap",
@@ -1404,7 +1404,7 @@ export default function ChatsPage() {
                             ? t("chats.smartUnpaidTitle", { amount: selectedThread.ctx.amountText ?? formatPrice(selectedThread.ctx.amount ?? 0, selectedThread.ctx.currency ?? "UAH")})
                             : t("chats.smartCreateFirstLesson")}
                         </p>
-                        <p className="text-[14px] truncate" style={{ color: "var(--sub,#666b82)" }}>
+                        <p className="text-[14px] truncate" style={{ color: "var(--sub,#62677E)" }}>
                           {selectedThread.ctx.kind === "debt"
                             ? t("chats.smartLessonsAwaitingPayment", { count: selectedThread.ctx.count ?? 0 })
                             : t("chats.smartNoLessonsYet", { name: counterpartName(selectedThread) })}
@@ -1451,12 +1451,12 @@ export default function ChatsPage() {
                   >
                     <Paperclip className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#2BBFAA" }} />
                     <span className="flex-1 truncate" style={{ color: "var(--txt,#0f0f1a)" }}>{pendingFile.name}</span>
-                    <span style={{ color: "var(--sub,#666b82)" }}>{formatBytes(pendingFile.size)}</span>
+                    <span style={{ color: "var(--sub,#62677E)" }}>{formatBytes(pendingFile.size)}</span>
                     <button
                       type="button"
                       onClick={() => { setPendingFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
                       className="rounded p-1 hover:text-destructive"
-                      style={{ color: "var(--sub,#666b82)" }}
+                      style={{ color: "var(--sub,#62677E)" }}
                       aria-label={t("chats.removeFile")}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -1494,7 +1494,7 @@ export default function ChatsPage() {
                     title={t("chats.attach")}
                     aria-label={t("chats.attach")}
                     className="w-11 h-11 rounded-full flex items-center justify-center transition-colors hover:bg-muted flex-shrink-0"
-                    style={{ color: "var(--sub,#666b82)" }}
+                    style={{ color: "var(--sub,#62677E)" }}
                   >
                     <Paperclip className="h-4 w-4" />
                   </button>
@@ -1548,7 +1548,7 @@ export default function ChatsPage() {
                 </form>
               </>
             ) : (
-              <div className="flex flex-1 items-center justify-center text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+              <div className="flex flex-1 items-center justify-center text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                 {t("chats.selectChat")}
               </div>
             )}
@@ -1574,7 +1574,7 @@ export default function ChatsPage() {
               ) : (
                 <div
                   className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[14px]"
-                  style={{ color: "var(--sub,#666b82)" }}
+                  style={{ color: "var(--sub,#62677E)" }}
                 >
                   <MessageSquare className="h-8 w-8 mb-3 opacity-30" />
                   <p>{t("chats.selectChatForContextLine1")}<br />{t("chats.selectChatForContextLine2")}</p>

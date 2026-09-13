@@ -34,7 +34,7 @@ export function NextStepBar({ icon, text, actionLabel, onAction, onDismiss }: {
       {onDismiss && (
         <button type="button" onClick={onDismiss} aria-label={t("common.close")}
           className="tap-44 shrink-0 h-8 w-8 rounded-lg flex items-center justify-center"
-          style={{ border: "none", background: "transparent", color: "var(--sub,#666b82)", cursor: "pointer" }}>
+          style={{ border: "none", background: "transparent", color: "var(--sub,#62677E)", cursor: "pointer" }}>
           <X className="h-4 w-4" />
         </button>
       )}

@@ -16,7 +16,7 @@ const T = {
   border:  "var(--ds-border,#eceef3)",
   bg:      "var(--ds-bg,#F5F4F0)",
   txt:     "var(--ds-txt,#0f0f1a)",
-  sub:     "var(--sub,#666b82)",
+  sub:     "var(--sub,#62677E)",
   muted:   "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif",
   body:    "'Plus Jakarta Sans', system-ui, sans-serif",

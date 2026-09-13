@@ -118,7 +118,7 @@ export function GroupLessonParticipants({
   }
 
   if (rows.length === 0) {
-    return <p style={{ fontSize: 14, color: "var(--sub,#666b82)" }}>{t("groupPayments.noParticipants")}</p>;
+    return <p style={{ fontSize: 14, color: "var(--sub,#62677E)" }}>{t("groupPayments.noParticipants")}</p>;
   }
 
   const paidCount = rows.filter((r) => r.student_payment_status === "paid").length;
@@ -126,11 +126,11 @@ export function GroupLessonParticipants({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)" }}>
+        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#62677E)" }}>
           {t("groupPayments.title")}
         </p>
         {canSeeMoney && (
-          <span style={{ fontSize: 14, fontWeight: 700, color: paidCount === rows.length ? "#16a34a" : "#9a6a12" }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: paidCount === rows.length ? "var(--success-text,#107836)" : "var(--warning-text,#A74D08)" }}>
             {t("groupPayments.paidOfTotal", { paid: paidCount, total: rows.length })}
           </span>
         )}
@@ -143,7 +143,7 @@ export function GroupLessonParticipants({
               <div className="min-w-0 flex-1">
                 <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</p>
                 {canSeeMoney && (
-                  <p style={{ fontSize: 14, color: "var(--sub,#666b82)" }}>
+                  <p style={{ fontSize: 14, color: "var(--sub,#62677E)" }}>
                     {p.student_price != null ? `${p.student_price} ${currencySymbol(p.currency)}` : t("groupPayments.noPrice")}
                   </p>
                 )}

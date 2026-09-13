@@ -1555,7 +1555,7 @@ export default function DashboardPage() {
     const iconColor =
       task.tone === "destructive" ? "#3b82f6"
       : task.tone === "warning"    ? "#f59e0b"
-      : "var(--sub,#666b82)";
+      : "var(--sub,#62677E)";
     return task.payTutorId ? (
       <div key={task.key}
         className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
@@ -1805,7 +1805,7 @@ export default function DashboardPage() {
                     style={{ fontSize: 23, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
                     {myStudentCount ?? 0}
                   </p>
-                  <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#666b82)" }}>
+                  <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#62677E)" }}>
                     {t("dashboard.cardStudentsShort")}
                   </p>
                 </Link>
@@ -1841,7 +1841,7 @@ export default function DashboardPage() {
                     <GraduationCap className="h-3.5 w-3.5" style={{ color: "#2BBFAA" }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#62677E)" }}>
                       {t("dashboard.cardStudents")}
                     </p>
                     <p className="font-black leading-none mt-0.5"
@@ -1857,7 +1857,7 @@ export default function DashboardPage() {
                     className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }}>
                     <div className="min-w-0">
-                      <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#666b82)" }}>
+                      <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#62677E)" }}>
                         🏅 {t("dashboardExtra.cardLevel")}
                       </p>
                       <p className="font-black text-[18px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
@@ -1877,7 +1877,7 @@ export default function DashboardPage() {
                              background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
                     <span className="text-xl flex-shrink-0">🔥</span>
                     <div className="min-w-0">
-                      <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#666b82)" }}>
+                      <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#62677E)" }}>
                         {t("dashboardExtra.streakLabel")}
                       </p>
                       <p className="font-black text-[18px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
@@ -1939,22 +1939,22 @@ export default function DashboardPage() {
                   {/* MANAGER card: hub-wide studentCount (myStudentCount is loaded only for
                       independent tutors — rendering it here showed a permanent 0). */}
                   <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{studentCount}</p>
-                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardStudents")}</p>
+                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardStudents")}</p>
                 </Link>
               </div>
               {/* Tutors + Lessons today — mobile/tablet (lg uses the 4-col grid below) */}
               <div className="grid grid-cols-2 gap-3 lg:hidden">
                 <Link to="/people?tab=tutors" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal-text,#1a7a6c)" }}>{todayLessons.length === 0 ? t("dashboard.todayFree") : t("dashboard.lessonsToday")}</p>
                   </div>
@@ -1980,24 +1980,24 @@ export default function DashboardPage() {
                 </Link>
                 <Link to="/people?tab=tutors" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/people?tab=students" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardStudents")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardStudents")}</p>
                     {/* MANAGER card: hub-wide studentCount, NOT myStudentCount (see above) */}
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardStudentsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal-text,#1a7a6c)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
                   </div>
@@ -2166,7 +2166,7 @@ export default function DashboardPage() {
                   >
                     {hubStudentCount ?? 0}
                   </p>
-                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#666b82)" }}>
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#62677E)" }}>
                     {t("hubTutor.hubStudents")}
                   </p>
                 </div>
@@ -2186,7 +2186,7 @@ export default function DashboardPage() {
                   >
                     {hubLessonsTodayCount}
                   </p>
-                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#666b82)" }}>
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#62677E)" }}>
                     {t("hubTutor.lessonsToday")}
                   </p>
                 </div>
@@ -2227,13 +2227,13 @@ export default function DashboardPage() {
                   style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
                       {t("hubTutor.hubStudents")}
                     </p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
                       {hubStudentCount ?? 0}
                     </p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                       {t("dashboard.cardStudentsSub")}
                     </p>
                   </div>
@@ -2246,7 +2246,7 @@ export default function DashboardPage() {
                   style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <div>
-                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
                       {t("dashboard.todayLessons")}
                     </p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
@@ -2288,7 +2288,7 @@ export default function DashboardPage() {
                   <p className="text-[15px] font-extrabold" style={{ color: "var(--txt,#0f0f1a)" }}>
                     {t("hubTutor.proActiveTitle")}
                   </p>
-                  <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                  <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                     {t("hubTutor.proActiveDesc")}
                   </p>
                 </div>
@@ -2663,7 +2663,7 @@ export default function DashboardPage() {
                       )}
                       {pendingBonusTasks.length > 0 && (
                         <Link to="/profile" className="flex items-center justify-center gap-1 mt-1 text-[14px] transition-colors hover:opacity-70"
-                          style={{ color: "var(--sub,#666b82)" }}>
+                          style={{ color: "var(--sub,#62677E)" }}>
                           {t("dashboardExtra.connectInProfile")}
                         </Link>
                       )}

@@ -80,7 +80,7 @@ const statusMeta: Record<
 };
 
 const S = {
-  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
   teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)", successD: "var(--success-text,#11803a)",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
   gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",

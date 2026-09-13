@@ -660,8 +660,8 @@ export default function AuthPage() {
             )}
             <Tabs value={activeTab} onValueChange={(tab) => { setActiveTab(tab); setSignInData(p => ({ ...p, password: "" })); setSignUpData(p => ({ ...p, password: "" })); }} className="w-full">
               <TabsList className="grid w-full grid-cols-2 p-1 rounded-[12px] h-12" style={{ background: "rgba(15,15,26,.06)" }}>
-                <TabsTrigger value="signin" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignIn")}</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignUp")}</TabsTrigger>
+                <TabsTrigger value="signin" className="min-h-[44px] rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup" className="min-h-[44px] rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">
@@ -875,7 +875,7 @@ export default function AuthPage() {
             flex-елементом у РЯДКУ — тому й висів збоку по центру висоти і
             забирав у картки ширину, через що вона стискалась. Місце йому під
             карткою, всередині тієї самої колонки. */}
-        <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#666b82)", opacity: .6 }}>{BUILD_TAG}</p>
+        <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#62677E)", opacity: .6 }}>{BUILD_TAG}</p>
       </div>
     </div>
     </>

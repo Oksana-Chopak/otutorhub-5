@@ -78,11 +78,11 @@ const STATUS_META: Record<LessonStatus, { key: string; accent: string; bg: strin
   pending:   { key: "lessonCard.statusPending",   accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "var(--warning-text,#B45309)", ring: "rgba(245,158,11,.32)",  dot: "#f59e0b" },
   scheduled: { key: "lessonCard.statusScheduled", accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "var(--teal-text,#1a7a6c)", ring: "rgba(43,191,170,.3)",   dot: "#2BBFAA" },
   completed: { key: "lessonCard.statusCompleted", accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "var(--success-text,#11803a)", ring: "rgba(34,197,94,.32)",   dot: "#22c55e" },
-  cancelled: { key: "lessonCard.statusCancelled", accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "var(--sub,#666b82)", ring: "rgba(147,152,176,.32)", dot: "#9aa0b4" },
+  cancelled: { key: "lessonCard.statusCancelled", accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "var(--sub,#62677E)", ring: "rgba(147,152,176,.32)", dot: "#9aa0b4" },
 };
 
 const L = {
-  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#62677E)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
   surface: "var(--ds-surface,#fff)", surface2: "var(--ds-surface3,#f6f5f1)", teal: "#2BBFAA", tealD: "var(--teal-text,#1a7a6c)",
   tealTint: "var(--teal-l,#f0fdf9)", tealRing: "rgba(43,191,170,.28)", successD: "var(--success-text,#11803a)", warningD: "var(--warning-text,#B45309)",
   coral: "var(--danger-text,#c6421d)", gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",

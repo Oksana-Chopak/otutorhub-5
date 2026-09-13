@@ -218,7 +218,7 @@ export function ImportStudentsSheet({
 
           {rows.length > 0 && (
             <div className="mt-3 space-y-2">
-              <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
+              <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
                 {t("importStudents.previewLabel", { count: valid.length })}
               </p>
               {valid.slice(0, 40).map((r, i) => {

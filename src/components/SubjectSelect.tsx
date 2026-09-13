@@ -43,13 +43,13 @@ export function SubjectSelect({
           <span style={{ color: value ? "var(--txt,#0f0f1a)" : "var(--sub,#9398b0)" }} className="truncate">
             {value || placeholder || t("subjectSelect.placeholder")}
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#666b82)" }} />
+          <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#62677E)" }} />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-1.5" style={{ minWidth: 260 }}>
         <div className="mb-1 flex items-center gap-2 rounded-[10px] border px-2.5"
           style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface,#fff)", height: 40 }}>
-          <Search className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#666b82)" }} />
+          <Search className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#62677E)" }} />
           <input aria-label={t("subjectSelect.search")} autoFocus value={q} onChange={(e) => setQ(e.target.value)}
             placeholder={t("subjectSelect.search")}
             className="w-full bg-transparent text-[15px] outline-none"
@@ -64,7 +64,7 @@ export function SubjectSelect({
             </button>
           ))}
           {filtered.length === 0 && !q.trim() && (
-            <div className="px-3 py-2.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+            <div className="px-3 py-2.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
               {t("subjectSelect.empty")}
             </div>
           )}

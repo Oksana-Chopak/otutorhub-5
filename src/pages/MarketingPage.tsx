@@ -193,7 +193,7 @@ export default function MarketingPage() {
                   placeholder={t("marketing.htmlPlaceholder")}
                   maxLength={100000}
                 />
-                <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                   {t("marketing.htmlHint")}
                 </p>
               </div>
@@ -257,7 +257,7 @@ export default function MarketingPage() {
                           {isOpen ? <ChevronDown className="h-4 w-4 mt-0.5 shrink-0" /> : <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />}
                           <div className="min-w-0">
                             <div className="font-medium truncate">{c.subject}</div>
-                            <div className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                            <div className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                               {new Date(c.created_at).toLocaleString(getLocale())} • {SEGMENTS.find((x) => x.value === c.segment) ? t(SEGMENTS.find((x) => x.value === c.segment)!.labelKey) : c.segment}
                             </div>
                           </div>
@@ -289,11 +289,11 @@ export default function MarketingPage() {
                             </div>
                             {errs.length === 0 ? (
                               c.recipients_failed > 0 ? (
-                                <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+                                <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
                                   {t("marketing.noErrorDetails")}
                                 </p>
                               ) : (
-                                <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("marketing.allDelivered")}</p>
+                                <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("marketing.allDelivered")}</p>
                               )
                             ) : (
                               <div className="space-y-1 max-h-64 overflow-auto">

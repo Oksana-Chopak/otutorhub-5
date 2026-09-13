@@ -27,7 +27,7 @@ const STATUS_META: Record<string, { accent: string; bg: string; fg: string }> = 
   pending:   { accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "var(--warning-text,#B45309)" },
   scheduled: { accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "var(--teal-text,#1a7a6c)" },
   completed: { accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "var(--success-text,#11803a)" },
-  cancelled: { accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "var(--sub,#666b82)" },
+  cancelled: { accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "var(--sub,#62677E)" },
 };
 
 export default function StudentSchedulePage() {
@@ -106,7 +106,7 @@ export default function StudentSchedulePage() {
         <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
           <div style={{ fontSize: 38 }}>📅</div>
           <p style={{ fontFamily: D, fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", marginTop: 8 }}>{t("studentPagesExtra.noLessonsInTabTitle")}</p>
-          <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noLessonsInTab")}</p>
+          <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 4 }}>{t("studentPagesExtra.noLessonsInTab")}</p>
         </div>
       );
     return (
@@ -151,7 +151,7 @@ export default function StudentSchedulePage() {
                         {joinStatus ?? statusLabel[l.status]}
                       </span>
                     </div>
-                    <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
                     </p>
                   </div>
@@ -174,7 +174,7 @@ export default function StudentSchedulePage() {
                     <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                   </a>
                 ) : (!hasJoinLink && l.status === "scheduled" && isToday) ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", fontSize: 14, fontWeight: 600 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", fontSize: 14, fontWeight: 600 }}>
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>
                 ) : null}
