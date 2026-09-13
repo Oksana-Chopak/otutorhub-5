@@ -718,8 +718,15 @@ export default function SchedulePage() {
       const detailRows = (insertedLessons ?? []).map((l) => {
         const d: any = { lesson_id: l.id };
         if (isManager) {
-          d.student_price = Number(form.student_price) || 0;
-          d.tutor_payout = Number(form.tutor_payout) || 0;
+          // 13.09 (Петро Городний, «всі нулі»): тут писалось `Number(x) || 0` —
+          // тобто 0, коли форма суми НЕ ЗНАЄ (копія уроку з порожньою виплатою,
+          // ставка не підтягнулась), і цей 0 затирав ставку, яку база щойно
+          // підставила тригером. Невідоме більше не пишемо: суму пише лише
+          // людина або база (autofill/selfheal з tutor_subject_rates).
+          const price = Number(form.student_price);
+          const payout = Number(form.tutor_payout);
+          if (price > 0) d.student_price = price;
+          if (payout > 0) d.tutor_payout = payout;
           d.student_payment_status = form.student_payment_status;
           d.tutor_payout_status = form.tutor_payout_status;
         } else if (isIndependentTutor) {

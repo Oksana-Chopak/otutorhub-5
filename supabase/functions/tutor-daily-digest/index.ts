@@ -16,7 +16,7 @@ const DT = {
     oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
     payoutToday: " · ⏰ сьогодні день виплати",
     moreTutors: (n: number) => `  ↳ ще ${n} репетиторів`,
-    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} без ставки виплати. Поставте ставку — і сума зʼявиться тут.`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} без суми виплати. Перевірте ставку в картці репетитора — сума підтягнеться сама.`,
     btnPayoutPaid: (nm: string) => `👛 Виплатив(ла): ${nm}`,
     btnRate: (nm: string) => `⚙️ Ставка: ${nm}`,
     btnTutorName: "репетитор",
@@ -44,7 +44,7 @@ const DT = {
     oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
     payoutToday: " · ⏰ payout day is today",
     moreTutors: (n: number) => `  ↳ ${n} more tutors`,
-    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} without a payout rate. Set the rate and the amount will show up here.`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} without a payout amount. Check the rate in the tutor card — the amount fills in by itself.`,
     btnPayoutPaid: (nm: string) => `👛 Paid out: ${nm}`,
     btnRate: (nm: string) => `⚙️ Rate: ${nm}`,
     btnTutorName: "tutor",
@@ -72,7 +72,7 @@ const DT = {
     oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
     payoutToday: " · ⏰ utbetalningsdag idag",
     moreTutors: (n: number) => `  ↳ ${n} lärare till`,
-    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} utan utbetalningssats. Ange satsen så visas beloppet här.`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} utan utbetalningsbelopp. Kontrollera satsen i lärarkortet — beloppet fylls i av sig självt.`,
     btnPayoutPaid: (nm: string) => `👛 Utbetalt: ${nm}`,
     btnRate: (nm: string) => `⚙️ Sats: ${nm}`,
     btnTutorName: "lärare",
@@ -435,7 +435,7 @@ Deno.serve(async (req) => {
         }
         if (sorted.length > 5) lines.push(D.moreTutors(sorted.length - 5));
       }
-      // Проведені уроки без ставки виплати — невидимий борг школи: сума невідома
+      // Проведені уроки без суми виплати — невидимий борг школи: сума невідома
       // не тому, що її немає, а тому, що ставку не поставили. Кнопка веде
       // просто в картку репетитора в «Людях».
       const unrated = new Map<string, number>();

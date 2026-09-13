@@ -77,6 +77,15 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   unpaid lessons (trg_wallet_settle_after_credit). Prepayments never sit idle.
 - RATES: saving a tutor's rate ALWAYS backfills their existing unpaid hub
   lessons (backfill_tutor_payouts_for_tutor) — both PeoplePage AND Assign flows.
+- PAYOUT SELFHEAL (13.09, «пропала ставка у Петра Городного — всі нулі»): виплата
+  на хабовому уроці НЕ лишається NULL/0, поки в репетитора є ставка. Єдиний вибір
+  ставки — `pick_tutor_payout(tutor, subject)` (предмет без регістру → профіль →
+  єдина ставка); `trg_lesson_details_autofill` спрацьовує на INSERT **і** на
+  UPDATE OF tutor_payout (міграція `20260913200000`). Клієнт НІКОЛИ не пише
+  «0, бо не знаю» у student_price/tutor_payout — суму пише людина або база
+  (SchedulePage копія: поле йде в патч лише коли > 0). Стереже
+  `payout-selfheal.test.ts`. Симптом класу: уроки після певної дати з порожньою
+  виплатою при живих ставках.
 - MANUAL PAID: marking a lesson paid by hand NEVER bypasses the wallet — if the
   pair holds prepaid credit and the lesson has no wallet history, the credit is
   charged automatically (trg_wallet_charge_on_manual_paid). Phantom balances
