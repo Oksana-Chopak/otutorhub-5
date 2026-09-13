@@ -185,7 +185,7 @@ export function MonthlySummaryCard() {
        дві бульбашки в кутку, без окремого рядка.
        Бульбашки лежать ПОЗА cardRef: html2canvas знімає саме cardRef, і
        кнопки не мають потрапити в картинку, яку людина надсилає. */
-    <div className="relative mx-auto w-full max-w-[420px]">
+    <div className="relative w-full">
       <Card className="overflow-hidden rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
         <div
           ref={cardRef}

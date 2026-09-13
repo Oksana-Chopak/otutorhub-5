@@ -2700,7 +2700,13 @@ export default function DashboardPage() {
           {isIndependentTutor && (
             <>
               {/* Місячний підсумок — ціль тоста «Подивитись» (раніше якір не існував → клік нічого не робив) */}
-              <div id="monthly-summary-anchor">
+              {/* 13.09, третя ітерація: картка сталої ширини по центру не збігалась
+                  НІ З ЧИМ — вона стояла посеред жолоба між двома колонками.
+                  Тепер це та сама сітка, що й «сьогодні / що зробити далі», і
+                  картка лягає рівно в ліву колонку: один лівий край на всю
+                  сторінку. На телефоні сітка одноколонкова, тож нічого не
+                  змінюється. */}
+              <div id="monthly-summary-anchor" className="grid gap-5 md:grid-cols-2 md:gap-6">
                 <MonthlySummaryCard />
               </div>
               {/* Streak — after lessons+tasks on mobile, hidden on desktop (shows in right col) */}
@@ -2729,7 +2735,11 @@ export default function DashboardPage() {
               заповнення. Це не елемент керування, а підпис під днем: тонка
               риска, курсив, по центру — його помічають, коли дочитали. */}
           {phraseOfDay && (
-            <div className="pb-1 pt-3 text-center">
+            /* Фраза лишається в САМОМУ низу (так просила власниця), але на
+               десктопі живе на осі лівої колонки — тієї самої, що картка
+               місяця й список уроків. calc(50% - 12px) — це рівно ширина
+               колонки при grid-cols-2 з gap-6. */
+            <div className="pb-1 pt-3 text-center md:max-w-[calc(50%-12px)]">
               <div
                 className="mx-auto mb-3.5 h-px w-20"
                 style={{ background: "linear-gradient(90deg,transparent,var(--ds-border,#eceef3),transparent)" }}

@@ -522,10 +522,15 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/level && streak \? "lg:grid-cols-4" : level \|\| streak \? "lg:grid-cols-3" : "lg:grid-cols-2"/);
     });
 
-    it("підсумок місяця — картка, а не банер на всю ширину", () => {
+    it("підсумок місяця — картка на осі лівої колонки, а не банер на всю ширину", () => {
       const ms = read("src/components/MonthlySummaryCard.tsx");
-      expect(ms, "на десктопі картка розтягувалась у порожнє зелене полотно")
-        .toMatch(/max-w-\[420px\]/);
+      const dp = read("src/pages/DashboardPage.tsx");
+      // Ширину задає СІТКА дашборда, а не сама картка: mx-auto max-w-[420px]
+      // ставив картку посеред жолоба між колонками — вона не збігалась ні з чим.
+      expect(ms, "стала ширина по центру не тримає жодної осі сторінки")
+        .not.toMatch(/mx-auto w-full max-w-\[420px\]/);
+      expect(dp, "якір підсумку — та сама двоколонкова сітка, що й решта дашборда")
+        .toMatch(/id="monthly-summary-anchor" className="grid gap-5 md:grid-cols-2 md:gap-6"/);
       expect(ms, "окремої смуги кнопок під карткою більше немає")
         .not.toMatch(/onClick=\{handleShare\} disabled=\{sharing\} className="flex-1"/);
       expect(ms).not.toMatch(/className="h-11 rounded-full px-5"/);
@@ -552,6 +557,10 @@ describe("матеріали учня · хронологія, розгорну�
       // і саме ПІСЛЯ картки місяця, а не перед нею
       expect(dp.indexOf("MonthlySummaryCard"), "фраза дня мусить іти після підсумку місяця")
         .toBeLessThan(dp.indexOf("linear-gradient(90deg,transparent"));
+      // на десктопі — на осі лівої колонки, інакше центрована по всій ширині
+      // фраза стоїть на своїй окремій осі й виглядає зсунутою
+      expect(dp, "calc(50%-12px) — рівно одна колонка при grid-cols-2 з gap-6")
+        .toMatch(/pb-1 pt-3 text-center md:max-w-\[calc\(50%-12px\)\]/);
     });
 
     it("картка місяця не малюється з порожньою цифрою", () => {
