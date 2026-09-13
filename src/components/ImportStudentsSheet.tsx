@@ -100,8 +100,10 @@ export function ImportStudentsSheet({
     let added = 0;
     let linked = 0;
     let failed = 0;
+    let noDebt = 0;
     let debtTotal = 0;
     let scheduled = 0;
+    const failedNames: string[] = [];
     const notes: Array<{ student_id: string; note: string }> = [];
     // Послідовно, не Promise.all: RPC створює профілі й уроки, і паралельний
     // шквал лише збільшує шанс гонок/лімітів; 20 учнів = кілька секунд.
@@ -109,6 +111,14 @@ export function ImportStudentsSheet({
       const r = valid[i];
       const net = netDebtAndPrepay(r);
       const starts = scheduleToStarts(r.schedule, IMPORT_SCHEDULE_WEEKS).map((d) => d.toISOString());
+      // 13.09: «Олена — борг 2 уроки» без ціни. RPC відкидає такий борг
+      // (DEBT_LESSONS_NEED_PRICE), і раніше учень МОВЧКИ не створювався —
+      // з зеленою галочкою в превʼю. Тепер учня створюємо, а борг уроками
+      // лишається словами в нотатці, поки не буде ціни.
+      const debtLessonsNoPrice = net.debtLessons > 0 && !(r.price && r.price > 0);
+      const rowNote = [r.note, debtLessonsNoPrice ? t("importStudents.noteDebtLessons", { count: net.debtLessons }) : null]
+        .filter(Boolean).join(" · ");
+      if (debtLessonsNoPrice) noDebt++;
       try {
         // cast: import_student_bundle потрапляє у згенеровані типи після міграції
         const { data, error } = await (supabase as any).rpc("import_student_bundle", {
@@ -121,7 +131,7 @@ export function ImportStudentsSheet({
           _price: r.price ?? 0,
           _currency: IMPORT_CURRENCY,
           _debt_amount: net.debtAmount,
-          _debt_lessons: net.debtLessons,
+          _debt_lessons: debtLessonsNoPrice ? 0 : net.debtLessons,
           _prepay_lessons: net.prepayLessons,
           _prepay_amount: net.prepayAmount,
           _lesson_starts: starts,
@@ -132,15 +142,17 @@ export function ImportStudentsSheet({
           const msg = String(error?.message ?? "");
           if (/SUBSCRIPTION_REQUIRED/.test(msg)) { setBusy(false); setProgress(null); lock.openPaywall(); return; }
           failed++;
+          failedNames.push(r.firstName);
         } else {
           const d = data as { student_id?: string; action?: string; debt_total?: number; scheduled?: number };
           if (d.action === "linked") linked++; else added++;
           debtTotal += Number(d.debt_total ?? 0);
           scheduled += Number(d.scheduled ?? 0);
-          if (r.note && d.student_id) notes.push({ student_id: d.student_id, note: r.note });
+          if (rowNote && d.student_id) notes.push({ student_id: d.student_id, note: rowNote });
         }
       } catch {
         failed++;
+        failedNames.push(r.firstName);
       }
       setProgress({ done: i + 1, total: valid.length });
     }
@@ -158,15 +170,19 @@ export function ImportStudentsSheet({
       const parts: string[] = [];
       if (debtTotal > 0) parts.push(t("importStudents.doneDebts", { sum: formatPrice(debtTotal, IMPORT_CURRENCY) }));
       if (scheduled > 0) parts.push(t("importStudents.doneLessons", { count: scheduled }));
+      if (noDebt > 0) parts.push(t("importStudents.doneNoDebt", { count: noDebt }));
       if (failed > 0) parts.push(t("importStudents.doneFailed", { count: failed }));
       toast.success(t("importStudents.doneTitle", { count: added + linked }), {
         description: parts.length ? parts.join(" · ") : undefined,
       });
+      // Хто саме не додався — по імені, а не «N не вдалося»: людина мусить
+      // знати, кого дописати вручну.
+      if (failed > 0) toast.error(t("importStudents.failedNames", { names: failedNames.join(", ") }));
       setText("");
       onOpenChange(false);
       onImported?.({ students: added + linked, debtTotal, scheduled, failed });
     } else {
-      toast.error(t("importStudents.allFailed"));
+      toast.error(t("importStudents.allFailed"), { description: failedNames.length ? failedNames.join(", ") : undefined });
     }
   };
 

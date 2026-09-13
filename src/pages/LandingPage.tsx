@@ -81,6 +81,26 @@ const landingStyles = `
   --l-radius: 24px;
   --shadow-card: 0 1px 2px rgba(26,26,46,0.05), 0 18px 48px -20px rgba(26,26,46,0.22);
   --dark: linear-gradient(135deg, #0f0f1a 0%, #1a1f3a 100%);
+  /* ЛЕНДІНГ ЗАВЖДИ СВІТЛИЙ (13.09). Застосунок ставить html.dark за системною
+     темою телефона, і токени --txt / --surface / --border / --foreground
+     перемикались на світлі значення — а тло лендінгу лишалось кремовим:
+     підписи «одного дня», чипи, імʼя відправника й посилання для учнів
+     ставали біле-по-кремовому. Тут ті самі імена токенів перевизначені на
+     світлі значення, тож будь-який дочірній компонент (LanguageSwitcher,
+     PaymentMethodsSection, день з помічником) читає лендінгову палітру. */
+  color-scheme: light;
+  --txt: var(--ink); --ds-txt: var(--ink);
+  --surface: var(--white); --ds-surface: var(--white); --ds-surface2: #fbfbfc; --ds-surface3: #f6f5f1;
+  --sub: var(--l-muted); --ds-sub: var(--l-muted); --ds-muted: var(--l-muted); --ds-border: #eceef3; --ds-bg: var(--bg);
+  --teal: var(--l-accent); --teal-text: var(--l-accent-text); --teal-l: #f0fdf9;
+  --background: 180 12% 96%; --foreground: 224 71% 9%;
+  --card: 0 0% 100%; --card-foreground: 224 71% 9%;
+  --popover: 0 0% 100%; --popover-foreground: 224 71% 9%;
+  --primary: 171 63% 46%; --primary-foreground: 240 27% 8%;
+  --secondary: 220 14% 96%; --secondary-foreground: 224 71% 9%;
+  --muted: 220 14% 96%; --muted-foreground: 220 9% 44%;
+  --accent: 220 14% 96%; --accent-foreground: 224 71% 9%;
+  --border: 220 13% 91%; --input: 220 13% 91%; --ring: 178 90% 27%;
   font-family: 'Golos Text', system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--ink);

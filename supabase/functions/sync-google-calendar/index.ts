@@ -112,7 +112,10 @@ Deno.serve(async (req) => {
 
   const { data: lesson, error: lessonErr } = await admin
     .from("lessons")
-    .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, notes, status, google_event_id, location")
+    // 13.09: колонки lessons.location НЕ ІСНУЄ (types.ts — живе дзеркало схеми);
+    // з 01.09 запит падав, і КОЖНА синхронізація відповідала 500 — уроки
+    // мовчки не потрапляли в календарі. Локацію події не передаємо.
+    .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, notes, status, google_event_id")
     .eq("id", lessonId)
     .maybeSingle();
 
@@ -160,7 +163,6 @@ Deno.serve(async (req) => {
   const eventBody = {
     summary,
     description,
-    location: lesson.location ?? undefined,
     start: { dateTime: start.toISOString() },
     end: { dateTime: end.toISOString() },
   };

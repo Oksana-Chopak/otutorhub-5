@@ -8,9 +8,17 @@
 // POST body: { userId: string, title: string, body?: string, link?: string }
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const VAPID_PUBLIC_KEY  = Deno.env.get("VAPID_PUBLIC_KEY")!;
-const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
+// 13.09: публічний ключ — той самий, що в src/lib/pushConfig.ts (він публічний
+// за задумом), тож секрет VAPID_PUBLIC_KEY не обовʼязковий. Без ПРИВАТНОГО
+// ключа веб-пуш неможливий — але це не привід відповідати 500 на кожен виклик
+// (так було: «Missing config» → усі, хто ввімкнув сповіщення, не отримували
+// нічого, а кожна edge-функція, що кличе send-push, логувала помилку).
+// Веб-гілка тоді пропускається, нативна (FCM) працює незалежно.
+const VAPID_PUBLIC_KEY  = Deno.env.get("VAPID_PUBLIC_KEY") ||
+  "BCrxR65dgGaBFQUAPWxcsCuXcE9DfLVnZ-kenhhRr8i2H3_ka6XO4LIfbYeK17BLosDUUvTvfyvRQH74jB1f1_s";
+const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
 const VAPID_SUBJECT     = Deno.env.get("VAPID_SUBJECT") ?? "mailto:hello@otutorhub.com";
+const WEB_PUSH_READY    = !!VAPID_PRIVATE_KEY;
 
 function b64url(buf: BufferSource): string {
   return btoa(String.fromCharCode(...new Uint8Array(buf instanceof ArrayBuffer ? buf : (buf as Uint8Array)))
@@ -144,7 +152,16 @@ async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, 
     body: ciphertext,
   });
 
-  return res.status === 201 || res.status === 200;
+  if (res.status === 201 || res.status === 200) return true;
+  // 13.09: підписка мертва (410/404) або підписана ІНШИМ VAPID-ключем (401/403 —
+  // після ротації ключів). Тримати її далі — довбати push-сервіс вічно; хук на
+  // клієнті перепідпише браузер новим ключем при наступному відкритті.
+  if ([401, 403, 404, 410].includes(res.status)) {
+    console.warn("push endpoint dropped", res.status, sub.endpoint.slice(0, 48));
+    return false;
+  }
+  console.error("push send failed", res.status, (await res.text().catch(() => "")).slice(0, 200));
+  return false;
 }
 
 // ── FCM HTTP v1: нативний Android (40b) ─────────────────────────────────
@@ -245,7 +262,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  if (!supabaseUrl || !serviceKey || !VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+  if (!supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: "Missing config" }), { status: 500 });
   }
 
@@ -280,13 +297,19 @@ Deno.serve(async (req) => {
   // 40b: раніше тут був ранній вихід «немає веб-підписок → sent 0», і нативні
   // токени не питались зовсім. Тепер обидва транспорти незалежні.
   const payload = { title, body: msgBody, link, ...(tag ? { tag } : {}) };
-  const results = await Promise.allSettled(
-    ((subs ?? []) as { endpoint: string; p256dh: string; auth: string }[]).map((s) => sendOne(s, payload))
-  );
-  const sent = results.filter((r) => r.status === "fulfilled" && r.value).length;
+  let sent = 0;
+  if (WEB_PUSH_READY) {
+    const list = (subs ?? []) as { endpoint: string; p256dh: string; auth: string }[];
+    const results = await Promise.allSettled(list.map((s) => sendOne(s, payload)));
+    sent = results.filter((r) => r.status === "fulfilled" && r.value).length;
+    const dead = list.filter((_, i) => { const r = results[i]; return r.status !== "fulfilled" || !r.value; }).map((s) => s.endpoint);
+    if (dead.length) await db.from("push_subscriptions").delete().eq("user_id", userId).in("endpoint", dead);
+  } else if ((subs ?? []).length > 0) {
+    console.warn("VAPID_PRIVATE_KEY not set — web push skipped for", (subs ?? []).length, "subscription(s)");
+  }
   const sentNative = await fcmSendNative(db, userId, { title, body: msgBody, link, tag });
 
-  return new Response(JSON.stringify({ ok: true, sent, sentNative }), {
+  return new Response(JSON.stringify({ ok: true, sent, sentNative, web: WEB_PUSH_READY ? "ok" : "not_configured" }), {
     headers: { "Content-Type": "application/json" },
   });
 });

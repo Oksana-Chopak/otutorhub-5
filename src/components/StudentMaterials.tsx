@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getLocale } from "@/lib/locale";
 import { openExternal } from "@/lib/openExternal";
 import { formatPrice } from "@/lib/currency";
+import { IMPORT_CURRENCY } from "@/lib/importStudents";
 import { Loader2, Paperclip, ChevronDown } from "lucide-react";
 
 /**
@@ -116,13 +117,21 @@ export function StudentMaterials({
         const ids = les.map((l) => l.id);
         if (ids.length === 0) { if (alive) setAll([]); return; }
 
-        const [det, notes, atts] = await Promise.all([
+        // 13.09: у lesson_details НЕМАЄ колонки currency (types.ts — живе дзеркало
+        // схеми). Запит із нею падав на 400 цілком, і в картці учня зникали
+        // конспекти, домашки й суми — «матеріали порожні» одразу після релізу
+        // вкладок. Валюта пари живе в student_rates; за замовчуванням — валюта
+        // імпорту (гривня). Помилку деталей більше не ковтаємо мовчки.
+        const [det, notes, atts, rate] = await Promise.all([
           supabase.from("lesson_details")
-            .select("lesson_id, summary, homework, student_price, student_payment_status, currency")
+            .select("lesson_id, summary, homework, student_price, student_payment_status")
             .in("lesson_id", ids),
           (supabase as any).from("lesson_tutor_notes").select("lesson_id, notes").in("lesson_id", ids),
           supabase.from("lesson_attachments").select("id, lesson_id, file_name, storage_path").in("lesson_id", ids),
+          supabase.from("student_rates").select("currency").eq("tutor_id", tutorId).eq("student_id", studentId).limit(1).maybeSingle(),
         ]);
+        if (det.error) throw det.error;
+        const pairCurrency = (rate.data as { currency?: string } | null)?.currency || IMPORT_CURRENCY;
 
         const dMap: Record<string, any> = {};
         ((det.data as any[]) ?? []).forEach((d) => { dMap[d.lesson_id] = d; });
@@ -149,7 +158,7 @@ export function StudentMaterials({
             privateNote: nMap[l.id] ?? null,
             files: fMap[l.id] ?? [],
             price: price !== null && Number.isFinite(price) && price > 0 ? price : null,
-            currency: d?.currency ?? null,
+            currency: pairCurrency,
             paid: d?.student_payment_status ? d.student_payment_status === "paid" : null,
           };
         });

@@ -92,13 +92,18 @@ Deno.serve(async (req) => {
 
   // Усе нижче — спільне ядро (_shared/paymentReminder.ts): канали, мова
   // одержувача, лог і 24-годинна дедуплікація за lesson_payment_reminders.
+  // 13.09: ручний дотик «Нагадати» — це явний намір репетитора, тож він не
+  // блокується автоматичним нагадуванням крона за ту саму добу (так кнопка
+  // «нічого не робила» з червоною помилкою). Захист лишається лише від
+  // подвійного дотику: одне ручне нагадування на урок за годину.
   const result = await sendPaymentReminder({
     admin, supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN,
     tutorId: lesson.tutor_id, studentId: lesson.student_id, kind: "manual",
+    dedupKind: "manual", dedupHours: 1,
     lessons: [{ id: lesson.id, subject: lesson.subject, starts_at: lesson.starts_at, student_price: lesson.student_price }],
   });
   if (result.skipped > 0 && result.sent === 0) {
-    return json({ success: false, reason: "already_reminded_today" }, 200);
+    return json({ success: false, reason: "already_reminded_today", lastSentAt: result.lastSentAt ?? null }, 200);
   }
   const channels = result.channels;
   const email = channels.includes("email") ? "sent" : null;

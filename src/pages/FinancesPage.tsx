@@ -1085,6 +1085,13 @@ export default function FinancesPage() {
     } else if ((data as any)?.reason === "no_channels") {
       // The function explicitly reported the student has neither Telegram nor email.
       toast.error(t("pendingPaymentsExtra.noContact"), { description: nameOf(studentId) });
+    } else if ((data as any)?.reason === "already_reminded_today") {
+      // 13.09: не помилка, а пояснення — нагадування вже пішло, кажемо коли.
+      const at = (data as any)?.lastSentAt ? new Date(String((data as any).lastSentAt)) : null;
+      const when = at && !Number.isNaN(at.getTime())
+        ? at.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
+        : "";
+      toast.info(t("pendingPaymentsExtra.alreadyReminded", { when }), { description: nameOf(studentId) });
     } else {
       toast.error(t("pendingPaymentsExtra.reminderGeneric"));
     }
@@ -3191,8 +3198,11 @@ export default function FinancesPage() {
                     reps.map((l) => supabase.functions.invoke("remind-payment", { body: { lessonId: l.id } })),
                   );
                   const sent = results.filter((r) => (r.data as any)?.success).length;
+                  const dedup = results.filter((r) => (r.data as any)?.reason === "already_reminded_today").length;
                   if (sent > 0) {
                     toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
+                  } else if (dedup === results.length) {
+                    toast.info(t("pendingPaymentsExtra.alreadyRemindedAll"));
                   } else {
                     toast.error(t("pendingPaymentsExtra.reminderGeneric"));
                   }

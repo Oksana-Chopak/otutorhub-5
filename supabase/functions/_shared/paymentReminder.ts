@@ -67,6 +67,9 @@ export type ReminderInput = {
   lessons: ReminderLesson[];        // усі незакриті уроки пари, які хочемо нагадати
   kind: "manual" | "telegram_button";
   dedupHours?: number;              // за замовчуванням 24
+  /** Дедуплікувати лише проти нагадувань цього ж виду (наприклад, ручне —
+      лише проти ручного), а не будь-якого каналу за добу. */
+  dedupKind?: "manual" | "telegram_button";
 };
 
 export type ReminderResult = {
@@ -74,6 +77,8 @@ export type ReminderResult = {
   skipped: number;                  // скільки відсіяно дедуплікацією
   channels: string[];               // telegram | email | inapp
   lang: RemLang;
+  /** Коли востаннє йшло нагадування по цих уроках (для пояснення, чому пропущено). */
+  lastSentAt?: string | null;
 };
 
 export async function sendPaymentReminder(input: ReminderInput): Promise<ReminderResult> {
@@ -84,14 +89,17 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
   //    dedupHours будь-яким каналом, не нагадуємо повторно.
   const since = new Date(Date.now() - dedupHours * 3600_000).toISOString();
   const ids = input.lessons.map((l) => l.id);
-  const { data: recent } = ids.length
-    ? await admin.from("lesson_payment_reminders").select("lesson_id")
+  let recentQ = ids.length
+    ? admin.from("lesson_payment_reminders").select("lesson_id, sent_at")
         .in("lesson_id", ids).eq("student_id", studentId).gte("sent_at", since)
-    : { data: [] };
+    : null;
+  if (recentQ && input.dedupKind) recentQ = recentQ.eq("reminder_kind", input.dedupKind);
+  const { data: recent } = recentQ ? await recentQ : { data: [] };
   const already = new Set((recent ?? []).map((r: any) => r.lesson_id));
   const fresh = input.lessons.filter((l) => !already.has(l.id));
   if (fresh.length === 0) {
-    return { sent: 0, skipped: input.lessons.length, channels: [], lang: "uk" };
+    const lastSentAt = (recent ?? []).map((r: any) => String(r.sent_at)).sort().pop() ?? null;
+    return { sent: 0, skipped: input.lessons.length, channels: [], lang: "uk", lastSentAt };
   }
 
   // 2) Люди, контакти, мова
@@ -167,13 +175,17 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
      тобто дедуплікація, заради якої все й робилось, не працювала.
      Констрейнти виправлено міграцією 20260903210000; тут — upsert, щоб
      повтор не падав, і перевірка помилки, щоб мовчання більше не повторилось. */
+  // 13.09: повторне ручне нагадування (через годину і більше) оновлює sent_at,
+  // інакше лог назавжди показував би перший дотик, а «коли востаннє нагадували»
+  // брехало б.
+  const sentAt = new Date().toISOString();
   const rows = fresh.flatMap((l) => channels.map((ch) => ({
-    lesson_id: l.id, tutor_id: tutorId, student_id: studentId, reminder_kind: kind, channel: ch,
+    lesson_id: l.id, tutor_id: tutorId, student_id: studentId, reminder_kind: kind, channel: ch, sent_at: sentAt,
   })));
   if (rows.length) {
     const { error: logErr } = await admin
       .from("lesson_payment_reminders")
-      .upsert(rows, { onConflict: "lesson_id,reminder_kind,channel", ignoreDuplicates: true });
+      .upsert(rows, { onConflict: "lesson_id,reminder_kind,channel" });
     if (logErr) console.error("[paymentReminder] лог не записався:", logErr.message);
   }
 

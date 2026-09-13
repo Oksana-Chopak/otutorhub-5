@@ -115,11 +115,20 @@ export function usePushNotifications() {
       const reg = await swReg();
       if (!reg) { setLoading(false); return; }
 
+      const serverKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
       let sub = await reg.pushManager.getSubscription();
+      // 13.09: підписка зі СТАРИМ VAPID-ключем (після ротації) — push-сервіс
+      // відкидає такі надсилання (403), і subscribe() з новим ключем кидає
+      // InvalidStateError. Тому звіряємо ключ і перепідписуємо мовчки.
+      if (sub) {
+        const existing = sub.options?.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey as ArrayBuffer) : null;
+        const same = !!existing && existing.length === serverKey.length && existing.every((b, i) => b === serverKey[i]);
+        if (!same) { await sub.unsubscribe().catch(() => {}); sub = null; }
+      }
       if (!sub) {
         sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+          applicationServerKey: serverKey as BufferSource,
         });
       }
 
