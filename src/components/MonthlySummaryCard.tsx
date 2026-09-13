@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Share2, Download, Loader2, CalendarPlus } from "lucide-react";
 import { useMonthlySummary } from "@/hooks/useTutorGamification";
 import { useAuth } from "@/hooks/useAuth";
@@ -179,48 +178,67 @@ export function MonthlySummaryCard() {
   };
 
   return (
-    <Card className="overflow-hidden rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
-      <div
-        ref={cardRef}
-        className="relative bg-gradient-to-br from-primary via-primary to-primary/70 p-6 text-primary-foreground"
-      >
-        <div className="absolute right-3 top-3 text-[14px] opacity-70">oTutorHub</div>
-        <div className="mb-1 text-sm opacity-90">
-          {firstName ? t("monthlySummaryExtra.greeting", { name: firstName, month: monthLabel }) : t("monthlySummaryExtra.greetingNoName", { month: monthLabel })}
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-bold">{summary.completed_count}</span>
-            <span className="text-sm opacity-90">{t("monthlySummaryExtra.lessonsLabel")}</span>
+    /* 13.09, друга ітерація за зауваженням власниці: «нащо це зелене порожнє
+       полотно на цілий екран?». На десктопі картка розтягувалась на всю
+       ширину колонки — виходив банер із дрібним написом у кутку й широкою
+       білою смугою кнопок під ним. Тепер це картка сталої ширини, а дії —
+       дві бульбашки в кутку, без окремого рядка.
+       Бульбашки лежать ПОЗА cardRef: html2canvas знімає саме cardRef, і
+       кнопки не мають потрапити в картинку, яку людина надсилає. */
+    <div className="relative mx-auto w-full max-w-[420px]">
+      <Card className="overflow-hidden rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
+        <div
+          ref={cardRef}
+          className="relative bg-gradient-to-br from-primary via-primary to-primary/70 px-5 pb-5 pt-6 text-primary-foreground"
+        >
+          <div className="mb-3 pr-24 text-sm opacity-90">
+            {firstName ? t("monthlySummaryExtra.greeting", { name: firstName, month: monthLabel }) : t("monthlySummaryExtra.greetingNoName", { month: monthLabel })}
           </div>
-          {typeof summary.on_time_payment_pct === "number" && (
+          <div className="space-y-2.5">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold">{summary.on_time_payment_pct}%</span>
-              <span className="text-sm opacity-90">{t("monthlySummaryExtra.paymentsLabel")}</span>
+              <span className="text-5xl font-bold leading-none">{summary.completed_count}</span>
+              <span className="text-sm opacity-90">{t("monthlySummaryExtra.lessonsLabel")}</span>
             </div>
-          )}
-          {summary.top_percentile && summary.top_percentile <= 50 && (
-            <div className="inline-flex items-center gap-2 rounded-full bg-card/20 px-3 py-1.5 text-sm font-semibold backdrop-blur">
-              {t("monthlySummaryExtra.topPercentile", { pct: summary.top_percentile })}
-            </div>
-          )}
+            {typeof summary.on_time_payment_pct === "number" && (
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold leading-none">{summary.on_time_payment_pct}%</span>
+                <span className="text-sm opacity-90">{t("monthlySummaryExtra.paymentsLabel")}</span>
+              </div>
+            )}
+            {summary.top_percentile && summary.top_percentile <= 50 && (
+              <div className="inline-flex items-center gap-2 rounded-full bg-card/20 px-3 py-1.5 text-sm font-semibold backdrop-blur">
+                {t("monthlySummaryExtra.topPercentile", { pct: summary.top_percentile })}
+              </div>
+            )}
+          </div>
+          <div className="mt-4 text-right text-[13px] opacity-70">oTutorHub</div>
         </div>
+      </Card>
+
+      <div className="absolute right-3 top-3 flex gap-2">
+        <button
+          type="button"
+          onClick={handleShare}
+          disabled={sharing}
+          aria-label={t("monthlySummary.shareBtn")}
+          title={t("monthlySummary.shareBtn")}
+          className="flex h-11 w-11 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-105 disabled:opacity-60"
+          style={{ background: "rgba(255,255,255,.94)", color: "var(--teal-text,#1a7a6c)" }}
+        >
+          {sharing ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <Share2 className="h-[18px] w-[18px]" />}
+        </button>
+        <button
+          type="button"
+          onClick={handleDownloadImage}
+          disabled={sharing}
+          aria-label={t("monthlySummary.downloadBtn")}
+          title={t("monthlySummary.downloadBtn")}
+          className="flex h-11 w-11 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-105 disabled:opacity-60"
+          style={{ background: "rgba(255,255,255,.94)", color: "var(--teal-text,#1a7a6c)" }}
+        >
+          <Download className="h-[18px] w-[18px]" />
+        </button>
       </div>
-      {/* 13.09, рішення власниці: «Поділитись» була на всю ширину картки й
-          важила більше за сам підсумок. Дія другорядна — поділитись хочеться
-          не щодня. Дві компактні пігулки по центру: висота 44px за ТЗ дотику,
-          ширина по вмісту. */}
-      <div className="flex items-center justify-center gap-2 px-3 pb-3.5 pt-3">
-        <Button onClick={handleShare} disabled={sharing} className="h-11 rounded-full px-5">
-          {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-          {t("monthlySummary.shareBtn")}
-        </Button>
-        <Button onClick={handleDownloadImage} variant="outline" disabled={sharing}
-          className="h-11 w-11 rounded-full p-0"
-          aria-label={t("monthlySummary.downloadBtn")} title={t("monthlySummary.downloadBtn")}>
-          <Download className="h-4 w-4" />
-        </Button>
-      </div>
-    </Card>
+    </div>
   );
 }

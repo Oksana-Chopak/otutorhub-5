@@ -522,12 +522,26 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/level && streak \? "lg:grid-cols-4" : level \|\| streak \? "lg:grid-cols-3" : "lg:grid-cols-2"/);
     });
 
-    it("«Поділитись» компактна, але тримає 44px дотику", () => {
+    it("підсумок місяця — картка, а не банер на всю ширину", () => {
       const ms = read("src/components/MonthlySummaryCard.tsx");
-      expect(ms, "кнопка на всю ширину важила більше за сам підсумок")
+      expect(ms, "на десктопі картка розтягувалась у порожнє зелене полотно")
+        .toMatch(/max-w-\[420px\]/);
+      expect(ms, "окремої смуги кнопок під карткою більше немає")
         .not.toMatch(/onClick=\{handleShare\} disabled=\{sharing\} className="flex-1"/);
-      expect(ms).toMatch(/className="h-11 rounded-full px-5"/);
-      expect(ms).toMatch(/className="h-11 w-11 rounded-full p-0"/);
+      expect(ms).not.toMatch(/className="h-11 rounded-full px-5"/);
+    });
+
+    it("дії — дві бульбашки 44px із назвами, поза кадром картинки", () => {
+      const ms = read("src/components/MonthlySummaryCard.tsx");
+      const bubbles = ms.match(/className="flex h-11 w-11 items-center justify-center rounded-full[^"]*"/g) ?? [];
+      expect(bubbles.length, "поділитись + завантажити").toBe(2);
+      expect(ms).toMatch(/aria-label=\{t\("monthlySummary\.shareBtn"\)\}/);
+      expect(ms).toMatch(/aria-label=\{t\("monthlySummary\.downloadBtn"\)\}/);
+      // html2canvas знімає cardRef — кнопки мусять лишатись ЗА його межами,
+      // інакше вони потраплять у картинку, яку людина надсилає.
+      const refEnd = ms.lastIndexOf("</Card>");
+      expect(ms.indexOf('aria-label={t("monthlySummary.shareBtn")}'), "бульбашки — після </Card>")
+        .toBeGreaterThan(refEnd);
     });
 
     it("фраза дня — у самому низу і без рамки", () => {
