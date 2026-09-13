@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -86,6 +86,9 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   const [loading, setLoading] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false); // B9
   const [deleting, setDeleting] = useState(false);
+  // «Готово» мусить ДОПИСАТИ незбережені чернетки уроку (див. коментар у
+  // LessonWorkspace): інакше репетитор бачить свій текст, а учень — ні.
+  const flushRef = useRef<null | (() => Promise<void>)>(null);
 
   // Guard parity with the schedule card: only a manager, or the owning tutor on a
   // pending/scheduled lesson, may delete. (RLS also rejects, but don't offer a
@@ -244,6 +247,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
         ) : (
           <LessonWorkspace
             onClose={() => onOpenChange(false)}
+            onRegisterFlush={(fn) => { flushRef.current = fn; }}
             lessonId={row.id}
             tutorId={row.tutor_id}
             studentId={row.student_id}
@@ -263,7 +267,8 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
           />
         )}
         </div>
-        {/* Sticky edit footer: delete + done (fields auto-save inline) */}
+        {/* Sticky edit footer: delete + done. «Готово» дописує незбережені
+            чернетки домашки/конспекту/нотатки — див. onRegisterFlush. */}
         {!loading && row && (
           <div className="border-t border-border bg-card" style={{ flexShrink: 0, padding: "12px 20px 18px", display: "flex", alignItems: "center", gap: 11 }}>
             {canDelete && (
@@ -279,7 +284,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             )}
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={async () => { await flushRef.current?.(); onOpenChange(false); }}
               className="bg-primary text-primary-foreground ml-auto h-11 rounded-[12px] px-7 text-[15px] font-bold"
               style={{ border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
             >

@@ -43,6 +43,8 @@ interface LessonWorkspaceProps {
   onUpdated?: () => void;
   /** B-D2: дає ланцюгу закрити діалог перед deep-link-ом */
   onClose?: () => void;
+  /** Дати діалогу спосіб ДОПИСАТИ незбережені чернетки перед закриттям. */
+  onRegisterFlush?: (fn: () => Promise<void>) => void;
 }
 
 import { sanitizeHttpUrl, safeHref } from "@/lib/safeUrl";
@@ -114,6 +116,7 @@ export function LessonWorkspace({
   studentNotes,
   source,
   onClose,
+  onRegisterFlush,
   studentPrice,
   currency,
   studentPaymentStatus,
@@ -498,6 +501,26 @@ export function LessonWorkspace({
   };
 
   const canEditTutorFields = isTutor;
+  /* 13.09, знайдено аудитом перед запуском: домашка й конспект зберігаються
+     ЛИШЕ кнопкою «Зберегти» під полем. Людина ж пише текст і тисне велике
+     «Готово» внизу — воно просто закривало форму. Чернетка не зникала
+     (useLocalDraft тримає її локально), але в базу не потрапляла: репетитор
+     вважав, що домашку задано, а учень її не бачив і в матеріалах її не було.
+     Тихе розходження між «я написала» і «учень отримав» — найгірший сорт
+     помилки для застосунку, який обіцяє, що нічого не губиться.
+     Тепер «Готово» дописує все незбережене перед закриттям. Сам футер діалогу
+     при цьому казав у коментарі «fields auto-save inline» — тепер це правда. */
+  useEffect(() => {
+    if (!onRegisterFlush) return;
+    onRegisterFlush(async () => {
+      if (!canEditTutorFields) return;
+      if (homeworkDraft !== (homework ?? "")) await updateLessonField("homework", homeworkDraft);
+      if (summaryDraft !== (summary ?? "")) await updateLessonField("summary", summaryDraft);
+      if (notesDraft !== (studentNotes ?? "")) await updateLessonField("student_notes", notesDraft);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateLessonField перестворюється щорендеру
+  }, [onRegisterFlush, canEditTutorFields, homeworkDraft, summaryDraft, notesDraft, homework, summary, studentNotes]);
+
   const canEditStudentNotes = isStudent;
 
   const fieldCss: React.CSSProperties = {

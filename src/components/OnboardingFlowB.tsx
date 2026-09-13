@@ -49,6 +49,9 @@ const T = {
   dark: "#0f0f1a", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
   txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
   success: "#0CA678", warn: "#F59E0B", tg: "#229ED9",
+  // Колір БРЕНДУ і колір ТЕКСТУ — різні речі (CLAUDE.md, хвиля 11.09):
+  // #0CA678 як напис на світло-зеленій пігулці дає 2.75:1.
+  successText: "var(--success-text,#11803a)",
   display: "'Inter', system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -90,7 +93,9 @@ function GhostBtn({ children, onClick, style = {} }: any) {
   return (
     <button onClick={onClick}
       className="px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-black/5"
-      style={{ fontFamily: T.display, color: T.sub, ...style }}>
+      /* 36px заввишки — нижче за 44px із ТЗ доступності. «Назад», «Пропустити»,
+         «Нічого не винен» — це повноцінні дії, а не компактні інлайн-контроли. */
+      style={{ fontFamily: T.display, color: T.sub, minHeight: 44, ...style }}>
       {children}
     </button>
   );
@@ -1612,7 +1617,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                       done ? "opacity-60 cursor-default" : "cursor-pointer")}
                     style={{ borderColor: T.border }}>
                     <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-xl flex-shrink-0"
-                      style={{ background: done ? "#f0fdf9" : `${T.teal}18` }}>
+                      style={{ background: done ? T.tealL : `${T.teal}18` }}>
                       {done ? "✅" : step.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1717,7 +1722,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               {alreadyDone ? (
                 <div className="flex flex-col items-center gap-4 pt-2">
                   <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-bold"
-                    style={{ background: "#f0fdf9", color: T.success, outline: `1px solid ${T.success}` }}>
+                    style={{ background: T.tealL, color: T.successText, outline: `1px solid ${T.successText}` }}>
                     <Check className="h-3.5 w-3.5" strokeWidth={3} /> {t(`onboardingFlowB.${step.hint}`)}
                   </span>
                   <Btn onClick={advance}>{idx === CORE.length-1 ? t("onboardingFlowB.finishStep") : t("onboardingFlowB.nextStep")}</Btn>
@@ -1757,8 +1762,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               logEvent("onboarding_exit_later", { step: idx + 1 }); // C6
               navigate("/");
             }}
-            className="mx-auto mt-1 text-[14px] font-medium py-1.5"
-            style={{ background: "transparent", border: "none", cursor: "pointer", color: T.muted, fontFamily: T.body }}>
+            className="mx-auto mt-1 text-[14px] font-medium tap-44"
+            style={{ background: "transparent", border: "none", cursor: "pointer", color: T.sub, fontFamily: T.body,
+              minHeight: 44, padding: "0 12px" }}>
             {t("onboardingFlowB.exitToApp")}
           </button>
         </div>

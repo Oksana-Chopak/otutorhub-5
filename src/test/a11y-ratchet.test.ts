@@ -450,6 +450,45 @@ describe("матеріали учня · хронологія, розгорну�
     expect(pp).toMatch(/gamLevel\?\.name \? `\$\{gamLevel\.emoji \?\? "🏅"\} \$\{gamLevel\.name\}`/);
   });
 
+  /* 13.09, аудит готовності самостійних репетиторів до запуску. Три дефекти,
+     кожен ламав саме те, заради чого людина відкриває застосунок. */
+  describe("готовність самостійного репетитора (13.09)", () => {
+    it("додати учня можна без контакту — як і вирішено 01.09", () => {
+      const ms = read("src/pages/MyStudentsPage.tsx");
+      expect(ms, "вимога email/телефону суперечила рішенню №13 і канонічній формі")
+        .not.toMatch(/if \(!email && !phone\) \{\s*\n\s*toast\.error\(t\("myStudents\.emailOrPhoneRequired"\)\);/);
+      // канонічна форма цю вимогу не має і не мусить набути
+      const q = read("src/components/QuickAddStudentDialog.tsx");
+      expect(q).not.toMatch(/!email && !phone/);
+    });
+
+    it("«Готово» в уроці дописує незбережену домашку й конспект", () => {
+      const ws = read("src/components/LessonWorkspace.tsx");
+      expect(ws, "робочій області потрібен спосіб віддати чернетки назовні")
+        .toMatch(/onRegisterFlush\?: \(fn: \(\) => Promise<void>\) => void;/);
+      expect(ws).toMatch(/if \(homeworkDraft !== \(homework \?\? ""\)\) await updateLessonField\("homework", homeworkDraft\);/);
+      expect(ws).toMatch(/if \(summaryDraft !== \(summary \?\? ""\)\) await updateLessonField\("summary", summaryDraft\);/);
+      const dlg = read("src/components/LessonDetailsDialog.tsx");
+      expect(dlg).toMatch(/onRegisterFlush=\{\(fn\) => \{ flushRef\.current = fn; \}\}/);
+      expect(dlg, "«Готово» мусить ЧЕКАТИ запис, а не закривати форму поверх нього")
+        .toMatch(/onClick=\{async \(\) => \{ await flushRef\.current\?\.\(\); onOpenChange\(false\); \}\}/);
+    });
+
+    it("підтвердження в онбордингу читається (текстовий токен, не бренд)", () => {
+      const ob = read("src/components/OnboardingFlowB.tsx");
+      expect(ob, "#0CA678 як напис на світлій пігулці — 2.75:1")
+        .not.toMatch(/style=\{\{ background: "#f0fdf9", color: T\.success/);
+      expect(ob).toMatch(/successText: "var\(--success-text,#11803a\)"/);
+      expect(ob).toMatch(/background: T\.tealL, color: T\.successText/);
+      expect(ob, "вшите світле тло ламає темну тему").not.toMatch(/background: done \? "#f0fdf9"/);
+    });
+
+    it("другорядні кнопки онбордингу тримають 44px дотику", () => {
+      const ob = read("src/components/OnboardingFlowB.tsx");
+      expect(ob).toMatch(/color: T\.sub, minHeight: 44, \.\.\.style/);
+    });
+  });
+
   it("учень бачить конспект одразу, а не за кнопкою", () => {
     const sh = read("src/pages/student/StudentHomeworkPage.tsx");
     expect(sh).toMatch(/r\.hasAiNote && \(\(\) => \{/);
