@@ -52,6 +52,7 @@ export type PersonaVars = {
    Живуть у коді, а не в i18n: це не переклад — вони однакові всіма мовами. */
 const COURSE_BOT_URL = "https://t.me/Ai5days_bot";
 const INSTAGRAM_URL = "https://instagram.com/oksana_in_sweden";
+const CALENDLY_URL = "https://calendly.com/oksana-chopak/30min";
 
 function capFirst(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -334,8 +335,17 @@ export default function LandingPage() {
                 </div>
               </div>
               <p className="price-schools">
-                {t("landing.pricing.schoolsLine")}{" "}
-                <a href="mailto:hello@otutorhub.com?subject=Online%20school%20oTutorHub">hello@otutorhub.com</a>
+                {t("landing.pricing.schoolsLine")}
+                {/* Дві дороги поруч: написати або одразу забронювати розмову.
+                    Школа рідко пише «в нікуди» — їй простіше взяти слот. */}
+                <span className="price-links">
+                  <a className="price-link" href="mailto:hello@otutorhub.com?subject=Online%20school%20oTutorHub">
+                    ✉️ hello@otutorhub.com
+                  </a>
+                  <a className="price-link" href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
+                    📅 {t("landing.pricing.schoolsCall")}
+                  </a>
+                </span>
               </p>
             </div>
           </section>

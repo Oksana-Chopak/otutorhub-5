@@ -450,6 +450,53 @@ describe("матеріали учня · хронологія, розгорну�
     expect(pp).toMatch(/gamLevel\?\.name \? `\$\{gamLevel\.emoji \?\? "🏅"\} \$\{gamLevel\.name\}`/);
   });
 
+  /* Лендінг: адреси, без яких обіцянки на сторінці нема куди перевірити.
+     Пережили переродження лендінгу 13.09 — тому й закріплені тестом. */
+  describe("лендінг веде туди, де про це домовляються", () => {
+    const lp = () => read("src/pages/LandingPage.tsx");
+
+    it("Founding Members: бот курсу та Instagram", () => {
+      const src = lp();
+      expect(src).toMatch(/const COURSE_BOT_URL = "https:\/\/t\.me\/Ai5days_bot"/);
+      expect(src).toMatch(/const INSTAGRAM_URL = "https:\/\/instagram\.com\/oksana_in_sweden"/);
+      expect(src).toMatch(/t\("landing\.pricing\.foundingBot"\)/);
+      expect(src).toMatch(/t\("landing\.pricing\.foundingInstagram"\)/);
+    });
+
+    it("школа має дві дороги: написати або забронювати розмову", () => {
+      const src = lp();
+      expect(src).toMatch(/const CALENDLY_URL = "https:\/\/calendly\.com\/oksana-chopak\/30min"/);
+      expect(src, "пошта лишається — не всі бронюють одразу")
+        .toMatch(/href="mailto:hello@otutorhub\.com\?subject=Online%20school%20oTutorHub"/);
+      expect(src).toMatch(/href=\{CALENDLY_URL\} target="_blank" rel="noopener noreferrer"/);
+      // Речення більше не обривається тире в очікуванні посилання всередині.
+      expect(read("src/i18n/locales/uk.ts")).not.toMatch(/schoolsLine: "[^"]*—",/);
+    });
+
+    it("усі зовнішні відкриваються безпечно, підписи — в трьох мовах", () => {
+      const links = lp().match(/<a className="price-link"[^>]*>/g) ?? [];
+      expect(links.length, "чотири адреси: бот, Instagram, пошта, Calendly").toBe(4);
+      for (const l of links) {
+        if (l.includes("mailto:")) continue;          // пошта відкривається поштовим клієнтом
+        expect(l, "нова вкладка").toMatch(/target="_blank"/);
+        expect(l, "без rel зовнішня сторінка дістає доступ до window.opener").toMatch(/rel="noopener noreferrer"/);
+      }
+      for (const loc of ["uk", "en", "sv"]) {
+        const f = read(`src/i18n/locales/${loc}.ts`);
+        for (const k of ["foundingBot", "foundingInstagram", "schoolsCall"]) {
+          expect(f, `${loc}: ${k}`).toMatch(new RegExp(`${k}:`));
+        }
+      }
+    });
+
+    it("пігулка тримає 44px дотику і 14px шрифту (ТЗ доступності)", () => {
+      const src = lp();
+      const css = src.slice(src.indexOf(".landing-root .price-link {"), src.indexOf(".landing-root .price-link:hover"));
+      expect(css).toMatch(/min-height: 44px/);
+      expect(css).toMatch(/font-size: 14px/);
+    });
+  });
+
   /* 13.09, аудит готовності самостійних репетиторів до запуску. Три дефекти,
      кожен ламав саме те, заради чого людина відкриває застосунок. */
   describe("готовність самостійного репетитора (13.09)", () => {

@@ -1472,7 +1472,8 @@ export const sv: LocaleTranslations = {
       proCta: "30 dagar gratis →", proNote: "Inget kort krävs. Avbryt när som helst.",
       leadTitle: "Mindre än en lektion i månaden",
       leadSub: "30 dagar gratis, inget kort. Sedan en prenumeration som kan avslutas med ett klick.",
-      schoolsLine: "Onlineskola med flera lärare? Vi kopplar upp på begäran —",
+      schoolsLine: "Onlineskola med flera lärare? Vi kopplar upp på begäran.",
+      schoolsCall: "Boka ett samtal",
     
       ctaNative: "Prova gratis",},
     studentsStrip: {

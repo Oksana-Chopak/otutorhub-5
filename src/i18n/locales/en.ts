@@ -759,7 +759,8 @@ export const en: LocaleTranslations = {
       proCta: "30 days free →", proNote: "No card required. Cancel anytime.",
       leadTitle: "Less than one lesson a month",
       leadSub: "30 days free, no card. Then a subscription you can cancel in one click.",
-      schoolsLine: "An online school with several tutors? We connect on request —",
+      schoolsLine: "An online school with several tutors? We connect on request.",
+      schoolsCall: "Book a call",
     
       ctaNative: "Try for free",},
     studentsStrip: {
