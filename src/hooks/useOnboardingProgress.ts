@@ -60,7 +60,7 @@ export function useOnboardingProgress(): OnboardingProgress & { refetch: () => v
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(
-        (supabase.from("google_calendar_tokens") as any).select("id").eq("user_id", user.id).limit(1),
+        (supabase.from("google_calendar_tokens") as any).select("user_id").eq("user_id", user.id).limit(1),
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       // UX-1 (2026-07-25): the true "Telegram connected" signal is a row in

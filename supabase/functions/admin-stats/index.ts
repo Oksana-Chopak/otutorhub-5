@@ -249,7 +249,10 @@ Deno.serve(async (req) => {
     const nowMs = Date.now();
     const day = 86400000;
     const [wsR, rolesR, profR, contR, lessAllR, ldR, payR, errR, refR, streakR, ratesR] = await Promise.all([
-      admin.from("tutor_workspace_settings").select("user_id, created_at, onboarding_completed, onboarding_step, independent_workspace, subscription_status, subscription_until, trial_until, current_plan"),
+      // 13.09: ключ цієї таблиці — tutor_id, колонки user_id НЕМАЄ; запит падав на
+      // 400, ws лишався порожнім — і CRM суперадміна показувала нуль репетиторів.
+      // Псевдонім user_id:tutor_id — решта функції читає w.user_id як і раніше.
+      admin.from("tutor_workspace_settings").select("user_id:tutor_id, created_at, onboarding_completed, onboarding_step, independent_workspace, subscription_status, subscription_until, trial_until, current_plan"),
       admin.from("user_roles").select("user_id, role"),
       admin.from("profiles").select("id, first_name, last_name"),
       admin.from("profile_contacts").select("user_id, email, telegram"),
@@ -258,7 +261,7 @@ Deno.serve(async (req) => {
       admin.from("liqpay_payments").select("tutor_id, amount, status, created_at, period_end"),
       admin.from("error_log").select("user_id, created_at").gte("created_at", new Date(nowMs - 7 * day).toISOString()),
       admin.from("referrals").select("referrer_id, upgraded_to_pro_at"),
-      admin.from("tutor_streaks").select("user_id, last_lesson_date"),
+      admin.from("tutor_streaks").select("user_id:tutor_id, last_lesson_date"),
       admin.from("student_rates").select("tutor_id, student_id, archived_at"),
     ]);
     const ws = wsR.data ?? [];

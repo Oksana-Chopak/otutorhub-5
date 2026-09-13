@@ -122,6 +122,13 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   NOT cover that file — a broken ternary there muted the robot twice) → tsc → eslint src --quiet (CI
   demands ZERO errors — was invisible while CI install was broken) → vitest →
   check-i18n → check-ux → vite build.
+- SCHEMA GATE (13.09): кожен `.from("t").select("…")` і `.rpc("fn")` у src/ і
+  supabase/functions/ звіряється з `types.ts` скриптом `check-db-select.mjs`
+  (+ `db-select-gate.test.ts` у vitest). Причина: чотири «полагодив одне —
+  зламав повʼязане» були колонками, яких у базі нема (`lesson_details.currency`,
+  `lessons.location`, `tutor_workspace_settings.user_id`, `lesson_participants.status`):
+  PostgREST відповідає 400 на ВЕСЬ запит, екран мовчки порожніє. Колонка, яку
+  ти «памʼятаєш», не існує, поки її нема в `types.ts`.
 - GATES check EXIT CODES, never grep-presence (`cmd; [ $? -eq 0 ]`): три
   червоні пуші сталися, бо пайпи ковтали фейли.
 - FS-GHOST: пісочниця інколи губить записи файлів — після КОЖНОГО write
@@ -835,6 +842,7 @@ node scripts/check-ux.mjs         # 0 errors
 node scripts/check-hardcode.mjs   # ≤ ліміту; бачить t("k") || "Укр" (03.09)
 node scripts/check-currency.mjs   # 0 літеральних валют
 node scripts/check-db-sync.mjs    # міграції нижче водяного знаку = 0
+node scripts/check-db-select.mjs  # кожен .select/.rpc — лише колонки й функції з types.ts (13.09)
 npx playwright test --list        # парс-гейт e2e
 # edge: for f in <touched>; do npx esbuild supabase/functions/$f/index.ts --format=esm --outfile=/dev/null; done
 ```

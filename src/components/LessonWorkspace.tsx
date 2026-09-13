@@ -437,11 +437,15 @@ export function LessonWorkspace({
          одному учневі, група — усім активним учасникам. */
       let recipients: string[] = studentId ? [studentId] : [];
       if (!studentId) {
+        // 13.09: у lesson_participants немає колонки status — є attendance_status
+        // (expected/attended/absent/cancelled). Запит із «status» падав, parts був
+        // null, і домашка групі знову не доходила НІКОМУ — той самий дефект, що
+        // лагодився 02.09, лише поверхом нижче.
         const { data: parts } = await (supabase.from("lesson_participants") as any)
-          .select("student_id, status")
+          .select("student_id, attendance_status")
           .eq("lesson_id", lessonId);
         recipients = ((parts ?? []) as any[])
-          .filter((p) => p.student_id && p.status !== "cancelled")
+          .filter((p) => p.student_id && p.attendance_status !== "cancelled")
           .map((p) => p.student_id as string);
       }
       recipients.forEach((uid) => {
