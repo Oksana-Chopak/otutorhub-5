@@ -134,7 +134,8 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
       email: cleanEmail,
       password: randomPassword,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        // 14.09: мова їде в посиланні — лист відкривають з пошти, де localStorage порожній.
+        emailRedirectTo: `${window.location.origin}/?lng=${(localStorage.getItem("otutorhub_lang") ?? "uk").slice(0, 2)}`,
         data: {
           first_name: cleanName,
           role: "student",

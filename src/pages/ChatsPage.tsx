@@ -93,6 +93,9 @@ interface ProfileLite {
   id: string;
   first_name: string;
   last_name: string;
+  /* 14.09: запрошений учень, який ще не підтвердив пошту. Без цього поля
+     чат писав «онлайн» про людину, якої в системі ще не існує. */
+  is_pending?: boolean | null;
 }
 
 function fullName(p?: ProfileLite | null) {
@@ -241,7 +244,7 @@ export default function ChatsPage() {
     if (ids.size > 0) {
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, is_pending")
         .in("id", Array.from(ids));
       (profileRows ?? []).forEach((p: any) => {
         profileMap[p.id] = p;
@@ -690,6 +693,13 @@ export default function ChatsPage() {
     }
   };
 
+  /* Чи є співрозмовник ще НЕ приєднаним (запрошення надіслано, пошту не
+     підтверджено). Менеджерських тредів не стосується — там підпис інший. */
+  const counterpartPending = (thread: Thread) => {
+    const otherId = thread.tutor_id === myId ? thread.student_id : thread.tutor_id;
+    return Boolean(profiles[otherId]?.is_pending);
+  };
+
   const counterpartName = (thread: Thread) => {
     const tutorFallback = t("shared.tutor");
     const studentFallback = t("shared.student");
@@ -789,7 +799,7 @@ export default function ChatsPage() {
     if (missing.length > 0) {
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, is_pending")
         .in("id", missing);
       const next = { ...profiles };
       (profileRows ?? []).forEach((p: any) => {
@@ -923,9 +933,16 @@ export default function ChatsPage() {
           className={cn(
             "flex overflow-hidden rounded-[16px] border-[0.5px] border-border",
             "-mx-4 md:-mx-6",
-            // Мобілка: панель рівно під вміст, «прилипає» до низу екрана;
-            // переповнення обмежене вьюпортом → скрол усередині.
-            "mt-auto max-h-[calc(100dvh-120px)] lg:mt-0 lg:h-[calc(100vh-120px)] lg:max-h-none",
+            // Мобілка, СПИСОК тредів: панель рівно під вміст, «прилипає» до
+            // низу екрана — коротка добірка лягає під великий палець.
+            // Мобілка, ВІДКРИТИЙ тред (правка 14.09): те саме «прилипання»
+            // лишало над розмовою близько 450 px порожнечі на 390×844 —
+            // виміряно роботом: шапка треду починалась на y=518. Поле вводу
+            // при цьому опинялось посеред екрана, а сама розмова читалась як
+            // випадковий шматок унизу. Відкритий тред мусить займати екран.
+            selectedId
+              ? "h-[calc(100dvh-120px)] lg:h-[calc(100vh-120px)]"
+              : "mt-auto max-h-[calc(100dvh-120px)] lg:mt-0 lg:h-[calc(100vh-120px)] lg:max-h-none",
           )}
         >
           {/* ── Col 1: Thread list ──────────────────────────────────────────── */}
@@ -1068,7 +1085,12 @@ export default function ChatsPage() {
                             <p
                               className="text-[14px] truncate"
                               style={{
-                                color: isUnread ? "#0f0f1a" : "var(--sub,#62677E)",
+                                /* 14.09: тут стояв вшитий світлий літерал #0f0f1a —
+                                   у темній темі непрочитаний прев'ю-рядок давав контраст
+                                   1.10 (текст кольору тла). Знайдено роботом лише тепер,
+                                   бо на стенді досі не існувало жодного чат-треду.
+                                   Колір бере токен теми, як і всюди. */
+                                color: isUnread ? "var(--txt,#0f0f1a)" : "var(--sub,#62677E)",
                                 fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
                                 fontWeight: isUnread ? 600 : 400,
                               }}
@@ -1181,9 +1203,24 @@ export default function ChatsPage() {
                         {t("chats.centerThreadSubtitle", { name: fullName(profiles[selectedThread.tutor_id]) })}
                       </p>
                     ) : (
-                      <p className="text-[14px] font-semibold" style={{ color: "hsl(var(--success))" }}>
-                        {t("chats.online")}
-                      </p>
+                      /* 14.09, скарга живого користувача: «статус онлайн у чаті
+                         показує навіть учням, яких ще не існує». Так і було:
+                         тут стояв ЖОРСТКО вписаний напис «онлайн» — присутність
+                         ніде не відстежувалась, тож зелене «онлайн» світилось
+                         однаково для всіх, включно із запрошеними, які ще не
+                         підтвердили пошту. Вигадана присутність — найгірший вид
+                         брехні в застосунку про людей: репетитор пише «онлайн»
+                         учневі й не розуміє, чому тиша.
+                         Тепер підпис каже те, що ми СПРАВДІ знаємо. */
+                      counterpartPending(selectedThread) ? (
+                        <p className="text-[14px] font-semibold truncate" style={{ color: "var(--warning-text,#B45309)" }}>
+                          {t("chats.notJoinedYet")}
+                        </p>
+                      ) : (
+                        <p className="text-[14px] truncate" style={{ color: "var(--sub,#62677E)" }}>
+                          {t(selectedThread.tutor_id === myId ? "shared.student" : "shared.tutor")}
+                        </p>
+                      )
                     )}
                   </div>
 

@@ -22,6 +22,7 @@ import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { ImportStudentsSheet, type ImportResult } from "@/components/ImportStudentsSheet";
@@ -1695,6 +1696,16 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       <div className="min-h-screen flex flex-col" style={{ background: T.bg, fontFamily: T.body }}>
         {/* Centered phone-width container */}
         <div className="max-w-[430px] mx-auto w-full flex flex-col flex-1 px-5 pt-14 pb-6">
+          {/* 14.09, скарга першого живого користувача: «пока 7 шагов не прошел,
+              то и негде было язык поменять». І це правда: онбординг —
+              ЄДИНИЙ екран без бічного меню й без шапки застосунку, тобто
+              людина, яка потрапила сюди не своєю мовою, мусила пройти всі
+              сім кроків наосліп, перш ніж дістатись до перемикача.
+              Тому мова стоїть НАД прогресом — там, де її шукають. */}
+          <div className="mb-1.5 flex justify-end">
+            <LanguageSwitcher variant="ghost" size="sm" className="h-11 px-3 rounded-full" />
+          </div>
+
           {/* Progress + meta */}
           <div className="mb-2.5"><ProgressSegments total={CORE.length} active={idx} /></div>
           <div className="flex items-center justify-between mb-6">

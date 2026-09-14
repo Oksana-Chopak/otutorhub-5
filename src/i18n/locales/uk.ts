@@ -1360,6 +1360,7 @@ export const uk = {
     noChats: "Тут зʼявляться твої чати — напиши перший 💬",
     noMessages: "Повідомлень ще немає — напишіть перший!",
     online: "у мережі",
+    notJoinedYet: "Ще не приєднався",
     today: "Сьогодні",
     yesterday: "Вчора",
     noThreadTitle: "Немає чату з цією людиною",

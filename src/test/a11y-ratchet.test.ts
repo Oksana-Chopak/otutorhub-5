@@ -576,6 +576,50 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/l\.tutor_payout_status === "unpaid" && Number\(l\.tutor_payout \?\? 0\) > 0/);
     });
 
+    it("мова не губиться на переході з листа", () => {
+      const i18n = read("src/i18n/index.ts");
+      const auth = read("src/pages/AuthPage.tsx");
+      // Лист відкривають з пошти — часто в іншому браузері, де localStorage
+      // порожній. Без мови в самому посиланні людина верталась на українську,
+      // і хук синхронізації записував цю українську в профіль назавжди.
+      expect(i18n, "?lng= мусить читатись ДО localStorage")
+        .toMatch(/new URLSearchParams\(window\.location\.search\)\.get\("lng"\)/);
+      expect(i18n, "підхоплену мову треба одразу зберегти")
+        .toMatch(/localStorage\.setItem\("otutorhub_lang", fromUrl\)/);
+      // усі листи, які ми шлемо, несуть мову (шаблонний рядок містить вкладені
+      // бектики, тож рахуємо по РЯДКАХ файла, а не регуляркою по всьому тексту)
+      const links = auth.split("\n").filter((l) => l.includes("emailRedirectTo:"));
+      expect(links.length, "посилань підтвердження мусить бути два").toBe(2);
+      for (const l of links) expect(l, "у кожному — мова").toContain("${langParam()}");
+      expect(auth, "скидання пароля теж").toMatch(/reset-password\?lng=/);
+      expect(auth, "мова лягає в акаунт із першої секунди")
+        .toMatch(/preferred_language: \(i18n\.resolvedLanguage \?\? "uk"\)\.slice\(0, 2\)/);
+    });
+
+    it("в онбордингу є де перемкнути мову", () => {
+      const ob = read("src/components/OnboardingFlowB.tsx");
+      // Онбординг — єдиний екран без шапки застосунку й без бічного меню:
+      // без перемикача людина мусила пройти всі сім кроків чужою мовою.
+      expect(ob).toMatch(/import \{ LanguageSwitcher \} from "@\/components\/LanguageSwitcher";/);
+      expect(ob, "перемикач стоїть над прогресом, а не десь усередині кроку")
+        .toMatch(/<LanguageSwitcher[^>]*\/>\s*<\/div>\s*\n\s*\{\/\* Progress \+ meta \*\/\}/);
+    });
+
+    it("чат не вигадує присутність", () => {
+      const ch = read("src/pages/ChatsPage.tsx");
+      // Тут стояв ЖОРСТКО вписаний напис «онлайн» — присутність ніде не
+      // відстежується, тож зелене «онлайн» світилось і для запрошених, яких
+      // у системі ще немає.
+      expect(ch, "безумовного «онлайн» у шапці треду більше немає")
+        .not.toMatch(/<p className="text-\[14px\] font-semibold" style=\{\{ color: "hsl\(var\(--success\)\)" \}\}>\s*\{t\("chats\.online"\)\}/);
+      expect(ch).toMatch(/const counterpartPending = \(thread: Thread\) =>/);
+      expect(ch).toMatch(/t\("chats\.notJoinedYet"\)/);
+      expect(ch, "is_pending треба прочитати, інакше ознака завжди хибна")
+        .toMatch(/\.select\("id, first_name, last_name, is_pending"\)/);
+      // відкритий тред на мобілці займає екран, а не тулиться до низу
+      expect(ch).toMatch(/selectedId\s*\n?\s*\? "h-\[calc\(100dvh-120px\)\] lg:h-\[calc\(100vh-120px\)\]"/);
+    });
+
     it("фраза дня — у самому низу і без рамки", () => {
       const dp = read("src/pages/DashboardPage.tsx");
       expect(dp, "у рамці посеред екрана вона читалась як ще одне поле")

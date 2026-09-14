@@ -1339,6 +1339,7 @@ export const en: LocaleTranslations = {
     noChats: "Your chats will appear here — start the first one 💬",
     noMessages: "No messages yet — be the first to write!",
     online: "online",
+    notJoinedYet: "Hasn't joined yet",
     today: "Today",
     yesterday: "Yesterday",
     noThreadTitle: "No chat with this person",

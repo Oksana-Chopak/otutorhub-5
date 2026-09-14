@@ -895,6 +895,7 @@ export const sv: LocaleTranslations = {
     noChats: "Dina chattar visas här — börja den första 💬",
     noMessages: "Inga meddelanden än — skriv det första!",
     online: "online",
+    notJoinedYet: "Har inte gått med än",
     today: "Idag",
     yesterday: "Igår",
     noThreadTitle: "Ingen chatt med den här personen",

@@ -22,6 +22,28 @@ export const i18nReady = i18n
     // Компоненти чекають чанк мови через Suspense (fallback уже є в App).
     react: { useSuspense: true },
     lng: (() => {
+      /* 14.09, скарга першого живого користувача: «при регистрации выбирал
+         английский… а перевело на сайт и снова украинский».
+         Причина: лист підтвердження відкривають з ПОШТИ, а це часто інший
+         браузер (застосунок пошти має власний webview). Там localStorage
+         порожній, тож інтерфейс стартував з українською — і хук синхронізації
+         потім записував цю українську в profiles.preferred_language як «вибір
+         людини». Тобто англійська не просто губилась на екрані: вона
+         затиралась НАЗАВЖДИ, разом із мовою серверних нагадувань.
+         Тепер мова їде в самому посиланні (?lng=…), і будь-який лист, який ми
+         шлемо, відкривається тією мовою, яку людина обрала. Параметр
+         одразу лягає в localStorage, тож далі все як раніше. */
+      const fromUrl = (() => {
+        if (typeof window === "undefined") return null;
+        try {
+          const v = new URLSearchParams(window.location.search).get("lng");
+          return v && ["uk", "en", "sv"].includes(v) ? v : null;
+        } catch { return null; }
+      })();
+      if (fromUrl) {
+        try { localStorage.setItem("otutorhub_lang", fromUrl); } catch { /* приватний режим */ }
+        return fromUrl;
+      }
       // Use stored preference, otherwise default to Ukrainian regardless of browser locale
       const stored = typeof localStorage !== "undefined"
         ? localStorage.getItem("otutorhub_lang")

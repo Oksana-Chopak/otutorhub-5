@@ -142,7 +142,16 @@ function ConfirmedSignIn({
 
 
 export default function AuthPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  /* 14.09: мова їде В САМОМУ посиланні з листа. Лист підтвердження
+     відкривають із пошти — часто в іншому браузері, де localStorage порожній,
+     і людина, що обрала English, поверталась на український інтерфейс. Гірше:
+     хук синхронізації записував ту українську в profiles.preferred_language,
+     і серверні нагадування теж переходили на українську. */
+  const langParam = () => {
+    const l = (i18n.resolvedLanguage ?? i18n.language ?? "uk").slice(0, 2);
+    return `&lng=${["en", "sv"].includes(l) ? l : "uk"}`;
+  };
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -406,7 +415,7 @@ export default function AuthPage() {
     setResetSending(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
-        redirectTo: `${appOrigin()}/reset-password`,
+        redirectTo: `${appOrigin()}/reset-password?lng=${(i18n.resolvedLanguage ?? "uk").slice(0, 2)}`,
       });
       setResetSending(false);
       if (error) {
@@ -475,13 +484,16 @@ export default function AuthPage() {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${appOrigin()}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
+        emailRedirectTo: `${appOrigin()}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}${langParam()}`,
         data: {
           first_name: parsed.data.firstName,
           last_name: parsed.data.lastName,
           phone: parsed.data.phone || null,
           role: parsed.data.role,
           independent_workspace: parsed.data.role === "tutor",
+          // Мова, обрана ДО реєстрації. Лежить в акаунті, тож не залежить
+          // від того, з якого пристрою людина відкриє лист.
+          preferred_language: (i18n.resolvedLanguage ?? "uk").slice(0, 2),
           // Естафета з лендінгу (10.09): список, який людина вставила в
           // калькулятор, їде В АКАУНТІ — лист підтвердження часто відкривають
           // з іншого пристрою, де localStorage порожній, і обіцянка «список уже
@@ -558,7 +570,7 @@ export default function AuthPage() {
       type: "signup",
       email: target,
       options: {
-        emailRedirectTo: `${appOrigin()}/auth?confirmed=1&email=${encodeURIComponent(target)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
+        emailRedirectTo: `${appOrigin()}/auth?confirmed=1&email=${encodeURIComponent(target)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}${langParam()}`,
       },
     });
     toast(
