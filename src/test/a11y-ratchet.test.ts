@@ -605,6 +605,32 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/<LanguageSwitcher[^>]*\/>\s*<\/div>\s*\n\s*\{\/\* Progress \+ meta \*\/\}/);
     });
 
+    it("пошта, додана пізніше, запрошує учня", () => {
+      const ms = read("src/pages/MyStudentsPage.tsx");
+      // Було: запрошення летіло ЛИШЕ при створенні і лише якщо пошта вже
+      // введена. Додати її пізніше — глухий кут: учень назавжди без доступу.
+      expect(ms).toMatch(/const emailJustAdded = Boolean\(email\) && !before\?\.email;/);
+      expect(ms, "лише для того, хто ще не приєднався — не спамити наявних")
+        .toMatch(/if \(emailJustAdded && before\?\.is_pending\)/);
+      // у гілці редагування має бути СВІЙ виклик запрошення, не лише у створенні
+      const invites = ms.match(/functions\.invoke\(\s*\n?\s*"send-student-invite"/g) ?? [];
+      expect(invites.length, "створення + додавання пошти пізніше").toBe(2);
+      expect(ms, "тиха невдача тут найгірша — репетитор думає, що лист пішов")
+        .toMatch(/t\("myStudents\.inviteFailedAddLater"\)/);
+    });
+
+    it("учень без контакту не лишається без пояснення", () => {
+      const ms = read("src/pages/MyStudentsPage.tsx");
+      // Додати учня без пошти й телефону можна (рішення власниці №13), але
+      // тоді інтерфейс мусить сказати, що доступу в нього ще немає, і дати дію.
+      expect(ms).toMatch(/\{s\.is_pending && \(/);
+      expect(ms).toMatch(/t\("myStudents\.pendingBandTitle"\)/);
+      expect(ms, "текст залежить від того, чи є куди слати")
+        .toMatch(/s\.email \? t\("myStudents\.pendingBandWithEmail"[\s\S]{0,60}t\("myStudents\.pendingBandNoContact"\)/);
+      expect(ms, "кнопка відкриває той самий діалог запрошення")
+        .toMatch(/onClick=\{\(\) => setInvite\(\{ open: true, name, email: s\.email/);
+    });
+
     it("чат не вигадує присутність", () => {
       const ch = read("src/pages/ChatsPage.tsx");
       // Тут стояв ЖОРСТКО вписаний напис «онлайн» — присутність ніде не

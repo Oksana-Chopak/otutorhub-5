@@ -552,8 +552,15 @@ export default function MyStudentsPage() {
           if (!inviteErr && (inviteResp as any)?.success) {
             inviteSent = true;
             toast.success(t("myStudents.inviteSent"));
-          } else if (inviteErr) {
+          } else if (!inviteErr && (inviteResp as any)?.reason === "rate_limited") {
+            toast.info(t("myStudents.inviteRateLimited"));
+          } else {
+            /* 14.09: тут стояв самий лише console.warn — репетитор бачив, що
+               учня створено, і був упевнений, що лист пішов. Діалог із
+               посиланням відкривається нижче в будь-якому разі, але сказати
+               про невдачу треба словами. */
             console.warn("Auto-invite failed", inviteErr);
+            toast.error(t("myStudents.inviteFailedAddLater"));
           }
         }
 
@@ -650,6 +657,42 @@ export default function MyStudentsPage() {
           { tutor_id: user.id, student_id: dialog.studentId, notes: form.tutor_notes.trim() || null },
           { onConflict: "tutor_id,student_id" }
         );
+
+        /* 14.09, скарга живого репетитора: «створив учня без пошти, потім
+           додав пошту — лист запрошення не прийшов».
+           Так і було: запрошення надсилалось ЛИШЕ в момент створення і лише
+           якщо пошта вже введена. Додати її пізніше було глухим кутом — учень
+           назавжди лишався без доступу, а репетитор не мав жодного натяку, що
+           треба зробити ще щось. Додавання пошти — це і є намір «запросити»,
+           тож тепер воно запрошує: один раз, тільки для учня, який ще НЕ
+           приєднався, і з чесним повідомленням, якщо не вдалось. */
+        const before = students.find((x) => x.id === dialog.studentId);
+        const emailJustAdded = Boolean(email) && !before?.email;
+        if (emailJustAdded && before?.is_pending) {
+          const { data: inviteResp, error: inviteErr } = await supabase.functions.invoke(
+            "send-student-invite",
+            { body: { studentId: dialog.studentId } },
+          );
+          const reason = (inviteResp as any)?.reason;
+          if (!inviteErr && (inviteResp as any)?.success) {
+            toast.success(t("myStudents.inviteSent"));
+          } else if (!inviteErr && reason === "rate_limited") {
+            /* Функція не шле повторно протягом доби. Це розумно, але мовчати
+               про це не можна: репетитор чекає листа, якого не буде. */
+            toast.info(t("myStudents.inviteRateLimited"));
+          } else {
+            // Тиха невдача тут найгірша: репетитор упевнений, що учень отримав лист.
+            toast.error(t("myStudents.inviteFailedAddLater"));
+            setInvite({
+              open: true,
+              name: `${fn} ${ln}`.trim(),
+              email: email || null,
+              phone: phone || null,
+              studentId: dialog.studentId,
+              emailSent: false,
+            });
+          }
+        }
 
         toast.success(t("myStudents.studentUpdated"));
         if (priceChanged) {
@@ -943,6 +986,30 @@ export default function MyStudentsPage() {
                       тихими кнопками. Тут, угорі, кричущий градієнт на всю ширину
                       забирав увагу в того, заради чого аркуш і відкривають — у
                       матеріалів учня. */}
+
+                  {/* 14.09: учень, якого ще немає в системі. Додати учня можна
+                      без пошти й телефону (рішення власниці №13) — і це правильно,
+                      бо спершу репетитор просто переносить свій список. Але далі
+                      флоу обривався: людина не бачила ЖОДНОГО натяку, що учень
+                      без контакту не отримає доступу і що з цим робити.
+                      Тепер стан названий, а поруч — сама дія. */}
+                  {s.is_pending && (
+                    <div style={{ borderRadius: 16, padding: 14, background: "rgba(148,155,185,.12)", border: "1px solid rgba(148,155,185,.3)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                      <div style={{ minWidth: 0, flex: "1 1 190px" }}>
+                        <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "var(--txt,#0f0f1a)" }}>
+                          {t("myStudents.pendingBandTitle")}
+                        </div>
+                        <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub, marginTop: 2 }}>
+                          {s.email ? t("myStudents.pendingBandWithEmail", { email: s.email }) : t("myStudents.pendingBandNoContact")}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setInvite({ open: true, name, email: s.email, phone: s.phone, studentId: s.id, emailSent: false })}
+                        style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface,#fff)", color: "var(--txt,#0f0f1a)", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0, flexGrow: 1, minWidth: 160 }}>
+                        {t("myStudents.pendingBandBtn")}
+                      </button>
+                    </div>
+                  )}
 
                   {/* Debt alert */}
                   {s.unpaid_total > 0 && (
