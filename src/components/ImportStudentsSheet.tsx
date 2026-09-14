@@ -19,6 +19,7 @@ import {
   type ImportWarning,
   type RowOverride,
   type UnsureChoice,
+  type ScheduleSlot,
 } from "@/lib/importStudents";
 import { currencySymbol, formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
@@ -152,8 +153,39 @@ export function ImportStudentsSheet({
   const [editing, setEditing] = useState<{ raw: string; field: EditableField } | null>(null);
   const resolvedLog = useRef<Array<{ shape: string; chosen: UnsureChoice }>>([]);
   const rows = useMemo(() => parsed.map((r) => applyOverride(r, overrides[r.raw])), [parsed, overrides]);
-  const valid = rows.filter((r) => !r.error);
+  // 14.09: «математика на середу о 18:00» — урок без учня. У застосунку такий
+  // рядок не створює учня «математика»: людина каже, чий це урок, і слот
+  // доклеюється до того учня; без відповіді урок чесно пропускається.
+  const dayName = (wd: number) => t(`importStudents.day${wd}`);
+  const orphans = rows.filter((r) => !r.error && r.scheduleOnly);
+  const valid = rows.filter((r) => !r.error && !r.scheduleOnly);
   const broken = rows.filter((r) => r.error);
+  const assignedSlots = useMemo(() => {
+    const m = new Map<string, ScheduleSlot[]>();
+    for (const o of orphans) {
+      const to = overrides[o.raw]?.assignTo;
+      if (!to) continue;
+      m.set(to, [...(m.get(to) ?? []), ...o.schedule]);
+    }
+    return m;
+  }, [orphans, overrides]);
+  const scheduleOf = (r: ParsedStudent): ScheduleSlot[] => [...r.schedule, ...(assignedSlots.get(r.raw) ?? [])];
+  const assignedTo = (r: ParsedStudent) => orphans.filter((o) => overrides[o.raw]?.assignTo === r.raw);
+  // Предмет уроку без учня («математика на середу») не губиться: учень без
+  // предмета бере його собі, а якщо предмет у нього вже інший — урок іде під
+  // предметом учня (RPC веде одну ставку), і слово лишається в нотатці.
+  const subjectOf = (r: ParsedStudent): string | null => {
+    if (r.subject) return r.subject;
+    const subs = Array.from(new Set(assignedTo(r).map((o) => o.subject).filter((s): s is string => !!s)));
+    return subs.length === 1 ? subs[0] : null;
+  };
+  const subjectNotesOf = (r: ParsedStudent): string[] => {
+    const own = subjectOf(r);
+    return assignedTo(r)
+      .filter((o) => o.subject && o.subject !== own)
+      .map((o) => `${o.subject} — ${o.schedule.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", ")}`);
+  };
+  const orphansSkipped = orphans.filter((o) => !overrides[o.raw]?.assignTo).length;
   const unsureOf = (r: ParsedStudent) => unsureNote(parsed.find((p) => p.raw === r.raw) ?? r, overrides[r.raw]);
   const unsureCount = valid.filter((r) => unsureOf(r)).length + broken.length;
   const setField = (raw: string, field: EditableField, v: number | null) =>
@@ -167,7 +199,7 @@ export function ImportStudentsSheet({
   const sym = currencySymbol(IMPORT_CURRENCY);
 
   const hasMoneyOrSchedule = (r: ParsedStudent) =>
-    r.debtAmount !== null || r.debtLessons !== null || r.prepayLessons !== null || r.prepayAmount !== null || r.schedule.length > 0;
+    r.debtAmount !== null || r.debtLessons !== null || r.prepayLessons !== null || r.prepayAmount !== null || scheduleOf(r).length > 0;
   const needsPro = valid.some(hasMoneyOrSchedule);
 
   // Підсумок для кнопки: борги (нетто), уроків на 4 тижні.
@@ -179,10 +211,11 @@ export function ImportStudentsSheet({
       const n = netDebtAndPrepay(r);
       debt += n.debtAmount + (r.price ?? 0) * n.debtLessons;
       prepay += n.prepayAmount + (r.price ?? 0) * n.prepayLessons;
-      lessons += r.schedule.length * IMPORT_SCHEDULE_WEEKS;
+      lessons += scheduleOf(r).length * IMPORT_SCHEDULE_WEEKS;
     }
     return { debt, prepay, lessons };
-  }, [valid]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scheduleOf читає assignedSlots
+  }, [valid, assignedSlots]);
 
   const runImport = async () => {
     if (lock.locked && needsPro) { lock.openPaywall(); return; }
@@ -202,13 +235,13 @@ export function ImportStudentsSheet({
     for (let i = 0; i < valid.length; i++) {
       const r = valid[i];
       const net = netDebtAndPrepay(r);
-      const starts = scheduleToStarts(r.schedule, IMPORT_SCHEDULE_WEEKS).map((d) => d.toISOString());
+      const starts = scheduleToStarts(scheduleOf(r), IMPORT_SCHEDULE_WEEKS).map((d) => d.toISOString());
       // 13.09: «Олена — борг 2 уроки» без ціни. RPC відкидає такий борг
       // (DEBT_LESSONS_NEED_PRICE), і раніше учень МОВЧКИ не створювався —
       // з зеленою галочкою в превʼю. Тепер учня створюємо, а борг уроками
       // лишається словами в нотатці, поки не буде ціни.
       const debtLessonsNoPrice = net.debtLessons > 0 && !(r.price && r.price > 0);
-      const rowNote = [r.note, debtLessonsNoPrice ? t("importStudents.noteDebtLessons", { count: net.debtLessons }) : null]
+      const rowNote = [r.note, debtLessonsNoPrice ? t("importStudents.noteDebtLessons", { count: net.debtLessons }) : null, ...subjectNotesOf(r)]
         .filter(Boolean).join(" · ");
       if (debtLessonsNoPrice) noDebt++;
       try {
@@ -219,7 +252,7 @@ export function ImportStudentsSheet({
           _email: r.email ?? "",
           _phone: r.phone ?? "",
           _telegram: r.telegram ?? "",
-          _subject: r.subject ?? t("importStudents.defaultSubject"),
+          _subject: subjectOf(r) ?? t("importStudents.defaultSubject"),
           _price: r.price ?? 0,
           _currency: IMPORT_CURRENCY,
           _debt_amount: net.debtAmount,
@@ -274,6 +307,7 @@ export function ImportStudentsSheet({
       if (scheduled > 0) parts.push(t("importStudents.doneLessons", { count: scheduled }));
       if (noDebt > 0) parts.push(t("importStudents.doneNoDebt", { count: noDebt }));
       if (failed > 0) parts.push(t("importStudents.doneFailed", { count: failed }));
+      if (orphansSkipped > 0) parts.push(t("importStudents.doneOrphansSkipped", { count: orphansSkipped }));
       toast.success(t("importStudents.doneTitle", { count: added + linked }), {
         description: parts.length ? parts.join(" · ") : undefined,
       });
@@ -289,7 +323,6 @@ export function ImportStudentsSheet({
   };
 
   const warnText = (w: ImportWarning) => t(`importStudents.warn_${w}`);
-  const dayName = (wd: number) => t(`importStudents.day${wd}`);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!busy) onOpenChange(o); }}>
@@ -344,7 +377,9 @@ export function ImportStudentsSheet({
                 );
                 const u = unsureOf(r);
                 const info: string[] = [];
-                if (r.schedule.length > 0) info.push(r.schedule.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", "));
+                const slots = scheduleOf(r);
+                if (slots.length > 0) info.push(slots.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", "));
+                for (const sn of subjectNotesOf(r)) info.push(`📝 ${sn}`);
                 if (r.phone) info.push("📞");
                 if (r.email) info.push("✉️");
                 // Аудит 09.09: нерозпізнаний хвіст їде в приватну нотатку — людина
@@ -356,7 +391,7 @@ export function ImportStudentsSheet({
                     <div className="flex items-start gap-2">
                       <span aria-hidden style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>
                       <span className="min-w-0 font-semibold">{r.firstName} {r.lastName}</span>
-                      {r.subject && <span className="text-muted-foreground">· {r.subject}</span>}
+                      {subjectOf(r) && <span className="text-muted-foreground">· {subjectOf(r)}</span>}
                     </div>
                     <div className="ml-6 mt-1.5 flex flex-wrap items-center gap-1.5">
                       {chip("price", r.price !== null ? t("importStudents.chipPrice", { sum: formatPrice(r.price, IMPORT_CURRENCY) }) : t("importStudents.noPrice"), r.price, sym)}
@@ -400,6 +435,36 @@ export function ImportStudentsSheet({
                 );
               })}
               {valid.length > 40 && <p className="text-[13px] text-muted-foreground">{t("importStudents.moreRows", { count: valid.length - 40 })}</p>}
+              {orphans.length > 0 && (
+                <div className="mt-2 rounded-[16px] border-[0.5px] border-border bg-secondary/50 p-3">
+                  <p className="text-[14px] font-semibold text-foreground">🗓 {t("importStudents.orphanTitle")}</p>
+                  <p className="mt-0.5 text-[13px] text-muted-foreground">{t("importStudents.orphanHint")}</p>
+                  {orphans.map((o, i) => {
+                    const label = `${o.subject ? o.subject.charAt(0).toUpperCase() + o.subject.slice(1) : t("importStudents.orphanLesson")} · ${o.schedule.map((s) => `${dayName(s.weekday)} ${s.time}`).join(", ")}`;
+                    const cur = overrides[o.raw]?.assignTo;
+                    return (
+                      <div key={`o${i}:${o.raw}`} className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="text-[14px] text-foreground">{label}</span>
+                        <select
+                          aria-label={label}
+                          value={cur === undefined ? "" : cur === "" ? "__skip" : cur}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setOverrides((prev) => ({ ...prev, [o.raw]: { ...(prev[o.raw] ?? {}), assignTo: v === "" ? undefined : v === "__skip" ? "" : v } }));
+                          }}
+                          className={"h-11 rounded-xl border-[0.5px] bg-background px-3 text-[15px] " + (cur ? "border-primary text-foreground" : "border-amber-500 text-amber-700 dark:text-amber-400")}
+                        >
+                          <option value="">{t("importStudents.orphanPick")}</option>
+                          {valid.map((st) => (
+                            <option key={st.raw} value={st.raw}>{[st.firstName, st.lastName].filter(Boolean).join(" ")}</option>
+                          ))}
+                          <option value="__skip">{t("importStudents.orphanSkip")}</option>
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {broken.map((r, i) => (
                 <div key={`b${i}`} className="flex items-start gap-2 text-[14px] text-amber-700 dark:text-amber-400">
                   <span aria-hidden>🤔</span>

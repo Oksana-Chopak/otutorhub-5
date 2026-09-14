@@ -58,7 +58,8 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
   const rows = useMemo(() => parseStudentList(source, { mode: "debts" }), [source]);
   const calc = useMemo(() => calcMoneyPreview(rows), [rows]);
   const digest = useMemo(() => digestPreview(rows), [rows]);
-  const has = calc.students > 0;
+  // «є що показати» = є учні АБО хоч один урок без учня («математика на середу о 18:00»).
+  const has = calc.students > 0 || rows.some((r) => !r.error && r.scheduleOnly);
   const dayLabel = useMemo(() => (digest.day ? formatDigestDay(digest.day.date, getLocale()) : ""), [digest.day]);
   const money = (n: number) => formatPrice(Math.round(n), IMPORT_CURRENCY);
   const MAX_NAMES = 4;
@@ -101,6 +102,11 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
       : d.amount > 0 ? `${d.name} ${money(d.amount)}`
         : `${d.name} ${t("landingHero.debtLessons", { count: d.lessons })}`;
 
+  // «0 ₴ · 8 уроків» — не показник, а знак, що цін немає: тоді без суми, з підказкою.
+  const monthLine = calc.monthly > 0
+    ? t("landingHero.monthLine", { weeks: CALC_WEEKS, amount: money(calc.monthly), lessons: t("landingHero.lessons", { count: calc.lessonsPerMonth }) })
+    : t("landingHero.monthLineNoMoney", { weeks: CALC_WEEKS, lessons: t("landingHero.lessons", { count: calc.lessonsPerMonth }) });
+
   // Текст для Telegram — рядок у рядок те, що в бульбашці.
   const digestText = useMemo(() => {
     if (!has) return "";
@@ -125,11 +131,11 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
     if (calc.prepaid > 0) lines.push(t("landingHero.prepaidLine", { amount: money(calc.prepaid), count: calc.prepaidStudents }));
     if (calc.lessonsPerMonth > 0) {
       lines.push("");
-      lines.push(t("landingHero.monthLine", { weeks: CALC_WEEKS, amount: money(calc.monthly), lessons: t("landingHero.lessons", { count: calc.lessonsPerMonth }) }));
+      lines.push(monthLine);
     }
     return lines.join("\n").slice(0, 3900);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [has, digest, dayLabel, calc, i18n.language]);
+  }, [has, digest, dayLabel, calc, monthLine, i18n.language]);
 
   const [tgBusy, setTgBusy] = useState(false);
   const [tgLink, setTgLink] = useState<string | null>(null);
@@ -175,7 +181,11 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
   const hint = !isExample && (has || unsure.length > 0)
     ? unsure.length > 0 ? t("landingHero.hintUnsure", { count: unsure.length, lines: unsure.slice(0, 2).map((s) => `«${s}»`).join(", ") })
       : calc.unvaluedDebtStudents > 0 ? t("landingHero.hintNoPrice", { count: calc.unvaluedDebtStudents })
-        : calc.noScheduleStudents > 0 ? t("landingHero.hintNoSchedule") : null
+        // 14.09: коли уроки в дайджесті вже є (хоч би без учня), «уроки зʼявляться»
+        // звучало б брехнею — кажемо, у кого саме ще немає днів і часу.
+        : calc.noScheduleStudents > 0
+          ? calc.lessonsPerMonth > 0 ? t("landingHero.hintNoScheduleSome", { count: calc.noScheduleStudents }) : t("landingHero.hintNoSchedule")
+          : null
     : null;
 
   return (
@@ -264,9 +274,7 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
               </div>
 
               {calc.lessonsPerMonth > 0 && (
-                <p className="bubble-month">
-                  {t("landingHero.monthLine", { weeks: CALC_WEEKS, amount: money(calc.monthly), lessons: t("landingHero.lessons", { count: calc.lessonsPerMonth }) })}
-                </p>
+                <p className="bubble-month">{monthLine}</p>
               )}
             </div>
             {hint && <p className="bubble-hint">{hint}</p>}

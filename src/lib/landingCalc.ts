@@ -48,19 +48,21 @@ export function calcMoneyPreview(rows: ParsedStudent[]): MoneyPreview {
   const valid = rows.filter((r) => !r.error);
   if (valid.length === 0) return EMPTY;
 
-  const out: MoneyPreview = { ...EMPTY, students: valid.length };
+  // Рядки розкладу без учня («математика на середу о 18:00») — уроки є, учня нема.
+  const students = valid.filter((r) => !r.scheduleOnly);
+  const out: MoneyPreview = { ...EMPTY, students: students.length };
 
   for (const r of valid) {
     const price = r.price ?? 0;
-    if (price > 0) out.withPrice++; else out.withoutPrice++;
-
     // Уроки — ТІЛЬКИ з розкладу, бо рівно стільки їх створить імпорт.
     // Жодних «припустимо, раз на тиждень»: обіцяне на лендінгу число впало б
     // після реєстрації, а це найдорожча брехня з усіх можливих.
-    if (r.schedule.length === 0) out.noScheduleStudents++;
     const lessons = r.schedule.length * CALC_WEEKS;
     out.lessonsPerMonth += lessons;
     out.monthly += lessons * price;
+    if (r.scheduleOnly) continue;
+    if (price > 0) out.withPrice++; else out.withoutPrice++;
+    if (r.schedule.length === 0) out.noScheduleStudents++;
 
     // Борг і передоплата — формула підсумку ImportStudentsSheet, слово в слово.
     // Тут не симетрія заради краси: netDebtAndPrepay САМА переводить борг-уроки
@@ -111,6 +113,8 @@ function digestNames(rows: ParsedStudent[]): Map<ParsedStudent, string> {
   for (const r of rows) byFirst.set(r.firstName, (byFirst.get(r.firstName) ?? 0) + 1);
   const out = new Map<ParsedStudent, string>();
   for (const r of rows) {
+    // Урок без учня підписуємо предметом — так він і стоятиме в дайджесті.
+    if (r.scheduleOnly) { const sub = r.subject ?? "—"; out.set(r, sub.charAt(0).toUpperCase() + sub.slice(1)); continue; }
     const dup = (byFirst.get(r.firstName) ?? 0) > 1;
     out.set(r, dup && r.lastName ? `${r.firstName} ${r.lastName[0]}.` : r.firstName);
   }
@@ -164,6 +168,7 @@ export function digestPreview(rows: ParsedStudent[], now: Date = new Date()): Di
 
   const debtors: DigestDebtor[] = [];
   for (const r of valid) {
+    if (r.scheduleOnly) continue;
     const price = r.price ?? 0;
     const net = netDebtAndPrepay(r);
     const amount = net.debtAmount + price * net.debtLessons;

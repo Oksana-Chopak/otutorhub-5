@@ -79,6 +79,12 @@ export interface ParsedStudent {
   telegram: string | null;
   note: string | null;
   warnings: ImportWarning[];
+  /**
+   * Рядок розкладу без учня — «математика на середу о 18:00» (14.09, нотатки
+   * власниці). На лендінгу це урок у дайджесті (підпис — предмет); в імпорті
+   * людина каже, чий це урок, і слот доклеюється до того учня.
+   */
+  scheduleOnly?: boolean;
   /** Людською мовою, чому рядок не буде імпортовано (null = ок). */
   error: "empty_name" | null;
 }
@@ -132,23 +138,39 @@ const HEADER_WORDS = new Set([
   "список", "оплати", "мої", "учнів", "хто", "винен", "винні", "кому", "скільки",
 ]);
 
+// 14.09 (власниця: «математика на середу о 18:00», «українська у вівторок 10 ранку»):
+// дні тижня в усіх відмінках, як їх пишуть у нотатках — «на середу», «у пʼятницю»,
+// «по вівторках», «щосуботи»; час — «о 18:00», «18-00», «10 ранку», «5 вечора».
 const WEEKDAYS: Array<[RegExp, number]> = [
-  [/^(?:що)?(?:пн|пон|понеділок|понеділка|mon|monday|mån|måndag)$/i, 1],
-  [/^(?:що)?(?:вт|вів|вівторок|вівторка|tue|tues|tuesday|tis|tisdag)$/i, 2],
-  [/^(?:що)?(?:ср|сер|середа|середи|wed|wednesday|ons|onsdag)$/i, 3],
-  [/^(?:що)?(?:чт|чет|четвер|четверга|thu|thur|thurs|thursday|tor|tors|torsdag)$/i, 4],
-  [/^(?:що)?(?:пт|пʼятниця|п'ятниця|п’ятниця|пятниця|пʼятниці|п'ятниці|fri|friday|fre|fredag)$/i, 5],
-  [/^(?:що)?(?:сб|суб|субота|суботи|sat|saturday|lör|lördag)$/i, 6],
-  [/^(?:що)?(?:нд|нед|неділя|неділі|sun|sunday|sön|söndag)$/i, 7],
+  [/^(?:що)?(?:пн|пон|понеділок|понеділка|понеділках|mon|monday|mån|måndag)$/i, 1],
+  [/^(?:що)?(?:вт|вів|вівторок|вівторка|вівторках|tue|tues|tuesday|tis|tisdag)$/i, 2],
+  [/^(?:що)?(?:ср|сер|середа|середи|середу|середах|wed|wednesday|ons|onsdag)$/i, 3],
+  [/^(?:що)?(?:чт|чет|четвер|четверга|четвергах|thu|thur|thurs|thursday|tor|tors|torsdag)$/i, 4],
+  [/^(?:що)?(?:пт|пʼятниц[яіюь]|п'ятниц[яіюь]|п’ятниц[яіюь]|пятниц[яіюь]|пʼятницях|п'ятницях|п’ятницях|пятницях|fri|friday|fre|fredag)$/i, 5],
+  [/^(?:що)?(?:сб|суб|субота|суботи|суботу|суботах|sat|saturday|lör|lördag)$/i, 6],
+  [/^(?:що)?(?:нд|нед|неділя|неділі|неділю|неділях|sun|sunday|sön|söndag)$/i, 7],
 ];
-const TIME_RE = /^(?:о\s*|at\s*|kl\.?\s*)?([01]?\d|2[0-3])(?:[:.\-h]([0-5]\d))?$/i;
-const WEEKDAY_WORD = "(?:що)?(?:пн|пон|понеділок|понеділка|вт|вів|вівторок|вівторка|ср|сер|середа|середи|чт|чет|четвер|четверга|пт|пʼятниця|п'ятниця|п’ятниця|пятниця|пʼятниці|п'ятниці|сб|суб|субота|суботи|нд|нед|неділя|неділі|mon|monday|tue|tues|tuesday|wed|wednesday|thu|thur|thurs|thursday|fri|friday|sat|saturday|sun|sunday|mån|måndag|tis|tisdag|ons|onsdag|tor|tors|torsdag|fre|fredag|lör|lördag|sön|söndag)";
+/** Час одним словом: «18:00», «18-00», «18.00», «о 18», «18год». */
+const TIME_RE = /^(?:о\s*|об\s*|at\s*|kl\.?\s*)?([01]?\d|2[0-3])(?:[:.\-h]([0-5]\d))?(?:\s*(?:год\.?|h))?$/i;
+/** Пора доби після години: «10 ранку» → 10:00, «5 вечора» → 17:00, «3 дня» → 15:00, «12 ночі» → 00:00, «7 pm» → 19:00. */
+const DAYPART_RE = /^(ранку|рано|дня|вечора|ночі|am|pm)$/i;
+function applyDaypart(hour: number, part: string): number {
+  const p = part.toLowerCase();
+  if (p === "ранку" || p === "рано" || p === "am") return hour === 12 ? 0 : hour;
+  if (p === "дня") return hour < 12 ? hour + 12 : hour;
+  if (p === "вечора" || p === "pm") return hour < 12 ? hour + 12 : hour;
+  if (p === "ночі") return hour === 12 ? 0 : hour;
+  return hour;
+}
+const WEEKDAY_WORD = "(?:що)?(?:пн|пон|понеділок|понеділка|понеділках|вт|вів|вівторок|вівторка|вівторках|ср|сер|середа|середи|середу|середах|чт|чет|четвер|четверга|четвергах|пт|пʼятниц[яіюь]|п'ятниц[яіюь]|п’ятниц[яіюь]|пятниц[яіюь]|пʼятницях|п'ятницях|п’ятницях|пятницях|сб|суб|субота|суботи|суботу|суботах|нд|нед|неділя|неділі|неділю|неділях|mon|monday|tue|tues|tuesday|wed|wednesday|thu|thur|thurs|thursday|fri|friday|sat|saturday|sun|sunday|mån|måndag|tis|tisdag|ons|onsdag|tor|tors|torsdag|fre|fredag|lör|lördag|sön|söndag)";
+/** Прийменник перед днем: «у вівторок», «в понеділок», «на середу», «по вівторках». */
+const DAY_PREP = "(?:у|в|на|по|every|on|varje|på)";
 // «вт,чт 16:30» — кома між днями тижня НЕ роздільник полів: склеюємо плюсом до
 // розбиття рядка, щоб дні лишились в одному токені.
 const DAY_COMMA_RE = new RegExp(`(${WEEKDAY_WORD})\\s*,\\s*(?=${WEEKDAY_WORD}(?![a-zа-яіїєґ]))`, "gi");
 /** Розклад як фраза всередині довшого хвоста: «пн і ср о 17», «вт+чт 16:30». */
 const SCHEDULE_PHRASE_RE = new RegExp(
-  `(?<![a-zа-яіїєґ])(${WEEKDAY_WORD}(?:\\s*(?:\\+|/|&|\\sі\\s|\\sта\\s|\\sand\\s|\\soch\\s)\\s*${WEEKDAY_WORD})*)\\s*(?:о|в|у|at|kl\\.?)?\\s*((?:[01]?\\d|2[0-3])(?:[:.h\\-][0-5]\\d)?)(?![\\d:])`,
+  `(?<![a-zа-яіїєґ])(?:${DAY_PREP}\\s+)?(${WEEKDAY_WORD}(?:\\s*(?:\\+|/|&|\\sі\\s|\\sта\\s|\\sand\\s|\\soch\\s|,)\\s*(?:${DAY_PREP}\\s+)?${WEEKDAY_WORD})*)\\.?\\s*(?:о|об|в|у|з|at|kl\\.?|from)?\\s*((?:[01]?\\d|2[0-3])(?:[:.h\\-][0-5]\\d)?(?:\\s*(?:год\\.?|h))?(?:\\s*(?:ранку|рано|дня|вечора|ночі|am|pm))?)(?:\\s*[-–—]\\s*(?:[01]?\\d|2[0-3])(?:[:.h][0-5]\\d)?)?(?![\\d:])`,
   "i",
 );
 
@@ -200,11 +222,14 @@ function cutName(candidate: string): { name: string; rest: string } {
   const nameWords: string[] = [];
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
-    const bare = w.replace(/[()[\]«»"“”.]/g, "");
+    // Дужки й лапки геть, крапка — лише кінцева («пн.»), бо «18.30» — це час.
+    const clean = (x: string) => x.replace(/[()[\]«»"“”]/g, "").replace(/\.$/, "");
+    const bare = clean(w);
     // День тижня — стоп лише коли за ним час або ще один день: «Tor» і «Sun» —
     // теж імена, а «Оля пн 18:00» — розклад.
-    const next = (words[i + 1] ?? "").replace(/[()[\]«»"“”.]/g, "");
-    const weekdayStart = WEEKDAY_ONLY_RE.test(bare) && (TIME_RE.test(next) || WEEKDAY_ONLY_RE.test(next) || /^(?:о|в|у|at|kl\.?)$/i.test(next));
+    const next = clean(words[i + 1] ?? "");
+    const nextIsWeekdayPhrase = WEEKDAY_ONLY_RE.test(next) || (/^(?:у|в|на|по)$/i.test(next) && WEEKDAY_ONLY_RE.test(clean(words[i + 2] ?? "")));
+    const weekdayStart = WEEKDAY_ONLY_RE.test(bare) && (TIME_RE.test(next) || nextIsWeekdayPhrase || /^(?:о|об|в|у|at|kl\.?)$/i.test(next));
     if (!bare || /^\d/.test(bare) || /^[+@]/.test(bare) || NAME_STOP_RE.test(bare) || SUBJECT_WORD_RE.test(bare) || weekdayStart || nameWords.length >= 4) {
       return { name: nameWords.join(" "), rest: words.slice(i).join(" ") };
     }
@@ -216,21 +241,30 @@ function cutName(candidate: string): { name: string; rest: string } {
 /** «пн 18:00», «вт та чт 16:30», «щопн о 18», «mon 17» → слоти (весь токен). */
 function parseSchedule(tok: string): ScheduleSlot[] | null {
   const words = tok
+    .replace(/(?<=\d[:.][0-5]\d)\s*[-–—]\s*[01]?\d(?:[:.][0-5]\d)?(?=\s*$)/, "") // «18:00-19:00» → беремо початок («18-00» — це час, не діапазон)
     .replace(/[,/&+]|\s(?:і|та|and|och)\s/gi, " ")
     .split(/\s+/)
-    .map((w) => w.trim())
-    .filter((w) => w && !/^(?:о|в|у|at|kl\.?)$/i.test(w));
+    .map((w) => w.trim().replace(/^(.+)\.$/, "$1")) // «пн.» → «пн»
+    .filter((w) => w && !/^(?:о|об|в|у|на|по|з|at|kl\.?|from|every|on|varje|på|год\.?|h)$/i.test(w));
   const days: number[] = [];
   let time: string | null = null;
+  let hour: number | null = null;
   for (const w of words) {
     const wd = WEEKDAYS.find(([re]) => re.test(w));
     if (wd) { days.push(wd[1]); continue; }
     const tm = TIME_RE.exec(w);
     if (tm && days.length > 0 && time === null) {
-      time = `${tm[1].padStart(2, "0")}:${tm[2] ?? "00"}`;
+      hour = Number(tm[1]);
+      time = `${String(hour).padStart(2, "0")}:${tm[2] ?? "00"}`;
       continue;
     }
-    return null; // стороннє слово — це не розклад
+    if (time !== null && hour !== null && DAYPART_RE.test(w)) {
+      hour = applyDaypart(hour, w);
+      time = `${String(hour).padStart(2, "0")}:${time.slice(3)}`;
+      continue;
+    }
+    // «19:00» після діапазону вже зрізано вище; будь-яке інше слово — не розклад
+    return null;
   }
   if (days.length === 0 || time === null) return null;
   return Array.from(new Set(days)).map((weekday) => ({ weekday, time: time as string }));
@@ -404,7 +438,12 @@ export function parseStudentLine(rawLine: string, opts: ParseOptions = {}): Pars
 
   // Нумерація списку («1. Марія», «2) Іван», «- Марія», «• Марія») — зрізаємо;
   // дні тижня через кому — склеюємо.
-  const line = raw.replace(/^\s*(?:\d{1,3}\s*[.)]|[-•*–—])\s*/, "").replace(DAY_COMMA_RE, "$1+");
+  // Діапазон часу «18:00–19:30» — беремо початок ДО розбиття: тире між часами
+  // не є роздільником полів.
+  const line = raw
+    .replace(/^\s*(?:\d{1,3}\s*[.)]|[-•*–—])\s*/, "")
+    .replace(/(\d[:.][0-5]\d)\s*[-–—]\s*[01]?\d(?:[:.][0-5]\d)?(?!\d)/g, "$1")
+    .replace(DAY_COMMA_RE, "$1+");
 
   const tokens = line
     .split(SEPARATORS)
@@ -492,7 +531,9 @@ export function parseStudentLine(rawLine: string, opts: ParseOptions = {}): Pars
     telegram,
     note: noteParts.length ? noteParts.join(" · ") : null,
     warnings: computeWarnings(fields),
-    error: firstName && !RELATION_RE.test(firstName) ? null : "empty_name",
+    // Без імені, але з розкладом — це урок без учня, а не помилка.
+    scheduleOnly: !firstName && schedule.length > 0 ? true : undefined,
+    error: (firstName && !RELATION_RE.test(firstName)) || (!firstName && schedule.length > 0) ? null : "empty_name",
   };
 }
 
@@ -514,12 +555,14 @@ export function computeWarnings(f: Pick<ParsedStudent, "price" | "debtAmount" | 
  */
 export type RowOverride = Partial<Pick<ParsedStudent, "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons" | "note">> & {
   noteResolved?: boolean;
+  /** Для рядка розкладу без учня: raw рядка учня, якому належить урок; "" = пропустити. */
+  assignTo?: string;
 };
 
 /** Рядок + правки людини → той самий ParsedStudent із перерахованими попередженнями. */
 export function applyOverride(r: ParsedStudent, o: RowOverride | undefined): ParsedStudent {
   if (!o) return r;
-  const { noteResolved: _nr, ...fields } = o;
+  const { noteResolved: _nr, assignTo: _at, ...fields } = o;
   const merged: ParsedStudent = { ...r, ...fields };
   // Борг «без суми» зникає, щойно сума або уроки зʼявились.
   merged.debtFlag = r.debtFlag && merged.debtAmount === null && merged.debtLessons === null;
@@ -673,8 +716,10 @@ export interface CanonicalWords {
  * текст, а канонічні рядки, які обидва режими читають однаково.
  */
 export function toCanonicalLine(r: ParsedStudent, w: CanonicalWords): string | null {
-  if (r.error || !r.firstName) return null;
-  const parts: string[] = [[r.firstName, r.lastName].filter(Boolean).join(" ")];
+  if (r.error) return null;
+  if (!r.firstName && !r.scheduleOnly) return null;
+  const parts: string[] = [];
+  if (r.firstName) parts.push([r.firstName, r.lastName].filter(Boolean).join(" "));
   if (r.subject) parts.push(r.subject);
   if (r.price && r.price > 0) parts.push(String(r.price));
   if (r.debtAmount && r.debtAmount > 0) parts.push(`${w.debt} ${r.debtAmount} ${w.money}`);

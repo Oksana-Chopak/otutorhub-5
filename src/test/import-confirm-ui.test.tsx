@@ -71,6 +71,43 @@ describe("екран підтвердження імпорту — інтера�
     expect(screen.queryByText(/не впізнав/)).toBeNull();
   });
 
+  it("14.09: «математика на середу о 18:00» — урок без учня: питає, чий він, і доклеює слот до учня", () => {
+    render(<ImportStudentsSheet open onOpenChange={() => {}} />);
+    const ta = screen.getByRole("textbox", { name: /Перенести все, що є/ });
+    fireEvent.change(ta, { target: { value: "тимур 2 передоплати\nтаня 500 грн борг\nматематика на середу о 18:00\nукраїнська у вівторок 10 ранку" } });
+    // учнів — 2 (предмети не стали учнями), уроки без учня — окремим блоком
+    expect(screen.getByText(/Перевірте — розпізнано: 2/)).toBeInTheDocument();
+    expect(screen.queryByText(/не впізнав/)).toBeNull();
+    expect(screen.getByText(/Уроки без учня — чий це урок\?/)).toBeInTheDocument();
+    const pick = screen.getByRole("combobox", { name: "Математика · ср 18:00" });
+    expect(screen.getByRole("combobox", { name: "Українська · вт 10:00" })).toBeInTheDocument();
+    // без відповіді розклад нікому не приписаний
+    expect(screen.queryByText(/Уроків на 4 тижні/)).toBeNull();
+    // «чий це урок?» → таня: слот зʼявляється в її рядку, підсумок рахує 4 уроки за 4 тижні
+    fireEvent.change(pick, { target: { value: "таня 500 грн борг" } });
+    // («таня» є і в списку вибору — беремо рядок учениці, не <option>)
+    const row = screen.getAllByText("таня").find((el) => el.tagName !== "OPTION")!.closest("div")!.parentElement!;
+    expect(within(row).getByText(/ср 18:00/)).toBeInTheDocument();
+    // предмет уроку не губиться: у тані предмета не було — тепер «математика»
+    expect(within(row).getByText(/· математика/)).toBeInTheDocument();
+    expect(screen.getByText(/Уроків на 4 тижні: 4/)).toBeInTheDocument();
+    // «пропустити» — слот зникає з рядка, підсумок повертається
+    fireEvent.change(pick, { target: { value: "__skip" } });
+    expect(within(row).queryByText(/ср 18:00/)).toBeNull();
+    expect(within(row).queryByText(/· математика/)).toBeNull();
+    expect(screen.queryByText(/Уроків на 4 тижні/)).toBeNull();
+  });
+
+  it("14.09: урок з ІНШИМ предметом, ніж в учня, — предмет лишається в рядку нотаткою, а не зникає", () => {
+    render(<ImportStudentsSheet open onOpenChange={() => {}} />);
+    const ta = screen.getByRole("textbox", { name: /Перенести все, що є/ });
+    fireEvent.change(ta, { target: { value: "Оля — англійська — 500\nматематика на середу о 18:00" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Математика · ср 18:00" }), { target: { value: "Оля — англійська — 500" } });
+    const row = screen.getAllByText("Оля").find((el) => el.tagName !== "OPTION")!.closest("div")!.parentElement!;
+    expect(within(row).getByText(/· англійська/)).toBeInTheDocument();
+    expect(within(row).getByText(/📝 математика — ср 18:00/)).toBeInTheDocument();
+  });
+
   it("правка рядка в тексті скидає правку до нього, решта лишається", () => {
     const ta = setup();
     fireEvent.click(screen.getByRole("button", { name: "борг 800 ₴" }));
