@@ -824,7 +824,16 @@ export default function ProfilePage() {
           </Sec>
 
           {/* ── Reward theme ───────────────────────────────────────────────── */}
+          {/* 14.09, скарга власниці: «нагороди поки не зрозуміло репетиторам —
+              для кого і чому і навіщо». І справді: тут стояв заголовок «Стиль
+              нагород» і чотири емодзі-кнопки БЕЗ жодного слова пояснення.
+              Рядок `rewardThemes.pickerDesc` існував в i18n, але на цьому екрані
+              не рендерився взагалі. Репетитор бачив набір смайликів і не міг
+              здогадатись, що це подарунок ЙОГО УЧНЯМ, а не його власна тема. */}
           <Sec title={t("profile.sectionRewards")}>
+            <p style={{ padding: "0 12px", marginTop: 10, fontSize: 14, lineHeight: 1.5, color: "var(--sub,#62677E)" }}>
+              {t("profile.rewardsExplainer")}
+            </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, padding: "12px 12px 14px" }}>
               {THEMES.map(({ key, emoji, label }) => {
                 const active = (settings?.reward_theme as string ?? "fruits") === key;

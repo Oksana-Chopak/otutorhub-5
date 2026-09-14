@@ -605,6 +605,22 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/<LanguageSwitcher[^>]*\/>\s*<\/div>\s*\n\s*\{\/\* Progress \+ meta \*\/\}/);
     });
 
+    it("нагороди пояснені: кому вони і звідки", () => {
+      const prof = read("src/pages/ProfilePage.tsx");
+      const ach = read("src/pages/AchievementsPage.tsx");
+      const uk = read("src/i18n/locales/uk.ts");
+      // Скарга власниці: «нагороди не зрозуміло репетиторам — для кого і навіщо».
+      // Систем дві й вони різні: емодзі для УЧНІВ (вибір репетитора) і власний
+      // прогрес РЕПЕТИТОРА. Обидва екрани показували їх без жодного слова.
+      expect(prof, "під «Нагороди для учнів» мусить бути пояснення")
+        .toMatch(/t\("profile\.rewardsExplainer"\)/);
+      expect(ach, "сторінка досягнень мусить сказати, чий це прогрес")
+        .toMatch(/t\("achievements\.explainer"\)/);
+      // назва секції більше не «Стиль нагород» — вона не каже, для кого це
+      expect(uk).not.toMatch(/sectionRewards: "Стиль нагород"/);
+      expect(uk).toMatch(/sectionRewards: "Нагороди для учнів"/);
+    });
+
     it("видалення акаунта не ховає справжню причину", () => {
       const d = read("src/components/DeleteAccountSection.tsx");
       // supabase-js на БУДЬ-ЯКУ не-2xx відповідь дає message «Edge Function

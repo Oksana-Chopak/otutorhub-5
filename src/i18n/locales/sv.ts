@@ -1017,7 +1017,8 @@ export const sv: LocaleTranslations = {
     reviewsEmpty: "Omdömen visas när elever betygsätter dina lektioner 🌟",
     rowSubjects: "Ämnen",
     sectionSettings: "Inställningar",
-    sectionRewards: "Belöningsstil",
+    rewardsExplainer: "Efter varje genomförd lektion får eleven en emoji-belöning i sin samling. Välj vilka — bara elever ser dem, de rör inte din egen utveckling.",
+    sectionRewards: "Belöningar för elever",
     sectionAccount: "Prestationer & konto",
     statsSubjects: "ämnen",
     statsStudents: "elever",
@@ -1900,6 +1901,7 @@ export const sv: LocaleTranslations = {
   },
 
   achievements: {
+    explainer: "Detta är din egen utveckling: nivån växer med genomförda lektioner, sviten räknar veckor utan uppehåll, märken markerar milstolpar. Eleverna ser inget av det — de har sin egen belöningssamling.",
     title: "Dina prestationer",
     badgesCollected: "{{count}} av 6 märken samlade",
   },

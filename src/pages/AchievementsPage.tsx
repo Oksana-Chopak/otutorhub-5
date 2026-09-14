@@ -71,6 +71,14 @@ export default function AchievementsPage() {
           <div style={{ padding: "16px 18px 4px" }}>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 19, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("achievements.title")}</p>
             <p className="text-[15px]" style={{ color: "var(--sub,#62677E)", marginTop: 2 }}>{t("achievements.badgesCollected", { count: badges.length })}</p>
+            {/* 14.09, скарга власниці: «нагороди не зрозуміло — для кого і навіщо».
+                Екран показував рівень, серію і бейджі, жодного разу не сказавши,
+                ЧИЄ це і звідки береться. Два слова пояснення коштують дешевше,
+                ніж репетитор, який вирішив, що застосунок грається замість того,
+                щоб рахувати гроші. */}
+            <p className="text-[14px]" style={{ color: "var(--sub,#62677E)", marginTop: 8, lineHeight: 1.5 }}>
+              {t("achievements.explainer")}
+            </p>
           </div>
           <div style={{ padding: "12px 18px 18px" }}>
             <BadgesGrid earned={badges} />

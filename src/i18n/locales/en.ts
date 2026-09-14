@@ -1463,7 +1463,8 @@ export const en: LocaleTranslations = {
     reviewsEmpty: "Reviews will appear once students rate your lessons 🌟",
     rowSubjects: "Subjects",
     sectionSettings: "Settings",
-    sectionRewards: "Reward style",
+    rewardsExplainer: "After every completed lesson your student gets an emoji reward in their collection. Pick which ones — only students see these; they are not about your own progress.",
+    sectionRewards: "Rewards for students",
     sectionAccount: "Achievements & account",
     statsSubjects: "subjects",
     statsStudents: "students",    title: "Profile",
@@ -1920,6 +1921,7 @@ export const en: LocaleTranslations = {
   },
 
   achievements: {
+    explainer: "This is your own progress: your level grows with lessons taught, the streak counts weeks without a gap, badges mark milestones. Students don't see any of it — they have their own reward collection.",
     title: "Your achievements",
     badgesCollected: "{{count}} of 6 badges collected",
   },
