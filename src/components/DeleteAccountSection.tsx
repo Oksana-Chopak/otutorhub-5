@@ -34,14 +34,34 @@ export function DeleteAccountSection() {
       try {
         const { data, error } = await supabase.functions.invoke("delete-account");
         if (error || (data as { error?: string } | null)?.error) {
-          const raw = error?.message || (data as { error?: string }).error || "";
-          // Якщо edge-функцію ще не задеплоєно — даємо людську підказку, а не сире "Failed to send a request".
-          if (/failed to send|not found|fetch|network|edge function/i.test(raw)) {
+          /* 14.09, скарга живого користувача: «зареєструвалась помилково як
+             учень, видалити акаунт не можу — пише кудись писати особисто».
+             Тут була ПОДВІЙНА біда.
+             По-перше, сама функція бази падала (див. міграцію 20260914090000):
+             один рядок із 53 звертався до неіснуючої колонки, транзакція
+             відкочувалась, edge віддавав 500.
+             По-друге — ось це місце. supabase-js на БУДЬ-ЯКУ не-2xx відповідь
+             віддає message «Edge Function returned a non-2xx status code», а
+             старий фільтр ловив у ньому підрядок «edge function» і показував
+             «сервіс недоступний, напишіть нам». Тобто справжня причина
+             ховалась, і людина лишалась без жодного шляху вперед.
+             Тепер спершу читаємо ТІЛО відповіді — там лежить справжня
+             причина, — і лише коли тіла немає взагалі (мережа, функція не
+             задеплоєна), кажемо «сервіс недоступний». */
+          let raw = error?.message || (data as { error?: string } | null)?.error || "";
+          const ctx = (error as unknown as { context?: unknown })?.context;
+          if (ctx instanceof Response) {
+            try {
+              const body = await ctx.clone().json();
+              if (body?.error) raw = String(body.error);
+            } catch { /* тіла немає або воно не JSON — лишаємо message */ }
+          }
+          if (/failed to send|failed to fetch|networkerror|not found/i.test(raw)) {
             throw new Error(t("accountDeletion.serviceUnavailable"));
           }
-          throw new Error(raw);
+          throw new Error(raw || t("accountDeletion.failed"));
         }
-        toast.success(t("accountDeletion.done"));
+        toast.success(t("accountDeletion.done"), { description: t("accountDeletion.doneEmailFree") });
         try { await signOut(); } catch { /* сесія вже мертва — ок */ }
         navigate("/landing", { replace: true });
       } catch (e) {

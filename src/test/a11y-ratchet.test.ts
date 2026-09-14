@@ -605,6 +605,32 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/<LanguageSwitcher[^>]*\/>\s*<\/div>\s*\n\s*\{\/\* Progress \+ meta \*\/\}/);
     });
 
+    it("видалення акаунта не ховає справжню причину", () => {
+      const d = read("src/components/DeleteAccountSection.tsx");
+      // supabase-js на БУДЬ-ЯКУ не-2xx відповідь дає message «Edge Function
+      // returned a non-2xx status code». Старий фільтр ловив у ньому «edge
+      // function» і показував «сервіс недоступний, напишіть нам» — через це
+      // справжня помилка бази була невидима, а людина не мала шляху вперед.
+      expect(d, "«edge function» більше не вважається ознакою недоступності")
+        .not.toMatch(/failed to send\|not found\|fetch\|network\|edge function/);
+      expect(d, "тіло відповіді несе справжню причину — його треба прочитати")
+        .toMatch(/ctx instanceof Response/);
+      expect(d).toMatch(/await ctx\.clone\(\)\.json\(\)/);
+      expect(d, "після видалення людина мусить знати, що пошта вільна")
+        .toMatch(/t\("accountDeletion\.doneEmailFree"\)/);
+    });
+
+    it("purge_user_data не звертається до неіснуючої колонки", () => {
+      const sql = read("supabase/migrations/20260914090000_fix_purge_user_data.sql");
+      // marketing_unsubscribe_tokens ключується поштою; user_id там немає.
+      // Один такий рядок валив УСЮ функцію — і видалити акаунт не міг ніхто.
+      expect(sql, "стара форма звернення не повинна повернутись")
+        .not.toMatch(/marketing_unsubscribe_tokens WHERE user_id/);
+      expect(sql, "видаляємо за поштою — і з контактів, і з auth.users")
+        .toMatch(/DELETE FROM public\.marketing_unsubscribe_tokens\s*\n\s*WHERE email IN \(/);
+      expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.purge_user_data/);
+    });
+
     it("пошта, додана пізніше, запрошує учня", () => {
       const ms = read("src/pages/MyStudentsPage.tsx");
       // Було: запрошення летіло ЛИШЕ при створенні і лише якщо пошта вже
