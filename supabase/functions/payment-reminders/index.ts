@@ -2,6 +2,7 @@
 // Should be invoked on a schedule (cron). Idempotent via lesson_payment_reminders log.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
+import { decideDebtReminder } from "../_shared/debtCadence.ts";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -61,6 +62,12 @@ const RT = {
     after: (d: string, t: string) => `Дякуємо за урок ${d} з ${t}! Час оплатити заняття.`,
     gPrepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній груповий урок (${d}) з ${t}.`,
     gPay: (d: string, t: string) => `Груповий урок ${d} з ${t} — час оплатити заняття.`,
+    debtHeader: "💳 Є неоплачені уроки",
+    debt: (n: number, t: string) =>
+      n === 1
+        ? `Залишився один неоплачений урок з ${t}.`
+        : `Залишилось ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "неоплачені уроки" : "неоплачених уроків"} з ${t}.`,
+    debtTotal: "Разом",
   },
   en: {
     header: "💳 Payment reminder", tutor: "your tutor", sum: "Amount", subj: "Subject",
@@ -69,6 +76,10 @@ const RT = {
     after: (d: string, t: string) => `Thanks for the lesson ${d} with ${t}! Time to pay for it.`,
     gPrepaid: (d: string, t: string) => `A prepayment reminder for the upcoming group lesson (${d}) with ${t}.`,
     gPay: (d: string, t: string) => `Group lesson ${d} with ${t} — time to pay.`,
+    debtHeader: "💳 Unpaid lessons",
+    debt: (n: number, t: string) =>
+      n === 1 ? `One lesson with ${t} is still unpaid.` : `${n} lessons with ${t} are still unpaid.`,
+    debtTotal: "Total",
   },
   sv: {
     header: "💳 Betalningspåminnelse", tutor: "din lärare", sum: "Belopp", subj: "Ämne",
@@ -77,6 +88,10 @@ const RT = {
     after: (d: string, t: string) => `Tack för lektionen ${d} med ${t}! Dags att betala.`,
     gPrepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande grupplektion (${d}) med ${t}.`,
     gPay: (d: string, t: string) => `Grupplektion ${d} med ${t} — dags att betala.`,
+    debtHeader: "💳 Obetalda lektioner",
+    debt: (n: number, t: string) =>
+      n === 1 ? `En lektion med ${t} är fortfarande obetald.` : `${n} lektioner med ${t} är fortfarande obetalda.`,
+    debtTotal: "Totalt",
   },
 } as const;
 type RtLang = keyof typeof RT;
@@ -142,18 +157,22 @@ Deno.serve(async (req) => {
       student_payment_status: l.lesson_details?.student_payment_status,
       student_price: l.lesson_details?.student_price,
     }));
-  if (lessons.length === 0) {
-    return new Response(JSON.stringify({ ok: true, sent: 0, scanned: 0 }));
-  }
+  // 15.09: тут стояло раннє `return`, якщо у вікні [-7д .. +30д] немає жодного
+  // неоплаченого уроку. Прохід про БОРГ живе в кінці функції і вікна не має —
+  // з раннім виходом він не запускався б саме тоді, коли найпотрібніший:
+  // у репетитора самі старі борги й жодного свіжого уроку. Замість виходу —
+  // запити нижче не ходять у базу з порожнім списком.
 
   // 2. Pull tutor settings for relevant tutors
   const tutorIds = Array.from(new Set(lessons.map((l: any) => l.tutor_id)));
-  const { data: tutorSettings } = await supabase
-    .from("tutor_workspace_settings")
-    .select(
-      "tutor_id, payment_reminder_enabled, payment_due_mode, payment_due_days, subscription_status, subscription_until, trial_until",
-    )
-    .in("tutor_id", tutorIds);
+  const { data: tutorSettings } = tutorIds.length
+    ? await supabase
+        .from("tutor_workspace_settings")
+        .select(
+          "tutor_id, payment_reminder_enabled, payment_due_mode, payment_due_days, subscription_status, subscription_until, trial_until",
+        )
+        .in("tutor_id", tutorIds)
+    : { data: [] as WorkspaceSettings[] };
 
   const settingsByTutor = new Map<string, WorkspaceSettings>();
   for (const s of tutorSettings ?? []) {
@@ -162,11 +181,13 @@ Deno.serve(async (req) => {
 
   // 3. Pull telegram chat ids for relevant students
   const studentIds = Array.from(new Set(lessons.map((l: any) => l.student_id)));
-  const { data: tgLinks } = await supabase
-    .from("user_telegram_links")
-    .select("user_id, chat_id")
-    .in("user_id", studentIds)
-    .not("chat_id", "is", null);
+  const { data: tgLinks } = studentIds.length
+    ? await supabase
+        .from("user_telegram_links")
+        .select("user_id, chat_id")
+        .in("user_id", studentIds)
+        .not("chat_id", "is", null)
+    : { data: [] as { user_id: string; chat_id: number | null }[] };
   const chatByUser = new Map<string, number>();
   // B8: мови й валюти — ЛІНИВО, двома фазами (індивідуальна + групова),
   // бо групові учасники відомі лише нижче. Перша версія читала неіснуючий
@@ -202,19 +223,23 @@ Deno.serve(async (req) => {
 
   // 4. Pull existing reminders for idempotency
   const lessonIds = lessons.map((l: any) => l.id);
-  const { data: existingReminders } = await supabase
-    .from("lesson_payment_reminders")
-    .select("lesson_id, reminder_kind")
-    .in("lesson_id", lessonIds);
+  const { data: existingReminders } = lessonIds.length
+    ? await supabase
+        .from("lesson_payment_reminders")
+        .select("lesson_id, reminder_kind")
+        .in("lesson_id", lessonIds)
+    : { data: [] as { lesson_id: string; reminder_kind: string }[] };
   const sentSet = new Set(
     (existingReminders ?? []).map((r: any) => `${r.lesson_id}:${r.reminder_kind}`),
   );
 
   // 5. Pull tutor display names (for nicer messages)
-  const { data: tutorProfiles } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name")
-    .in("id", tutorIds);
+  const { data: tutorProfiles } = tutorIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", tutorIds)
+    : { data: [] as { id: string; first_name: string | null; last_name: string | null }[] };
   const tutorName = new Map<string, string>();
   for (const p of tutorProfiles ?? []) {
     tutorName.set(
@@ -254,7 +279,13 @@ Deno.serve(async (req) => {
       reminderKind = "prepaid";
       triggerTimeMs = new Date(lesson.created_at).getTime();
     } else if (mode === "before_lesson") {
-      reminderKind = `before_${days}d`;
+      // 15.09: тут стояло `before_${days}d`. CHECK таблиці дозволяє лише
+      // prepaid | before_lesson | after_lesson | manual | telegram_button,
+      // тож вставка в лог падала — МОВЧКИ, бо її помилку ніхто не читав.
+      // Дедуп читає саме цей лог, тому поки урок був у своєму вікні, учень
+      // отримував нагадування ЩОГОДИНИ з 9 до 21. Кількість днів у ключі й
+      // не потрібна: режим і так один на репетитора.
+      reminderKind = "before_lesson";
       triggerTimeMs = lessonStart - days * DAY_MS;
     } else if (mode === "after_lesson") {
       // Only after the lesson actually happened
@@ -262,7 +293,7 @@ Deno.serve(async (req) => {
         skipped++;
         continue;
       }
-      reminderKind = `after_${days}d`;
+      reminderKind = "after_lesson";
       triggerTimeMs = lessonStart + days * DAY_MS;
     }
 
@@ -330,13 +361,16 @@ Deno.serve(async (req) => {
     });
 
     // Record the send for idempotency (bell always delivered; note best push channel).
-    await supabase.from("lesson_payment_reminders").insert({
+    // 15.09: помилку цієї вставки НЕ ковтаємо. Саме мовчазний провал тут
+    // ламав дедуп і перетворював нагадування на щогодинний спам.
+    const { error: logErr } = await supabase.from("lesson_payment_reminders").insert({
       lesson_id: lesson.id,
       tutor_id: lesson.tutor_id,
       student_id: lesson.student_id,
       reminder_kind: reminderKind,
       channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
     });
+    if (logErr) console.error("payment-reminders: лог не записався — дедуп зламано", reminderKind, logErr.message);
     sent++;
   }
 
@@ -385,7 +419,9 @@ Deno.serve(async (req) => {
     }
     // Dedup: existing group reminders keyed lesson:student:kind (student included, unlike individual).
     const gLessonIds = Array.from(new Set(parts.map((p: any) => p.lesson.id)));
-    const { data: gExisting } = await supabase.from("lesson_payment_reminders").select("lesson_id, student_id, reminder_kind").in("lesson_id", gLessonIds);
+    const { data: gExisting } = gLessonIds.length
+      ? await supabase.from("lesson_payment_reminders").select("lesson_id, student_id, reminder_kind").in("lesson_id", gLessonIds)
+      : { data: [] as { lesson_id: string; student_id: string; reminder_kind: string }[] };
     const gSentSet = new Set((gExisting ?? []).map((r: any) => `${r.lesson_id}:${r.student_id}:${r.reminder_kind}`));
 
     for (const p of parts) {
@@ -399,8 +435,8 @@ Deno.serve(async (req) => {
       let reminderKind: string | null = null;
       let triggerTimeMs = 0;
       if (mode === "prepaid") { reminderKind = "prepaid"; triggerTimeMs = new Date(lesson.created_at).getTime(); }
-      else if (mode === "before_lesson") { reminderKind = `before_${days}d`; triggerTimeMs = lessonStart - days * DAY_MS; }
-      else if (mode === "after_lesson") { if (lesson.status !== "completed") { skipped++; continue; } reminderKind = `after_${days}d`; triggerTimeMs = lessonStart + days * DAY_MS; }
+      else if (mode === "before_lesson") { reminderKind = "before_lesson"; triggerTimeMs = lessonStart - days * DAY_MS; }
+      else if (mode === "after_lesson") { if (lesson.status !== "completed") { skipped++; continue; } reminderKind = "after_lesson"; triggerTimeMs = lessonStart + days * DAY_MS; }
       if (!reminderKind) { skipped++; continue; }
 
       const nowMs = now.getTime();
@@ -435,19 +471,178 @@ Deno.serve(async (req) => {
         body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
         link: "/student/payments",
       });
-      await supabase.from("lesson_payment_reminders").insert({
+      const { error: gLogErr } = await supabase.from("lesson_payment_reminders").insert({
         lesson_id: lesson.id,
         tutor_id: lesson.tutor_id,
         student_id: p.student_id,
         reminder_kind: reminderKind,
         channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
       });
+      if (gLogErr) console.error("payment-reminders (група): лог не записався", reminderKind, gLogErr.message);
       sent++;
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // ПРОХІД ПРО БОРГ (15.09) — окремий від режиму репетитора і без вікна
+  // ═══════════════════════════════════════════════════════════════════════
+  // Усе вище прив'язане до СТРОКУ оплати: спрацювало у своєму вікні — і все.
+  // Борг так не живе: він лишається, доки не оплачений, а найдавніші борги —
+  // саме ті, заради яких продукт і купують. На живих даних 15.09 це виглядало
+  // так: 69 боргів, 68 старші за добу, нагадувань — нуль.
+  //
+  // Тому: один раз на 3 дні, максимум 4 рази (рішення власниці), ОДНЕ
+  // повідомлення на пару «репетитор + учень» із сумою за всі неоплачені
+  // уроки — а не по листу на кожен урок. Вимикається тим самим
+  // payment_reminder_enabled, що й решта нагадувань про оплату.
+  let debtSent = 0;
+  try {
+    // Без нижньої межі дати: борг не застаріває. Скасовані входять лише зі
+    // штрафом — це модель боргу 04.09 (і перенесені імпортом теж сюди).
+    const { data: debtRaw, error: debtErr } = await supabase
+      .from("lessons")
+      .select("id, tutor_id, student_id, starts_at, status, lesson_details!inner(student_payment_status, student_price, is_cancellation_fee)")
+      .in("status", ["completed", "cancelled"])
+      .neq("lesson_details.student_payment_status", "paid");
+    if (debtErr) throw new Error(debtErr.message);
+
+    type DebtRow = { tutor_id: string; student_id: string; lessonId: string; at: number; price: number };
+    const debtRows: DebtRow[] = [];
+    for (const l of (debtRaw ?? []) as any[]) {
+      const d = l.lesson_details ?? {};
+      const price = Number(d.student_price ?? 0);
+      if (!(price > 0)) continue;
+      if (l.status === "cancelled" && d.is_cancellation_fee !== true) continue;
+      if (!l.student_id) continue;
+      debtRows.push({
+        tutor_id: l.tutor_id,
+        student_id: l.student_id,
+        lessonId: l.id,
+        at: new Date(l.starts_at).getTime(),
+        price,
+      });
+    }
+
+    // Групові борги: ціна й статус живуть на lesson_participants.
+    const { data: gDebtRaw } = await supabase
+      .from("lesson_participants")
+      .select("student_id, student_price, student_payment_status, lesson_id, lessons!inner(id, tutor_id, starts_at, status)")
+      .neq("student_payment_status", "paid")
+      .eq("lessons.status", "completed");
+    for (const g of (gDebtRaw ?? []) as any[]) {
+      const price = Number(g.student_price ?? 0);
+      if (!(price > 0) || !g.lessons || !g.student_id) continue;
+      debtRows.push({
+        tutor_id: g.lessons.tutor_id,
+        student_id: g.student_id,
+        lessonId: g.lessons.id,
+        at: new Date(g.lessons.starts_at).getTime(),
+        price,
+      });
+    }
+
+    if (debtRows.length > 0) {
+      const pairs = new Map<string, { tutor_id: string; student_id: string; total: number; count: number; oldestAt: number; oldestLesson: string }>();
+      for (const r of debtRows) {
+        const key = `${r.tutor_id}:${r.student_id}`;
+        const cur = pairs.get(key);
+        if (!cur) {
+          pairs.set(key, { tutor_id: r.tutor_id, student_id: r.student_id, total: r.price, count: 1, oldestAt: r.at, oldestLesson: r.lessonId });
+        } else {
+          cur.total += r.price;
+          cur.count += 1;
+          if (r.at < cur.oldestAt) { cur.oldestAt = r.at; cur.oldestLesson = r.lessonId; }
+        }
+      }
+
+      // Догружаємо те, чого могло не бути в кеші проходів вище.
+      const dTutorIds = [...new Set([...pairs.values()].map((v) => v.tutor_id))];
+      const missingTutors = dTutorIds.filter((id) => !settingsByTutor.has(id));
+      if (missingTutors.length) {
+        const { data: ds } = await supabase
+          .from("tutor_workspace_settings")
+          .select("tutor_id, payment_reminder_enabled, payment_due_mode, payment_due_days, subscription_status, subscription_until, trial_until")
+          .in("tutor_id", missingTutors);
+        for (const x of ds ?? []) settingsByTutor.set(x.tutor_id, x as WorkspaceSettings);
+        const { data: dp } = await supabase.from("profiles").select("id, first_name, last_name").in("id", missingTutors);
+        for (const x of dp ?? []) tutorName.set(x.id, `${(x.first_name ?? "").trim()} ${(x.last_name ?? "").trim()}`.trim() || "репетитор");
+      }
+      const dStudentIds = [...new Set([...pairs.values()].map((v) => v.student_id))];
+      await ensureLangs(dStudentIds);
+      await ensureCurrencies(dStudentIds);
+      const missingChats = dStudentIds.filter((id) => !chatByUser.has(id));
+      if (missingChats.length) {
+        const { data: dl } = await supabase.from("user_telegram_links").select("user_id, chat_id").in("user_id", missingChats).not("chat_id", "is", null);
+        for (const link of dl ?? []) if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
+      }
+
+      // Історія нагадувань про борг по цих парах (лічильник ведеться по ПАРІ).
+      const { data: dHist } = await supabase
+        .from("lesson_payment_reminders")
+        .select("tutor_id, student_id, sent_at, reminder_kind")
+        .in("student_id", dStudentIds)
+        .like("reminder_kind", "debt%");
+      const histByPair = new Map<string, number[]>();
+      for (const h of (dHist ?? []) as any[]) {
+        const key = `${h.tutor_id}:${h.student_id}`;
+        const arr = histByPair.get(key) ?? [];
+        arr.push(new Date(h.sent_at).getTime());
+        histByPair.set(key, arr);
+      }
+
+      const nowMs = now.getTime();
+      for (const [key, pair] of pairs) {
+        const settings = settingsByTutor.get(pair.tutor_id);
+        if (!settings || !isProActive(settings) || !settings.payment_reminder_enabled) { skipped++; continue; }
+
+        const decision = decideDebtReminder(nowMs, pair.oldestAt, histByPair.get(key) ?? []);
+        if (!decision.send) { skipped++; continue; }
+
+        const lang = rlang(pair.student_id);
+        const T = RT[lang];
+        const cur = rsym(curByPair.get(key));
+        const tname = tutorName.get(pair.tutor_id) ?? T.tutor;
+        const body = T.debt(pair.count, tname);
+        const sumLine = `${T.debtTotal}: ${pair.total} ${cur}`;
+        const text = `${T.debtHeader}\n\n${escapeHtml(body)}\n\n<b>${escapeHtml(sumLine)}</b>`;
+
+        const chatId = chatByUser.get(pair.student_id);
+        const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
+        const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+          userId: pair.student_id,
+          title: T.debtHeader,
+          body: `${body} ${sumLine}.`,
+          link: "/student/payments",
+          tag: `debt-${pair.tutor_id}-${pair.student_id}`,
+        });
+        await supabase.from("notifications").insert({
+          user_id: pair.student_id,
+          type: "payment_reminder",
+          title: T.debtHeader,
+          body: `${body} ${sumLine}.`,
+          link: "/student/payments",
+        });
+        const { error: dLogErr } = await supabase.from("lesson_payment_reminders").insert({
+          lesson_id: pair.oldestLesson,
+          tutor_id: pair.tutor_id,
+          student_id: pair.student_id,
+          reminder_kind: decision.kind,
+          channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
+        });
+        // Лог тут не косметика: на ньому тримається «раз на 3 дні». Якщо він
+        // не записався — краще гучно, ніж щогодинна розсилка.
+        if (dLogErr) console.error("payment-reminders (борг): лог не записався", decision.kind, dLogErr.message);
+        debtSent++;
+        sent++;
+      }
+    }
+  } catch (e) {
+    // Прохід про борг не має права завалити нагадування за строком оплати.
+    console.error("payment-reminders: прохід про борг упав", String((e as Error)?.message ?? e));
+  }
+
   return new Response(
-    JSON.stringify({ ok: true, scanned: lessons.length, groupParticipants: parts.length, sent, skipped }),
+    JSON.stringify({ ok: true, scanned: lessons.length, groupParticipants: parts.length, sent, debtSent, skipped }),
     { headers: { "Content-Type": "application/json" } },
   );
 });
