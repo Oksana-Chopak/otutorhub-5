@@ -26,7 +26,8 @@ interface LiqPayPayButtonProps {
 /**
  * Кнопка оплати через LiqPay Checkout.
  * 1. Викликає edge-функцію `liqpay-create-payment` → отримує підписані `data` + `signature`.
- * 2. Сабмітить форму POST на https://www.liqpay.ua/api/3/checkout у новій вкладці.
+ * 2. Сабмітить форму POST на https://www.liqpay.ua/api/3/checkout У ЦІЙ САМІЙ вкладці
+ *    (15.09: друге вікно вмирало у webview месенджера — див. handlePay).
  * 3. LiqPay шле server-to-server callback → `liqpay-callback` активує підписку.
  *
  * Перевірка 02.09: edge-функції деплояться ОКРЕМО від фронтенду, тож після
@@ -47,20 +48,31 @@ export function LiqPayPayButton({
 
   const handlePay = async () => {
     setLoading(true);
-    // Вікно відкривається СИНХРОННО в жесті кліку (до будь-якого await),
-    // інакше блокувальники спливаючих вікон зʼїдять чекаут.
-    const checkoutWindowName = `liqpay_checkout_${Date.now()}`;
-    const checkoutWindow = window.open("", checkoutWindowName);
-    if (checkoutWindow) {
-      checkoutWindow.opener = null;
-      checkoutWindow.document.write(t("liqPay.redirecting"));
-    }
+    /* 15.09, скарга живого користувача: «не переводит на LiqPay, страница не
+       грузится дальше». На скріншоті — порожня вкладка `about:blank` з написом
+       «Redirecting to LiqPay…», яка висить назавжди. Людина відкрила застосунок
+       із МЕСЕНДЖЕРА (вбудований webview Facebook).
+
+       Тут був чекаут у ДРУГОМУ вікні: синхронно відкривалась порожня вкладка, потім
+       форма з `target=<name>`. Два незалежні способи, якими це вмирає:
+       1) обнулення `opener` у нового вікна відривало його від групи вікон
+          відкривача — після цього браузер уже НЕ знаходить його за іменем, і
+          `form.target` створює ЩЕ ОДНЕ вікно. Але на цей момент жест кліку
+          давно з'їдено `await`, тож блокувальник спливайок його не пускає;
+          перша вкладка лишається з «Redirecting…» назавжди.
+       2) У вбудованих браузерах (Messenger, Instagram, Telegram) іменовані
+          вікна часто не працюють узагалі — там одна вкладка.
+
+       Оплата — найдорожчий екран продукту: він мусить працювати скрізь, а не
+       там, де popup поводиться добре. Тому чекаут відкривається В ЦІЙ САМІЙ
+       вкладці, як це роблять усі платіжні провайдери; повернення назад —
+       через result_url. Жодних popup, жодних імен вікон, жодних блокувальників. */
     if (onBeforePay) {
       // Підготовчий крок (напр., зупинка старого автопоновлення для Light);
-      // false — платіж не стартує, відкрите вікно закриваємо.
+      // false — платіж не стартує.
       let ok = false;
       try { ok = await onBeforePay(); } catch { ok = false; }
-      if (!ok) { checkoutWindow?.close(); setLoading(false); return; }
+      if (!ok) { setLoading(false); return; }
     }
 
     try {
@@ -74,7 +86,6 @@ export function LiqPayPayButton({
 
       if (error || !data?.data || !data?.signature) {
         console.error("LiqPay create error:", error, data);
-        checkoutWindow?.close();
         toast.error(t("liqPay.createFailed"));
         return;
       }
@@ -93,7 +104,6 @@ export function LiqPayPayButton({
       }
       if (signedAmount != null && Number.isFinite(signedAmount) && signedAmount !== expected) {
         console.error("LiqPay amount mismatch", { signedAmount, expected, plan });
-        checkoutWindow?.close();
         toast.error(t("liqPay.amountMismatch"), {
           description: t("liqPay.amountMismatchDesc", {
             shown: formatPrice(expected, "UAH"),
@@ -108,7 +118,8 @@ export function LiqPayPayButton({
       form.method = "POST";
       form.action = "https://www.liqpay.ua/api/3/checkout";
       form.acceptCharset = "utf-8";
-      form.target = checkoutWindow ? checkoutWindowName : "_self";
+      // Та сама вкладка — див. пояснення на початку handlePay.
+      form.target = "_self";
 
       const dataInput = document.createElement("input");
       dataInput.type = "hidden";
@@ -124,12 +135,10 @@ export function LiqPayPayButton({
 
       document.body.appendChild(form);
       form.submit();
-      document.body.removeChild(form);
-
-      toast.success(t("liqPay.opening"));
+      // Вкладку вже забирає LiqPay; форму лишаємо в DOM — видалення тут
+      // інколи встигає скасувати submit у Safari.
     } catch (e) {
       console.error(e);
-      checkoutWindow?.close();
       toast.error(t("liqPay.error"));
     } finally {
       setLoading(false);

@@ -3942,6 +3942,8 @@ export const en: LocaleTranslations = {
     deleteTypeDELETE: "To confirm, type DELETE in capital letters:",
   },
   pendingPaymentsExtra: {
+    channelInApp: "in-app notification",
+    reminderInAppOnly: "The reminder is waiting in the app — this student has no email or Telegram",
     markedPaid_one: "Marked as paid",
     markedPaid_few: "{{count}} lessons marked",
     markedPaid_other: "{{count}} lessons marked",

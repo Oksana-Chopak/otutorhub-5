@@ -870,7 +870,15 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
 }
 
 // ── Telegram inline action ────────────────────────────────────────────────────
-function TelegramAction({ onComplete, user }: { onComplete: () => void; user: any }) {
+/* 15.09: «Я не подключал телеграм, а нажал skip — оно анимацию включает
+   всё-равно и пишет Telegram connected».
+   Причина: кнопка «Пропустити» викликала ТОЙ САМИЙ onComplete, що й реальне
+   підключення, тож крок зараховувався, летіли XP і конфеті, а сам крок
+   показував «Telegram connected ✓». Застосунок стверджував звʼязок, якого
+   не існує — і людина потім не розуміє, чому не приходить дайджест.
+   Тепер «Пропустити» просто йде далі (`onSkip`), як це вже зроблено на кроці
+   уроку. */
+function TelegramAction({ onComplete, onSkip, user }: { onComplete: () => void; onSkip: () => void; user: any }) {
   const { t } = useTranslation();
   const { updateSettings } = useWorkspaceSettings();
   // Only the daily digest is a REAL persisted preference (daily_digest_enabled —
@@ -951,7 +959,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
         {t("onboardingFlowB.telegramConnect")}
       </button>
       <p className="text-center text-[14px]" style={{ color: T.muted }}>{t("onboardingFlowB.telegramBotHint")}</p>
-      <GhostBtn onClick={onComplete}>{t("onboardingFlowB.telegramSkip")}</GhostBtn>
+      <GhostBtn onClick={onSkip}>{t("onboardingFlowB.telegramSkip")}</GhostBtn>
     </div>
   );
 }
@@ -1484,13 +1492,37 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     reload();
   };
 
-  const advance = async () => {
+  const advance = async (): Promise<boolean> => {
     const next = idx + 1;
     // «людський крок» = індекс+1; зберігаємо крок, ЯКИЙ показати далі → next+1.
     // A15: спершу ЗАПИС; збій → тост і лишаємось на місці (прогрес не бреше).
     const err = await updateSettings({ onboarding_step: next + 1 } as any);
-    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; }
+    if (err) {
+      /* 15.09, побажання власниці: «помилки мають бути конкретні, з кодом,
+         щоб ми бачили, що саме пішло не так, і юзер теж розумівся».
+         Тут був голий «Не вдалось зберегти» — за ним могло стояти що завгодно:
+         впала мережа, немає прав, відвалилась сесія. Тепер у підписі — те, що
+         сказала база, і короткий код: людині є що переслати, а нам є що
+         шукати в логах. */
+      const code = (err as { code?: string })?.code;
+      const msg = (err as { message?: string })?.message;
+      toast.error(t("onboardingFlowB.saveFailed"), {
+        description: [msg, code ? `(${code})` : null].filter(Boolean).join(" ") || undefined,
+      });
+      return false;
+    }
     setIdx(next);
+    return true;
+  };
+
+  /* 15.09, скарга живого користувача: «Couldn't save… а зверху феєрверки і
+     +75 XP». Так і було: `markDone()` святкував ОДРАЗУ, а `advance()` писав у
+     базу ПІСЛЯ нього — і коли запис падав, людина вже бачила конфеті, нову
+     нагороду й «All quests done!», хоч крок не зберігся.
+     Свято — це наслідок записаного факту, а не наміру. Тому: спершу запис,
+     і лише на успіх — markDone. */
+  const completeStep = async (id: number) => {
+    if (await advance()) markDone(id);
   };
 
   // ── CSS animations (injected once) ─────────────────────────────────────────
@@ -1740,14 +1772,14 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 </div>
               ) : (
                 <>
-                  {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); markDone(step.id); advance(); }} />}
-                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); markDone(step.id); advance(); reload(); }} />}
-                  {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); markDone(step.id); advance(); }} />}
-                  {step.action === "debt"         && <DebtAction    user={user} studentId={addedStudentId} studentName={addedStudentName} onSkip={() => { markDone(step.id); advance(); }} onComplete={() => { markDone(step.id); advance(); reload(); }} />}
-                  {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
-                  {step.action === "autoMark"     && <AutoMarkAction onComplete={() => { markDone(step.id); advance(); }} />}
-                  {step.action === "availability" && <AvailabilityAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
-                  {step.action === "telegram"     && <TelegramAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
+                  {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); void completeStep(step.id); }} />}
+                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
+                  {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); void completeStep(step.id); }} />}
+                  {step.action === "debt"         && <DebtAction    user={user} studentId={addedStudentId} studentName={addedStudentName} onSkip={() => { void completeStep(step.id); }} onComplete={() => { void completeStep(step.id); reload(); }} />}
+                  {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { void completeStep(step.id); }} />}
+                  {step.action === "autoMark"     && <AutoMarkAction onComplete={() => { void completeStep(step.id); }} />}
+                  {step.action === "availability" && <AvailabilityAction user={user} onComplete={() => { void completeStep(step.id); }} />}
+                  {step.action === "telegram"     && <TelegramAction user={user} onComplete={() => { void completeStep(step.id); }} onSkip={() => { void advance(); }} />}
                 </>
               )}
             </div>

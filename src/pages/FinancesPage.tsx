@@ -1085,9 +1085,23 @@ export default function FinancesPage() {
       return;
     }
     if ((data as any)?.success) {
-      const channels = ((data as any).channels ?? []) as string[];
-      const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
-      toast.success(t("pendingPayments.reminderSent", { labels: labels.join(" + ") || "email" }), { description: nameOf(studentId) });
+      /* 15.09, скарга живого користувача: підтвердження писало «Reminder sent:
+         email + email». Причина: канал «inapp» (дзвіночок у застосунку, який
+         функція додає ЗАВЖДИ) мапився тим самим `: "email"`, бо в тернарці все,
+         що не telegram, вважалось поштою. Тобто список каналів не просто
+         дублювався — він БРЕХАВ про те, куди саме пішло нагадування.
+         Тепер кожен канал має свою назву, дублі прибираються, а коли
+         спрацював ЛИШЕ дзвіночок, повідомлення інше: людині не пішло нічого,
+         вона побачить нагадування тільки коли сама відкриє застосунок. */
+      const channels = [...new Set(((data as any).channels ?? []) as string[])];
+      const outside = channels.filter((c) => c !== "inapp");
+      const labelOf = (c: string) =>
+        c === "telegram" ? "Telegram" : c === "email" ? "email" : t("pendingPaymentsExtra.channelInApp");
+      if (outside.length === 0) {
+        toast.success(t("pendingPaymentsExtra.reminderInAppOnly"), { description: nameOf(studentId) });
+      } else {
+        toast.success(t("pendingPayments.reminderSent", { labels: outside.map(labelOf).join(" + ") }), { description: nameOf(studentId) });
+      }
     } else if ((data as any)?.reason === "no_channels") {
       // The function explicitly reported the student has neither Telegram nor email.
       toast.error(t("pendingPaymentsExtra.noContact"), { description: nameOf(studentId) });

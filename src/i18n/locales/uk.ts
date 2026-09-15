@@ -3973,6 +3973,8 @@ export const uk = {
     deleteTypeDELETE: "Для підтвердження введіть DELETE великими літерами:",
   },
   pendingPaymentsExtra: {
+    channelInApp: "сповіщення в застосунку",
+    reminderInAppOnly: "Нагадування чекає в застосунку — ні пошти, ні Telegram в учня немає",
     markedPaid_one: "Позначено як оплачено",
     markedPaid_few: "Позначено {{count}} уроки",
     markedPaid_many: "Позначено {{count}} уроків",

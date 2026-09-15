@@ -3922,6 +3922,8 @@ export const sv: LocaleTranslations = {
     deleteTypeDELETE: "För att bekräfta, skriv DELETE med stora bokstäver:",
   },
   pendingPaymentsExtra: {
+    channelInApp: "avisering i appen",
+    reminderInAppOnly: "Påminnelsen väntar i appen — eleven har varken e-post eller Telegram",
     markedPaid_one: "Markerad som betald",
     markedPaid_few: "{{count}} lektioner markerade",
     markedPaid_other: "{{count}} lektioner markerade",

@@ -605,6 +605,40 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/<LanguageSwitcher[^>]*\/>\s*<\/div>\s*\n\s*\{\/\* Progress \+ meta \*\/\}/);
     });
 
+    it("чекаут LiqPay відкривається в тій самій вкладці", () => {
+      const lp = read("src/components/LiqPayPayButton.tsx");
+      // Другого вікна більше немає: `opener = null` відривало його від групи
+      // вікон відкривача, після чого form.target за іменем не знаходив нічого,
+      // а у webview месенджера іменовані вікна не працюють узагалі — людина
+      // лишалась із порожньою вкладкою «Redirecting to LiqPay…».
+      expect(lp, "жодних popup на шляху оплати").not.toMatch(/= window\.open\(/);
+      expect(lp).not.toMatch(/checkoutWindow/);
+      expect(lp).not.toMatch(/opener = null/);
+      expect(lp, "форма йде в поточну вкладку").toMatch(/form\.target = "_self";/);
+    });
+
+    it("онбординг святкує лише те, що справді записалось", () => {
+      const ob = read("src/components/OnboardingFlowB.tsx");
+      // markDone() святкував ДО запису: при збої людина бачила конфеті, +XP і
+      // «All quests done!», хоч крок не зберігся.
+      expect(ob).toMatch(/const completeStep = async \(id: number\) => \{\s*\n\s*if \(await advance\(\)\) markDone\(id\);/);
+      expect(ob, "прямої пари markDone+advance більше немає")
+        .not.toMatch(/markDone\(step\.id\); advance\(\)/);
+      // «Пропустити» на Telegram не вважається підключенням
+      expect(ob).toMatch(/<TelegramAction user=\{user\} onComplete=\{\(\) => \{ void completeStep\(step\.id\); \}\} onSkip=/);
+      expect(ob, "помилка збереження називає причину")
+        .toMatch(/code \? `\(\$\{code\}\)` : null/);
+    });
+
+    it("нагадування не пише «email + email»", () => {
+      const fp = read("src/pages/FinancesPage.tsx");
+      // Канал «inapp» мапився в «email», бо все, що не telegram, вважалось поштою.
+      expect(fp).not.toMatch(/c === "telegram" \? "Telegram" : "email"/);
+      expect(fp, "дублі каналів прибираються").toMatch(/\[\.\.\.new Set\(\(\(data as any\)\.channels/);
+      expect(fp, "лише дзвіночок — окреме повідомлення, бо назовні не пішло нічого")
+        .toMatch(/t\("pendingPaymentsExtra\.reminderInAppOnly"\)/);
+    });
+
     it("нагороди пояснені: кому вони і звідки", () => {
       const prof = read("src/pages/ProfilePage.tsx");
       const ach = read("src/pages/AchievementsPage.tsx");
