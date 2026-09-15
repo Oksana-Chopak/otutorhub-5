@@ -846,4 +846,53 @@ describe("матеріали учня · хронологія, розгорну�
     expect(sh).toMatch(/r\.hasAiNote && \(\(\) => \{/);
     expect(sh).not.toMatch(/onClick=\{\(\) => setOpenNoteId\(openNoteId === r\.lesson_id \? null : r\.lesson_id\)\} aria-expanded/);
   });
+
+  /* 15.09. Анкета підбору з лендінгу — ЄДИНА форма продукту, яку бачить людина
+     до реєстрації. Скарга власниці: «форми в старому дизайні, шрифти дрібні і
+     сірі», плюс два глухі кути — «перевірте пошту» без куди йти і повернення на
+     сторінку, яка знову пропонує зробити те, що щойно зроблено. */
+  describe("анкета підбору репетитора (15.09)", () => {
+    it("говорить трьома мовами, а не лише українською", () => {
+      const q = read("src/components/LandingFindTutorQuizDialog.tsx");
+      // підписи кроків, кнопки й помилки — лише через i18n
+      for (const k of ["leadQuiz.title", "leadQuiz.stepOf", "leadQuiz.next", "leadQuiz.back",
+                       "leadQuiz.submit", "leadQuiz.doneTitle", "leadQuiz.toLanding"]) {
+        // без закривної дужки: частина викликів іде з параметрами
+        expect(q, `ключ ${k} загубився`).toContain(`t("${k}"`);
+      }
+      // жодного українського напису у РОЗМІТЦІ (у коментарях і в тілі запиту
+      // менеджеру українська доречна — вона їде в базу, а не на екран)
+      const markup = q.split("\n").filter((l) => /^\s*[<{]|style=|placeholder=|aria-label=/.test(l)).join("\n");
+      expect(markup, "український літерал у розмітці").not.toMatch(/(placeholder|aria-label)="[^"]*[а-яіїєґ]/i);
+      for (const loc of ["uk", "en", "sv"]) {
+        expect(read(`src/i18n/locales/${loc}.ts`), `${loc} без leadQuiz`).toMatch(/leadQuiz: \{/);
+      }
+    });
+
+    it("з фінального екрана є куди йти: у свою пошту і на головну", () => {
+      const q = read("src/components/LandingFindTutorQuizDialog.tsx");
+      expect(q, "кнопки-редіректа в скриньку немає").toMatch(/mailboxFor\(sentEmail\)/);
+      expect(q).toMatch(/\{mailbox && \(/);
+      expect(q, "закриття після успіху мусить вести далі").toMatch(/if \(wasDone\) onFinish\?\.\(\)/);
+      const fs = read("src/pages/ForStudentsPage.tsx");
+      expect(fs, "сторінка знову кличе створити щойно створений запит")
+        .toMatch(/onFinish=\{\(\) => navigate\("\/"\)\}/);
+      // незнайомий провайдер кнопки не отримує — «відсутнє рендериться як відсутнє»
+      const mb = read("src/lib/mailbox.ts");
+      expect(mb).toMatch(/return null;\s*\n\}/);
+    });
+
+    it("тримає канон форм: нижній лист, 15px поля, 44px дотик", () => {
+      const q = read("src/components/LandingFindTutorQuizDialog.tsx");
+      expect(q).toMatch(/rounded-t-\[20px\] rounded-b-none sm:rounded-\[20px\]/);
+      expect(q, "поле дрібніше за 15px змушує iOS зумити всю форму").toMatch(/fontSize: 15, fontFamily: F\.body/);
+      expect(q).toMatch(/height: 48, borderRadius: 13/);
+      expect(q).toMatch(/minHeight: 56/);
+      // у коментарі шапки слово лишилось як опис «що було» — дивимось на розмітку
+      const body = q.slice(q.indexOf("export function"));
+      expect(body, "сірий muted-foreground — це те, на що скаржилась власниця")
+        .not.toMatch(/text-muted-foreground/);
+    });
+  });
+
 });

@@ -1,6 +1,6 @@
 import "@/styles/landing-fonts.css";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
 import { LandingSupportBubble } from "@/components/landing/LandingSupportBubble";
@@ -21,6 +21,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
  */
 export default function ForStudentsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [quizOpen, setQuizOpen] = useState(false);
 
   useEffect(() => {
@@ -112,7 +113,16 @@ export default function ForStudentsPage() {
       </main>
 
       <LandingSupportBubble />
-      <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
+      {/* 15.09, скарга власниці: «після того, як я закрила форму створення
+          запиту, я знову на сторінці, де мені пропонують створити запит».
+          Після УСПІШНОЇ відправки закриття веде на головну — сторінка більше
+          не кличе робити те, що людина щойно зробила. Кинута на півдорозі
+          анкета onFinish не кличе: там закриття означає «просто прибери вікно». */}
+      <LandingFindTutorQuizDialog
+        open={quizOpen}
+        onOpenChange={setQuizOpen}
+        onFinish={() => navigate("/")}
+      />
     </div>
   );
 }
