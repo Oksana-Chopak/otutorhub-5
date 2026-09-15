@@ -304,6 +304,7 @@ export const uk = {
     groupsTitle: "Групи",
   },
   nav: {
+    supportChat: "Написати в підтримку",
     admin: "Адмін",
     errors: "Помилки",
     expandSidebar: "Розгорнути",
@@ -579,6 +580,11 @@ export const uk = {
     tgFailed: "Не вдалося підготувати дайджест. Спробуйте ще раз за хвилину.",
   },
   landing: {
+    support: {
+      label: "Є питання?",
+      aria: "Написати в підтримку в Telegram",
+      close: "Сховати",
+    },
     nav: {
       features: "Що робить",
       howItWorks: "Як працює",
@@ -1037,6 +1043,7 @@ export const uk = {
 
   // Finances
   finances: {
+    markPaidBtn: "Оплачено",
     bulkMarkConfirmTitle_one: "Змінити статус {{count}} рядка?",
     bulkMarkConfirmTitle_few: "Змінити статус {{count}} рядків?",
     bulkMarkConfirmTitle_many: "Змінити статус {{count}} рядків?",
@@ -3681,6 +3688,7 @@ export const uk = {
     saveBtn: "Зберегти",
   },
   subscriptionPageExtra: {
+    writeSupport: "Написати в підтримку",
     billingHalfyear: "Півроку",
     totalNote: "Разовий платіж: {{total}}",
     pageTitle: "Підписка oTutorHub",

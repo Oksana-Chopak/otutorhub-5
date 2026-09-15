@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
+import { LandingSupportBubble } from "@/components/landing/LandingSupportBubble";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 /**
@@ -110,6 +111,7 @@ export default function ForStudentsPage() {
         </div>
       </main>
 
+      <LandingSupportBubble />
       <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
     </div>
   );

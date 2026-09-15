@@ -305,6 +305,7 @@ export const sv: LocaleTranslations = {
     groupsTitle: "Grupper",
   },
   nav: {
+    supportChat: "Kontakta supporten",
     admin: "Admin",
     errors: "Fel",
     expandSidebar: "Expandera",
@@ -576,6 +577,7 @@ export const sv: LocaleTranslations = {
     createLessonBtn: "Skapa lektion",
   },
   finances: {
+    markPaidBtn: "Markera betald",
     bulkMarkConfirmTitle_one: "Ändra status för {{count}} rad?",
     bulkMarkConfirmTitle_other: "Ändra status för {{count}} rader?",
     bulkMarkConfirmDescStudent: "Lektionerna markeras som betalda av eleven. Det går inte att ångra med ett klick.",
@@ -1276,6 +1278,11 @@ export const sv: LocaleTranslations = {
     tgFailed: "Kunde inte förbereda sammanfattningen. Försök igen om en minut.",
   },
   landing: {
+    support: {
+      label: "Frågor?",
+      aria: "Kontakta supporten på Telegram",
+      close: "Dölj",
+    },
     nav: {
       features: "Vad den gör",
       howItWorks: "Så funkar det",
@@ -3633,6 +3640,7 @@ export const sv: LocaleTranslations = {
     saveBtn: "Spara",
   },
   subscriptionPageExtra: {
+    writeSupport: "Kontakta supporten",
     billingHalfyear: "6 månader",
     totalNote: "Engångsbetalning: {{total}}",
     pageTitle: "oTutorHub-prenumeration",

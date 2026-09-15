@@ -307,6 +307,7 @@ export const en: LocaleTranslations = {
     groupsTitle: "Groups",
   },
   nav: {
+    supportChat: "Message support",
     admin: "Admin",
     errors: "Errors",
     expandSidebar: "Expand",
@@ -561,6 +562,11 @@ export const en: LocaleTranslations = {
     tgFailed: "Couldn't prepare the digest. Try again in a minute.",
   },
   landing: {
+    support: {
+      label: "Questions?",
+      aria: "Message support on Telegram",
+      close: "Hide",
+    },
     nav: {
       features: "What it does",
       howItWorks: "How it works",
@@ -1011,6 +1017,7 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
+    markPaidBtn: "Mark paid",
     bulkMarkConfirmTitle_one: "Change the status of {{count}} row?",
     bulkMarkConfirmTitle_other: "Change the status of {{count}} rows?",
     bulkMarkConfirmDescStudent: "The lessons will be marked as paid by the student. There is no one-click undo.",
@@ -3653,6 +3660,7 @@ export const en: LocaleTranslations = {
     saveBtn: "Save",
   },
   subscriptionPageExtra: {
+    writeSupport: "Message support",
     billingHalfyear: "6 months",
     totalNote: "One-time charge: {{total}}",
     pageTitle: "oTutorHub Subscription",

@@ -18,6 +18,7 @@ import {
   DollarSign,
   Loader2,
   Download,
+  Check,
   CheckCheck,
   AlertTriangle,
   ArrowRight,
@@ -2645,16 +2646,29 @@ export default function FinancesPage() {
                                 {t("finances.remindBtn")}
                               </button>
                             )}
-                            {/* C5: було 32×32 за 6px від «Нагадати» — випадковий тап
-                                позначав урок оплаченим. Тепер 44×40 з відступом. */}
+                            {/* 15.09, скарга власниці: «Мені не подобається кнопка ✅ —
+                                вона блимає і незрозуміло інтуїтивно навіть мені, що
+                                воно означає».
+                                Причина не в розмірі, а в тому, що галочка намагалась
+                                бути ДВОМА речами одночасно: і станом («оплачено»), і
+                                дією («позначити оплаченим»). Тому вона й читається як
+                                загадка: людина не знає, це вже так — чи це кнопка.
+                                Спосіб, яким це вирішують фінансові продукти (Stripe,
+                                Xero, FreshBooks): стан і дія — РІЗНІ елементи. Тут
+                                лишається одна кнопка, але вона називає ДІЮ словом,
+                                а не символом; стан видно з чипа «Очікує» ліворуч і з
+                                того, що рядок зникає зі списку боргів. Скасувати
+                                помилковий дотик можна в тості «Скасувати» — він тут
+                                уже є. Повзунок відкинули свідомо: перемикач читається
+                                як НАЛАШТУВАННЯ, а не як подія, і в довгому списку його
+                                легше зачепити пальцем. */}
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
-                              aria-label={t("finances.statusPaid")}
-                              style={{ width:44, height:40, marginLeft:6, borderRadius:10, border:"1.5px solid rgba(43,191,170,.4)",
+                              style={{ height:40, marginLeft:6, padding:"0 12px", borderRadius:10, border:"1.5px solid rgba(43,191,170,.4)",
                                 background:"#f0fdf9", color:"var(--teal-text,#1a7a6c)", cursor:"pointer", flexShrink:0,
-                                display:"flex", alignItems:"center", justifyContent:"center",
-                                fontWeight:800, fontSize:15 }}>
-                              ✓
+                                display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                                fontFamily:F.display, fontWeight:700, fontSize:14, whiteSpace:"nowrap" }}>
+                              <Check size={15} strokeWidth={3} /> {t("finances.markPaidBtn")}
                             </button>
                           </div>
                         ))}

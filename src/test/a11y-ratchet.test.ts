@@ -605,6 +605,34 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/<LanguageSwitcher[^>]*\/>\s*<\/div>\s*\n\s*\{\/\* Progress \+ meta \*\/\}/);
     });
 
+    it("підтримка доступна з будь-якого екрана й усім ролям", () => {
+      const sb = read("src/components/AppSidebar.tsx");
+      const sup = read("src/lib/support.ts");
+      const sp = read("src/pages/SubscriptionPage.tsx");
+      // Форма фідбеку — ящик в ОДИН бік: людина пише, відповіді не бачить.
+      // Тому поруч жива людина в Telegram. Блок «Допомога» спільний для всіх
+      // ролей, тож перевіряємо саме його, а не окрему сторінку.
+      expect(sup, "контакт один на весь продукт").toMatch(/export const SUPPORT_TELEGRAM = "@/);
+      expect(sb).toMatch(/import \{ supportTelegramUrl \} from "@\/lib\/support";/);
+      expect(sb).toMatch(/t\("nav\.supportChat"\)/);
+      // на сторінці підписки блок допомоги стоїть ПІД кнопкою оплати,
+      // а не в самому низу після списку переваг
+      const payIdx = sp.indexOf('t("subscriptionPageExtra.liqPayNote")');
+      const helpIdx = sp.indexOf("Manager fallback");
+      const benefitsIdx = sp.indexOf('t("subscriptionPageExtra.benefitsLabel")');
+      expect(payIdx, "кнопка оплати знайдена").toBeGreaterThan(0);
+      expect(helpIdx, "блок допомоги — після кнопки оплати").toBeGreaterThan(payIdx);
+      expect(helpIdx, "але ДО списку переваг").toBeLessThan(benefitsIdx);
+    });
+
+    it("позначення оплати називає дію словом, а не галочкою", () => {
+      const fp = read("src/pages/FinancesPage.tsx");
+      // Галочка намагалась бути і станом, і дією — тому й читалась як загадка.
+      expect(fp, "гола ✓ як єдиний підпис кнопки більше не вживається")
+        .not.toMatch(/fontWeight:800, fontSize:15 \}\}>\s*\n\s*✓\s*\n\s*<\/button>/);
+      expect(fp).toMatch(/t\("finances\.markPaidBtn"\)/);
+    });
+
     it("чекаут LiqPay відкривається в тій самій вкладці", () => {
       const lp = read("src/components/LiqPayPayButton.tsx");
       // Другого вікна більше немає: `opener = null` відривало його від групи

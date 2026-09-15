@@ -5,6 +5,8 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { isNativeApp } from "@/lib/platform";
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { supportTelegramUrl } from "@/lib/support";
+import { LandingSupportBubble } from "@/components/landing/LandingSupportBubble";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingHero } from "@/components/landing/LandingHero";
@@ -267,7 +269,8 @@ export default function LandingPage() {
   }, [t]);
 
   const signupHref = "/auth?signup=1&role=tutor";
-  const telegramUrl = "https://t.me/oksana_chopak";
+  // 15.09: контакт підтримки — один на весь продукт (src/lib/support.ts).
+  const telegramUrl = supportTelegramUrl() ?? "https://t.me/oksana_chopak";
   const whatsappUrl = "https://api.whatsapp.com/send?phone=46700266274";
 
   return (
@@ -369,6 +372,8 @@ export default function LandingPage() {
             <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
           </div>
         </section>
+
+        <LandingSupportBubble />
 
         <footer>
           <div className="footer-inner">

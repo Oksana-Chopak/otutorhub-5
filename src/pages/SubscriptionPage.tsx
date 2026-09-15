@@ -22,14 +22,16 @@ import {
   XCircle,
   Headset,
   Heart,
-  Share2,
-} from "lucide-react";
+  Share2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
 import { LiqPayPayButton } from "@/components/LiqPayPayButton";
+import { supportTelegramUrl } from "@/lib/support";
 
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
+/* 15.09: контакт підтримки — один на весь продукт (src/lib/support.ts). */
+const supportUrl = supportTelegramUrl();
 
 // Гривнева сітка (рішення власниці 02.09): 299 / 269 / 249 ₴ за місяць.
 // Числа й обґрунтування — у src/lib/pricing.ts, це єдине джерело правди.
@@ -519,6 +521,66 @@ export default function SubscriptionPage() {
             </div>
           )}
 
+          {/* 15.09, скарга живого користувача: «Эта кнопка есть в разделе про
+              оплаты, думаю она должна быть где-то внизу всегда — её должно быть
+              легко увидеть, а не искать».
+              Блок «Не працює оплата карткою?» стояв у САМОМУ низу сторінки —
+              після всього списку переваг. Тобто людина, у якої щойно не пройшла
+              оплата, мусила прогорнути весь маркетинг, щоб знайти вихід.
+              Тепер він одразу під кнопкою оплати: там, куди дивиться той, у
+              кого не вийшло. Підтримка також додана в блок «Допомога» бічного
+              меню — доступна з будь-якого екрана всім ролям. */}
+          {/* ── Manager fallback (зовнішні способи оплати → не для iOS) ──── */}
+          {!isActive && !nativeApp && (
+            <div style={{ borderRadius: 16, border: `1px dashed ${S.border}`, background: "var(--ds-surface,#fff)", padding: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Headset size={18} />
+                </div>
+                <div style={{ flex: 1 }}><div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15 }}>{t("subscriptionPageExtra.cardNotWorkingTitle")}</div></div>
+              </div>
+              <div style={{ fontSize: 14, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>{t("subscriptionPageExtra.cardNotWorkingDesc")}</div>
+              <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 44, borderRadius: 12, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <Headset size={18} /> {pendingRequest ? t("subscriptionPageExtra.requestPending") : t("subscriptionPageExtra.contactManager")}
+              </button>
+              {/* Заявка через форму — це очікування. Поруч жива людина в
+                  Telegram: та сама константа, що й у меню та на лендінгу. */}
+              {supportUrl && (
+                <a href={supportUrl} target="_blank" rel="noopener noreferrer"
+                  style={{ marginTop: 8, width: "100%", height: 44, borderRadius: 12, textDecoration: "none", background: "transparent", color: S.tealD, fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <MessageCircle size={18} /> {t("subscriptionPageExtra.writeSupport")}
+                </a>
+              )}
+
+              {!requestLoading && latestRequest && (() => {
+                const meta = statusMeta[latestRequest.status];
+                if (!meta) return null;
+                const StatusIcon = meta.icon;
+                return (
+                  <div style={{ marginTop: 12, borderRadius: 12, border: `1px solid ${S.border}`, padding: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <StatusIcon className={cn("h-4 w-4", latestRequest.status === "in_progress" && "animate-spin")} style={{ color: S.tealD }} />
+                        <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14 }}>{t("subscriptionPageExtra.yourRequest")}</span>
+                      </span>
+                      <Badge variant={meta.tone}>{meta.label}</Badge>
+                    </div>
+                    {meta.description && <p style={{ fontSize: 14, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
+                    {latestRequest.manager_response && (
+                      <div style={{ marginTop: 8, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
+                        <div style={{ fontSize: 14, color: S.sub, marginBottom: 2 }}>{t("subscriptionPageExtra.managerResponse")}</div>
+                        <p style={{ fontSize: 14, color: S.txt }}>{latestRequest.manager_response}</p>
+                      </div>
+                    )}
+                    {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (
+                      <Button size="sm" variant="outline" className="mt-3" onClick={() => setRequestOpen(true)}>{t("subscriptionPageExtra.sendNewRequest")}</Button>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           {/* ── або не плати ─────────────────────────────────────────────── */}
           {!isActive && !nativeApp && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 4px" }}>
@@ -562,48 +624,6 @@ export default function SubscriptionPage() {
             </div>
           </div>
 
-          {/* ── Manager fallback (зовнішні способи оплати → не для iOS) ──── */}
-          {!isActive && !nativeApp && (
-            <div style={{ borderRadius: 16, border: `1px dashed ${S.border}`, background: "var(--ds-surface,#fff)", padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Headset size={18} />
-                </div>
-                <div style={{ flex: 1 }}><div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15 }}>{t("subscriptionPageExtra.cardNotWorkingTitle")}</div></div>
-              </div>
-              <div style={{ fontSize: 14, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>{t("subscriptionPageExtra.cardNotWorkingDesc")}</div>
-              <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 44, borderRadius: 12, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                <Headset size={18} /> {pendingRequest ? t("subscriptionPageExtra.requestPending") : t("subscriptionPageExtra.contactManager")}
-              </button>
-
-              {!requestLoading && latestRequest && (() => {
-                const meta = statusMeta[latestRequest.status];
-                if (!meta) return null;
-                const StatusIcon = meta.icon;
-                return (
-                  <div style={{ marginTop: 12, borderRadius: 12, border: `1px solid ${S.border}`, padding: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                        <StatusIcon className={cn("h-4 w-4", latestRequest.status === "in_progress" && "animate-spin")} style={{ color: S.tealD }} />
-                        <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14 }}>{t("subscriptionPageExtra.yourRequest")}</span>
-                      </span>
-                      <Badge variant={meta.tone}>{meta.label}</Badge>
-                    </div>
-                    {meta.description && <p style={{ fontSize: 14, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
-                    {latestRequest.manager_response && (
-                      <div style={{ marginTop: 8, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
-                        <div style={{ fontSize: 14, color: S.sub, marginBottom: 2 }}>{t("subscriptionPageExtra.managerResponse")}</div>
-                        <p style={{ fontSize: 14, color: S.txt }}>{latestRequest.manager_response}</p>
-                      </div>
-                    )}
-                    {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (
-                      <Button size="sm" variant="outline" className="mt-3" onClick={() => setRequestOpen(true)}>{t("subscriptionPageExtra.sendNewRequest")}</Button>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
         </div>
 
         <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />

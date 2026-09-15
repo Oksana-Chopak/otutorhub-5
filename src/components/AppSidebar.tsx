@@ -1,6 +1,7 @@
 import { Link, NavLink as RouterNavLink, useNavigate } from "react-router-dom";
 import { CORE_TOTAL } from "@/lib/onboardingSteps";
 import { useTranslation } from "react-i18next";
+import { supportTelegramUrl } from "@/lib/support";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
@@ -27,6 +28,7 @@ import {
   Wallet,
   Users2,
   CreditCard,
+  LifeBuoy,
   MessageCircleHeart,
   Mail,
   ChevronLeft,
@@ -109,6 +111,7 @@ const roleLabelKey: Record<AppRole, string> = {
 
 export function AppSidebar() {
   const { t } = useTranslation();
+  const supportUrl = supportTelegramUrl();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -334,6 +337,24 @@ export function AppSidebar() {
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-left">{t("feedback.btn")}</span>
           </button>
+          {/* 15.09, скарга живого користувача: «Нет чата, где можно связаться с
+              тобой? Как support». Форма фідбеку поруч — це ящик в ОДИН бік:
+              людина пише, відповіді не бачить, тому й питає про чат.
+              Тут — жива людина в Telegram. Блок «Допомога» спільний для ВСІХ
+              ролей (менеджер, хабовий, самостійний, учень), тож підтримка
+              зʼявляється однаково скрізь, у двох дотиках з будь-якого екрана. */}
+          {supportUrl && (
+            <a
+              href={supportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              <LifeBuoy className="h-4 w-4 shrink-0" />
+              <span className="flex-1 text-left">{t("nav.supportChat")}</span>
+            </a>
+          )}
         </div>
 
         <div className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
