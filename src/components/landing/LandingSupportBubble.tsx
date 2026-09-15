@@ -24,6 +24,7 @@ export function LandingSupportBubble() {
   const url = supportTelegramUrl();
   const [hidden, setHidden] = useState(true);
   const [expanded, setExpanded] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     let dismissed = false;
@@ -35,7 +36,22 @@ export function LandingSupportBubble() {
     return () => { window.clearTimeout(show); window.clearTimeout(shrink); };
   }, []);
 
-  if (!url || hidden) return null;
+  // 15.09: бульбашка висіла ПОВЕРХ відкритої анкети підбору (z-index 60 проти
+  // 50 у діалога) — робот зняв її просто на тексті «Ми отримали ваш запит».
+  // Радікс до того ж ставить сусідам aria-hidden, тож виходило найгірше
+  // поєднання: на екрані видно, для читалки не існує. Тому z-index тепер НИЖЧЕ
+  // шару діалогів (підстраховка), а поки модалка відкрита — бульбашки нема
+  // взагалі: питання до підтримки ставлять не посеред заповнення форми.
+  useEffect(() => {
+    if (typeof MutationObserver === "undefined") return;
+    const check = () => setModalOpen(!!document.querySelector('[role="dialog"][data-state="open"]'));
+    check();
+    const mo = new MutationObserver(check);
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state"] });
+    return () => mo.disconnect();
+  }, []);
+
+  if (!url || hidden || modalOpen) return null;
 
   const dismiss = () => {
     setHidden(true);
@@ -45,7 +61,7 @@ export function LandingSupportBubble() {
   return (
     <div
       style={{
-        position: "fixed", right: 16, zIndex: 60,
+        position: "fixed", right: 16, zIndex: 40,
         bottom: "calc(16px + var(--cookie-banner-h, 0px))",
         display: "flex", alignItems: "center", gap: 8,
       }}

@@ -895,4 +895,31 @@ describe("матеріали учня · хронологія, розгорну�
     });
   });
 
+  /* 15.09, знайдено роботом на тій самій анкеті — але болить у ВСІХ формах. */
+  describe("шари: що лежить поверх відкритої форми (15.09)", () => {
+    it("банер кук чекає ПІД діалогом, а не поверх його кнопок", () => {
+      const cc = read("src/components/CookieConsent.tsx");
+      const z = Number((cc.match(/zIndex: (\d+),/) ?? [])[1]);
+      expect(Number.isFinite(z), "у банера має бути явний z-index").toBe(true);
+      expect(z, "діалоги живуть на z-50; усе вище накриває їхні кнопки").toBeLessThan(50);
+      // клікабельність тут нічого не доводить: Radix знімає pointer-events з
+      // body, тож дотик проходить КРІЗЬ банер — а людина все одно не бачить
+      // кнопки. Тому ворота саме на порядок малювання.
+      expect(cc, "рішення про шар мусить лишитись поясненим").toMatch(/нижче шару діалогів/);
+    });
+
+    it("бульбашка підтримки зникає, поки відкрита форма", () => {
+      const sb = read("src/components/landing/LandingSupportBubble.tsx");
+      expect(sb).toMatch(/document\.querySelector\('\[role="dialog"\]\[data-state="open"\]'\)/);
+      expect(sb).toMatch(/if \(!url \|\| hidden \|\| modalOpen\) return null;/);
+      expect(sb, "z-index бульбашки мусить бути нижчим за шар діалогів").toMatch(/zIndex: 40/);
+    });
+
+    it("хрестик діалога — 44px дотику в усьому застосунку", () => {
+      const d = read("src/components/ui/dialog.tsx");
+      expect(d, "20×20 — удвічі менше за обовʼязкові 44px ТЗ").toMatch(/h-11 w-11/);
+      expect(d, "клас absolute тримає [&>button.absolute]:hidden у 20+ діалогах")
+        .toMatch(/DialogPrimitive\.Close className="absolute /);
+    });
+  });
 });
