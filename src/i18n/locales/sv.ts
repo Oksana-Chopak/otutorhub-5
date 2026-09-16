@@ -353,6 +353,9 @@ export const sv: LocaleTranslations = {
     toggle: "Växla tema",
   },
   auth: {
+    backToLanding: "Till startsidan",
+    sessionExpired: "Din session har gått ut",
+    sessionExpiredDesc: "Logga in igen — vi tar dig tillbaka till samma sida.",
     resetSending: "Skickar e-post…",
     resetCooldown: "E-post skickad · igen om {{s}} s",
     showOptional: "Lägg till telefon (valfritt)",

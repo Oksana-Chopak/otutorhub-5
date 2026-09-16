@@ -866,6 +866,9 @@ export const uk = {
 
   // Auth
   auth: {
+    backToLanding: "На головну сторінку",
+    sessionExpired: "Сесія завершилась",
+    sessionExpiredDesc: "Увійдіть ще раз — ми повернемо вас на ту саму сторінку.",
     resetSending: "Надсилаємо лист…",
     resetCooldown: "Лист надіслано · повторно через {{s}} с",
     showOptional: "Додати телефон (необов'язково)",

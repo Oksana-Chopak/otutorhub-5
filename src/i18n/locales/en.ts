@@ -845,6 +845,9 @@ export const en: LocaleTranslations = {
   },
 
   auth: {
+    backToLanding: "Back to the home page",
+    sessionExpired: "Your session has ended",
+    sessionExpiredDesc: "Sign in again — we will bring you back to the same page.",
     resetSending: "Sending email…",
     resetCooldown: "Email sent · retry in {{s}}s",
     showOptional: "Add phone (optional)",

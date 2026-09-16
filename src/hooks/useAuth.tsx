@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { onSessionExpired, reportSessionExpired, resetSessionExpiry } from "@/integrations/supabase/sessionExpiry";
+import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export type AppRole = "manager" | "tutor" | "student";
 
@@ -57,6 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                           setTimeout(() => fetchRoles(newSession.user.id), 0);
                                   // Claim pending referral code (set by /join/:code page) on first sign-in after signup
                           if (event === "SIGNED_IN") {
+                                      // Успішний вхід — наступний збій має прозвучати знову.
+                                      resetSessionExpiry();
                                       const code = localStorage.getItem("tutorhub.referralCode");
                                       if (code) {
                                                     // Retry up to 3 times with exponential backoff
@@ -148,6 +153,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         window.removeEventListener("pagehide", handleUnload);
                 };
   }, [fetchRoles]);
+
+  // ── Протухла сесія (16.09, скан живих логів) ──────────────────────────────
+  // «Розклад і профіль репетитора відповідають permission denied рівно в ті
+  // моменти, коли оновлення токена впирається в ліміт». Це протухла сесія:
+  // браузер далі ходить у базу зі старим токеном, а сторінка малює ПОРОЖНЮ —
+  // людина бачить не «увійдіть ще раз», а зниклі уроки. Тепер сигнал із
+  // обгортки fetch чистить стан, і ProtectedRoute веде на вхід, звідки
+  // людина повертається туди ж, де була (state.from).
+  useEffect(() => {
+        return onSessionExpired(() => {
+                if (!mountedRef.current) return;
+                setUser(null);
+                setSession(null);
+                setRoles([]);
+                // Вихід ЛОКАЛЬНИЙ: мережа зараз може бути під лімітом, а мертвий
+                // токен у сховищі — саме те, через що наступний запит знову впаде.
+                void supabase.auth.signOut({ scope: "local" }).catch(() => { /* ігноруємо */ });
+                toast.error(i18n.t("auth.sessionExpired"), { description: i18n.t("auth.sessionExpiredDesc") });
+        });
+  }, []);
+
+  // Не чекаємо першого зламаного екрана: щойно вкладку повернули з фону (або
+  // раз на 5 хв), питаємо, чи токен ще живий, і мовчки поновлюємо. Не вдалось
+  // поновити — це той самий сигнал, тільки без порожньої сторінки перед ним.
+  useEffect(() => {
+        const check = async () => {
+                if (typeof document === "undefined" || document.visibilityState !== "visible") return;
+                const { data } = await supabase.auth.getSession();
+                const s = data.session;
+                if (!s) return;
+                const expMs = (s.expires_at ?? 0) * 1000;
+                if (!expMs || expMs - Date.now() > 60_000) return;
+                const { error } = await supabase.auth.refreshSession();
+                if (error) reportSessionExpired();
+        };
+        const onVis = () => { void check(); };
+        document.addEventListener("visibilitychange", onVis);
+        const id = window.setInterval(onVis, 5 * 60_000);
+        return () => {
+                document.removeEventListener("visibilitychange", onVis);
+                window.clearInterval(id);
+        };
+  }, []);
 
   const signOut = async () => {
         await supabase.auth.signOut();

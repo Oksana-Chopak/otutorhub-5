@@ -3,7 +3,7 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
 import { landingDraftForSignup, peekHandoffToken, rememberHandoffToken, saveLandingDraft, HANDOFF_TOKEN_RE } from "@/lib/landingFunnel";
 import { BUILD_TAG } from "@/lib/buildInfo";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import { isNativeApp } from "@/lib/platform";
 import { z } from "zod";
@@ -80,10 +80,13 @@ function ConfirmedSignIn({
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center gap-2 justify-center">
+        {/* 16.09, прохання власниці: з реєстрації треба мати змогу повернутись
+            на лендінг — логотип для цього і є найочікуванішим місцем. */}
+        <Link to="/" aria-label={t("auth.backToLanding")}
+          className="mb-6 flex items-center gap-2 justify-center rounded-xl transition-opacity hover:opacity-80">
           <img src="/logo-96.webp" alt="oTutorHub" className="h-11 w-11" />
           <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", color: "var(--ds-txt,#0f0f1a)" }}>oTutorHub</span>
-        </div>
+        </Link>
         <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">✅</div>
@@ -585,10 +588,11 @@ export default function AuthPage() {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
         <div className="w-full max-w-md text-center">
-          <div className="mb-6 flex items-center gap-2 justify-center">
+          <Link to="/" aria-label={t("auth.backToLanding")}
+            className="mb-6 flex items-center gap-2 justify-center rounded-xl transition-opacity hover:opacity-80">
             <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
             <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
-          </div>
+          </Link>
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">
               ✉️
@@ -642,10 +646,11 @@ export default function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <Link to="/" aria-label={t("auth.backToLanding")}
+            className="flex items-center gap-2 rounded-xl transition-opacity hover:opacity-80">
             <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
             <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
-          </div>
+          </Link>
           <LanguageSwitcher variant="ghost" size="sm" />
         </div>
 

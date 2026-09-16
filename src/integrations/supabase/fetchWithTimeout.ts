@@ -4,6 +4,8 @@
 // для ІДЕМПОТЕНТНИХ читань (GET/HEAD). Мутації не ретраяться ніколи —
 // повторний POST міг би записати оплату двічі.
 
+import { hasStoredSession, looksLikeExpiredSession, reportSessionExpired } from "./sessionExpiry";
+
 const TIMEOUT_MS = 15_000;
 const READ_ATTEMPTS = 3; // 1 спроба + 2 ретраї з бекофом 400мс/800мс
 
@@ -20,7 +22,13 @@ export const fetchWithTimeout: typeof fetch = async (input, init) => {
       const signal = init?.signal
         ? AbortSignal.any([init.signal, timeoutSignal])
         : timeoutSignal;
-      return await fetch(input, { ...init, signal });
+      const res = await fetch(input, { ...init, signal });
+      // 16.09: єдине місце, крізь яке йдуть УСІ запити Supabase — отже єдине
+      // чесне місце, щоб помітити протухлу сесію. Тіло відповіді не чіпаємо:
+      // його читає той, хто викликав. Деталі меж — у sessionExpiry.ts.
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (looksLikeExpiredSession(url, res.status) && hasStoredSession()) reportSessionExpired();
+      return res;
     } catch (e) {
       lastErr = e;
       // Викликач сам скасував (розмонтування, зміна фільтра) — не ретраїмо.
