@@ -282,7 +282,11 @@ export function QuickLessonDialog({
       // lesson_participants + notifies every enrolled student.
       try {
         const { lessonId, error } = await createGroupLesson({
-          tutorId: user.id,
+          // 18.09: тут стояв user.id, тоді як індивідуальна гілка нижче бере
+          // effTutorId. Менеджер обирав репетитора зі списку, створював груповий
+          // урок — і урок лягав під САМОГО МЕНЕДЖЕРА: обраний репетитор не бачив
+          // його у себе в розкладі й не отримував за нього виплати.
+          tutorId: effTutorId,
           groupId: selectedGroup.id,
           subject: selectedGroup.subject || t("shared.lesson"),
           startsAt: effStartsAt.toISOString(),

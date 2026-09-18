@@ -96,7 +96,16 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
         className="flex w-full items-center gap-2 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
       >
         <StickyNote className="h-3.5 w-3.5" />
-        <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && t("managerNotesExtra.titleWithCount", { count: notes.length }).replace("Приватні нотатки (", "").replace(")", "")}</span>
+        {/* 18.09: тут стояв вшитий український заголовок ПЛЮС той самий
+            заголовок з i18n, з якого українська підстрока вирізалась .replace().
+            Для en/sv replace не збігався ні з чим, і на екрані виходило
+            «Приватні нотатки Private notes (3» — чужа мова, дубль і обірвана
+            дужка в одному рядку. Тепер один ключ на обидва випадки. */}
+        <span className="flex-1 text-left">
+          {notes.length > 0
+            ? t("managerNotesExtra.titleWithCount", { count: notes.length })
+            : t("managerNotes.title")}
+        </span>
         {expanded ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
       </button>
 

@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
             tag: `lesson-${lesson.id}-feedback`,
           });
           if (tgOk || pushOk) {
-            await supabase.from("lesson_reminders").insert({
+            const { error: logErr } = await supabase.from("lesson_reminders").insert({
               lesson_id: lesson.id,
               tutor_id: lesson.tutor_id,
               student_id: lesson.student_id,
@@ -193,6 +193,10 @@ Deno.serve(async (req) => {
               reminder_kind: "feedback_nudge",
               channel: tgOk ? "telegram" : "webpush",
             });
+            // 18.09: на цьому журналі тримається дедуп — крон біжить раз на 5 хвилин.
+            // Мовчазний провал запису означав би те саме нагадування кожні 5 хв, поки
+            // не закінчиться вікно. Рівно так уже ламались нагадування про оплату.
+            if (logErr) console.error("lesson-reminders: журнал не записався — дедуп зламано", logErr.message);
             sent++;
           } else skipped++;
         }
@@ -235,7 +239,7 @@ Deno.serve(async (req) => {
           tag: `lesson-${lesson.id}-${n.kind}`,
         });
         if (tgOk || pushOk) {
-          await supabase.from("lesson_reminders").insert({
+          const { error: logErr } = await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
             student_id: lesson.student_id,
@@ -244,6 +248,10 @@ Deno.serve(async (req) => {
             reminder_kind: n.kind,
             channel: tgOk ? "telegram" : "webpush",
           });
+          // 18.09: на цьому журналі тримається дедуп — крон біжить раз на 5 хвилин.
+          // Мовчазний провал запису означав би те саме нагадування кожні 5 хв, поки
+          // не закінчиться вікно. Рівно так уже ламались нагадування про оплату.
+          if (logErr) console.error("lesson-reminders: журнал не записався — дедуп зламано", logErr.message);
           sent++;
         } else skipped++;
       }
@@ -287,7 +295,7 @@ Deno.serve(async (req) => {
           tag: `lesson-${lesson.id}-${rule.kind}`,
         });
         if (tgOk || pushOk) {
-          await supabase.from("lesson_reminders").insert({
+          const { error: logErr } = await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
             student_id: lesson.student_id,
@@ -296,6 +304,10 @@ Deno.serve(async (req) => {
             reminder_kind: rule.kind,
             channel: tgOk ? "telegram" : "webpush",
           });
+          // 18.09: на цьому журналі тримається дедуп — крон біжить раз на 5 хвилин.
+          // Мовчазний провал запису означав би те саме нагадування кожні 5 хв, поки
+          // не закінчиться вікно. Рівно так уже ламались нагадування про оплату.
+          if (logErr) console.error("lesson-reminders: журнал не записався — дедуп зламано", logErr.message);
           sent++;
         } else skipped++;
       }
@@ -316,7 +328,7 @@ Deno.serve(async (req) => {
           tag: `lesson-${lesson.id}-${rule.kind}`,
         });
         if (tgOk || pushOk) {
-          await supabase.from("lesson_reminders").insert({
+          const { error: logErr } = await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
             student_id: lesson.student_id,
@@ -325,6 +337,10 @@ Deno.serve(async (req) => {
             reminder_kind: rule.kind,
             channel: tgOk ? "telegram" : "webpush",
           });
+          // 18.09: на цьому журналі тримається дедуп — крон біжить раз на 5 хвилин.
+          // Мовчазний провал запису означав би те саме нагадування кожні 5 хв, поки
+          // не закінчиться вікно. Рівно так уже ламались нагадування про оплату.
+          if (logErr) console.error("lesson-reminders: журнал не записався — дедуп зламано", logErr.message);
           sent++;
         } else skipped++;
       }

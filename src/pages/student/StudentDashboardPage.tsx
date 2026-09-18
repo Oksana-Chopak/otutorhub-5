@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { StudentOnboarding } from "@/components/student/StudentOnboarding";
 import { useStudentContext } from "@/hooks/useStudentContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle, Clock } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
@@ -18,7 +19,7 @@ import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { fetchHomeworkDone } from "@/lib/homeworkDone";
 import { ErrorState } from "@/components/ErrorState";
 import { computeWeeklyStats } from "@/lib/studentStats";
-import { studentLessonsOrFilter } from "@/lib/studentLessons";
+import { studentLessonsFilter } from "@/lib/studentLessons";
 
 interface UpcomingLesson {
   id: string;
@@ -102,7 +103,9 @@ export default function StudentDashboardPage() {
     if (!user) return;
     setLoading(true);
     const nowIso = new Date().toISOString();
-    const orFilter = await studentLessonsOrFilter(user.id);
+    const { filter: orFilter, partial: groupsPartial } = await studentLessonsFilter(user.id);
+    // Неповний список кажемо словами: мовчазна порожнеча читається як «уроки скасували».
+    if (groupsPartial) toast.error(t("studentPages.groupsPartial"));
     const [{ data: lessons, error: lessonsErr }, { data: details, error: detailsErr }, { data: completed }, { data: groupParts }, { data: cancelledRows }] = await Promise.all([
       supabase
         // student_payment_status lives on lesson_details, NOT lessons — selecting it here

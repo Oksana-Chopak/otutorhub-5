@@ -133,10 +133,15 @@ export default function StudentPaymentsPage() {
         }));
       // GROUP lessons: the student's price/payment lives on lesson_participants
       // (the lesson row has student_id=NULL). Pull them in with their own currency.
-      const { data: gParts } = await (supabase.from("lesson_participants_visible" as any) as any)
+      // 18.09: тут не діставали error, хоча сусідній запит по індивідуальних
+      // уроках його перевіряє саме тому, що «провал читання показував „усе
+      // оплачено“ — найдорожча брехня на цьому екрані». Учень, у якого лише
+      // групові уроки, бачив упевнений нуль і не платив.
+      const { data: gParts, error: gErr } = await (supabase.from("lesson_participants_visible" as any) as any)
         .select("lesson_id, student_price, currency, student_payment_status, subject, starts_at, tutor_id, status")
         .eq("student_id", user.id)
         .neq("status", "cancelled");
+      if (gErr) { setLoadError(true); }
       const groupRows = ((gParts ?? []) as any[])
         .map((p) => ({
           id: p.lesson_id,

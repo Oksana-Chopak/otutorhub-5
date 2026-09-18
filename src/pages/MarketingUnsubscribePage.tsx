@@ -17,6 +17,10 @@ type State =
   | { kind: "success"; email: string }
   | { kind: "error"; message: string };
 
+/* 18.09: сторінка імпортувала `t` і жодного разу не кликала — весь текст був
+   вшитий українською. Лист про розсилку відкривають із поштового клієнта, де
+   localStorage порожній, тож швед тиснув «Unsubscribe» і отримував суцільну
+   українську сторінку. У близнюка UnsubscribePage це давно зроблено через i18n. */
 export default function MarketingUnsubscribePage() {
   const [params] = useSearchParams();
   const token = params.get("token");
@@ -24,7 +28,7 @@ export default function MarketingUnsubscribePage() {
 
   useEffect(() => {
     if (!token) {
-      setState({ kind: "error", message: "Посилання недійсне — відсутній токен." });
+      setState({ kind: "error", message: t("marketingUnsub.noToken") });
       return;
     }
     (async () => {
@@ -35,14 +39,14 @@ export default function MarketingUnsubscribePage() {
         );
         const body = await res.json().catch(() => ({}));
         if (!res.ok || !body.email) {
-          setState({ kind: "error", message: body?.error || "Посилання недійсне." });
+          setState({ kind: "error", message: body?.error || t("marketingUnsub.invalidLink") });
           return;
         }
         setState(body.alreadyUnsubscribed
           ? { kind: "already", email: body.email }
           : { kind: "ready", email: body.email });
       } catch {
-        setState({ kind: "error", message: "Не вдалося перевірити посилання." });
+        setState({ kind: "error", message: t("marketingUnsub.verifyFailed") });
       }
     })();
   }, [token]);
@@ -58,12 +62,12 @@ export default function MarketingUnsubscribePage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setState({ kind: "error", message: body?.error || "Помилка" });
+        setState({ kind: "error", message: body?.error || t("marketingUnsub.failed") });
         return;
       }
       setState({ kind: "success", email: body.email });
     } catch {
-      setState({ kind: "error", message: "Помилка мережі" });
+      setState({ kind: "error", message: t("marketingUnsub.networkError") });
     }
   };
 
@@ -72,43 +76,43 @@ export default function MarketingUnsubscribePage() {
       <Card className="w-full max-w-md">
         <CardContent className="p-8 text-center space-y-4">
           {state.kind === "validating" && (
-            <><Loader2 className="mx-auto h-10 w-10 animate-spin text-muted-foreground" /><p>Перевіряємо посилання…</p></>
+            <><Loader2 className="mx-auto h-10 w-10 animate-spin text-muted-foreground" /><p>{t("marketingUnsub.checking")}</p></>
           )}
           {state.kind === "ready" && (
             <>
               <MailX className="mx-auto h-12 w-12 text-primary" />
-              <h1 className="text-xl font-semibold">Відписатися від розсилок?</h1>
-              <p className="text-muted-foreground">Адреса: <strong>{state.email}</strong></p>
+              <h1 className="text-xl font-semibold">{t("marketingUnsub.title")}</h1>
+              <p className="text-muted-foreground">{t("marketingUnsub.addressLabel")} <strong>{state.email}</strong></p>
               <p className="text-sm text-muted-foreground">
-                Ви більше не отримуватимете маркетингових листів. Системні повідомлення (про оплати, уроки тощо) продовжать надходити.
+                {t("marketingUnsub.explain")}
               </p>
-              <Button onClick={confirm} className="w-full">Підтвердити відписку</Button>
+              <Button onClick={confirm} className="w-full">{t("marketingUnsub.confirm")}</Button>
             </>
           )}
           {state.kind === "submitting" && (
-            <><Loader2 className="mx-auto h-10 w-10 animate-spin" /><p>Відписуємо…</p></>
+            <><Loader2 className="mx-auto h-10 w-10 animate-spin" /><p>{t("marketingUnsub.submitting")}</p></>
           )}
           {state.kind === "success" && (
             <>
               <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-              <h1 className="text-xl font-semibold">Готово</h1>
-              <p className="text-muted-foreground">{state.email} відписано від розсилок.</p>
-              <Button asChild variant="outline"><Link to="/">На головну</Link></Button>
+              <h1 className="text-xl font-semibold">{t("marketingUnsub.doneTitle")}</h1>
+              <p className="text-muted-foreground">{t("marketingUnsub.doneDesc", { email: state.email })}</p>
+              <Button asChild variant="outline"><Link to="/">{t("marketingUnsub.toHome")}</Link></Button>
             </>
           )}
           {state.kind === "already" && (
             <>
               <CheckCircle2 className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h1 className="text-xl font-semibold">Ви вже відписані</h1>
+              <h1 className="text-xl font-semibold">{t("marketingUnsub.alreadyTitle")}</h1>
               <p className="text-muted-foreground">{state.email}</p>
-              <Button asChild variant="outline"><Link to="/">На головну</Link></Button>
+              <Button asChild variant="outline"><Link to="/">{t("marketingUnsub.toHome")}</Link></Button>
             </>
           )}
           {state.kind === "error" && (
             <>
               <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
               <p className="text-destructive">{state.message}</p>
-              <Button asChild variant="outline"><Link to="/">На головну</Link></Button>
+              <Button asChild variant="outline"><Link to="/">{t("marketingUnsub.toHome")}</Link></Button>
             </>
           )}
         </CardContent>

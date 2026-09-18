@@ -3,6 +3,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Video, MessageCircle, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -10,7 +11,7 @@ import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { ErrorState } from "@/components/ErrorState";
-import { studentLessonsOrFilter } from "@/lib/studentLessons";
+import { studentLessonsFilter } from "@/lib/studentLessons";
 
 interface Lesson {
   id: string;
@@ -51,7 +52,9 @@ export default function StudentSchedulePage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const orFilter = await studentLessonsOrFilter(user.id);
+      const { filter: orFilter, partial: groupsPartial } = await studentLessonsFilter(user.id);
+      // Неповний список кажемо словами: мовчазна порожнеча читається як «уроки скасували».
+      if (groupsPartial) toast.error(t("studentPages.groupsPartial"));
       // 07.09: перенесені борги репетитора (carried_over) — не уроки, у розкладі
       // учня їх немає (гроші видно на «Оплатах»). До міграції колонки нема —
       // запит без неї.

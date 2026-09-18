@@ -118,9 +118,19 @@ Deno.serve(async (req) => {
         update.liqpay_recurring_active = true;
         if (cardToken) update.liqpay_card_token = cardToken;
       }
-      await admin
+      // 18.09: тут не перевірявся error, а функція нижче безумовно віддавала
+      // LiqPay «OK». Тобто при будь-якому збої бази репетитор ПЛАТИВ карткою,
+      // бачив «оплата успішна» — і лишався за пейволом на безкоштовному плані,
+      // бо LiqPay отримував 200 і більше не повторював колбек. Гроші зняті,
+      // підписки немає, у логах тиша. Тепер збій = 500: LiqPay ретраїть, а
+      // колбек ідемпотентний (upsert по tutor_id), тож повтор безпечний.
+      const { error: subErr } = await admin
         .from("tutor_workspace_settings")
         .upsert(update, { onConflict: "tutor_id" });
+      if (subErr) {
+        console.error("liqpay-callback: підписку НЕ увімкнено", paymentRow.tutor_id, subErr.message);
+        return new Response("subscription write failed", { status: 500, headers: corsHeaders });
+      }
 
       // Reward referrer if this tutor was referred (one-time per referral)
       try {
@@ -132,10 +142,14 @@ Deno.serve(async (req) => {
 
     // Обробка скасування підписки
     if (status === "unsubscribed" || action === "unsubscribe") {
-      await admin
+      const { error: unsubErr } = await admin
         .from("tutor_workspace_settings")
         .update({ liqpay_recurring_active: false })
         .eq("tutor_id", paymentRow.tutor_id);
+      if (unsubErr) {
+        console.error("liqpay-callback: автопродовження НЕ вимкнено", paymentRow.tutor_id, unsubErr.message);
+        return new Response("unsubscribe write failed", { status: 500, headers: corsHeaders });
+      }
     }
 
     return new Response("OK", { headers: corsHeaders });

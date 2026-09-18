@@ -533,26 +533,32 @@ export function LessonWorkspace({
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0">
       {/* 0. Primary CTA — mark lesson as completed */}
-      {(lastSaved || (statusLocal === "completed" && (!summary || paidLocal === "unpaid"))) && (
+      {/* 18.09: смуга не питала canTogglePayment, а гілка «неоплачено» кличе
+          togglePayment(). Для ХАБОВОГО репетитора RPC update_lesson_details_safe
+          має v_student_ok = false: він мовчки НЕ пише статус і повертає успіх —
+          тобто людина бачила зелене «Позначено як оплачено», а урок лишався
+          неоплаченим. Гроші школи веде менеджер (про це прямо сказано нижче),
+          тож пропозиція позначити оплату не має існувати для хабового взагалі. */}
+      {(lastSaved || (statusLocal === "completed" && (!summary || (paidLocal === "unpaid" && canTogglePayment)))) && (
         <div className="mb-3">
           <NextStepBar
             icon={lastSaved === "homework" ? "✍️" : lastSaved === "summary" ? "📅" : paidLocal === "unpaid" ? "💳" : "📝"}
             text={
               lastSaved === "homework" ? t("nextStep.afterHomework")
               : lastSaved === "summary" ? t("nextStep.afterSummary")
-              : paidLocal === "unpaid" ? t("nextStep.lessonUnpaid")
+              : (paidLocal === "unpaid" && canTogglePayment) ? t("nextStep.lessonUnpaid")
               : t("nextStep.addSummary")
             }
             actionLabel={
               lastSaved === "homework" ? t("nextStep.openSummary")
               : lastSaved === "summary" ? t("nextStep.createNext")
-              : paidLocal === "unpaid" ? t("nextStep.markPaid")
+              : (paidLocal === "unpaid" && canTogglePayment) ? t("nextStep.markPaid")
               : t("nextStep.openSummary")
             }
             onAction={() => {
               if (lastSaved === "homework") { toggleRow("summary"); setLastSaved(null); }
               else if (lastSaved === "summary") { onClose?.(); navigate(`/schedule?create=1${studentId ? `&student=${studentId}` : ""}`); }
-              else if (paidLocal === "unpaid") { void togglePayment(); }
+              else if (paidLocal === "unpaid" && canTogglePayment) { void togglePayment(); }
               else { toggleRow("summary"); }
             }}
             onDismiss={() => { setLastSaved(null); /* bar може повернутися зі стану, якщо урок досі unpaid */ }}
@@ -608,8 +614,14 @@ export function LessonWorkspace({
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Banknote className="h-4 w-4 text-primary" />
               {t("lessonWorkspaceExtra.lessonPayment")}
-              {studentPrice !== undefined && studentPrice !== null && (
-                <span className="ml-1 text-muted-foreground">— {formatPrice(Number(studentPrice) || 0, currency ?? "UAH")}</span>
+              {/* 18.09: гард на null нічого не ловив — тригер бази створює рядок
+                  деталей одразу з 0, тож ціна НІКОЛИ не NULL. Виходило «Оплата
+                  уроку — 0 ₴» на кожному уроці без ставки, а безкоштовних уроків
+                  продукт не має. Нуль тут означає «не задано» і так і пишеться. */}
+              {Number(studentPrice) > 0 ? (
+                <span className="ml-1 text-muted-foreground">— {formatPrice(Number(studentPrice), currency ?? "UAH")}</span>
+              ) : (
+                <span className="ml-1 text-muted-foreground">— {t("lessonWorkspaceExtra.priceNotSet")}</span>
               )}
             </div>
             <div className="flex items-center gap-2">

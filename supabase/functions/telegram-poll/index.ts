@@ -211,6 +211,7 @@ const CB = {
   uk: {
     bad: "Незрозуміла дія", nolink: "Telegram не прив’язаний до акаунта",
     nodebt: "Боргів у цього учня вже немає ✅",
+    writeFailed: "Не вдалося зберегти — спробуйте ще раз або позначте в застосунку",
     paid: (n: number) => `✅ Позначено оплаченими: ${n} ур. Застосунок уже знає.`,
     remDone: (ch: string[]) => `🔔 Надіслано: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "застосунок" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Сьогодні вже нагадували — учень отримав. Наступне — через 24 год.",
@@ -220,6 +221,7 @@ const CB = {
   en: {
     bad: "Unknown action", nolink: "Telegram is not linked to an account",
     nodebt: "This student has no open debts ✅",
+    writeFailed: "Could not save — try again or mark it in the app",
     paid: (n: number) => `✅ Marked as paid: ${n} lessons. The app already knows.`,
     remDone: (ch: string[]) => `🔔 Sent via: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "app" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Already reminded today — the student got it. Next one in 24 h.",
@@ -229,6 +231,7 @@ const CB = {
   sv: {
     bad: "Okänd åtgärd", nolink: "Telegram är inte kopplat till kontot",
     nodebt: "Eleven har inga obetalda lektioner ✅",
+    writeFailed: "Kunde inte spara — försök igen eller markera i appen",
     paid: (n: number) => `✅ Markerat som betalt: ${n} lektioner. Appen vet redan.`,
     remDone: (ch: string[]) => `🔔 Skickat via: ${ch.map((c) => ({ telegram: "Telegram", email: "e-post", inapp: "appen" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Redan påmint idag — eleven fick den. Nästa om 24 h.",
@@ -319,16 +322,24 @@ async function handleDigestCallback(base: string, db: any, cq: any,
     const hubTotal = hubIndivIds.length + hubPartIds.length;
     if (hubTotal === 0) { await answerCb(base, cqId, L.nodebt); return; }
     const now = new Date().toISOString();
+    // 18.09: жодне з цих оновлень не читало error, а нижче людині одразу
+    // відповідали «Позначено оплаченими: N». Тобто при збої менеджер бачив у
+    // Telegram зелене підтвердження, а в застосунку ті самі уроки далі висіли
+    // боргом — і він більше не перевіряв. Тепер збій каже про себе словами.
+    let wrote = true;
     if (hubIndivIds.length) {
-      await db.from('lesson_details')
+      const { error } = await db.from('lesson_details')
         .update({ student_payment_status: 'paid', student_paid_at: now })
         .in('lesson_id', hubIndivIds).eq('student_payment_status', 'unpaid');
+      if (error) { console.error('telegram-poll hpaid lesson_details', error.message); wrote = false; }
     }
     if (hubPartIds.length) {
-      await db.from('lesson_participants')
+      const { error } = await db.from('lesson_participants')
         .update({ student_payment_status: 'paid', student_paid_at: now })
         .in('id', hubPartIds).eq('student_payment_status', 'unpaid');
+      if (error) { console.error('telegram-poll hpaid lesson_participants', error.message); wrote = false; }
     }
+    if (!wrote) { await answerCb(base, cqId, L.writeFailed); return; }
     await db.from('manager_audit_log').insert({
       actor_id: tutorId, action: 'mark_paid_via_telegram', entity_type: 'student_debt', entity_id: studentId,
       before: { unpaid_lessons: hubIndivIds, unpaid_participants: hubPartIds, scope: 'hub', hub_id: hm?.hub_id ?? null },
@@ -427,16 +438,20 @@ async function handleDigestCallback(base: string, db: any, cq: any,
   if (action === 'paid') {
     if (total === 0) { await answerCb(base, cqId, L.nodebt); return; }
     const now = new Date().toISOString();
+    let wrote = true;
     if (indivIds.length) {
-      await db.from('lesson_details')
+      const { error } = await db.from('lesson_details')
         .update({ student_payment_status: 'paid', student_paid_at: now })
         .in('lesson_id', indivIds).eq('student_payment_status', 'unpaid');
+      if (error) { console.error('telegram-poll paid lesson_details', error.message); wrote = false; }
     }
     if (grpPartIds.length) {
-      await db.from('lesson_participants')
+      const { error } = await db.from('lesson_participants')
         .update({ student_payment_status: 'paid', student_paid_at: now })
         .in('id', grpPartIds).eq('student_payment_status', 'unpaid');
+      if (error) { console.error('telegram-poll paid lesson_participants', error.message); wrote = false; }
     }
+    if (!wrote) { await answerCb(base, cqId, L.writeFailed); return; }
     // T4: зміна платіжного статусу з Telegram лишає слід — хто, звідки, що саме.
     await db.from('manager_audit_log').insert({
       actor_id: tutorId, action: 'mark_paid_via_telegram', entity_type: 'student_debt', entity_id: studentId,
