@@ -77,6 +77,15 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   unpaid lessons (trg_wallet_settle_after_credit). Prepayments never sit idle.
 - RATES: saving a tutor's rate ALWAYS backfills their existing unpaid hub
   lessons (backfill_tutor_payouts_for_tutor) — both PeoplePage AND Assign flows.
+- TUTOR RATE = ONE FORM (21.09, розрив у флоу, власниця): `TutorRateDialog` —
+  єдина форма ставки репетитора. Вона САМА читає `tutor_details.subjects ∪
+  tutor_subject_rates` (ставки поза subjects не губляться), додає предмет
+  уроку, з якого прийшли (`presetSubject`), і після запису ЗАВЖДИ кличе
+  backfill. Входи: олівець у «Людях», рядок-дія «Ставку не задано → Задати
+  ставку» на картці уроку (`LessonCard.onSetRate`, менеджер, хабовий урок,
+  `tutor_payout` 0/NULL) і в деталях уроку, кнопка «⚙️ Ставка» з дайджесту
+  (`/people?open=<tutor>&rate=1&subject=…`). Другої копії форми (як стара
+  інлайн у PeoplePage) бути не може — стереже `tutor-rate-action.test.tsx`.
 - PAYOUT SELFHEAL (13.09, «пропала ставка у Петра Городного — всі нулі»): виплата
   на хабовому уроці НЕ лишається NULL/0, поки в репетитора є ставка. Єдиний вибір
   ставки — `pick_tutor_payout(tutor, subject)` (предмет без регістру → профіль →
@@ -344,6 +353,12 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   `stopPropagation` на посиланні обовʼязковий: сама картка відкриває УРОК, і без
   нього дотик по імені робив би обидва жести. Стережуть «імʼя учня веде в
   матеріали» (critical-tutor-flows) + три розтяжки в a11y-ratchet.
+  ⚠️ ВИНЯТОК 2, рішення власниці 21.09: рядок «Ставку не задано» на картці
+  МЕНЕДЖЕРА — кнопка «✎ Задати ставку ›» (проп `onSetRate`), що відкриває
+  `TutorRateDialog` напряму; без пропа лишається написом (інші ролі/сторінки
+  побайтово ті самі). Причина: з Telegram «ставку не задано» → застосунок →
+  картка → дотик вів у деталі уроку, де ставки НЕМАЄ. Не «спрощувати» назад
+  у напис і не вести цей дотик у LessonDetailsDialog.
 - Supabase queries and hooks — не переписувати «бо так краще». Але якщо аудит
   показав дефект (наприклад, хук ковтає помилку і показує «0» замість збою) —
   виправляти. Аудит переважає над цим списком.

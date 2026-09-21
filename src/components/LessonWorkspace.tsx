@@ -616,7 +616,7 @@ export function LessonWorkspace({
               {t("lessonWorkspaceExtra.lessonPayment")}
               {/* 18.09: гард на null нічого не ловив — тригер бази створює рядок
                   деталей одразу з 0, тож ціна НІКОЛИ не NULL. Виходило «Оплата
-                  уроку — 0 ₴» на кожному уроці без ставки, а безкоштовних уроків
+                  уроку — 0 грн» на кожному уроці без ставки, а безкоштовних уроків
                   продукт не має. Нуль тут означає «не задано» і так і пишеться. */}
               {Number(studentPrice) > 0 ? (
                 <span className="ml-1 text-muted-foreground">— {formatPrice(Number(studentPrice), currency ?? "UAH")}</span>

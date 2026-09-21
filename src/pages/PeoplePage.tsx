@@ -77,6 +77,7 @@ import { safeHref } from "@/lib/safeUrl";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice} from "@/lib/currency";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
+import { TutorRateDialog } from "@/components/TutorRateDialog";
 
 interface Profile {
   id: string;
@@ -132,17 +133,11 @@ export default function PeoplePage() {
   // tutor_id -> { subject -> rate }
   const [tutorSubjectRates, setTutorSubjectRates] = useState<Record<string, Record<string, number>>>({});
 
-  // Tutor rate dialog: per-subject rates
-  const [tutorDialog, setTutorDialog] = useState<{
-    open: boolean;
-    userId: string;
-    subjects: string[];
-    rates: Record<string, string>; // subject -> rate string
-  }>({
-    open: false,
-    userId: "",
-    subjects: [],
-    rates: {},
+  // Ставка репетитора — канонічна форма TutorRateDialog (21.09): сама читає
+  // предмети й ставки, сама тягне бекфіл виплат; та сама форма відкривається
+  // з картки уроку і з кнопки дайджесту (?open=<id>&rate=1).
+  const [tutorRate, setTutorRate] = useState<{ open: boolean; tutorId: string | null; subject: string | null }>({
+    open: false, tutorId: null, subject: null,
   });
 
   // Student price dialog: now requires subject
@@ -479,15 +474,28 @@ export default function PeoplePage() {
   // уроку веде менеджера туди ж, куди репетитора веде /my-students?open=.
   // Чекаємо на завантаження списку: людину беремо з нього, а не з URL.
   const [pendingOpenId, setPendingOpenId] = useState<string | null>(() => searchParams.get("open"));
+  // 21.09: /people?open=<id>&rate=1[&subject=…] — кнопка «⚙️ Ставка» з дайджесту
+  // веде ПРЯМО у форму ставки, а не в аркуш, де ще треба знайти олівець.
+  const [pendingRate] = useState<{ rate: boolean; subject: string | null }>(() => ({
+    rate: searchParams.get("rate") === "1",
+    subject: searchParams.get("subject"),
+  }));
   useEffect(() => {
     if (!pendingOpenId) return;
     const person = users.find((u) => u.id === pendingOpenId);
     if (!person) return;
-    setSelectedPerson(person);
-    if (person.role === "student") setActiveRoleTab("students");
+    if (pendingRate.rate && person.role === "tutor" && isManager) {
+      setActiveRoleTab("tutors");
+      setTutorRate({ open: true, tutorId: person.id, subject: pendingRate.subject });
+    } else {
+      setSelectedPerson(person);
+      if (person.role === "student") setActiveRoleTab("students");
+    }
     setPendingOpenId(null);
     const n = new URLSearchParams(searchParams);
     n.delete("open");
+    n.delete("rate");
+    n.delete("subject");
     setSearchParams(n, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, pendingOpenId]);
@@ -527,104 +535,6 @@ export default function PeoplePage() {
     }
 
     toast.success(t("people.roleUpdated"));
-    loadData();
-  };
-
-  const saveTutorRate = async () => {
-    const subjects = tutorDialog.subjects;
-    if (subjects.length === 0) {
-      toast.error(t("people.selectAtLeastOneSubject"));
-      return;
-    }
-    // Validate all rates
-    const parsed: Array<{ subject: string; rate: number }> = [];
-    for (const s of subjects) {
-      const raw = (tutorDialog.rates[s] ?? "").trim();
-      if (raw === "") {
-        toast.error(t("people.enterRateForSubject", { subject: s }));
-        return;
-      }
-      const v = parseFloat(raw);
-      if (isNaN(v) || v < 0) {
-        toast.error(t("people.invalidRateForSubject", { subject: s }));
-        return;
-      }
-      parsed.push({ subject: s, rate: v });
-    }
-
-    // 1. Save subjects list on tutor_details (keep legacy rate_per_lesson = first as fallback)
-    const { error: tdErr } = await supabase
-      .from("tutor_details")
-      .upsert(
-        { user_id: tutorDialog.userId, rate_per_lesson: parsed[0].rate, subjects },
-        { onConflict: "user_id" }
-      );
-    if (tdErr) {
-      console.error("Failed to save tutor details", tdErr);
-      toast.error(t("people.saveFailed"));
-      return;
-    }
-
-    // 2. Upsert per-subject rates
-    const rows = parsed.map((p) => ({
-      tutor_id: tutorDialog.userId,
-      subject: p.subject,
-      rate_per_lesson: p.rate,
-    }));
-    const { error: srErr } = await supabase
-      .from("tutor_subject_rates")
-      .upsert(rows, { onConflict: "tutor_id,subject" });
-    if (srErr) {
-      console.error("Failed to save subject rates", srErr);
-      toast.error(t("people.subjectRatesSaveFailed"));
-      return;
-    }
-
-    // 3. Cleanup: remove rates for subjects no longer assigned
-    // Cleanup БЕЗ втрат: раніше видалялось за ТОЧНИМ рядком, тож інше написання
-    // («Англійська» vs «англійська мова») тихо зносило чинну ставку — саме так
-    // «зникали ставки». Тепер порівнюємо нормалізовано і видаляємо лише те,
-    // чого справді нема серед залишених предметів.
-    const normSubj = (x: string) =>
-      x.toLowerCase().replace(/\s+/g, " ").replace(/[\s.]+$/g, "").trim();
-    const keptNorm = new Set(subjects.map(normSubj));
-    const { data: existingRates } = await supabase
-      .from("tutor_subject_rates")
-      .select("subject")
-      .eq("tutor_id", tutorDialog.userId);
-    const toDelete = (existingRates ?? [])
-      .map((r: any) => r.subject as string)
-      .filter((subj) => !keptNorm.has(normSubj(subj)));
-    if (toDelete.length > 0) {
-      const { error: delErr } = await supabase
-        .from("tutor_subject_rates")
-        .delete()
-        .eq("tutor_id", tutorDialog.userId)
-        .in("subject", toDelete);
-      if (delErr) console.warn("Failed to cleanup obsolete subject rates", delErr);
-    }
-
-    // Propagate the (new) rate to the tutor's existing UNPAID hub lessons whose
-    // tutor_payout is still 0 — otherwise a rate set AFTER lessons exist never
-    // reaches them (autofill runs only at lesson creation) → «0 грн репетитору».
-    // Manager-gated SECURITY DEFINER RPC (migration 20260723000000); best-effort.
-    {
-      // supabase.rpc НЕ кидає виняток — помилка приходить полем error.
-      // Стара версія її ігнорувала → провалений бекфіл виглядав як успіх.
-      const { data: filled, error: bfErr } = await (supabase.rpc as any)(
-        "backfill_tutor_payouts_for_tutor",
-        { _tutor_id: tutorDialog.userId },
-      );
-      if (bfErr) {
-        console.error("backfill_tutor_payouts_for_tutor failed", bfErr);
-        toast.error(t("people.payoutBackfillFailed", { msg: bfErr.message ?? "" }));
-      } else if (typeof filled === "number" && filled > 0) {
-        toast.success(t("people.payoutBackfilled", { count: filled }));
-      }
-    }
-
-    toast.success(t("people.saved"));
-    setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });
     loadData();
   };
 
@@ -1418,88 +1328,14 @@ export default function PeoplePage() {
         </>
       )}
 
-      {/* Tutor rate dialog */}
-      <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
-          {/* Radix a11y (аудит 05.09): заголовок для скрінрідера — візуальний хедер лишається кастомним div-ом */}
-          <DialogTitle className="sr-only">{t("people.dialogTutorRateTitle")}</DialogTitle>
-          <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-            <div className="h-1 w-9 rounded-full bg-border" />
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("people.dialogTutorRateTitle")}</div>
-              <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogTutorRateDesc")}</div>
-            </div>
-            <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
-              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <X size={18} />
-            </button>
-          </div>
-          <div className="space-y-4 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
-            <div>
-              <Label>{t("people.fieldSubjects")}</Label>
-              <p className="text-[14px] text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
-              <SubjectMultiSelect
-                value={tutorDialog.subjects}
-                onChange={(next) =>
-                  setTutorDialog((s) => {
-                    // Preserve existing rate inputs for kept subjects, init empty for new ones
-                    const nextRates: Record<string, string> = {};
-                    next.forEach((subj) => {
-                      nextRates[subj] = s.rates[subj] ?? "";
-                    });
-                    return { ...s, subjects: next, rates: nextRates };
-                  })
-                }
-              />
-            </div>
-
-            {tutorDialog.subjects.length > 0 && (
-              <div className="space-y-2">
-                <Label>{t("people.ratePerSubject")}</Label>
-                <p className="text-[14px] text-muted-foreground">
-                  {t("people.ratePerSubjectDesc")}
-                </p>
-                <div className="space-y-2">
-                  {tutorDialog.subjects.map((subj) => (
-                    <div key={subj} className="flex items-center gap-2">
-                      <span className="text-sm text-foreground flex-1 truncate">{subj}</span>
-                      <Input aria-label={t("people.ratePlaceholder")}
-                        type="number"
-                        min="0"
-                        step="any"
-                        className="w-28"
-                        value={tutorDialog.rates[subj] ?? ""}
-                        onChange={(e) =>
-                          setTutorDialog((s) => ({
-                            ...s,
-                            rates: { ...s.rates, [subj]: e.target.value },
-                          }))
-                        }
-                        placeholder={t("people.ratePlaceholder")}
-                      />
-                      <span className="text-[14px] text-muted-foreground">{currencySymbol("UAH")}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {tutorDialog.userId && <PayoutScheduleCard tutorId={tutorDialog.userId} />}
-          </div>
-          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
-            <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}
-              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
-              {t("people.cancelBtn")}
-            </button>
-            <button type="button" onClick={saveTutorRate}
-              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
-              {t("people.saveBtn")}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Ставка репетитора — одна форма на весь застосунок */}
+      <TutorRateDialog
+        open={tutorRate.open}
+        tutorId={tutorRate.tutorId}
+        presetSubject={tutorRate.subject}
+        onOpenChange={(o) => setTutorRate((st) => ({ ...st, open: o }))}
+        onSaved={() => loadData()}
+      />
 
       {/* Student price dialog */}
       <Dialog open={studentDialog.open} onOpenChange={(o) => setStudentDialog((s) => ({ ...s, open: o }))}>
@@ -2095,15 +1931,9 @@ export default function PeoplePage() {
                         type="button"
                         className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#62677E)" }}
+                        aria-label={t("people.dialogTutorRateTitle")}
                         onClick={() => {
-                          setTutorDialog({
-                            open: true,
-                            userId: u.id,
-                            subjects: u.subjects ?? [],
-                            rates: Object.fromEntries(
-                              (u.subjects ?? []).map((s) => [s, String(tutorSubjectRates[u.id]?.[s] ?? "")]),
-                            ),
-                          });
+                          setTutorRate({ open: true, tutorId: u.id, subject: null });
                           setSelectedPerson(null);
                         }}
                       >

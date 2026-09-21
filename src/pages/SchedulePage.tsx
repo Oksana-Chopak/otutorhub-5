@@ -61,6 +61,7 @@ import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
+import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
@@ -224,6 +225,8 @@ export default function SchedulePage() {
   // Edit dialog state (quick edit from calendar / list)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [detailsLessonId, setDetailsLessonId] = useState<string | null>(null);
+  // 21.09: «ставку не задано» на картці менеджера відкриває форму ставки напряму.
+  const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null } | null>(null);
   // Snapshot of original homework/summary so we can detect actual changes for notification
   const [editOriginal, setEditOriginal] = useState<{ homework: string; summary: string }>({
     homework: "",
@@ -1646,6 +1649,7 @@ export default function SchedulePage() {
                             : undefined
                         }
                         onContentClick={() => setDetailsLessonId(lesson.id)}
+                        onSetRate={isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.subject ?? null }) : undefined}
                         onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => setDetailsLessonId(lesson.id) : undefined}
                         canEdit={isManager || (isTutor && lesson.tutor_id === user?.id)}
                         onCopy={canCopy ? () => openCopy(lesson) : undefined}
@@ -1738,6 +1742,13 @@ export default function SchedulePage() {
         open={!!detailsLessonId}
         onOpenChange={(o) => { if (!o) setDetailsLessonId(null); }}
         onUpdated={loadAll}
+      />
+      <TutorRateDialog
+        open={!!rateFor}
+        tutorId={rateFor?.tutorId ?? null}
+        presetSubject={rateFor?.subject ?? null}
+        onOpenChange={(o) => { if (!o) setRateFor(null); }}
+        onSaved={() => loadAll()}
       />
     </>
   );

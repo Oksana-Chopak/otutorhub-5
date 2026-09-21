@@ -16,7 +16,7 @@ const DT = {
     oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
     payoutToday: " · ⏰ сьогодні день виплати",
     moreTutors: (n: number) => `  ↳ ще ${n} репетиторів`,
-    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} без суми виплати. Перевірте ставку в картці репетитора — сума підтягнеться сама.`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} без суми виплати. Натисніть «⚙️ Ставка» нижче й впишіть ставку — сума підтягнеться сама.`,
     btnPayoutPaid: (nm: string) => `👛 Виплатив(ла): ${nm}`,
     btnRate: (nm: string) => `⚙️ Ставка: ${nm}`,
     btnTutorName: "репетитор",
@@ -44,7 +44,7 @@ const DT = {
     oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
     payoutToday: " · ⏰ payout day is today",
     moreTutors: (n: number) => `  ↳ ${n} more tutors`,
-    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} without a payout amount. Check the rate in the tutor card — the amount fills in by itself.`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} without a payout amount. Tap “⚙️ Rate” below and enter the rate — the amount fills in by itself.`,
     btnPayoutPaid: (nm: string) => `👛 Paid out: ${nm}`,
     btnRate: (nm: string) => `⚙️ Rate: ${nm}`,
     btnTutorName: "tutor",
@@ -72,7 +72,7 @@ const DT = {
     oweLine: (nm: string, s: string, n: number, w: string) => `• ${nm} — ${s} (${n} ${w})`,
     payoutToday: " · ⏰ utbetalningsdag idag",
     moreTutors: (n: number) => `  ↳ ${n} lärare till`,
-    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} utan utbetalningsbelopp. Kontrollera satsen i lärarkortet — beloppet fylls i av sig självt.`,
+    noRate: (nm: string, n: number, w: string) => `⚠️ ${nm} — ${n} ${w} utan utbetalningsbelopp. Tryck på ”⚙️ Sats” nedan och ange satsen — beloppet fylls i av sig självt.`,
     btnPayoutPaid: (nm: string) => `👛 Utbetalt: ${nm}`,
     btnRate: (nm: string) => `⚙️ Sats: ${nm}`,
     btnTutorName: "lärare",
@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
   // телеграм↔застосунок була саме тут (дайджест брав лише completed).
   const { data: moneyRaw } = await sb
     .from("lessons")
-    .select("id, tutor_id, student_id, source, status, starts_at, group_id, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
+    .select("id, tutor_id, student_id, subject, source, status, starts_at, group_id, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
     .in("status", ["completed", "scheduled", "cancelled"]);
   const BUILD_TAG = "v25.09-uxstep51";
   const nowMs = Date.now();
@@ -437,12 +437,20 @@ Deno.serve(async (req) => {
       }
       // Проведені уроки без суми виплати — невидимий борг школи: сума невідома
       // не тому, що її немає, а тому, що ставку не поставили. Кнопка веде
-      // просто в картку репетитора в «Людях».
-      const unrated = new Map<string, number>();
-      for (const l of unratedLessons.filter(mine)) unrated.set(l.tutor_id, (unrated.get(l.tutor_id) ?? 0) + 1);
-      for (const [tid, n] of Array.from(unrated.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3)) {
-        lines.push(D.noRate(esc(tutorName.get(tid)), n, D.lessons(n)));
-        keyboard.push([{ text: D.btnRate(shortName(tutorName.get(tid), D.btnTutorName)), url: `${APP_URL}/people?open=${tid}` }]);
+      // ПРЯМО у форму ставки цього репетитора (21.09, розрив у флоу: раніше —
+      // в аркуш у «Людях», де ще треба було знайти олівець), а коли всі його
+      // уроки без суми з одного предмета — і предмет уже підставлений.
+      const unrated = new Map<string, { n: number; subjects: Set<string> }>();
+      for (const l of unratedLessons.filter(mine)) {
+        const cur = unrated.get(l.tutor_id) ?? { n: 0, subjects: new Set<string>() };
+        cur.n += 1;
+        if (l.subject) cur.subjects.add(String(l.subject));
+        unrated.set(l.tutor_id, cur);
+      }
+      for (const [tid, v] of Array.from(unrated.entries()).sort((a, b) => b[1].n - a[1].n).slice(0, 3)) {
+        lines.push(D.noRate(esc(tutorName.get(tid)), v.n, D.lessons(v.n)));
+        const subj = v.subjects.size === 1 ? `&subject=${encodeURIComponent(Array.from(v.subjects)[0])}` : "";
+        keyboard.push([{ text: D.btnRate(shortName(tutorName.get(tid), D.btnTutorName)), url: `${APP_URL}/people?open=${tid}&rate=1${subj}` }]);
       }
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
       // Передоплата — це форма з сумою/кількістю уроків, тож не callback, а

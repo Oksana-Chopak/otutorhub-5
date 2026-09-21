@@ -33,6 +33,7 @@ import { AiNotesDialog } from "@/components/AiNotesDialog";
 import { CloseDayDialog, type CloseDayRow } from "@/components/CloseDayDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
+import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { GraduationCap, Sparkles, X, Wallet, CheckCircle2 , Banknote } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
@@ -199,6 +200,11 @@ export default function DashboardPage() {
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
+  // 21.09: «ставку не задано» на картці — дія, а не напис: форма ставки репетитора
+  // з цим репетитором і предметом уроку; після збереження список перечитується.
+  const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null } | null>(null);
+  const setRateOf = (lesson: { tutor_id: string; subject?: string | null; source?: string | null }) =>
+    isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.subject ?? null }) : undefined;
   const [aiNotesOpen, setAiNotesOpen] = useState(false);
   const [closeDayOpen, setCloseDayOpen] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
@@ -2386,6 +2392,7 @@ export default function DashboardPage() {
                           onWallet={lesson.student_id ? () => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id!, tutor_name: profiles[lesson.tutor_id] ?? "", student_name: profiles[lesson.student_id!] ?? "" }) : undefined}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
+                          onSetRate={setRateOf(lesson)}
                           className={lessonSourceTint(lesson.source)}
                           canEditStatus
                           statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
@@ -2515,6 +2522,7 @@ export default function DashboardPage() {
                           onAiNotes={() => setAiNotesOpen(true)}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
+                          onSetRate={setRateOf(lesson)}
                           className={lessonSourceTint(lesson.source)}
                           canEditStatus={canEditStatus}
                           statusOptions={["pending","scheduled","completed","cancelled"] as LessonStatus[]}
@@ -2543,6 +2551,7 @@ export default function DashboardPage() {
                         showPayout={isManager || lesson.source === "hub"}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
+                        onSetRate={setRateOf(lesson)}
                         canEditStatus={canEditStatus}
                         statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
                         onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
@@ -2811,6 +2820,13 @@ export default function DashboardPage() {
         open={!!openLessonId}
         onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
         onUpdated={loadData}
+      />
+      <TutorRateDialog
+        open={!!rateFor}
+        tutorId={rateFor?.tutorId ?? null}
+        presetSubject={rateFor?.subject ?? null}
+        onOpenChange={(o) => { if (!o) setRateFor(null); }}
+        onSaved={() => loadData()}
       />
 
       <DayClosedCelebration

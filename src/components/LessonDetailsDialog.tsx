@@ -6,6 +6,7 @@ import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { GroupLessonParticipants } from "@/components/GroupLessonParticipants";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { Loader2, X, Trash2, Pencil } from "lucide-react";
+import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
@@ -22,6 +23,7 @@ interface LessonRowFull {
   status: "pending" | "scheduled" | "completed" | "cancelled";
   student_price: number;
   student_payment_status: "paid" | "unpaid";
+  tutor_payout: number | null;
   meeting_url: string | null;
   homework: string | null;
   summary: string | null;
@@ -53,6 +55,12 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   const [dtVal, setDtVal] = useState("");
   const [durVal, setDurVal] = useState(60);
   const [dtSaving, setDtSaving] = useState(false);
+  // 21.09: деталі уроку були глухим кутом для «ставку не задано» — з картки
+  // менеджер потрапляв сюди, а ставки тут немає. Тепер той самий рядок-дія
+  // відкриває форму ставки з цим репетитором і предметом.
+  const [rateOpen, setRateOpen] = useState(false);
+  const isManagerViewer = roles.includes("manager");
+  const payoutMissing = !!row && isManagerViewer && !row.group_id && row.source !== "independent" && !(Number(row.tutor_payout ?? 0) > 0);
 
   const toLocalInput = (iso: string) => {
     const d = new Date(iso);
@@ -130,7 +138,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
     const { data, error } = await supabase
       .from("lessons_visible")
       .select(
-        "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, student_payment_status, meeting_url, homework, summary, student_notes, source, group_id"
+        "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, student_payment_status, tutor_payout, meeting_url, homework, summary, student_notes, source, group_id"
       )
       .eq("id", id)
       .maybeSingle();
@@ -245,6 +253,24 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             onUpdated={() => onUpdated?.()}
           />
         ) : (
+          <>
+          {payoutMissing && (
+            <button
+              type="button"
+              onClick={() => setRateOpen(true)}
+              className="mb-3 flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1.5 rounded-[12px] px-3 py-2 text-left"
+              style={{ minHeight: 44, border: "1px dashed rgba(245,158,11,.55)", background: "rgba(245,158,11,.08)", color: "var(--warning-text,#B45309)", cursor: "pointer" }}
+            >
+              <span className="flex min-w-0 flex-1 items-start gap-2">
+                <span aria-hidden style={{ fontSize: 17, width: 20, textAlign: "center", flexShrink: 0, lineHeight: 1.1 }}>💼</span>
+                <span className="min-w-0 text-[13px] font-semibold" style={{ lineHeight: 1.3 }}>{t("lessonCard.payoutMissingTap")}</span>
+              </span>
+              <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[13.5px] font-extrabold whitespace-nowrap">
+                <Pencil size={15} strokeWidth={2.4} aria-hidden />
+                {t("lessonCard.setRate")} ›
+              </span>
+            </button>
+          )}
           <LessonWorkspace
             onClose={() => onOpenChange(false)}
             onRegisterFlush={(fn) => { flushRef.current = fn; }}
@@ -265,6 +291,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
               onUpdated?.();
             }}
           />
+          </>
         )}
         </div>
         {/* Sticky edit footer: delete + done. «Готово» дописує незбережені
@@ -293,6 +320,15 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
           </div>
         )}
       </DialogContent>
+      {row && (
+        <TutorRateDialog
+          open={rateOpen}
+          tutorId={row.tutor_id}
+          presetSubject={row.subject}
+          onOpenChange={setRateOpen}
+          onSaved={() => { load(row.id); onUpdated?.(); }}
+        />
+      )}
     </Dialog>
   );
 }

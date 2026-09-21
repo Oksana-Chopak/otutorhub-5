@@ -1664,6 +1664,9 @@ export const en: LocaleTranslations = {
     addBtn: "Add",
     dialogTutorRateTitle: "Tutor settings",
     dialogTutorRateDesc: "Select the subjects this tutor teaches and set the payout rate per lesson for each.",
+    rateMissingTag: "no rate",
+    savingBtn: "Saving…",
+    tutorRateLoadFailed: "Couldn’t load the tutor’s rates — check your connection and try again.",
     clickToSelect: "Click to select one or more",
     ratePerSubject: "Rate per lesson by subject",
     ratePerSubjectDesc: "How much you pay the tutor for one completed lesson in this subject.",
@@ -1919,7 +1922,11 @@ export const en: LocaleTranslations = {
     chatAriaLabel: "Chat",
   
 
-    payoutMissing: "Tutor rate not set — payout not calculated",},
+    payoutMissing: "Tutor rate not set — payout not calculated",
+    payoutMissingTap: "Rate not set — payout not calculated",
+    setRate: "Set the rate",
+    setRateAria: "Set the rate for tutor {{name}}",
+  },
 
   weekCalendar: {
     today: "Today",

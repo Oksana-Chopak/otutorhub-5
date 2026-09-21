@@ -44,7 +44,8 @@ describe("дайджест менеджера: борги репетиторам
     expect(pred).toMatch(/if \(Number\(d\.tutor_payout \?\? 0\) > 0\) return false/);
     expect(pred).toMatch(/l\.status === "completed" \|\| new Date\(l\.starts_at\)\.getTime\(\) <= nowMs/);
     expect(digest).toMatch(/unratedLessons\.filter\(mine\)/);
-    expect(digest).toMatch(/url: `\$\{APP_URL\}\/people\?open=\$\{tid\}`/);
+    // 21.09: кнопка веде ПРЯМО у форму ставки (&rate=1), з предметом, коли він один
+    expect(digest).toMatch(/url: `\$\{APP_URL\}\/people\?open=\$\{tid\}&rate=1\$\{subj\}`/);
   });
 
   it("графік виплат береться з tutor_details через спільний модуль", () => {

@@ -1644,6 +1644,9 @@ export const sv: LocaleTranslations = {
     addBtn: "Lägg till",
     dialogTutorRateTitle: "Lärarinställningar",
     dialogTutorRateDesc: "Välj ämnen som läraren undervisar och ange utbetalningstaxa per lektion för varje.",
+    rateMissingTag: "ingen sats",
+    savingBtn: "Sparar…",
+    tutorRateLoadFailed: "Kunde inte läsa in lärarens satser — kontrollera anslutningen och försök igen.",
     clickToSelect: "Klicka för att välja ett eller flera",
     ratePerSubject: "Taxa per lektion per ämne",
     ratePerSubjectDesc: "Hur mycket du betalar läraren för en genomförd lektion i det här ämnet.",
@@ -1899,7 +1902,11 @@ export const sv: LocaleTranslations = {
     chatAriaLabel: "Chatt",
   
 
-    payoutMissing: "Lärarens arvode ej satt — utbetalning ej beräknad",},
+    payoutMissing: "Lärarens arvode ej satt — utbetalning ej beräknad",
+    payoutMissingTap: "Arvode ej satt — utbetalning ej beräknad",
+    setRate: "Ange arvode",
+    setRateAria: "Ange arvode för läraren {{name}}",
+  },
 
   weekCalendar: {
     today: "Idag",
