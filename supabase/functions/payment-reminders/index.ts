@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
 import { decideDebtReminder, DEBT_INTERVAL_DAYS } from "../_shared/debtCadence.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
+import { versionProbe } from "../_shared/build.ts";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -98,6 +99,8 @@ const RT = {
 type RtLang = keyof typeof RT;
 
 Deno.serve(async (req) => {
+  const probe = versionProbe(req, "payment-reminders");
+  if (probe) return probe;
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

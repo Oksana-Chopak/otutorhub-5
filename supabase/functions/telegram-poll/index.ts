@@ -1,6 +1,7 @@
 // Polls Telegram getUpdates and links app users via /start <code>
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendPaymentReminder, normLang } from "../_shared/paymentReminder.ts";
+import { versionProbe } from "../_shared/build.ts";
 
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
@@ -14,6 +15,8 @@ function escapeHtml(text: string): string {
 }
 
 Deno.serve(async (req) => {
+  const probe = versionProbe(req, "telegram-poll");
+  if (probe) return probe;
   const startTime = Date.now();
   const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');

@@ -102,6 +102,7 @@ const DT = {
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isPayoutDueToday, kyivNow } from "../_shared/payoutSchedule.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
+import { versionProbe } from "../_shared/build.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -153,6 +154,8 @@ function esc(v: unknown): string {
 }
 
 Deno.serve(async (req) => {
+  const probe = versionProbe(req, "tutor-daily-digest");
+  if (probe) return probe;
   const BOT = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!BOT || !serviceKey) {

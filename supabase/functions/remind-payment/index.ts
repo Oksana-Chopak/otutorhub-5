@@ -2,6 +2,7 @@
 // Called from the dashboard "Bell" button by tutor or manager.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendPaymentReminder } from "../_shared/paymentReminder.ts";
+import { versionProbe } from "../_shared/build.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +22,8 @@ function json(body: unknown, status = 200) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const probe = versionProbe(req, "remind-payment");
+  if (probe) return probe;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;

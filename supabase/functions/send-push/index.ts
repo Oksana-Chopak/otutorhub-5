@@ -7,6 +7,7 @@
 // Generate keys: node scripts/generate-vapid.mjs
 // POST body: { userId: string, title: string, body?: string, link?: string }
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { versionProbe } from "../_shared/build.ts";
 
 // 13.09: публічний ключ — той самий, що в src/lib/pushConfig.ts (він публічний
 // за задумом), тож секрет VAPID_PUBLIC_KEY не обовʼязковий. Без ПРИВАТНОГО
@@ -274,6 +275,8 @@ async function fcmSendNative(fcmDb: any, fcmUserId: string, msg: { title: string
 }
 
 Deno.serve(async (req) => {
+  const probe = versionProbe(req, "send-push");
+  if (probe) return probe;
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
