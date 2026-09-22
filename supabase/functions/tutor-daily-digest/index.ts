@@ -26,6 +26,8 @@ const DT = {
     remind: (s: string) => `\n💳 Нагадай учням про оплату — загалом <b>${s}</b>:`,
     moreStudents: (n: number) => `  ↳ ще ${n} учнів`,
     allPaid: "\n✅ Всі оплати закриті — так тримати! 🎉",
+    todayUnavailable: "\n⚠️ Розклад на сьогодні зараз не вдалося прочитати — він є в застосунку.",
+    moneyUnavailable: "\n⚠️ Оплати зараз не вдалося перевірити — актуальні цифри у «Фінансах» застосунку.",
     btnRemind: (nm: string) => `🔔 Нагадати: ${nm}`,
     btnPaid: (nm: string) => `✅ ${nm} оплатив(ла)`,
     btnName: "учень",
@@ -54,6 +56,8 @@ const DT = {
     remind: (s: string) => `\n💳 Remind students to pay — total <b>${s}</b>:`,
     moreStudents: (n: number) => `  ↳ ${n} more students`,
     allPaid: "\n✅ All payments settled — keep it up! 🎉",
+    todayUnavailable: "\n⚠️ Couldn’t read today’s schedule right now — it’s in the app.",
+    moneyUnavailable: "\n⚠️ Couldn’t check payments right now — the current figures are in Finances in the app.",
     btnRemind: (nm: string) => `🔔 Remind: ${nm}`,
     btnPaid: (nm: string) => `✅ ${nm} paid`,
     btnName: "student",
@@ -82,6 +86,8 @@ const DT = {
     remind: (s: string) => `\n💳 Påminn elever om betalning — totalt <b>${s}</b>:`,
     moreStudents: (n: number) => `  ↳ ${n} elever till`,
     allPaid: "\n✅ Alla betalningar klara — bra jobbat! 🎉",
+    todayUnavailable: "\n⚠️ Kunde inte läsa dagens schema just nu — det finns i appen.",
+    moneyUnavailable: "\n⚠️ Kunde inte kontrollera betalningar just nu — aktuella siffror finns under Ekonomi i appen.",
     btnRemind: (nm: string) => `🔔 Påminn: ${nm}`,
     btnPaid: (nm: string) => `✅ ${nm} betalade`,
     btnName: "elev",
@@ -95,6 +101,7 @@ const DT = {
 // Invoked by pg_cron at 06:00 UTC (08:00 EET / 09:00 EEST).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isPayoutDueToday, kyivNow } from "../_shared/payoutSchedule.ts";
+import { fetchAllRows } from "../_shared/fetchAll.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -221,21 +228,29 @@ Deno.serve(async (req) => {
   );
 
   // Today's lessons — all
-  const { data: todayLessons } = await sb
+  // 22.09: усі три запити «по всій платформі» — сторінками (див. _shared/fetchAll.ts).
+  const { data: todayRaw, error: todayErr } = await fetchAllRows<any>((a, b) => sb
     .from("lessons")
     .select("id, tutor_id, student_id, starts_at, subject, source, lesson_details(student_price, student_payment_status)")
     .in("status", ["scheduled", "completed"])
     .gte("starts_at", from)
     .lt("starts_at", to)
-    .order("starts_at", { ascending: true });
+    .order("starts_at", { ascending: true })
+    .order("id", { ascending: true })
+    .range(a, b));
+  if (todayErr) console.error("digest: today's lessons read failed", todayErr.message);
+  const todayLessons = todayRaw;
 
   // ЄДИНЕ визначення боргів = src/lib/financials.ts (isStudentDebtLesson /
   // isPayoutDueLesson). Дайджест ДЗЕРКАЛИТЬ його дослівно — розбіжність цифр
   // телеграм↔застосунок була саме тут (дайджест брав лише completed).
-  const { data: moneyRaw } = await sb
+  const { data: moneyRaw, error: moneyErr } = await fetchAllRows<any>((a, b) => sb
     .from("lessons")
     .select("id, tutor_id, student_id, subject, source, status, starts_at, group_id, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
-    .in("status", ["completed", "scheduled", "cancelled"]);
+    .in("status", ["completed", "scheduled", "cancelled"])
+    .order("id", { ascending: true })
+    .range(a, b));
+  if (moneyErr) console.error("digest: money read failed", moneyErr.message);
   const BUILD_TAG = "v25.09-uxstep51";
   const nowMs = Date.now();
   const detailOf = (l: any) => {
@@ -281,11 +296,17 @@ Deno.serve(async (req) => {
   // ГРУПОВІ борги — по УЧАСНИКАХ (parent ПРОВЕДЕНИЙ, учасник unpaid&price>0).
   // 07.09: було completed|scheduled — майбутні групові уроки рахувались боргом,
   // усупереч моделі 04.09 (борг = проведене) і цифрі у «Фінансах».
-  const { data: groupRaw } = await sb
+  const { data: groupRaw, error: groupErr } = await fetchAllRows<any>((a, b) => sb
     .from("lessons")
     .select("id, tutor_id, source, status, lesson_participants(student_id, student_price, student_payment_status)")
     .not("group_id", "is", null)
-    .eq("status", "completed");
+    .eq("status", "completed")
+    .order("id", { ascending: true })
+    .range(a, b));
+  if (groupErr) console.error("digest: group money read failed", groupErr.message);
+  // Гроші не прочитались ЦІЛКОМ — тоді жодних «✅ Всі оплати закриті» і
+  // жодних неповних сум: чесний рядок «не вдалося перевірити».
+  const moneyFailed = !!(moneyErr || groupErr);
   const groupDebtRows = (groupRaw ?? []).flatMap((l: any) =>
     (l.lesson_participants ?? [])
       .filter((p: any) => (p.student_payment_status ?? "unpaid") === "unpaid" && Number(p.student_price ?? 0) > 0)
@@ -374,7 +395,9 @@ Deno.serve(async (req) => {
       // Manager: уроки центру (source != independent) — лише СВОЄЇ школи
       const mine = (l: any) => l.source !== "independent" && inManagerHub(userId, l.tutor_id);
       const myLessons = (todayLessons ?? []).filter(mine);
-      if (myLessons.length === 0) {
+      if (todayErr) {
+        lines.push(D.todayUnavailable);
+      } else if (myLessons.length === 0) {
         lines.push(D.mgrNone);
       } else {
         lines.push(D.mgrToday(myLessons.length, D.lessons(myLessons.length)));
@@ -390,7 +413,8 @@ Deno.serve(async (req) => {
       const sd = (unpaidLessons ?? []).filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.student_price ?? 0), 0)
         + groupDebtRows.filter(mine).reduce((a: number, r: any) => a + r.price, 0);
       const po = payoutDueLessons.filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.tutor_payout ?? 0), 0);
-      if (sd > 0) lines.push(D.debt(`${sd} ₴`));
+      if (moneyFailed) lines.push(D.moneyUnavailable);
+      else if (sd > 0) lines.push(D.debt(`${sd} ₴`));
       // 07.09 (запит власниці): менеджер бачив лише підсумок і не мав «рук».
       // Тепер — хто саме винен (ХАБОВІ борги: source ≠ independent, ті самі
       // предикати, що й у Фінансах) і кнопка «оплатив(ла)» на кожного: саме
@@ -403,7 +427,7 @@ Deno.serve(async (req) => {
       for (const r of groupDebtRows.filter(mine)) {
         hubDebts.set(r.student_id, (hubDebts.get(r.student_id) ?? 0) + r.price);
       }
-      if (hubDebts.size > 0) {
+      if (!moneyFailed && hubDebts.size > 0) {
         lines.push(D.mgrDebtors);
         for (const [sid, amount] of Array.from(hubDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
           lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
@@ -424,7 +448,7 @@ Deno.serve(async (req) => {
         cur.n += 1;
         owed.set(l.tutor_id, cur);
       }
-      if (po > 0 && owed.size > 0) {
+      if (!moneyFailed && po > 0 && owed.size > 0) {
         lines.push(D.owe(`${po} ₴`));
         const sorted = Array.from(owed.entries()).sort((a, b) => b[1].sum - a[1].sum);
         for (const [tid, v] of sorted.slice(0, 5)) {
@@ -459,7 +483,9 @@ Deno.serve(async (req) => {
     } else if (isTutor) {
       // Tutor: their own lessons
       const myLessons = (todayLessons ?? []).filter((l: any) => l.tutor_id === userId);
-      if (myLessons.length === 0) {
+      if (todayErr) {
+        lines.push(D.todayUnavailable);
+      } else if (myLessons.length === 0) {
         lines.push(D.tutNone);
       } else {
         lines.push(D.tutToday(myLessons.length, D.lessons(myLessons.length)));
@@ -467,7 +493,9 @@ Deno.serve(async (req) => {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
             timeZone: TZ, hour: "2-digit", minute: "2-digit",
           });
-          const paid = detailOf(l)?.student_payment_status === "paid" ? " ✅" : "";
+          // ✅ «учень оплатив» — лише на ВЛАСНИХ уроках: для хабового це оплата
+          // школі, яку застосунок йому свідомо не показує (маска lessons_visible).
+          const paid = l.source === "independent" && detailOf(l)?.student_payment_status === "paid" ? " ✅" : "";
           lines.push(`• ${t} — ${esc(studentName.get(l.student_id))} (${esc(l.subject)})${paid}`);
         }
       }
@@ -479,13 +507,33 @@ Deno.serve(async (req) => {
         myDebts.set(sid, (myDebts.get(sid) ?? 0) + amount);
         debtIndependent.set(sid, (debtIndependent.get(sid) ?? true) && source === "independent");
       };
-      for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId)) {
+      // 22.09 (аудит 18.09, підтверджено): тут не було фільтра за source, тож
+      // ХАБОВИЙ репетитор щоранку отримував «Нагадай про оплату: 12 400 ₴ ·
+      // Марія — 3 200 ₴» — а це ціни ШКОЛИ, тобто борг учня перед школою. Функція
+      // ходить службовим ключем і обходить маску lessons_visible, яка в
+      // застосунку спеціально ховає student_price від хабового. Він бачив чужу
+      // дебіторку, а порівнявши зі своєю виплатою — і маржу школи; до того ж ішов
+      // «вибивати» гроші, які йому не належать. Борг учня перед школою — справа
+      // менеджера, тож у дайджесті репетитора лишаються ЛИШЕ його власні учні.
+      for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId && l.source === "independent")) {
         noteDebt(l.student_id, Number(detailOf(l)?.student_price ?? 0), l.source);
       }
-      for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId)) {
+      for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId && r.source === "independent")) {
         noteDebt(r.student_id, r.price, r.source);
       }
-      if (myDebts.size > 0) {
+      // Незалежному передоплата — головний спосіб отримати гроші наперед:
+      // одна кнопка веде просто у форму. Хабовому не показуємо: його
+      // передоплати записує менеджер (у застосунку форма йому теж не рендериться).
+      const hasIndependent = (moneyRaw ?? []).some((l: any) => l.tutor_id === userId && l.source === "independent")
+        || (todayLessons ?? []).some((l: any) => l.tutor_id === userId && l.source === "independent");
+      // 22.09: блок про оплати учнів — ЛИШЕ тому, хто сам їх збирає. Хабовому
+      // (після фільтра вище) він завжди був би порожнім і казав би «✅ Всі
+      // оплати закриті» — неправду про гроші школи, яких він не бачить.
+      if (!hasIndependent) {
+        // нічого: оплати учнів хабового — справа менеджера
+      } else if (moneyFailed) {
+        lines.push(D.moneyUnavailable);
+      } else if (myDebts.size > 0) {
         const total = Array.from(myDebts.values()).reduce((a, b) => a + b, 0);
         lines.push(D.remind(`${total} ₴`));
         for (const [sid, amount] of Array.from(myDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
@@ -505,11 +553,6 @@ Deno.serve(async (req) => {
       } else {
         lines.push(D.allPaid);
       }
-      // Незалежному передоплата — головний спосіб отримати гроші наперед:
-      // одна кнопка веде просто у форму. Хабовому не показуємо: його
-      // передоплати записує менеджер (у застосунку форма йому теж не рендериться).
-      const hasIndependent = (moneyRaw ?? []).some((l: any) => l.tutor_id === userId && l.source === "independent")
-        || (todayLessons ?? []).some((l: any) => l.tutor_id === userId && l.source === "independent");
       if (hasIndependent) keyboard.push([{ text: D.btnPrepay, url: PREPAY_URL }]);
     } else {
       continue; // Student — не відправляємо

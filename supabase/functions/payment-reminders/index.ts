@@ -2,7 +2,8 @@
 // Should be invoked on a schedule (cron). Idempotent via lesson_payment_reminders log.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
-import { decideDebtReminder } from "../_shared/debtCadence.ts";
+import { decideDebtReminder, DEBT_INTERVAL_DAYS } from "../_shared/debtCadence.ts";
+import { fetchAllRows } from "../_shared/fetchAll.ts";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -233,6 +234,38 @@ Deno.serve(async (req) => {
     (existingReminders ?? []).map((r: any) => `${r.lesson_id}:${r.reminder_kind}`),
   );
 
+  // 22.09: зворотний бік тієї ж колізії. Якщо в репетитора «після уроку» стоїть
+  // 2+ дні, прохід про борг встигав написати першим («є неоплачені уроки»), а
+  // через добу приходило «час оплатити заняття» про ТОЙ САМИЙ урок. Тож перед
+  // нагадуванням «після уроку» дивимось, чи не писали цій парі про борг
+  // упродовж того самого інтервалу тиші. «До уроку» й передоплата — про МАЙБУТНІЙ
+  // урок, це інша розмова, їх не глушимо.
+  // Завантажувач, а не одноразовий запит: учасники ГРУПОВИХ уроків стають
+  // відомі нижче, і без другого виклику для них ця перевірка мовчки не діяла б.
+  const lastDebtByPair = new Map<string, number>();
+  const debtLoadedFor = new Set<string>();
+  const loadRecentDebt = async (ids: string[]) => {
+    const todo = Array.from(new Set(ids.filter((id) => id && !debtLoadedFor.has(id))));
+    if (!todo.length) return;
+    todo.forEach((id) => debtLoadedFor.add(id));
+    const { data: recentDebt, error: recentDebtErr } = await supabase
+      .from("lesson_payment_reminders")
+      .select("tutor_id, student_id, sent_at, reminder_kind")
+      .in("student_id", todo)
+      .like("reminder_kind", "debt%")
+      .gte("sent_at", new Date(Date.now() - DEBT_INTERVAL_DAYS * DAY_MS).toISOString());
+    // Не кидаємо: у гіршому разі піде одне зайве «після уроку», а не тиша для всіх.
+    if (recentDebtErr) console.error("payment-reminders: недавні нагадування про борг не прочитались", recentDebtErr.message);
+    for (const r of (recentDebt ?? []) as any[]) {
+      const key = `${r.tutor_id}:${r.student_id}`;
+      const at = new Date(r.sent_at).getTime();
+      if (at > (lastDebtByPair.get(key) ?? 0)) lastDebtByPair.set(key, at);
+    }
+  };
+  await loadRecentDebt(lessons.map((l: any) => l.student_id));
+  const debtJustSent = (tutorId: string, studentId: string) =>
+    Date.now() - (lastDebtByPair.get(`${tutorId}:${studentId}`) ?? 0) < DEBT_INTERVAL_DAYS * DAY_MS;
+
   // 5. Pull tutor display names (for nicer messages)
   const { data: tutorProfiles } = tutorIds.length
     ? await supabase
@@ -315,6 +348,10 @@ Deno.serve(async (req) => {
 
     const dedupKey = `${lesson.id}:${reminderKind}`;
     if (sentSet.has(dedupKey)) {
+      skipped++;
+      continue;
+    }
+    if (reminderKind === "after_lesson" && debtJustSent(lesson.tutor_id, lesson.student_id)) {
       skipped++;
       continue;
     }
@@ -417,6 +454,8 @@ Deno.serve(async (req) => {
       const { data: gl } = await supabase.from("user_telegram_links").select("user_id, chat_id").in("user_id", gStudentIds).not("chat_id", "is", null);
       for (const link of gl ?? []) if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
     }
+    // Зворотна перевірка «щойно писали про борг» — і для учасників груп.
+    await loadRecentDebt(parts.map((p: any) => p.student_id));
     // Dedup: existing group reminders keyed lesson:student:kind (student included, unlike individual).
     const gLessonIds = Array.from(new Set(parts.map((p: any) => p.lesson.id)));
     const { data: gExisting } = gLessonIds.length
@@ -442,6 +481,7 @@ Deno.serve(async (req) => {
       const nowMs = now.getTime();
       if (triggerTimeMs > nowMs || nowMs - triggerTimeMs > 2 * DAY_MS) { skipped++; continue; }
       if (gSentSet.has(`${lesson.id}:${p.student_id}:${reminderKind}`)) { skipped++; continue; }
+      if (reminderKind === "after_lesson" && debtJustSent(lesson.tutor_id, p.student_id)) { skipped++; continue; }
 
       const lang = rlang(p.student_id);
       const T = RT[lang];
@@ -499,11 +539,15 @@ Deno.serve(async (req) => {
   try {
     // Без нижньої межі дати: борг не застаріває. Скасовані входять лише зі
     // штрафом — це модель боргу 04.09 (і перенесені імпортом теж сюди).
-    const { data: debtRaw, error: debtErr } = await supabase
+    // 22.09: сторінками — PostgREST мовчки віддає не більше ~1000 рядків, і
+    // учні понад тисячу просто не отримували б нагадування (_shared/fetchAll.ts).
+    const { data: debtRaw, error: debtErr } = await fetchAllRows<any>((a, b) => supabase
       .from("lessons")
       .select("id, tutor_id, student_id, starts_at, status, lesson_details!inner(student_payment_status, student_price, is_cancellation_fee)")
       .in("status", ["completed", "cancelled"])
-      .neq("lesson_details.student_payment_status", "paid");
+      .neq("lesson_details.student_payment_status", "paid")
+      .order("id", { ascending: true })
+      .range(a, b));
     if (debtErr) throw new Error(debtErr.message);
 
     type DebtRow = { tutor_id: string; student_id: string; lessonId: string; at: number; price: number };
@@ -524,11 +568,17 @@ Deno.serve(async (req) => {
     }
 
     // Групові борги: ціна й статус живуть на lesson_participants.
-    const { data: gDebtRaw } = await supabase
+    const { data: gDebtRaw, error: gDebtErr } = await fetchAllRows<any>((a, b) => supabase
       .from("lesson_participants")
-      .select("student_id, student_price, student_payment_status, lesson_id, lessons!inner(id, tutor_id, starts_at, status)")
+      .select("id, student_id, student_price, student_payment_status, lesson_id, lessons!inner(id, tutor_id, starts_at, status)")
       .neq("student_payment_status", "paid")
-      .eq("lessons.status", "completed");
+      .eq("lessons.status", "completed")
+      .order("id", { ascending: true })
+      .range(a, b));
+    // Раніше помилку тут не дивились — групові борги мовчки випадали з нагадувань.
+    // Не кидаємо: індивідуальні нагадування цього проходу мають піти й так
+    // (повідомлення — окремо на кожну пару, неповнота нікому не бреше).
+    if (gDebtErr) console.error("payment-reminders: групові борги не прочитались", gDebtErr.message);
     for (const g of (gDebtRaw ?? []) as any[]) {
       const price = Number(g.student_price ?? 0);
       if (!(price > 0) || !g.lessons || !g.student_id) continue;
@@ -576,18 +626,48 @@ Deno.serve(async (req) => {
         for (const link of dl ?? []) if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
       }
 
-      // Історія нагадувань про борг по цих парах (лічильник ведеться по ПАРІ).
-      const { data: dHist } = await supabase
+      // Історія нагадувань по цих парах (лічильник ведеться по ПАРІ). Два читання,
+      // бо в них різні межі — і змішувати їх НЕ МОЖНА:
+      //  · про борг — від НАЙСТАРІШОГО боргу серед пар. Стеля «4 рази» рахує
+      //    нагадування, новіші за найстаріший неоплачений урок, а борг не
+      //    застаріває. Фіксоване вікно (у першій версії правки 22.09 було 60 днів)
+      //    через два місяці «забувало» вже надіслані — і помічник почав би коло
+      //    наново: ще 4 повідомлення, а коли лог упирається в UNIQUE — щогодини;
+      //  · решта видів — лише за інтервал тиші (3 дні): інакше прохід про борг
+      //    не бачив «після уроку», що пішло цією ж годиною, і учень отримував два
+      //    повідомлення про той самий урок. Ручне «Нагадати» теж рахується:
+      //    написав репетитор — помічник мовчить.
+      const minOldestAt = Math.min(...[...pairs.values()].map((v) => v.oldestAt));
+      const { data: dHist, error: dHistErr } = await fetchAllRows<any>((a, b) => supabase
+        .from("lesson_payment_reminders")
+        .select("id, tutor_id, student_id, sent_at, reminder_kind")
+        .in("student_id", dStudentIds)
+        .like("reminder_kind", "debt%")
+        .gte("sent_at", new Date(minOldestAt).toISOString())
+        .order("id", { ascending: true })
+        .range(a, b));
+      // Без історії не можна чесно вирішити «чи не зарано» — краще пропустити
+      // цей запуск, ніж написати людині вдруге.
+      if (dHistErr) throw new Error(`історія нагадувань: ${dHistErr.message}`);
+      const { data: oHist, error: oHistErr } = await supabase
         .from("lesson_payment_reminders")
         .select("tutor_id, student_id, sent_at, reminder_kind")
         .in("student_id", dStudentIds)
-        .like("reminder_kind", "debt%");
-      const histByPair = new Map<string, number[]>();
+        .not("reminder_kind", "like", "debt%")
+        .gte("sent_at", new Date(now.getTime() - DEBT_INTERVAL_DAYS * DAY_MS).toISOString());
+      if (oHistErr) throw new Error(`історія нагадувань (інші): ${oHistErr.message}`);
+      const debtHistByPair = new Map<string, number[]>();
       for (const h of (dHist ?? []) as any[]) {
         const key = `${h.tutor_id}:${h.student_id}`;
-        const arr = histByPair.get(key) ?? [];
+        const arr = debtHistByPair.get(key) ?? [];
         arr.push(new Date(h.sent_at).getTime());
-        histByPair.set(key, arr);
+        debtHistByPair.set(key, arr);
+      }
+      const lastOtherByPair = new Map<string, number>();
+      for (const h of (oHist ?? []) as any[]) {
+        const key = `${h.tutor_id}:${h.student_id}`;
+        const at = new Date(h.sent_at).getTime();
+        if (at > (lastOtherByPair.get(key) ?? 0)) lastOtherByPair.set(key, at);
       }
 
       const nowMs = now.getTime();
@@ -595,7 +675,7 @@ Deno.serve(async (req) => {
         const settings = settingsByTutor.get(pair.tutor_id);
         if (!settings || !isProActive(settings) || !settings.payment_reminder_enabled) { skipped++; continue; }
 
-        const decision = decideDebtReminder(nowMs, pair.oldestAt, histByPair.get(key) ?? []);
+        const decision = decideDebtReminder(nowMs, pair.oldestAt, debtHistByPair.get(key) ?? [], lastOtherByPair.get(key) ?? null);
         if (!decision.send) { skipped++; continue; }
 
         const lang = rlang(pair.student_id);

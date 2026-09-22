@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { isStudentDebtLesson } from "@/lib/financials";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -288,7 +289,7 @@ export default function PeoplePage() {
         .limit(2000);
       if (recentLessonsErr) console.error("Failed to load recent lessons", recentLessonsErr);
       const lessonIds = (recentLessons ?? []).map((l: any) => l.id);
-      const detailsByLesson = new Map<string, { student_payment_status: string | null; student_price: number | null }>();
+      const detailsByLesson = new Map<string, { student_payment_status: string | null; student_price: number | null; is_cancellation_fee: boolean | null }>();
       if (lessonIds.length > 0) {
         // Chunk to avoid overly long IN clauses, but fire chunks in parallel.
         const chunkSize = 500;
@@ -302,15 +303,19 @@ export default function PeoplePage() {
           chunks.map((chunk) =>
             supabase
               .from("lessons_visible")
-              .select("id, student_payment_status, student_price")
+              .select("id, student_payment_status, student_price, is_cancellation_fee")
               .in("id", chunk)
           )
         );
-        chunkResults.forEach(({ data: detailsData }) => {
+        chunkResults.forEach(({ data: detailsData, error: chunkErr }) => {
+          // 22.09: помилку чанка раніше не дивились — уроки з упалого чанка
+          // лишались без статусу, і борг учня тихо занижувався.
+          if (chunkErr) console.error("People: lesson money chunk failed", chunkErr.message);
           (detailsData ?? []).forEach((d: any) => {
             detailsByLesson.set(d.id, {
               student_payment_status: d.student_payment_status,
               student_price: d.student_price,
+              is_cancellation_fee: d.is_cancellation_fee,
             });
           });
         });
@@ -337,15 +342,22 @@ export default function PeoplePage() {
           unpaid_by_currency: null as Record<string, number> | null,
           last_lesson_at: null as string | null,
         };
-        // PREPAYMENT model: an unpaid priced lesson is a debt whether it already
-        // happened or is upcoming (hub students pay before lessons) — the old
-        // completed-only rule hid real receivables from the «⚠️ Борг» status.
-        if (
-          l.status !== "cancelled" &&
-          l.status !== "pending" &&
-          (payStatus ?? "unpaid") === "unpaid" &&
-          Number(price ?? 0) > 0
-        ) {
+        // 22.09 (аудит 18.09, підтверджено): тут жила СКАСОВАНА 04.09 модель
+        // «передоплати» — будь-який неоплачений урок із ціною, включно з
+        // МАЙБУТНІМИ, вважався боргом. Учень із розкладом на пів року вперед
+        // отримував «⚠️ Борг», менеджер писав йому про гроші, яких той не винен,
+        // а фільтр «Борг» ховав справжніх боржників у шумі. Той самий учень у
+        // «Моїх учнях» показував меншу суму. Борг у продукті визначається ОДНИМ
+        // предикатом — isStudentDebtLesson, як у кожному іншому каналі.
+        if (isStudentDebtLesson({
+          status: l.status,
+          starts_at: l.starts_at,
+          student_price: price,
+          student_payment_status: payStatus,
+          is_cancellation_fee: det?.is_cancellation_fee === true,
+          tutor_payout: null,
+          tutor_payout_status: null,
+        })) {
           s.unpaid_count += 1;
           s.unpaid_total += Number(price ?? 0);
         }

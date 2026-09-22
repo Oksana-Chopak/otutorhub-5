@@ -59,9 +59,15 @@ describe("регресії скану 13.09", () => {
     expect(fn).not.toMatch(/!VAPID_PUBLIC_KEY \|\| !VAPID_PRIVATE_KEY/);
     expect(fn).toMatch(/const WEB_PUSH_READY\s*=\s*!!VAPID_PRIVATE_KEY/);
     expect(fn).toContain(`"${VAPID_PUBLIC_KEY}"`);
-    expect(fn).toMatch(/\[401, 403, 404, 410\]\.includes\(res\.status\)/);
+    // 22.09 (свідома зміна правила 13.09): мертвою вважається ЛИШЕ 404/410.
+    // 401/403 може бути нашою ж помилкою ключа — тоді «403 = мертва» стерло б
+    // підписки всім. Підписку зі старим ключем тепер лікує сам браузер при
+    // відкритті застосунку (healPushSubscription) — див. push-self-heal.test.ts.
+    expect(fn).toMatch(/if \(res\.status === 404 \|\| res\.status === 410\) \{[\s\S]{0,120}return "gone";/);
+    expect(fn).not.toMatch(/\[401, 403, 404, 410\]\.includes\(res\.status\)/);
     // клієнт перепідписує браузер, якщо ключ змінився
     expect(src("src/hooks/usePushNotifications.ts")).toMatch(/await sub\.unsubscribe\(\)/);
+    expect(src("src/hooks/usePushNotifications.ts")).toMatch(/export function healPushSubscription/);
   });
 
   it("5. лендінг замкнений на світлу палітру; «один день» читає лендінгові токени", () => {

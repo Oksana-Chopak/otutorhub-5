@@ -42,31 +42,46 @@ export type DebtDecision =
 /**
  * @param now             поточний час, мс
  * @param oldestDebtAtMs  початок НАЙДАВНІШОГО неоплаченого проведеного уроку пари
- * @param sentAtMs        коли вже слались нагадування про борг цій парі (будь-які
- *                        `debt_*`), у мілісекундах — уся історія, фільтр усередині
+ * @param sentAtMs        коли вже слались нагадування про БОРГ цій парі (`debt_*`),
+ *                        у мілісекундах — уся історія, фільтр усередині
+ * @param lastOtherAtMs   коли цій парі востаннє йшло БУДЬ-ЯКЕ ІНШЕ нагадування про
+ *                        оплату — за строком («після уроку», «до уроку»,
+ *                        передоплата) чи ручне «Нагадати». `null` — не було.
+ *
+ * 22.09 (скан Lovable, підтверджено): прохід про борг не бачив нагадувань за
+ * строком. Репетитор із режимом «після уроку» — і учень, чий урок пройшов
+ * учора, отримував ДВА повідомлення про той самий неоплачений урок: «час
+ * оплатити заняття» і одразу «є неоплачені уроки». Для учня це виглядає як
+ * зламаний спам, а для репетитора — як сором перед його ж клієнтами. Тепер
+ * інтервал у 3 дні відраховується від ОСТАННЬОГО нагадування будь-якого виду,
+ * включно з ручною кнопкою: людина, якій учора написав сам репетитор, сьогодні
+ * від помічника нічого не отримає. Стеля «4 рази» рахує лише нагадування про борг.
  */
 export function decideDebtReminder(
   now: number,
   oldestDebtAtMs: number,
   sentAtMs: readonly number[],
+  lastOtherAtMs: number | null = null,
 ): DebtDecision {
   const recent = sentAtMs.filter((t) => t >= oldestDebtAtMs);
-
-  if (recent.length === 0) {
-    // Перше нагадування — лише коли борг «дозрів».
-    if (now - oldestDebtAtMs < DEBT_FIRST_AFTER_DAYS * DAY_MS) {
-      return { send: false, reason: "too-fresh" };
-    }
-    return { send: true, kind: "debt_1", index: 1 };
-  }
 
   if (recent.length >= DEBT_MAX_REMINDERS) {
     return { send: false, reason: "quota-spent" };
   }
 
-  const last = Math.max(...recent);
-  if (now - last < DEBT_INTERVAL_DAYS * DAY_MS) {
-    return { send: false, reason: "too-soon" };
+  // Останнє нагадування БУДЬ-ЯКОГО виду — від нього й відраховуємо тишу.
+  const candidates = [...recent];
+  if (lastOtherAtMs !== null && Number.isFinite(lastOtherAtMs)) candidates.push(lastOtherAtMs);
+  if (candidates.length > 0) {
+    const last = Math.max(...candidates);
+    if (now - last < DEBT_INTERVAL_DAYS * DAY_MS) {
+      return { send: false, reason: "too-soon" };
+    }
+  }
+
+  // Перше нагадування про борг — лише коли борг «дозрів».
+  if (recent.length === 0 && now - oldestDebtAtMs < DEBT_FIRST_AFTER_DAYS * DAY_MS) {
+    return { send: false, reason: "too-fresh" };
   }
 
   const index = recent.length + 1;

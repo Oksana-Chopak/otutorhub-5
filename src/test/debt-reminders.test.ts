@@ -69,6 +69,29 @@ describe("нагадування про борг (15.09)", () => {
       expect(d).toEqual({ send: true, kind: "debt_1", index: 1 });
     });
 
+    it("22.09: учора пішло «після уроку» — сьогодні про борг МОВЧИМО", () => {
+      // Скан Lovable: учень отримував «час оплатити заняття» і одразу «є
+      // неоплачені уроки» про той самий урок.
+      const d = decideDebtReminder(NOW, NOW - 2 * DAY, [], NOW - 1 * DAY);
+      expect(d).toEqual({ send: false, reason: "too-soon" });
+    });
+
+    it("22.09: вчора написав сам репетитор («Нагадати») — помічник теж мовчить", () => {
+      const d = decideDebtReminder(NOW, NOW - 20 * DAY, [], NOW - 12 * 60 * 60 * 1000);
+      expect(d.send).toBe(false);
+    });
+
+    it("22.09: після тиші в 3 дні від БУДЬ-ЯКОГО нагадування — перше про борг", () => {
+      const d = decideDebtReminder(NOW, NOW - 20 * DAY, [], NOW - 3 * DAY - 1);
+      expect(d).toEqual({ send: true, kind: "debt_1", index: 1 });
+    });
+
+    it("22.09: стеля «4 рази» рахує лише нагадування про борг", () => {
+      const debt = [NOW - 20 * DAY, NOW - 17 * DAY, NOW - 14 * DAY];
+      const d = decideDebtReminder(NOW, NOW - 30 * DAY, debt, NOW - 10 * DAY);
+      expect(d).toEqual({ send: true, kind: "debt_4", index: 4 });
+    });
+
     it("уся послідовність укладається рівно в 4 повідомлення", () => {
       let now = NOW;
       const sent: number[] = [];
@@ -152,6 +175,62 @@ describe("нагадування про борг (15.09)", () => {
     it("раннього виходу перед проходом про борг більше немає", () => {
       expect(src(), "порожнє вікно уроків не має ховати старі борги")
         .not.toMatch(/if \(lessons\.length === 0\) \{\s*\n\s*return new Response/);
+    });
+
+    it("22.09: прохід про борг бачить і «після уроку»/ручні — за інтервал тиші", () => {
+      const s = src();
+      const pass = s.slice(s.indexOf("ПРОХІД ПРО БОРГ"));
+      expect(pass).toMatch(/\.not\("reminder_kind", "like", "debt%"\)\s*\n\s*\.gte\("sent_at", new Date\(now\.getTime\(\) - DEBT_INTERVAL_DAYS \* DAY_MS\)/);
+      expect(pass).toMatch(/lastOtherByPair\.get\(key\) \?\? null/);
+      expect(pass, "без історії не можна чесно вирішити «чи не зарано»").toMatch(/if \(dHistErr\) throw/);
+      expect(pass).toMatch(/if \(oHistErr\) throw/);
+    });
+
+    it("22.09: історія ПРО БОРГ — від найстарішого боргу, а не фіксоване вікно", () => {
+      // Перша версія правки читала «усе за 60 днів». Борг не застаріває, тож
+      // через два місяці вже надіслані 4 нагадування «забувались» — і помічник
+      // починав коло наново (а коли лог упирався в UNIQUE — щогодини).
+      const s = src();
+      const pass = s.slice(s.indexOf("ПРОХІД ПРО БОРГ"));
+      expect(pass).toMatch(/const minOldestAt = Math\.min\(\.\.\.\[\.\.\.pairs\.values\(\)\]\.map\(\(v\) => v\.oldestAt\)\)/);
+      expect(pass).toMatch(/\.like\("reminder_kind", "debt%"\)\s*\n\s*\.gte\("sent_at", new Date\(minOldestAt\)\.toISOString\(\)\)/);
+      expect(pass, "фіксоване вікно забуває стелю «4 рази»").not.toMatch(/60 \* DAY_MS/);
+      expect(pass, "історія може бути довгою — сторінками").toMatch(/const \{ data: dHist, error: dHistErr \} = await fetchAllRows<any>\(/);
+    });
+
+    it("чому це важливо: без старих нагадувань стеля «4 рази» обнуляється", () => {
+      const oldest = NOW - 100 * DAY;
+      const sent = [oldest + 1 * DAY, oldest + 4 * DAY, oldest + 7 * DAY, oldest + 10 * DAY];
+      expect(decideDebtReminder(NOW, oldest, sent)).toEqual({ send: false, reason: "quota-spent" });
+      // те саме, але історія «за 60 днів» — порожня: помічник почав би спочатку
+      const window60 = sent.filter((t) => t >= NOW - 60 * DAY);
+      expect(decideDebtReminder(NOW, oldest, window60).send).toBe(true);
+    });
+
+    it("22.09: «після уроку» мовчить, якщо цій парі щойно писали про борг", () => {
+      const s = src();
+      expect(s).toMatch(/reminderKind === "after_lesson" && debtJustSent\(lesson\.tutor_id, lesson\.student_id\)/);
+      expect(s).toMatch(/reminderKind === "after_lesson" && debtJustSent\(lesson\.tutor_id, p\.student_id\)/);
+      // учасники груп відомі пізніше — для них історію треба дочитати, інакше
+      // перевірка для групових уроків мовчки не діяла б
+      expect(s).toMatch(/await loadRecentDebt\(lessons\.map\(\(l: any\) => l\.student_id\)\)/);
+      const gi = s.indexOf("await loadRecentDebt(parts.map((p: any) => p.student_id));");
+      expect(gi).toBeGreaterThan(0);
+      expect(gi, "до циклу по учасниках").toBeLessThan(s.indexOf("for (const p of parts) {"));
+    });
+
+    it("22.09: ручне «Нагадати» пише лог із тим самим ключем, що й унікальний індекс", () => {
+      // Міграція 20260915100000 додала student_id у ключ логу. Upsert зі старим
+      // onConflict Postgres відхиляє (42P10) — із 16.09 жодне ручне нагадування
+      // не потрапляло в лог (перевірено на репліці бази 22.09).
+      const mig = readFileSync(join(root, "supabase/migrations/20260915100000_payment_reminder_kinds.sql"), "utf8");
+      expect(mig).toMatch(/ON public\.lesson_payment_reminders \(lesson_id, student_id, reminder_kind, channel\)/);
+      const shared = readFileSync(join(root, "supabase/functions/_shared/paymentReminder.ts"), "utf8");
+      const targets = [...shared.matchAll(/onConflict: "([^"]+)"/g)].map((m) => m[1]);
+      expect(targets.length).toBeGreaterThan(0);
+      for (const t of targets) {
+        expect(new Set(t.split(","))).toEqual(new Set(["lesson_id", "student_id", "reminder_kind", "channel"]));
+      }
     });
 
     it("прохід про борг вимикається тим самим перемикачем, що й решта", () => {

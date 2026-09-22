@@ -66,6 +66,12 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
   const [saving, setSaving] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [rates, setRates] = useState<Record<string, string>>({});
+  // 22.09 (аудит): чинні ставки не прочитались (тайм-аут 8 с, помилка) — тоді
+  // форма знає лише частину картини, і звичайне збереження ПЕРЕЗАПИСАЛО б список
+  // предметів та ВИДАЛИЛО б ставки, яких людина навіть не бачила. На слабкому
+  // мобільному звʼязку це тихо стирало б ставки інших предметів, а виплати по
+  // них падали б на ставку профілю. У такому стані зберігаємо лише введене.
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     if (!open || !tutorId) return;
@@ -88,6 +94,7 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
       if (td.error || sr.error) {
         toast.error(t("people.tutorRateLoadFailed"));
       }
+      setLoadFailed(!!(td.error || sr.error));
       const rateRows = (sr.data ?? []) as Array<{ subject: string; rate_per_lesson: number }>;
       const list = mergeSubjects((td.data as { subjects?: string[] } | null)?.subjects ?? [], rateRows.map((r) => r.subject), [presetSubject]);
       const byNorm = new Map(rateRows.map((r) => [normSubj(r.subject), r.rate_per_lesson]));
@@ -104,7 +111,7 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
   }, [open, tutorId, presetSubject, t]);
 
   useEffect(() => {
-    if (!open) { setSubjects([]); setRates({}); setLoading(false); setSaving(false); }
+    if (!open) { setSubjects([]); setRates({}); setLoading(false); setSaving(false); setLoadFailed(false); }
   }, [open]);
 
   const save = async () => {
@@ -117,6 +124,8 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
     for (const s of subjects) {
       const raw = (rates[s] ?? "").trim();
       if (raw === "") {
+        // Без чинних ставок порожній рядок = «не чіпати», а не помилка.
+        if (loadFailed) continue;
         toast.error(t("people.enterRateForSubject", { subject: s }));
         return;
       }
@@ -127,16 +136,23 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
       }
       parsed.push({ subject: s, rate: v });
     }
+    if (parsed.length === 0) {
+      toast.error(t("people.enterRateForSubject", { subject: subjects[0] }));
+      return;
+    }
     setSaving(true);
     try {
       // 1. Список предметів на tutor_details (rate_per_lesson = перша, як фолбек).
-      const { error: tdErr } = await supabase
-        .from("tutor_details")
-        .upsert({ user_id: tutorId, rate_per_lesson: parsed[0].rate, subjects }, { onConflict: "user_id" });
-      if (tdErr) {
-        console.error("Failed to save tutor details", tdErr);
-        toast.error(t("people.saveFailed"));
-        return;
+      // Лише коли список ПРОЧИТАНО: інакше він перезаписав би справжній.
+      if (!loadFailed) {
+        const { error: tdErr } = await supabase
+          .from("tutor_details")
+          .upsert({ user_id: tutorId, rate_per_lesson: parsed[0].rate, subjects }, { onConflict: "user_id" });
+        if (tdErr) {
+          console.error("Failed to save tutor details", tdErr);
+          toast.error(t("people.saveFailed"));
+          return;
+        }
       }
       // 2. Ставка на кожен предмет.
       const rows = parsed.map((p) => ({ tutor_id: tutorId, subject: p.subject, rate_per_lesson: p.rate }));
@@ -148,12 +164,15 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
       }
       // 3. Прибрати ставки предметів, яких у списку більше немає — порівняння
       // нормалізоване, інакше інше написання зносило чинну ставку.
-      const keptNorm = new Set(subjects.map(normSubj));
-      const { data: existingRates } = await supabase.from("tutor_subject_rates").select("subject").eq("tutor_id", tutorId);
-      const toDelete = (existingRates ?? []).map((r) => r.subject as string).filter((subj) => !keptNorm.has(normSubj(subj)));
-      if (toDelete.length > 0) {
-        const { error: delErr } = await supabase.from("tutor_subject_rates").delete().eq("tutor_id", tutorId).in("subject", toDelete);
-        if (delErr) console.warn("Failed to cleanup obsolete subject rates", delErr);
+      // Лише коли людина БАЧИЛА всі чинні ставки — видаляти невидиме не можна.
+      if (!loadFailed) {
+        const keptNorm = new Set(subjects.map(normSubj));
+        const { data: existingRates } = await supabase.from("tutor_subject_rates").select("subject").eq("tutor_id", tutorId);
+        const toDelete = (existingRates ?? []).map((r) => r.subject as string).filter((subj) => !keptNorm.has(normSubj(subj)));
+        if (toDelete.length > 0) {
+          const { error: delErr } = await supabase.from("tutor_subject_rates").delete().eq("tutor_id", tutorId).in("subject", toDelete);
+          if (delErr) console.warn("Failed to cleanup obsolete subject rates", delErr);
+        }
       }
       // 4. Ставка доїжджає до вже наявних невиплачених хабових уроків.
       // supabase.rpc не кидає виняток — помилка приходить полем error.
@@ -198,6 +217,11 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
             </div>
           ) : (
             <>
+              {loadFailed && (
+                <div role="status" className="rounded-[12px] border border-warning/40 bg-warning/10 px-3 py-2.5 text-[14px] text-foreground" style={{ lineHeight: 1.4 }}>
+                  {t("people.tutorRateSafeSave")}
+                </div>
+              )}
               {/* Ставки — ПЕРШИМИ: сюди людина приходить із картки «ставку не задано»,
                   і рядок без суми мусить бути на екрані одразу, а не під списком предметів. */}
               {subjects.length > 0 && (

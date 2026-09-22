@@ -90,6 +90,40 @@ describe("аудит 18.09: фальшивий успіх і мовчазні г
     }
   });
 
+  it("22.09 пуші: тимчасовий збій НЕ стирає реєстрацію пристрою", () => {
+    const f = read("supabase/functions/send-push/index.ts");
+    // Скан Lovable, підтверджено: будь-яке false видаляло підписку назавжди.
+    expect(f).toMatch(/Promise<"ok" \| "gone" \| "retry">/);
+    expect(f, "видаляється лише те, що push-сервіс назвав мертвим")
+      .toMatch(/r\.status === "fulfilled" && r\.value === "gone"/);
+    expect(f, "401/403 може бути НАШОЮ помилкою ключа — стирати всім не можна")
+      .toMatch(/if \(res\.status === 401 \|\| res\.status === 403\) \{[\s\S]{0,160}return "retry";/);
+    expect(f).toMatch(/if \(res\.status === 404 \|\| res\.status === 410\) \{[\s\S]{0,120}return "gone";/);
+    expect(f, "старе правило «будь-який збій = мертва»").not.toMatch(/r\.status !== "fulfilled" \|\| !r\.value/);
+  });
+
+  it("22.09 дайджест: хабовий репетитор не бачить борг учня перед ШКОЛОЮ", () => {
+    const f = read("supabase/functions/tutor-daily-digest/index.ts");
+    // Функція ходить службовим ключем і обходить маску lessons_visible.
+    expect(f).toMatch(/l\.tutor_id === userId && l\.source === "independent"\)\) \{\s*\n\s*noteDebt/);
+    expect(f).toMatch(/r\.tutor_id === userId && r\.source === "independent"\)\) \{\s*\n\s*noteDebt/);
+    expect(f, "без фільтра хабовий отримує ціни школи й бачить її маржу")
+      .not.toMatch(/\(unpaidLessons \?\? \[\]\)\.filter\(\(l: any\) => l\.tutor_id === userId\)\) \{/);
+  });
+
+  it("22.09 Люди: «⚠️ Борг» рахується тим самим предикатом, що й усюди", () => {
+    const f = read("src/pages/PeoplePage.tsx");
+    // Фолбек жив на скасованій 04.09 моделі «передоплати»: майбутні неоплачені
+    // уроки ставали боргом, і менеджер писав учневі про гроші, яких той не винен.
+    expect(f).toMatch(/import \{ isStudentDebtLesson \} from "@\/lib\/financials"/);
+    expect(f).toMatch(/if \(isStudentDebtLesson\(\{[\s\S]{0,260}is_cancellation_fee: det\?\.is_cancellation_fee === true/);
+    expect(f, "без цієї колонки штраф за скасування і перенесений борг зникають із боргу")
+      .toMatch(/\.select\("id, student_payment_status, student_price, is_cancellation_fee"\)/);
+    expect(f, "стара умова «будь-який неоплачений з ціною, крім скасованих»")
+      .not.toMatch(/l\.status !== "cancelled" &&\s*\n\s*l\.status !== "pending" &&/);
+    expect(f, "упалий чанк мовчки занижував борг").toMatch(/if \(chunkErr\) console\.error/);
+  });
+
   it("Учень: збій по групових оплатах не показує впевнений нуль", () => {
     const f = read("src/pages/student/StudentPaymentsPage.tsx");
     expect(f).toMatch(/const \{ data: gParts, error: gErr \}/);

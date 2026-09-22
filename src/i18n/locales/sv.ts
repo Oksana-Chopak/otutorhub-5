@@ -1647,6 +1647,7 @@ export const sv: LocaleTranslations = {
     rateMissingTag: "ingen sats",
     savingBtn: "Sparar…",
     tutorRateLoadFailed: "Kunde inte läsa in lärarens satser — kontrollera anslutningen och försök igen.",
+    tutorRateSafeSave: "De nuvarande satserna kunde inte läsas in. Vi sparar bara beloppen du anger här — lärarens övriga satser ändras inte.",
     clickToSelect: "Klicka för att välja ett eller flera",
     ratePerSubject: "Taxa per lektion per ämne",
     ratePerSubjectDesc: "Hur mycket du betalar läraren för en genomförd lektion i det här ämnet.",

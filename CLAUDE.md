@@ -147,6 +147,26 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   `lessons.location`, `tutor_workspace_settings.user_id`, `lesson_participants.status`):
   PostgREST відповідає 400 на ВЕСЬ запит, екран мовчки порожніє. Колонка, яку
   ти «памʼятаєш», не існує, поки її нема в `types.ts`.
+- EDGE READS PAGE (22.09): PostgREST віддає не більше max_rows (~1000) рядків
+  БЕЗ помилки. Будь-який запит edge-функції «по всій платформі» (дайджести,
+  нагадування, звіти) — лише через `_shared/fetchAll.ts` → `fetchAllRows` з
+  `.order("id")` і `.range(a, b)`. Збій читання грошей НІКОЛИ не перетворюється
+  на «✅ Всі оплати закриті» / «Сьогодні вільний день» — лише на чесний рядок
+  «не вдалося перевірити». Стереже `fetch-all.test.ts`.
+- PUSH DELETE RULE (22.09, скан Lovable): `send-push` видаляє веб-підписку ЛИШЕ
+  на 404/410, нативний токен — ЛИШЕ на `UNREGISTERED`. 401/403, 5xx, тайм-аут —
+  лишаємо (401/403 може бути нашою помилкою ключа, і тоді стерлись би підписки
+  всім). Підписку зі СТАРИМ VAPID-ключем лікує сам браузер при відкритті
+  застосунку: `healPushSubscription` (AppLayout). Стереже `push-self-heal.test.ts`.
+- REMINDER LOG KEY (22.09): унікальний ключ `lesson_payment_reminders` =
+  `(lesson_id, student_id, reminder_kind, channel)` (міграція 20260915100000).
+  Кожен `onConflict` для цієї таблиці — ДОСЛІВНО цей набір; старий (без учня)
+  Postgres відхиляє 42P10, і з 16.09 до 22.09 ручні нагадування так і не
+  писались у лог. Історія про борг читається від НАЙСТАРІШОГО боргу, не
+  фіксованим вікном (стеля «4 рази» інакше забувається).
+- RATE FORM SAFE SAVE (22.09): якщо `TutorRateDialog` не прочитав чинні ставки,
+  зберігає ЛИШЕ введені суми — не перезаписує `tutor_details.subjects` і нічого
+  не видаляє з `tutor_subject_rates` (видаляти невидиме не можна).
 - GATES check EXIT CODES, never grep-presence (`cmd; [ $? -eq 0 ]`): три
   червоні пуші сталися, бо пайпи ковтали фейли.
 - FS-GHOST: пісочниця інколи губить записи файлів — після КОЖНОГО write

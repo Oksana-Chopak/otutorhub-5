@@ -183,9 +183,17 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
     lesson_id: l.id, tutor_id: tutorId, student_id: studentId, reminder_kind: kind, channel: ch, sent_at: sentAt,
   })));
   if (rows.length) {
+    // 22.09 (аудит): ключ конфлікту мусить ДОСЛІВНО збігатися з унікальним
+    // індексом. Міграція 20260915100000 (live як 20260916182739) додала в ключ
+    // учня — для групових уроків — а тут лишився старий набір колонок. Postgres
+    // на такий upsert відповідає 42P10, тож із 16.09 ЖОДНЕ ручне «Нагадати»
+    // (у застосунку й кнопкою в Telegram) не потрапляло в лог: дедуп вище
+    // (година для кнопки в застосунку, доба для Telegram) не спрацьовував —
+    // подвійний дотик давав учню два однакові нагадування, — а помічник про
+    // борг не бачив, що репетитор уже написав сам.
     const { error: logErr } = await admin
       .from("lesson_payment_reminders")
-      .upsert(rows, { onConflict: "lesson_id,reminder_kind,channel" });
+      .upsert(rows, { onConflict: "lesson_id,student_id,reminder_kind,channel" });
     if (logErr) console.error("[paymentReminder] лог не записався:", logErr.message);
   }
 

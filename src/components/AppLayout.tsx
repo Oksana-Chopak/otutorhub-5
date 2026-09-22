@@ -10,6 +10,7 @@ import { NotificationBell } from "./NotificationBell";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { flushLandingFunnel } from "@/lib/landingFunnel";
+import { healPushSubscription } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 
 const routeTitleKey: Record<string, string> = {
@@ -59,6 +60,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Кроки, зроблені ДО реєстрації, лежали в localStorage — тепер є user_id,
   // і їх можна пришити до акаунта. Одноразово: takeLandingFunnel чистить буфер.
   useEffect(() => { if (user) flushLandingFunnel(); }, [user]);
+  // 22.09: браузер із підпискою на СТАРОМУ ключі лагодить себе при відкритті
+  // застосунку — інакше пуші тихо не доходили б, поки людина не зайде в профіль.
+  useEffect(() => { if (user) void healPushSubscription(user.id); }, [user?.id]);
   const isDashboard = pathname === "/" || pathname === "/dashboard";
   const [firstName, setFirstName] = useState("");
   useEffect(() => {

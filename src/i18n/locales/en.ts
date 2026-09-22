@@ -1667,6 +1667,7 @@ export const en: LocaleTranslations = {
     rateMissingTag: "no rate",
     savingBtn: "Saving…",
     tutorRateLoadFailed: "Couldn’t load the tutor’s rates — check your connection and try again.",
+    tutorRateSafeSave: "The current rates didn’t load. We’ll save only the amounts you enter here — the tutor’s other rates stay as they are.",
     clickToSelect: "Click to select one or more",
     ratePerSubject: "Rate per lesson by subject",
     ratePerSubjectDesc: "How much you pay the tutor for one completed lesson in this subject.",

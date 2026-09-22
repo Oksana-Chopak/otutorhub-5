@@ -132,7 +132,7 @@ function concat(...arrays: Uint8Array[]): Uint8Array {
   return out;
 }
 
-async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, payload: object): Promise<boolean> {
+async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, payload: object): Promise<"ok" | "gone" | "retry"> {
   const url = new URL(sub.endpoint);
   const audience = `${url.protocol}//${url.host}`;
   const token = await vapidToken(audience);
@@ -152,16 +152,29 @@ async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, 
     body: ciphertext,
   });
 
-  if (res.status === 201 || res.status === 200) return true;
-  // 13.09: підписка мертва (410/404) або підписана ІНШИМ VAPID-ключем (401/403 —
-  // після ротації ключів). Тримати її далі — довбати push-сервіс вічно; хук на
-  // клієнті перепідпише браузер новим ключем при наступному відкритті.
-  if ([401, 403, 404, 410].includes(res.status)) {
-    console.warn("push endpoint dropped", res.status, sub.endpoint.slice(0, 48));
-    return false;
+  if (res.status === 201 || res.status === 200) return "ok";
+  // 22.09 (скан Lovable, ПІДТВЕРДЖЕНО — правка 13.09 цього не закрила): функція
+  // повертала false на будь-який збій, а викликач видаляв КОЖНУ підписку з
+  // false. Тобто один тайм-аут чи 5xx push-сервісу назавжди стирав реєстрацію
+  // пристрою — репетитор, який увімкнув нагадування, просто переставав їх
+  // отримувати, без жодного попередження, аж поки випадково не відкриє
+  // застосунок. Тепер три стани, і видаляється лише справді мертве:
+  //  · 404/410 — push-сервіс каже «такої підписки більше немає» (стандарт);
+  //  · 401/403 — ключ VAPID не той. Це може бути і ротація ключів, і НАША
+  //    власна помилка конфігурації; видаляти на цьому означало б при одному
+  //    зламаному секреті стерти підписки ВСІМ. Лишаємо: клієнтський хук сам
+  //    перепідпише браузер новим ключем при відкритті застосунку;
+  //  · решта (429, 5xx) — тимчасове, повториться наступного разу.
+  if (res.status === 404 || res.status === 410) {
+    console.warn("push endpoint gone", res.status, sub.endpoint.slice(0, 48));
+    return "gone";
   }
-  console.error("push send failed", res.status, (await res.text().catch(() => "")).slice(0, 200));
-  return false;
+  if (res.status === 401 || res.status === 403) {
+    console.error("push VAPID rejected — підписку НЕ видаляємо", res.status, sub.endpoint.slice(0, 48));
+    return "retry";
+  }
+  console.error("push send failed (тимчасово)", res.status, (await res.text().catch(() => "")).slice(0, 200));
+  return "retry";
 }
 
 // ── FCM HTTP v1: нативний Android (40b) ─────────────────────────────────
@@ -225,7 +238,8 @@ async function fcmSendNative(fcmDb: any, fcmUserId: string, msg: { title: string
     console.error("FCM_SERVICE_ACCOUNT_JSON is not valid JSON — native push skipped");
     return 0;
   }
-  const { data: fcmRows } = await fcmDb.from("device_push_tokens").select("token").eq("user_id", fcmUserId);
+  const { data: fcmRows, error: fcmRowsErr } = await fcmDb.from("device_push_tokens").select("token").eq("user_id", fcmUserId);
+  if (fcmRowsErr) console.error("fcm: tokens read failed", fcmRowsErr.message);
   if (!fcmRows || fcmRows.length === 0) return 0;
   let access: string;
   try { access = await fcmMintToken(sa); } catch (e) { console.error("fcm mint failed", e); return 0; }
@@ -246,8 +260,12 @@ async function fcmSendNative(fcmDb: any, fcmUserId: string, msg: { title: string
     if (res.ok) { okCount++; continue; }
     const txt = await res.text();
     // Токен помер разом із застосунком — прибираємо, щоб не довбати FCM вічно.
-    if (res.status === 404 || txt.includes("UNREGISTERED") || txt.includes("NOT_FOUND")) {
-      await fcmDb.from("device_push_tokens").delete().eq("token", row.token);
+    // 22.09: ЛИШЕ «UNREGISTERED» — так FCM каже саме про мертвий токен. Голий
+    // 404 / NOT_FOUND FCM дає і на НАШУ помилку (не той project_id у секреті) —
+    // тоді старе правило стерло б токени всіх телефонів одним зламаним секретом.
+    if (txt.includes("UNREGISTERED")) {
+      const { error: tokDelErr } = await fcmDb.from("device_push_tokens").delete().eq("token", row.token);
+      if (tokDelErr) console.error("fcm: dead token not removed", tokDelErr.message);
     } else {
       console.error("fcm send failed", res.status, txt.slice(0, 200));
     }
@@ -301,9 +319,16 @@ Deno.serve(async (req) => {
   if (WEB_PUSH_READY) {
     const list = (subs ?? []) as { endpoint: string; p256dh: string; auth: string }[];
     const results = await Promise.allSettled(list.map((s) => sendOne(s, payload)));
-    sent = results.filter((r) => r.status === "fulfilled" && r.value).length;
-    const dead = list.filter((_, i) => { const r = results[i]; return r.status !== "fulfilled" || !r.value; }).map((s) => s.endpoint);
-    if (dead.length) await db.from("push_subscriptions").delete().eq("user_id", userId).in("endpoint", dead);
+    sent = results.filter((r) => r.status === "fulfilled" && r.value === "ok").length;
+    // Видаляємо ЛИШЕ те, що push-сервіс назвав мертвим. Відхилений проміс — це
+    // тайм-аут або мережа, тобто тимчасове: така підписка лишається.
+    const dead = list
+      .filter((_, i) => { const r = results[i]; return r.status === "fulfilled" && r.value === "gone"; })
+      .map((s) => s.endpoint);
+    if (dead.length) {
+      const { error: delErr } = await db.from("push_subscriptions").delete().eq("user_id", userId).in("endpoint", dead);
+      if (delErr) console.error("push: мертві підписки не видалились", delErr.message);
+    }
   } else if ((subs ?? []).length > 0) {
     console.warn("VAPID_PRIVATE_KEY not set — web push skipped for", (subs ?? []).length, "subscription(s)");
   }

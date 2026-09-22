@@ -15,6 +15,9 @@ type Call = { table: string; op: string; rows?: unknown; filters?: unknown[] };
 const calls: Call[] = [];
 const details: { subjects: string[]; rate_per_lesson: number } | null = { subjects: ["Німецька"], rate_per_lesson: 300 };
 const subjectRates: Array<{ subject: string; rate_per_lesson: number }> = [{ subject: "Німецька", rate_per_lesson: 300 }];
+// Скільки перших select-ів падає: 2 = саме читання форми, а пізніші (під час
+// збереження) вже проходять — як на мобільному звʼязку, що ожив.
+const failLoad = { v: 0 };
 
 function mkQuery(table: string) {
   const q: any = { table, op: "select", filters: [] as unknown[] };
@@ -28,6 +31,7 @@ function mkQuery(table: string) {
     let out: unknown = { data: null, error: null };
     if (q.op === "select" && table === "tutor_details") out = { data: details, error: null };
     if (q.op === "select" && table === "tutor_subject_rates") out = { data: subjectRates, error: null };
+    if (failLoad.v > 0 && q.op === "select") { failLoad.v--; out = { data: null, error: { message: "network" } }; }
     return Promise.resolve(out).then(res, rej);
   };
   return q;
@@ -46,7 +50,7 @@ import { TutorRateDialog, mergeSubjects } from "@/components/TutorRateDialog";
 const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 const lesson = { id: "l1", subject: "Математика", starts_at: "2026-09-21T10:00:00Z", duration_minutes: 60, tutor_payout: 0, student_price: 600, status: "completed" as const };
 
-beforeEach(() => { calls.length = 0; rpc.mockClear(); toast.success.mockClear(); toast.error.mockClear(); });
+beforeEach(() => { calls.length = 0; failLoad.v = 0; rpc.mockClear(); toast.success.mockClear(); toast.error.mockClear(); });
 
 describe("картка уроку: «ставку не задано» — дія, а не напис", () => {
   it("менеджер + без виплати + onSetRate → кнопка «Задати ставку», яка НЕ відкриває урок", () => {
@@ -99,6 +103,34 @@ describe("TutorRateDialog — одна форма ставки", () => {
   it("порожня ставка не зберігається мовчки — помилка словами, база не чіпається", async () => {
     render(<TutorRateDialog open tutorId="t1" presetSubject="Математика" onOpenChange={vi.fn()} />);
     await screen.findByLabelText("напр. 350: Математика");
+    fireEvent.click(screen.getByRole("button", { name: "Зберегти" }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(calls.filter((c) => c.op === "upsert")).toHaveLength(0);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it("22.09: ставки не прочитались → зберігається ЛИШЕ введене; чужі ставки й список предметів не чіпаються", async () => {
+    failLoad.v = 2;
+    const onSaved = vi.fn();
+    render(<TutorRateDialog open tutorId="t1" presetSubject="Математика" onOpenChange={vi.fn()} onSaved={onSaved} />);
+    const mathInput = await screen.findByLabelText("напр. 350: Математика");
+    expect(toast.error).toHaveBeenCalledWith("Не вдалося завантажити ставки репетитора — перевірте звʼязок і спробуйте ще раз.");
+    expect(screen.getByRole("status").textContent).toContain("інші ставки репетитора не зміняться");
+    fireEvent.change(mathInput, { target: { value: "250" } });
+    fireEvent.click(screen.getByRole("button", { name: "Зберегти" }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    // список предметів НЕ перезаписано — інакше «Німецька» зникла б із профілю
+    expect(calls.filter((c) => c.table === "tutor_details" && c.op === "upsert")).toHaveLength(0);
+    // нічого не видалено — інакше ставка «Німецької» 300 тихо зникла б
+    expect(calls.filter((c) => c.op === "delete")).toHaveLength(0);
+    const sr = calls.find((c) => c.table === "tutor_subject_rates" && c.op === "upsert")!.rows;
+    expect(sr).toEqual([{ tutor_id: "t1", subject: "Математика", rate_per_lesson: 250 }]);
+    expect(rpc).toHaveBeenCalledWith("backfill_tutor_payouts_for_tutor", { _tutor_id: "t1" });
+  });
+  it("22.09: без прочитаних ставок і без жодної суми — помилка словами, база не чіпається", async () => {
+    failLoad.v = 2;
+    render(<TutorRateDialog open tutorId="t1" presetSubject="Математика" onOpenChange={vi.fn()} />);
+    await screen.findByLabelText("напр. 350: Математика");
+    toast.error.mockClear();
     fireEvent.click(screen.getByRole("button", { name: "Зберегти" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(calls.filter((c) => c.op === "upsert")).toHaveLength(0);
