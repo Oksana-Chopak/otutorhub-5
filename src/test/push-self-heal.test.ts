@@ -114,8 +114,8 @@ describe("пуші: браузер зі старим ключем лагодит
   });
 
   it("порівняння ключів: true / false / null", () => {
-    expect(subscriptionKeyMatches(CURRENT.buffer.slice(0), CURRENT)).toBe(true);
-    expect(subscriptionKeyMatches(OLD.buffer.slice(0), CURRENT)).toBe(false);
+    expect(subscriptionKeyMatches((CURRENT.buffer as ArrayBuffer).slice(0), CURRENT)).toBe(true);
+    expect(subscriptionKeyMatches((OLD.buffer as ArrayBuffer).slice(0), CURRENT)).toBe(false);
     expect(subscriptionKeyMatches(null, CURRENT)).toBeNull();
   });
 
