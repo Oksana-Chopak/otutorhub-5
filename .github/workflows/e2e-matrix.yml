@@ -1,0 +1,57 @@
+# Стара матриця e2e (tests/e2e, травень–серпень) — запускається ВРУЧНУ.
+# Чому не на кожен пуш: 2360 рядків тестів, написаних до переродження лендінгу
+# і форм; невідомо, скільки з них зелені. Червоний сигнал, на який не реагують,
+# привчає ігнорувати червоне (саме так 835 провалів CI лишились непоміченими).
+# Сигнал «прод живий» на кожен пуш дає tests/prod у ci.yml. Цю матрицю
+# оживляє агент, коли актуалізує тести; тоді її можна повернути в ci.yml.
+name: E2E matrix (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  e2e:
+    name: 🎭 tests/e2e проти проду
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: "1"
+      E2E_BASE_URL: https://otutorhub.com
+      TEST_TUTOR_EMAIL: ${{ secrets.TEST_TUTOR_EMAIL }}
+      TEST_TUTOR_PASSWORD: ${{ secrets.TEST_TUTOR_PASSWORD }}
+      TEST_MANAGER_EMAIL: ${{ secrets.TEST_MANAGER_EMAIL }}
+      TEST_MANAGER_PASSWORD: ${{ secrets.TEST_MANAGER_PASSWORD }}
+      TEST_STUDENT_EMAIL: ${{ secrets.TEST_STUDENT_EMAIL }}
+      TEST_STUDENT_PASSWORD: ${{ secrets.TEST_STUDENT_PASSWORD }}
+      TEST_HUB_TUTOR_EMAIL: ${{ secrets.TEST_HUB_TUTOR_EMAIL }}
+      TEST_HUB_TUTOR_PASSWORD: ${{ secrets.TEST_HUB_TUTOR_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Матриця
+        run: |
+          set -o pipefail
+          npx playwright test 2>&1 | tee e2e.log
+      - name: Хвіст → коментар до коміту
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "🎭 E2E matrix FAILED @ ${GITHUB_SHA::7}"; echo '```'; grep -E "✘|failed|passed" e2e.log | tail -40; echo '```'; } > body.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" -F body=@body.md || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

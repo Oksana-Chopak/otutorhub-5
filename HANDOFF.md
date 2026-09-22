@@ -1,4 +1,4 @@
-# oTutorHub — передача агенту. Стан на 02.09, коміт `95a25534`
+# oTutorHub — передача агенту. Стан на 02.09, коміт `95a25534` (§3 «ворота» оновлено 22.09)
 
 Це єдиний документ, який потрібен новому агенту. Він містить: як влаштований репозиторій і чого в ньому не можна робити, що вже закрито (щоб не переробляли), і точний список того, що лишилось — з файлами, рядками і причиною, чому це важливо для бізнесу.
 
@@ -102,22 +102,44 @@ const isIndependent = settings?.independent_workspace ?? false;
 
 ---
 
-# 3. Обовʼязковий ланцюг воріт перед комітом
+# 3. Обовʼязковий ланцюг воріт перед комітом — ОДНА команда
 
 ```
-npm run typecheck          # НЕ npx tsc --noEmit
-npm run test               # 241 тест
-npm run build
-node scripts/check-i18n.mjs        # 4014 ключів, uk/en/sv синхронні
-node scripts/check-ux.mjs          # 0 помилок
-node scripts/check-hardcode.mjs    # ліміт 25, зараз рівно 25
-node scripts/check-currency.mjs    # 0 літеральних валют
-npx eslint src --quiet             # 1 преіснуюча помилка, див. §5 X1
+npm run gates            # усе: typecheck · eslint · vitest · build · i18n · ux · hardcode · currency ·
+                         # db-sync · db-select · stamp-edge · esbuild усіх edge · playwright --list ·
+                         # db-replay (уся історія міграцій на чистому Postgres + схема = types.ts +
+                         # onConflict = унікальні ключі + сценарії тригерів)
+npm run gates:fast       # те саме без бази — ворота ЖОВТІ, не зелені; для правок без SQL і без запитів
+bash scripts/db-replay/local-pg.sh   # одноразовий Postgres у сесії агента (без Docker), потім npm run gates
 ```
 
-Ратчет-тести, які тримають борг від повернення: `a11y-ratchet`, `async-hygiene-ratchet`, `persona-readiness`, `role-gates-ratchet`, `contrast-gate`, `typecheck-gate`, `ideas-wave-invariants`, `role-capabilities`, `pricing-single-source`.
+Список воріт живе в ОДНОМУ місці — `scripts/gates.mjs` — і CI (`.github/workflows/ci.yml`)
+виконує рівно його на кожен пуш у `main`, хто б не пушив. Розійтись двом спискам нема як:
+`src/test/guardian.test.ts` стереже, що CI викликає саме gates.mjs, що YAML воркфлоу
+читається (25.08–22.09 CI був мертвий через дубльований ключ `env` — 835 червоних
+запусків, яких ніхто не бачив), і що жодні ворота не зникли з ланцюга.
 
-**Стан на `95a25534`:** typecheck 0 · vitest 241/241 · build OK · i18n 4014 · ux 0 · hardcode 25/25 · currency 0.
+**Урок 22.09 — прогін бази.** `demo/fake` не бачить тригерів; типи описують форму, не тіло.
+Тому будь-яка зміна в `supabase/migrations/` або в запитах (`.upsert`, `.rpc`) перевіряється
+ПРОГОНОМ: `npm run db:replay` збирає базу з усієї історії (350 файлів; `scripts/db-replay/history.json`
+каже, які 5 файлів у прод ніколи не потрапляли і які 14 падають на чистому Postgres — з доказом
+кожен), звіряє зібрану схему з `types.ts` (0 розбіжностей: 79 відношень, 81 RPC), кожен
+`onConflict` — з унікальними ключами (саме так з 16.09 до 22.09 ручні нагадування не писались у лог),
+і прогоняє сценарії `scripts/db-replay/scenarios/*.sql` (самолікування виплат, видалення акаунта,
+лог нагадувань). Нова міграція = новий або оновлений сценарій.
+
+**Три канали доставки тепер мають штампи, які видно з проду** (§1): фронтенд несе хеш джерел у
+`/version.json` і `<meta name="build-stamp">` (ставиться збіркою сам, `scripts/source-stamp.mjs`),
+edge-функції — `_shared/version.ts` (генерується `npm run stamp`; ворота падають, якщо ти змінив
+функцію й не перештампував) і функцію `version`, що віддає його назовні. Робот `tests/prod`
+(`npm run test:prod`, у CI — після кожного пушу і щоранку) логіниться чотирма персонами, ходить
+головними екранами, ловить ErrorBoundary / необроблені помилки JS / відповіді 400·404·5xx від бази
+й edge, і порівнює штампи проду з `main`. Результат одним рядком іде власниці в Telegram через
+edge `ci-report` (той самий `CRON_SECRET`, що й у `scheduled-notifications`).
+
+Ратчет-тести, які тримають борг від повернення: `a11y-ratchet`, `async-hygiene-ratchet`,
+`persona-readiness`, `role-gates-ratchet`, `contrast-gate`, `typecheck-gate`, `ideas-wave-invariants`,
+`role-capabilities`, `pricing-single-source`, `db-select-gate`, `guardian`.
 
 ---
 

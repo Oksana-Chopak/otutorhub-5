@@ -135,11 +135,9 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   the lock → strict `npm ci` dies with EUSAGE everywhere). The old
   'checkout package-lock before commit' rule is RETIRED; after Lovable bumps
   package.json, re-sync the lock (`npm install`) and commit it.
-- GATE CHAIN (usage order, all exit-coded): `npx playwright test --list`
-  whenever playwright.config or tests/e2e change (config parse-gate; tsc does
-  NOT cover that file — a broken ternary there muted the robot twice) → tsc → eslint src --quiet (CI
-  demands ZERO errors — was invisible while CI install was broken) → vitest →
-  check-i18n → check-ux → vite build.
+- GATE CHAIN = `npm run gates` (scripts/gates.mjs, 22.09) — той самий список у CI. Окремі
+  команди з нього (typecheck, eslint, vitest, build, check-*, playwright --list, esbuild усіх
+  edge, db-replay) можна ганяти й поодинці (`--only=…`), але «зелено» = gates.mjs зелений.
 - SCHEMA GATE (13.09): кожен `.from("t").select("…")` і `.rpc("fn")` у src/ і
   supabase/functions/ звіряється з `types.ts` скриптом `check-db-select.mjs`
   (+ `db-select-gate.test.ts` у vitest). Причина: чотири «полагодив одне —
@@ -884,21 +882,22 @@ top of that file. The remaining MED/DELIGHT items there are the next UX backlog.
 
 ---
 
-## CI Checks (run after every commit) — усі за exit-кодом
+## CI Checks (run after every commit) — ОДНА команда, той самий список у CI
 ```bash
-npm run typecheck                 # НЕ npx tsc --noEmit (перевіряє нічого)
-npx eslint src --quiet            # 0 errors (X1 previewAuthStorage — задокументований виняток)
-npm run test                      # vitest, усі зелені
-npm run build                     # vite build — обов'язковий
-node scripts/check-i18n.mjs       # uk/en/sv синхронні
-node scripts/check-ux.mjs         # 0 errors
-node scripts/check-hardcode.mjs   # ≤ ліміту; бачить t("k") || "Укр" (03.09)
-node scripts/check-currency.mjs   # 0 літеральних валют
-node scripts/check-db-sync.mjs    # міграції нижче водяного знаку = 0
-node scripts/check-db-select.mjs  # кожен .select/.rpc — лише колонки й функції з types.ts (13.09)
-npx playwright test --list        # парс-гейт e2e
-# edge: for f in <touched>; do npx esbuild supabase/functions/$f/index.ts --format=esm --outfile=/dev/null; done
+npm run gates        # scripts/gates.mjs: typecheck · eslint · vitest · build · i18n · ux · hardcode ·
+                     # currency · db-sync · db-select · stamp-edge · esbuild усіх edge · playwright --list ·
+                     # db-replay (потрібен Postgres: bash scripts/db-replay/local-pg.sh)
+npm run gates:fast   # без бази — ворота ЖОВТІ; лише для правок без SQL і без нових запитів
+npm run stamp        # після БУДЬ-ЯКОЇ зміни в supabase/functions/** — інакше stamp-edge червоні
+npm run db:replay    # після БУДЬ-ЯКОЇ міграції: історія → схема = types.ts → onConflict → сценарії
 ```
+СТОРОЖ (22.09): CI (`.github/workflows/ci.yml`) виконує рівно `scripts/gates.mjs` на кожен пуш,
+плюс робот `tests/prod` на живому проді (після пушу і щоранку 08:30 Києва) і один рядок власниці
+в Telegram (edge `ci-report`). Список воріт у двох місцях не існує — стереже `guardian.test.ts`.
+Ніколи не правити `.github/workflows/*.yml` без `node scripts/gates.mjs --only=workflows`:
+дубльований ключ 25.08 зробив CI мертвим на 287 комітів, і всі «ворота зелені» після цього були
+локальними. Нова edge-функція = рядок у `supabase/config.toml` + `npm run stamp`. Нова міграція =
+сценарій у `scripts/db-replay/scenarios/` (або доповнення наявного), інакше тригер живе на слово.
 
 ## Process Rules
 1. `git pull` before every edit session (Lovable may have published)

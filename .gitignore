@@ -43,3 +43,9 @@ claude-push.sh
 push.sh
 push-all.sh
 lovable-paste/
+
+# Сторож (22.09): звіти робота на проді й журнали воріт — лише артефакти CI
+prod-report.json
+prod-report/
+ci-message.txt
+gates.log

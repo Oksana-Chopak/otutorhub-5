@@ -91,3 +91,7 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.admin-stats]
     verify_jwt = true
+  [functions.version]
+    verify_jwt = false
+  [functions.ci-report]
+    verify_jwt = false

@@ -21,7 +21,7 @@ async function login(page: Page) {
 test("ДЕПЛОЙ СВІЖИЙ: прод несе поточний BUILD_TAG", async ({ page }) => {
   test.setTimeout(60000);
   await page.goto(`${BASE}/auth`, { waitUntil: "domcontentloaded" });
-  const live = await page.locator('meta[name="x-build"]').getAttribute("content");
+  const live = await page.locator('meta[name="build"]').getAttribute("content");
   expect(
     live,
     `Прод-збірка застаріла: живе «${live ?? "без маркера (дуже старий білд)"}», очікується «${BUILD_TAG}». Ліки: у чаті Lovable — «підтягни останні комміти з GitHub main», потім «передеплой edge-функції», потім Publish.`

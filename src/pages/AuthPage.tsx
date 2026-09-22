@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
 import { landingDraftForSignup, peekHandoffToken, rememberHandoffToken, saveLandingDraft, HANDOFF_TOKEN_RE } from "@/lib/landingFunnel";
-import { BUILD_TAG } from "@/lib/buildInfo";
+import { BUILD_TAG, BUILD_STAMP } from "@/lib/buildInfo";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import { isNativeApp } from "@/lib/platform";
@@ -892,7 +892,7 @@ export default function AuthPage() {
             flex-елементом у РЯДКУ — тому й висів збоку по центру висоти і
             забирав у картки ширину, через що вона стискалась. Місце йому під
             карткою, всередині тієї самої колонки. */}
-        <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#62677E)", opacity: .6 }}>{BUILD_TAG}</p>
+        <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#62677E)", opacity: .6 }}>{BUILD_TAG} · {BUILD_STAMP}</p>
       </div>
     </div>
     </>
