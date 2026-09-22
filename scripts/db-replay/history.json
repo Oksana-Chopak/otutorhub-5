@@ -1,0 +1,26 @@
+{
+  "_": "Історія міграцій ≠ історія проду. Два списки нижче — ЄДИНЕ місце, де прогін відхиляється від «застосувати всі файли по порядку». Кожен рядок — з доказом. Файл ВИЩЕ водяного знаку Lovable сюди потрапити не може (гейт це перевіряє): усе, що ще може поїхати в прод, прогоняється без винятків.",
+  "neverApplied": {
+    "20260525000002_student_rewards.sql": "ніколи не застосована в проді — заголовок 20260624000000: «Its original migration 20260525000002 was never applied»; жива таблиця створена хешем Lovable 20260620071942 (із created_at)",
+    "20260603000002_telegram_digest_prefs.sql": "колонки telegram_*_digest відсутні в types.ts (CLAUDE.md: «digest migrations … not yet live»); код їх не читає — налаштування живуть у user_telegram_links",
+    "20260603000003_telegram_lesson_reminders.sql": "те саме: telegram_reminder_1h/15m відсутні в types.ts, застосована ніколи не була",
+    "20260610110000_tutor_student_notes.sql": "ніколи не застосована — заголовок 20260802120000: «код писав у таблиці, яких НІКОЛИ не існувало»; жива форма таблиці — з 20260802120000 (без id/created_at)",
+    "20260610120000_lesson_tutor_notes.sql": "те саме: жива lesson_tutor_notes — з 20260802120000 (без tutor_id/created_at)"
+  },
+  "knownFailures": {
+    "20260518074557_0ac01843-481b-4648-8a36-03eef08c5c10.sql": "дата-міграція під конкретний uuid користувача проду (FK на profiles) — на порожній базі нема кого оновлювати",
+    "20260523174110_fix_data_isolation_independent_tutors.sql": "посилається на public.workspace_settings, якої не існувало ні тут, ні в проді (жива назва — tutor_workspace_settings); застосована не була",
+    "20260602000001_performance_indexes.sql": "перевипускає в'ю з колонкою lessons.homework, якої в схемі немає; індекси з цього файла в проді доведено відсутні у частині (див. Lovable-хеші 0602)",
+    "20260602000002_reduce_realtime_io.sql": "ALTER PUBLICATION … DROP TABLE IF EXISTS — синтаксису IF EXISTS тут у Postgres немає; файл не міг застосуватись і в проді",
+    "20260602000003_cleanup_old_data.sql": "VACUUM усередині транзакції — так Supabase міграції не виконує; чистка даних, схему не змінює",
+    "20260607000001_chat_telegram_trigger.sql": "INSERT … ON CONFLICT (jobname) на cron.job із синтаксичною помилкою; замінено пізнішими файлами",
+    "20260612110000_wallet_balances_updated_at.sql": "ALTER TABLE на student_wallet_balances, яка є В'Ю — не могла застосуватись",
+    "20260612110500_backfill_lesson_prices_from_legacy.sql": "бекфіл через lessons.student_price — колонки немає (ціна живе в lesson_details)",
+    "20260612120000_wallet_delete_transaction_v2.sql": "те саме, що 20260612110000 — ALTER на в'ю",
+    "20260612140000_unify_subjects_to_ukrainian.sql": "UPDATE public.groups — таблиці немає (жива — lesson_groups); дата-міграція",
+    "20260618000000_enforce_independent_isolation.sql": "public.workspace_settings — не існує (див. 20260523174110); замінено хешами Lovable 0618",
+    "20260803120000_subject_canon_read_and_seed.sql": "CREATE POLICY IF NOT EXISTS — такого синтаксису в Postgres немає; політику підхоплено пізнішим хешем",
+    "20260902105332_7de925bd-1d14-4495-a3f9-e7d3948ac7af.sql": "Lovable-хеш, що містить копію 20260901120001 (homework_done) без IF NOT EXISTS — у проді застосувався ПЕРШИМ, а іменований файл ішов слідом; у прогоні порядок за іменем зворотний",
+    "20260901090001_student_rewards_unique.sql": "Lovable-хеш 20260901060752 містить її копію і в прогоні йде ПЕРШИМ за іменем — обмеження вже існує; у проді застосовано саме хеш"
+  }
+}
