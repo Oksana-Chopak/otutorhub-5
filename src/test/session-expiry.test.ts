@@ -8,6 +8,8 @@ import {
   onSessionExpired,
   reportSessionExpired,
   resetSessionExpiry,
+  isTransientAuthError,
+  RESTORE_DELAYS_MS,
 } from "@/integrations/supabase/sessionExpiry";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -111,7 +113,8 @@ describe("протухла сесія (16.09)", () => {
       const a = read("src/hooks/useAuth.tsx");
       expect(a).toMatch(/visibilitychange/);
       expect(a).toMatch(/refreshSession\(\)/);
-      expect(a, "не вдалось поновити — це той самий сигнал").toMatch(/if \(error\) reportSessionExpired\(\)/);
+      // 23.09: сигнал лише коли токен справді відкинуто; ліміт/мережа — наступний тик
+      expect(a, "не вдалось поновити — це той самий сигнал (крім тимчасових збоїв)").toMatch(/if \(error && !isTransientAuthError\(error\)\) reportSessionExpired\(\)/);
     });
 
     it("успішний вхід знімає приглушення", () => {
@@ -124,5 +127,43 @@ describe("протухла сесія (16.09)", () => {
     const links = ap.match(/<Link to="\/" aria-label=\{t\("auth\.backToLanding"\)\}/g) ?? [];
     expect(links.length, "усі три екрани входу мусять мати вихід на лендінг").toBe(3);
     expect(ap).toMatch(/import \{ Link, useNavigate, useSearchParams \} from "react-router-dom";/);
+  });
+
+  describe("23.09 (скан Lovable): тимчасовий збій оновлення токена — не «сесія протухла»", () => {
+    // supabase-js на 429 від /auth/v1/token стирає сесію і шле SIGNED_OUT; далі
+    // запити йдуть анонімно → «permission denied» → людина на сторінці входу через
+    // ліміт, який мине за хвилини. Тепер: тихі спроби повернути сесію тим самим
+    // refresh-токеном, і лише потім — вхід заново.
+    it("429 / over_request_rate_limit / мережа / 5xx — тимчасово", () => {
+      expect(isTransientAuthError({ status: 429, message: "Request rate limit reached" })).toBe(true);
+      expect(isTransientAuthError({ code: "over_request_rate_limit", status: 429 })).toBe(true);
+      expect(isTransientAuthError({ name: "AuthRetryableFetchError", status: 0 })).toBe(true);
+      expect(isTransientAuthError({ status: 503, message: "Service Unavailable" })).toBe(true);
+      expect(isTransientAuthError({ message: "TypeError: Failed to fetch" })).toBe(true);
+    });
+
+    it("мертвий refresh-токен / невірний пароль — НЕ тимчасово: чесний вихід", () => {
+      expect(isTransientAuthError({ status: 400, code: "refresh_token_not_found", message: "Invalid Refresh Token" })).toBe(false);
+      expect(isTransientAuthError({ status: 401, message: "Invalid token" })).toBe(false);
+      expect(isTransientAuthError(null)).toBe(false);
+    });
+
+    it("спроб відновлення дві, з паузою (ліміт триває хвилини, не секунди)", () => {
+      expect(RESTORE_DELAYS_MS.length).toBe(2);
+      expect(RESTORE_DELAYS_MS[0]).toBeGreaterThanOrEqual(3_000);
+      expect(RESTORE_DELAYS_MS[1]).toBeGreaterThan(RESTORE_DELAYS_MS[0]);
+    });
+
+    it("useAuth: несподіваний SIGNED_OUT спершу пробує setSession зі старими токенами, і лише потім чистить стан", () => {
+      const s = read("src/hooks/useAuth.tsx");
+      expect(s).toMatch(/event === "SIGNED_OUT" && !explicitSignOutRef\.current && lastTokensRef\.current/);
+      expect(s).toMatch(/supabase\.auth\.setSession\(tokens\)/);
+      expect(s).toMatch(/if \(event === "SIGNED_OUT" && restoringRef\.current\) return;/);
+      // явний вихід (кнопка або протухла сесія) відновлення НЕ запускає
+      expect(s).toMatch(/const signOut = async \(\) => \{\s*\n\s*explicitSignOutRef\.current = true;/);
+      expect(s.indexOf("explicitSignOutRef.current = true;"), "у обробнику протухлої сесії теж").toBeLessThan(s.indexOf('signOut({ scope: "local" })'));
+      // фонова перевірка: 429 на refreshSession — не сигнал «протухла»
+      expect(s).toMatch(/if \(error && !isTransientAuthError\(error\)\) reportSessionExpired\(\);/);
+    });
   });
 });

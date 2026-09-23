@@ -65,9 +65,21 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey)
 
     // 1. Must match a pending ghost profile
-    const { data: isPending } = await admin.rpc('is_pending_email', {
+    const { data: isPending, error: pendingErr } = await admin.rpc('is_pending_email', {
       _email: normalized,
     })
+    // 13.09/23.09: технічний збій бази (наприклад, «permission denied for
+    // function is_pending_email» у service_role) — це НЕ «not pending». Раніше
+    // помилка ковталась, функція відповідала ok:false, і запрошений учень
+    // застрягав на підтвердженні без жодного сліду. Тепер це 500 без деталей
+    // про пошту (перебору адрес не додає) — клієнт запише збій в error_log.
+    if (pendingErr) {
+      console.error('confirm-pending-signup: is_pending_email failed', pendingErr.message)
+      return new Response(JSON.stringify({ ok: false, error: 'db' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     if (isPending !== true) {
       console.error('confirm-pending-signup: not pending', { email: normalized })
       return ok(false)

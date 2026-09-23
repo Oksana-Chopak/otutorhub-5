@@ -339,8 +339,13 @@ CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (
   version text PRIMARY KEY, statements text[], name text
 );
 
--- Права за замовчуванням у public — як у Supabase.
+-- Права за замовчуванням у public — як у Supabase для таблиць і послідовностей.
+-- ФУНКЦІЇ: service_role НАВМИСНО не в дефолтах. Прод показав 13.09, що функції,
+-- створені пайплайном Lovable, не отримують явного EXECUTE для service_role, і
+-- «REVOKE … FROM PUBLIC» лишає edge-функції без прав (confirm-pending-signup →
+-- permission denied). Стенд мусить бути не мʼякшим за прод: право service_role
+-- на RPC тут існує лише через PUBLIC або явний GRANT (як у 20260913090000).
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;

@@ -2,7 +2,7 @@
 // Should be invoked on a schedule (cron). Idempotent via lesson_payment_reminders log.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
-import { decideDebtReminder, DEBT_INTERVAL_DAYS } from "../_shared/debtCadence.ts";
+import { decideDebtReminder, DEBT_INTERVAL_DAYS, buildDebtPairs, splitOtherHistory, type DebtRow } from "../_shared/debtCadence.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
 import { versionProbe } from "../_shared/build.ts";
 
@@ -595,18 +595,21 @@ Deno.serve(async (req) => {
     }
 
     if (debtRows.length > 0) {
-      const pairs = new Map<string, { tutor_id: string; student_id: string; total: number; count: number; oldestAt: number; oldestLesson: string }>();
-      for (const r of debtRows) {
-        const key = `${r.tutor_id}:${r.student_id}`;
-        const cur = pairs.get(key);
-        if (!cur) {
-          pairs.set(key, { tutor_id: r.tutor_id, student_id: r.student_id, total: r.price, count: 1, oldestAt: r.at, oldestLesson: r.lessonId });
-        } else {
-          cur.total += r.price;
-          cur.count += 1;
-          if (r.at < cur.oldestAt) { cur.oldestAt = r.at; cur.oldestLesson = r.lessonId; }
-        }
-      }
+      // 23.09: історію «інших» нагадувань читаємо ДО збирання пар — уроки, про
+      // які учню щойно писали «після/до уроку», з проходу про борг виключаються
+      // (один урок = одна згадка), а решта боргу нагадує про себе далі. Без цієї
+      // історії не можна чесно вирішити, про що вже писали, — краще пропустити
+      // цей запуск, ніж написати людині вдруге.
+      const oStudentIds = [...new Set(debtRows.map((r) => r.student_id))];
+      const { data: oHist, error: oHistErr } = await supabase
+        .from("lesson_payment_reminders")
+        .select("lesson_id, tutor_id, student_id, sent_at, reminder_kind")
+        .in("student_id", oStudentIds)
+        .not("reminder_kind", "like", "debt%")
+        .gte("sent_at", new Date(now.getTime() - DEBT_INTERVAL_DAYS * DAY_MS).toISOString());
+      if (oHistErr) throw new Error(`історія нагадувань (інші): ${oHistErr.message}`);
+      const { lastPairWideByPair, noticedLessons } = splitOtherHistory((oHist ?? []) as any[]);
+      const pairs = buildDebtPairs(debtRows as DebtRow[], noticedLessons);
 
       // Догружаємо те, чого могло не бути в кеші проходів вище.
       const dTutorIds = [...new Set([...pairs.values()].map((v) => v.tutor_id))];
@@ -629,17 +632,14 @@ Deno.serve(async (req) => {
         for (const link of dl ?? []) if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
       }
 
-      // Історія нагадувань по цих парах (лічильник ведеться по ПАРІ). Два читання,
-      // бо в них різні межі — і змішувати їх НЕ МОЖНА:
-      //  · про борг — від НАЙСТАРІШОГО боргу серед пар. Стеля «4 рази» рахує
-      //    нагадування, новіші за найстаріший неоплачений урок, а борг не
-      //    застаріває. Фіксоване вікно (у першій версії правки 22.09 було 60 днів)
-      //    через два місяці «забувало» вже надіслані — і помічник почав би коло
-      //    наново: ще 4 повідомлення, а коли лог упирається в UNIQUE — щогодини;
-      //  · решта видів — лише за інтервал тиші (3 дні): інакше прохід про борг
-      //    не бачив «після уроку», що пішло цією ж годиною, і учень отримував два
-      //    повідомлення про той самий урок. Ручне «Нагадати» теж рахується:
-      //    написав репетитор — помічник мовчить.
+      // Історія нагадувань ПРО БОРГ по цих парах (лічильник ведеться по ПАРІ) —
+      // від НАЙСТАРІШОГО боргу серед пар. Стеля «4 рази» рахує нагадування,
+      // новіші за найстаріший неоплачений урок, а борг не застаріває. Фіксоване
+      // вікно (у першій версії правки 22.09 було 60 днів) через два місяці
+      // «забувало» вже надіслані — і помічник почав би коло наново: ще 4
+      // повідомлення, а коли лог упирається в UNIQUE — щогодини. Інші види
+      // (за інтервал тиші) прочитано вище: ручне «Нагадати» і кнопка Telegram
+      // глушать пару, «після/до уроку» — лише свій урок.
       const minOldestAt = Math.min(...[...pairs.values()].map((v) => v.oldestAt));
       const { data: dHist, error: dHistErr } = await fetchAllRows<any>((a, b) => supabase
         .from("lesson_payment_reminders")
@@ -652,13 +652,6 @@ Deno.serve(async (req) => {
       // Без історії не можна чесно вирішити «чи не зарано» — краще пропустити
       // цей запуск, ніж написати людині вдруге.
       if (dHistErr) throw new Error(`історія нагадувань: ${dHistErr.message}`);
-      const { data: oHist, error: oHistErr } = await supabase
-        .from("lesson_payment_reminders")
-        .select("tutor_id, student_id, sent_at, reminder_kind")
-        .in("student_id", dStudentIds)
-        .not("reminder_kind", "like", "debt%")
-        .gte("sent_at", new Date(now.getTime() - DEBT_INTERVAL_DAYS * DAY_MS).toISOString());
-      if (oHistErr) throw new Error(`історія нагадувань (інші): ${oHistErr.message}`);
       const debtHistByPair = new Map<string, number[]>();
       for (const h of (dHist ?? []) as any[]) {
         const key = `${h.tutor_id}:${h.student_id}`;
@@ -666,19 +659,16 @@ Deno.serve(async (req) => {
         arr.push(new Date(h.sent_at).getTime());
         debtHistByPair.set(key, arr);
       }
-      const lastOtherByPair = new Map<string, number>();
-      for (const h of (oHist ?? []) as any[]) {
-        const key = `${h.tutor_id}:${h.student_id}`;
-        const at = new Date(h.sent_at).getTime();
-        if (at > (lastOtherByPair.get(key) ?? 0)) lastOtherByPair.set(key, at);
-      }
-
       const nowMs = now.getTime();
       for (const [key, pair] of pairs) {
         const settings = settingsByTutor.get(pair.tutor_id);
         if (!settings || !isProActive(settings) || !settings.payment_reminder_enabled) { skipped++; continue; }
 
-        const decision = decideDebtReminder(nowMs, pair.oldestAt, debtHistByPair.get(key) ?? [], lastOtherByPair.get(key) ?? null);
+        // Про всі уроки пари учню вже писали окремо за останні 3 дні — другого
+        // повідомлення про ті самі уроки не буде (випадок 22.09). Старіші борги,
+        // яких ніхто не згадував, нагадують про себе далі (регресія 23.09 закрита).
+        if (pair.chaseable === 0) { skipped++; continue; }
+        const decision = decideDebtReminder(nowMs, pair.oldestAt, debtHistByPair.get(key) ?? [], lastPairWideByPair.get(key) ?? null);
         if (!decision.send) { skipped++; continue; }
 
         const lang = rlang(pair.student_id);

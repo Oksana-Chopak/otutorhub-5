@@ -8,6 +8,10 @@ import {
   DEBT_KINDS,
   DEBT_MAX_REMINDERS,
   decideDebtReminder,
+  buildDebtPairs,
+  splitOtherHistory,
+  PAIR_WIDE_KINDS,
+  PER_LESSON_KINDS,
 } from "../../supabase/functions/_shared/debtCadence";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -69,11 +73,46 @@ describe("нагадування про борг (15.09)", () => {
       expect(d).toEqual({ send: true, kind: "debt_1", index: 1 });
     });
 
-    it("22.09: учора пішло «після уроку» — сьогодні про борг МОВЧИМО", () => {
-      // Скан Lovable: учень отримував «час оплатити заняття» і одразу «є
-      // неоплачені уроки» про той самий урок.
-      const d = decideDebtReminder(NOW, NOW - 2 * DAY, [], NOW - 1 * DAY);
+    it("22.09: учора пішло «після уроку» про ЄДИНИЙ борг — сьогодні про борг МОВЧИМО", () => {
+      // Скан Lovable 22.09: учень отримував «час оплатити заняття» і одразу «є
+      // неоплачені уроки» про той самий урок. Урок, про який щойно писали,
+      // з проходу про борг виключається — а іншого боргу тут немає.
+      const { noticedLessons, lastPairWideByPair } = splitOtherHistory([
+        { lesson_id: "L2", tutor_id: "T", student_id: "S", sent_at: new Date(NOW - 1 * DAY).toISOString(), reminder_kind: "after_lesson" },
+      ]);
+      const pairs = buildDebtPairs([{ tutor_id: "T", student_id: "S", lessonId: "L2", at: NOW - 2 * DAY, price: 500 }], noticedLessons);
+      expect(pairs.get("T:S")?.chaseable).toBe(0);
+      expect(lastPairWideByPair.size, "«після уроку» не глушить пару — лише свій урок").toBe(0);
+    });
+
+    it("23.09 (скан Lovable): учень із двома уроками на тиждень — СТАРИЙ борг усе одно нагадує про себе", () => {
+      // Регресія правки 22.09: «після уроку» кожні 3–4 дні глушило прохід про
+      // борг назавжди, і про старі неоплачені уроки не нагадали б ніколи.
+      const { noticedLessons, lastPairWideByPair } = splitOtherHistory([
+        { lesson_id: "L2", tutor_id: "T", student_id: "S", sent_at: new Date(NOW - 1 * DAY).toISOString(), reminder_kind: "after_lesson" },
+      ]);
+      const pairs = buildDebtPairs([
+        { tutor_id: "T", student_id: "S", lessonId: "L1", at: NOW - 10 * DAY, price: 500 }, // старий, ніхто не згадував
+        { tutor_id: "T", student_id: "S", lessonId: "L2", at: NOW - 2 * DAY, price: 500 },  // учора про нього писали
+      ], noticedLessons);
+      const pair = pairs.get("T:S")!;
+      expect(pair.chaseable).toBe(1);
+      expect(pair.count, "баланс чесний — усі неоплачені уроки").toBe(2);
+      expect(pair.total).toBe(1000);
+      const d = decideDebtReminder(NOW, pair.oldestAt, [], lastPairWideByPair.get("T:S") ?? null);
+      expect(d).toEqual({ send: true, kind: "debt_1", index: 1 });
+    });
+
+    it("23.09: ручне «Нагадати» / кнопка Telegram — розмова про ВЕСЬ борг, вона глушить пару на 3 дні", () => {
+      const { noticedLessons, lastPairWideByPair } = splitOtherHistory([
+        { lesson_id: "L1", tutor_id: "T", student_id: "S", sent_at: new Date(NOW - 1 * DAY).toISOString(), reminder_kind: "manual" },
+      ]);
+      expect(noticedLessons.size).toBe(0);
+      const pairs = buildDebtPairs([{ tutor_id: "T", student_id: "S", lessonId: "L1", at: NOW - 10 * DAY, price: 500 }], noticedLessons);
+      const d = decideDebtReminder(NOW, pairs.get("T:S")!.oldestAt, [], lastPairWideByPair.get("T:S") ?? null);
       expect(d).toEqual({ send: false, reason: "too-soon" });
+      expect([...PAIR_WIDE_KINDS]).toEqual(["manual", "telegram_button"]);
+      expect([...PER_LESSON_KINDS]).toEqual(["before_lesson", "after_lesson", "prepaid"]);
     });
 
     it("22.09: вчора написав сам репетитор («Нагадати») — помічник теж мовчить", () => {
@@ -168,7 +207,8 @@ describe("нагадування про борг (15.09)", () => {
 
     it("одне повідомлення на пару, а не на кожен урок", () => {
       const s = src();
-      expect(s).toMatch(/const pairs = new Map</);
+      // пари збирає buildDebtPairs (23.09), рішення — по парі
+      expect(s).toMatch(/const pairs = buildDebtPairs\(/);
       expect(s).toMatch(/decideDebtReminder\(nowMs, pair\.oldestAt/);
     });
 
@@ -177,11 +217,16 @@ describe("нагадування про борг (15.09)", () => {
         .not.toMatch(/if \(lessons\.length === 0\) \{\s*\n\s*return new Response/);
     });
 
-    it("22.09: прохід про борг бачить і «після уроку»/ручні — за інтервал тиші", () => {
+    it("22.09/23.09: прохід про борг читає «інші» нагадування з lesson_id, ділить їх правильно і виключає згадані уроки", () => {
       const s = src();
       const pass = s.slice(s.indexOf("ПРОХІД ПРО БОРГ"));
+      expect(pass).toMatch(/\.select\("lesson_id, tutor_id, student_id, sent_at, reminder_kind"\)/);
       expect(pass).toMatch(/\.not\("reminder_kind", "like", "debt%"\)\s*\n\s*\.gte\("sent_at", new Date\(now\.getTime\(\) - DEBT_INTERVAL_DAYS \* DAY_MS\)/);
-      expect(pass).toMatch(/lastOtherByPair\.get\(key\) \?\? null/);
+      expect(pass).toMatch(/splitOtherHistory\(\(oHist \?\? \[\]\) as any\[\]\)/);
+      expect(pass).toMatch(/buildDebtPairs\(debtRows as DebtRow\[\], noticedLessons\)/);
+      expect(pass).toMatch(/if \(pair\.chaseable === 0\) \{ skipped\+\+; continue; \}/);
+      expect(pass).toMatch(/lastPairWideByPair\.get\(key\) \?\? null/);
+      expect(pass, "старий підхід «будь-яке нагадування глушить пару» не повертається").not.toMatch(/lastOtherByPair/);
       expect(pass, "без історії не можна чесно вирішити «чи не зарано»").toMatch(/if \(dHistErr\) throw/);
       expect(pass).toMatch(/if \(oHistErr\) throw/);
     });

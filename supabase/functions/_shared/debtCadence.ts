@@ -44,18 +44,28 @@ export type DebtDecision =
  * @param oldestDebtAtMs  початок НАЙДАВНІШОГО неоплаченого проведеного уроку пари
  * @param sentAtMs        коли вже слались нагадування про БОРГ цій парі (`debt_*`),
  *                        у мілісекундах — уся історія, фільтр усередині
- * @param lastOtherAtMs   коли цій парі востаннє йшло БУДЬ-ЯКЕ ІНШЕ нагадування про
- *                        оплату — за строком («після уроку», «до уроку»,
- *                        передоплата) чи ручне «Нагадати». `null` — не було.
+ * @param lastOtherAtMs   коли цій парі востаннє йшла ІНША розмова ПРО ВЕСЬ БОРГ —
+ *                        ручне «Нагадати» чи кнопка в Telegram (PAIR_WIDE_KINDS).
+ *                        `null` — не було. Нагадування ЗА ОКРЕМИЙ УРОК («після
+ *                        уроку», «до уроку», передоплата) сюди НЕ входять — їх
+ *                        враховує buildDebtPairs, виключаючи сам урок (див. нижче).
  *
  * 22.09 (скан Lovable, підтверджено): прохід про борг не бачив нагадувань за
  * строком. Репетитор із режимом «після уроку» — і учень, чий урок пройшов
  * учора, отримував ДВА повідомлення про той самий неоплачений урок: «час
- * оплатити заняття» і одразу «є неоплачені уроки». Для учня це виглядає як
- * зламаний спам, а для репетитора — як сором перед його ж клієнтами. Тепер
- * інтервал у 3 дні відраховується від ОСТАННЬОГО нагадування будь-якого виду,
- * включно з ручною кнопкою: людина, якій учора написав сам репетитор, сьогодні
- * від помічника нічого не отримає. Стеля «4 рази» рахує лише нагадування про борг.
+ * оплатити заняття» і одразу «є неоплачені уроки».
+ *
+ * 23.09 (скан Lovable, підтверджено — регресія правки 22.09): та правка глушила
+ * прохід про борг на 3 дні після БУДЬ-ЯКОГО нагадування, включно з «після
+ * уроку». Учень із двома уроками на тиждень отримує таке нагадування кожні
+ * 3–4 дні — тож про СТАРІ неоплачені уроки йому не нагадали б ніколи, і
+ * репетитор мовчки лишався б без цих грошей. Тепер правило точне:
+ *  · урок, про який учню щойно (≤3 дні) писали «після/до уроку», з проходу про
+ *    борг ВИКЛЮЧАЄТЬСЯ — два повідомлення про той самий урок неможливі;
+ *  · якщо після виключення боргів не лишилось — мовчимо (випадок 22.09);
+ *  · якщо лишились старіші — нагадуємо про борг, а інтервал тиші рахуємо від
+ *    останньої розмови про ВЕСЬ борг (debt_*, ручне «Нагадати», кнопка Telegram).
+ * Стеля «4 рази» рахує лише нагадування про борг.
  */
 export function decideDebtReminder(
   now: number,
@@ -94,3 +104,64 @@ export const DEBT_KINDS: readonly string[] = Array.from(
   { length: DEBT_MAX_REMINDERS },
   (_, i) => `debt_${i + 1}`,
 );
+
+/** Розмови про ВЕСЬ борг пари: після них помічник мовчить DEBT_INTERVAL_DAYS. */
+export const PAIR_WIDE_KINDS: readonly string[] = ["manual", "telegram_button"];
+/** Нагадування за ОКРЕМИЙ урок: виключають лише цей урок із проходу про борг. */
+export const PER_LESSON_KINDS: readonly string[] = ["before_lesson", "after_lesson", "prepaid"];
+
+export type OtherReminderRow = { lesson_id: string | null; tutor_id: string; student_id: string; sent_at: string; reminder_kind: string };
+
+/**
+ * Історія «інших» нагадувань за інтервал тиші → (а) остання розмова про весь борг
+ * по парі, (б) уроки, про які учню вже писали окремо (ключ `lesson:student`).
+ */
+export function splitOtherHistory(rows: readonly OtherReminderRow[]): {
+  lastPairWideByPair: Map<string, number>;
+  noticedLessons: Set<string>;
+} {
+  const lastPairWideByPair = new Map<string, number>();
+  const noticedLessons = new Set<string>();
+  for (const h of rows) {
+    const at = new Date(h.sent_at).getTime();
+    if (PAIR_WIDE_KINDS.includes(h.reminder_kind)) {
+      const key = `${h.tutor_id}:${h.student_id}`;
+      if (at > (lastPairWideByPair.get(key) ?? 0)) lastPairWideByPair.set(key, at);
+    } else if (PER_LESSON_KINDS.includes(h.reminder_kind) && h.lesson_id) {
+      noticedLessons.add(`${h.lesson_id}:${h.student_id}`);
+    }
+  }
+  return { lastPairWideByPair, noticedLessons };
+}
+
+export type DebtRow = { tutor_id: string; student_id: string; lessonId: string; at: number; price: number };
+export type DebtPair = {
+  tutor_id: string;
+  student_id: string;
+  /** чесний баланс: УСІ неоплачені проведені уроки пари */
+  total: number;
+  count: number;
+  oldestAt: number;
+  oldestLesson: string;
+  /** скільки з них НЕ згадувались учню окремо за інтервал тиші — про них і нагадуємо */
+  chaseable: number;
+};
+
+/** Борги → пари. Один урок = одна згадка: урок, про який щойно писали окремо, не веде до другого повідомлення. */
+export function buildDebtPairs(rows: readonly DebtRow[], noticedLessons: ReadonlySet<string>): Map<string, DebtPair> {
+  const pairs = new Map<string, DebtPair>();
+  for (const r of rows) {
+    const key = `${r.tutor_id}:${r.student_id}`;
+    const noticed = noticedLessons.has(`${r.lessonId}:${r.student_id}`);
+    const cur = pairs.get(key);
+    if (!cur) {
+      pairs.set(key, { tutor_id: r.tutor_id, student_id: r.student_id, total: r.price, count: 1, oldestAt: r.at, oldestLesson: r.lessonId, chaseable: noticed ? 0 : 1 });
+    } else {
+      cur.total += r.price;
+      cur.count += 1;
+      if (!noticed) cur.chaseable += 1;
+      if (r.at < cur.oldestAt) { cur.oldestAt = r.at; cur.oldestLesson = r.lessonId; }
+    }
+  }
+  return pairs;
+}

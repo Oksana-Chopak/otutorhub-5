@@ -3,6 +3,7 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
 import { landingDraftForSignup, peekHandoffToken, rememberHandoffToken, saveLandingDraft, HANDOFF_TOKEN_RE } from "@/lib/landingFunnel";
 import { BUILD_TAG, BUILD_STAMP } from "@/lib/buildInfo";
+import { logError } from "@/lib/errorLog";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import { isNativeApp } from "@/lib/platform";
@@ -377,9 +378,11 @@ export default function AuthPage() {
             _email: parsed.data.email,
           });
           if (isPending === true) {
-            await supabase.functions.invoke("confirm-pending-signup", {
+            const { error: confirmErr } = await supabase.functions.invoke("confirm-pending-signup", {
               body: { email: parsed.data.email },
             });
+            // 23.09: збій підтвердження (500 з функції) — у error_log, а не в тишу
+            if (confirmErr) void logError(`confirm-pending-signup: ${confirmErr.message}`, null, { where: "signin-unconfirmed" });
             const retry = await supabase.auth.signInWithPassword({
               email: parsed.data.email,
               password: parsed.data.password,
@@ -536,9 +539,11 @@ export default function AuthPage() {
     // Pending invite fast path: confirm email server-side, then sign in directly.
     if (isPending) {
       try {
-        await supabase.functions.invoke("confirm-pending-signup", {
+        const { error: confirmErr } = await supabase.functions.invoke("confirm-pending-signup", {
           body: { email: parsed.data.email },
         });
+        // 23.09: збій підтвердження (500 з функції) — у error_log, а не в тишу
+        if (confirmErr) void logError(`confirm-pending-signup: ${confirmErr.message}`, null, { where: "signup-pending" });
         const { error: signInErr } = await supabase.auth.signInWithPassword({
           email: parsed.data.email,
           password: parsed.data.password,

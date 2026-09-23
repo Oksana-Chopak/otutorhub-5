@@ -11,8 +11,9 @@
  *   1. створює порожню базу, накладає bootstrap.sql («порожній Supabase»);
  *   2. застосовує КОЖЕН файл supabase/migrations/*.sql у порядку імен, кожен у
  *      власній транзакції (як робить Supabase);
- *   3. звіряє зібрану схему з живим дзеркалом types.ts (compare-types.mjs) і кожен
- *      onConflict у коді — з унікальними ключами (check-onconflict.mjs);
+ *   3. звіряє зібрану схему з живим дзеркалом types.ts (compare-types.mjs), кожен
+ *      onConflict у коді — з унікальними ключами (check-onconflict.mjs), кожну RPC
+ *      з edge-функцій — з правами service_role (check-edge-rpc-grants.mjs);
  *   4. прогоняє сценарії scripts/db-replay/scenarios/*.sql — кожен мусить
  *      завершитись без помилки (усередині — власні RAISE EXCEPTION);
  *   5. друкує підсумок і виходить з кодом 1, якщо щось упало.
@@ -140,6 +141,7 @@ if (!ONLY_SCENARIOS) {
   for (const f of pending) applyOne(f);
   if (pending.length) console.log(`[db-replay] фаза B (очікують SQL у Lovable, вище знаку ${watermark}): ${pending.map((f) => f.slice(0, 14)).join(", ")}`);
   if (!sub("check-onconflict.mjs")) results.failed.push({ f: "check-onconflict (після SQL)", msg: "див. вище" });
+  if (!sub("check-edge-rpc-grants.mjs")) results.failed.push({ f: "check-edge-rpc-grants", msg: "див. вище" });
 }
 
 if (existsSync(SCEN)) {

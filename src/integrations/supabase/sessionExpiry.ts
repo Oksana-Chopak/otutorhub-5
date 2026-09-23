@@ -70,3 +70,30 @@ export function looksLikeExpiredSession(url: string, status: number): boolean {
   if (url.includes("/auth/v1/")) return false;
   return url.includes("/rest/v1/") || url.includes("/functions/v1/");
 }
+
+/**
+ * 23.09 (скан Lovable: «розклад і профіль падають з permission denied рівно
+ * тоді, коли оновлення токена впирається в ліміт»). Що відбувається насправді:
+ * supabase-js на 429 від /auth/v1/token вважає оновлення НЕВДАЛИМ, стирає сесію
+ * зі сховища і шле SIGNED_OUT; наступні запити йдуть з анонімним ключем → база
+ * відповідає «permission denied» → людина, яка нічого не робила, опиняється на
+ * сторінці входу. Ліміт — тимчасовий (5 хв на IP; мобільні оператори ховають
+ * тисячі людей за однією адресою), а сесію втрачено назавжди.
+ *
+ * Тому: збій оновлення, який виглядає тимчасовим (429, мережа, 5xx), — НЕ
+ * «сесія протухла». Спершу одна-дві тихі спроби відновити сесію тим самим
+ * refresh-токеном (сервер його не обертав, бо відмовив ДО обробки), і лише
+ * якщо не вийшло — вхід заново, з поверненням на ту саму сторінку.
+ */
+export const RESTORE_DELAYS_MS: readonly number[] = [5_000, 30_000];
+
+/** Чи схожа помилка оновлення токена на ТИМЧАСОВУ (ліміт запитів, мережа, 5xx)? */
+export function isTransientAuthError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { status?: number; name?: string; code?: string; message?: string };
+  if (e.status === 429 || e.code === "over_request_rate_limit") return true;
+  if (e.name === "AuthRetryableFetchError") return true;
+  if (typeof e.status === "number" && e.status >= 500) return true;
+  if (e.status === 0 || /fetch failed|network|Failed to fetch/i.test(e.message ?? "")) return true;
+  return false;
+}

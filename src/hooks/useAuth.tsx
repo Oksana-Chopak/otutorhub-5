@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { onSessionExpired, reportSessionExpired, resetSessionExpiry } from "@/integrations/supabase/sessionExpiry";
+import { onSessionExpired, reportSessionExpired, resetSessionExpiry, isTransientAuthError, RESTORE_DELAYS_MS } from "@/integrations/supabase/sessionExpiry";
 import { toast } from "sonner";
 import i18n from "@/i18n";
 
@@ -25,6 +25,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [roles, setRoles] = useState<AppRole[]>([]);
     const [loading, setLoading] = useState(true);
     const mountedRef = useRef(true);
+    // 23.09: останні живі токени — щоб після SIGNED_OUT, якого ми не просили
+    // (supabase-js стер сесію після 429 на оновленні), тихо спробувати повернути
+    // сесію, а не виганяти людину на вхід через тимчасовий ліміт.
+    const lastTokensRef = useRef<{ access_token: string; refresh_token: string } | null>(null);
+    const explicitSignOutRef = useRef(false);
+    const restoringRef = useRef(false);
 
   useEffect(() => {
         mountedRef.current = true;
@@ -53,6 +59,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
         // Set up listener FIRST
                 const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
+                        if (newSession?.refresh_token) {
+                                lastTokensRef.current = { access_token: newSession.access_token, refresh_token: newSession.refresh_token };
+                        }
+                        // Поки триває спроба відновлення, SIGNED_OUT — це відлуння самої спроби
+                        // (supabase-js знову стер сесію після 429): стан не чіпаємо.
+                        if (event === "SIGNED_OUT" && restoringRef.current) return;
+                        if (event === "SIGNED_OUT" && !explicitSignOutRef.current && lastTokensRef.current) {
+                                // SIGNED_OUT без нашого signOut = supabase-js стер сесію після
+                                // невдалого оновлення (429 «забагато запитів» — тимчасово). Стан
+                                // не чистимо одразу: одна-дві тихі спроби повернути сесію тим самим
+                                // refresh-токеном; не вийшло — тоді вхід заново (state.from поверне
+                                // людину туди, де вона була).
+                                restoringRef.current = true;
+                                const tokens = lastTokensRef.current;
+                                const attempt = async (i: number) => {
+                                        let dead = false;
+                                        try {
+                                                const { data, error } = await supabase.auth.setSession(tokens);
+                                                if (!error && data.session) { restoringRef.current = false; return; } // SIGNED_IN прийде сам
+                                                if (error && !isTransientAuthError(error)) dead = true;               // токен мертвий — не мучимо
+                                        } catch { /* мережа — рахуємо як тимчасове */ }
+                                        if (!dead && i + 1 < RESTORE_DELAYS_MS.length) { setTimeout(() => void attempt(i + 1), RESTORE_DELAYS_MS[i + 1]); return; }
+                                        restoringRef.current = false;
+                                        lastTokensRef.current = null;
+                                        if (!mountedRef.current) return;
+                                        setSession(null); setUser(null); setRoles([]);
+                                        toast.error(i18n.t("auth.sessionExpired"), { description: i18n.t("auth.sessionExpiredDesc") });
+                                };
+                                setTimeout(() => void attempt(0), RESTORE_DELAYS_MS[0]);
+                                return;
+                        }
+                        if (event === "SIGNED_OUT") { lastTokensRef.current = null; explicitSignOutRef.current = false; }
                         setSession(newSession);
                         setUser(newSession?.user ?? null);
                         if (newSession?.user) {
@@ -169,6 +207,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setRoles([]);
                 // Вихід ЛОКАЛЬНИЙ: мережа зараз може бути під лімітом, а мертвий
                 // токен у сховищі — саме те, через що наступний запит знову впаде.
+                explicitSignOutRef.current = true;
+                lastTokensRef.current = null;
                 void supabase.auth.signOut({ scope: "local" }).catch(() => { /* ігноруємо */ });
                 toast.error(i18n.t("auth.sessionExpired"), { description: i18n.t("auth.sessionExpiredDesc") });
         });
@@ -186,7 +226,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const expMs = (s.expires_at ?? 0) * 1000;
                 if (!expMs || expMs - Date.now() > 60_000) return;
                 const { error } = await supabase.auth.refreshSession();
-                if (error) reportSessionExpired();
+                // 23.09: ліміт/мережа — тимчасово, наступний тик спробує ще; сигнал
+                // «сесія протухла» — лише коли сервер справді відкинув токен.
+                if (error && !isTransientAuthError(error)) reportSessionExpired();
         };
         const onVis = () => { void check(); };
         document.addEventListener("visibilitychange", onVis);
@@ -198,6 +240,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+        explicitSignOutRef.current = true;
+        lastTokensRef.current = null;
         await supabase.auth.signOut();
   };
 
