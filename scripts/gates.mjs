@@ -59,7 +59,7 @@ const GATES = [
       return { ok: bad.length === 0, out: bad.length ? bad.join("\n") : "усі воркфлоу читаються" };
     },
   },
-  { name: "typecheck", why: "tsc -p tsconfig.app.json; НЕ npx tsc --noEmit (той перевіряє нічого)", cmd: [npm, ["run", "-s", "typecheck"]] },
+  { name: "typecheck", why: "tsc для app (src/) І node (vite.config.ts) — НЕ npx tsc --noEmit (той перевіряє нічого)", cmd: [npm, ["run", "-s", "typecheck"]] },
   { name: "eslint", why: "0 помилок у src", cmd: [npx, ["eslint", "src", "--quiet"]] },
   { name: "vitest", why: "усі модульні тести й ратчети", cmd: [npx, ["vitest", "run", "--reporter=dot"]] },
   { name: "build", why: "vite build — esbuild ловить те, що tsc і vitest пропускають", cmd: [npm, ["run", "-s", "build"]] },

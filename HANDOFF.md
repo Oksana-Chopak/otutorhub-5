@@ -43,7 +43,7 @@ oTutorHub — SaaS для управління репетиторством. Ц�
 
 Кореневий `tsconfig.json` має `"files": []` і лише `references`. Тобто `npx tsc --noEmit` завжди пише «0 помилок», навіть коли застосунок не збирається. `npm run build` — це `vite build`: esbuild зрізає типи, не перевіряючи їх.
 
-**Єдина справжня перевірка типів — `npm run typecheck`** (`tsc -p tsconfig.app.json --noEmit`). Її ж дублює тест `src/test/typecheck-gate.test.ts`, щоб гейт не можна було обійти забудькуватістю.
+**Єдина справжня перевірка типів — `npm run typecheck`** (`tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit` — і `src/`, і конфіги збірки; другий проєкт додано 23.09 після того, як імпорт `.mjs` у `vite.config.ts` пройшов усі ворота, а збірка превʼю в Lovable упала на TS7016). Її ж дублює тест `src/test/typecheck-gate.test.ts`, щоб гейт не можна було обійти забудькуватістю.
 
 Ціна цієї пастки: 01.09 у прод поїхав виклик `useEscapeKey` без імпорту в `AddFab.tsx` і `OnboardingFlowB.tsx` — дашборд самостійного репетитора і весь онбординг падали в петлю без виходу.
 
