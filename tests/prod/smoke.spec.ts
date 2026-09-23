@@ -119,26 +119,27 @@ test("збірка на проді = main", async ({ request }) => {
   }
 });
 
+const PROBED_FNS = ["payment-reminders", "send-push", "tutor-daily-digest", "telegram-poll", "remind-payment"];
+
 test("edge-функції на проді = репо", async ({ request }) => {
   const info = test.info();
-  const r = await request.get(`${SUPABASE_URL}/functions/v1/version`, { failOnStatusCode: false });
-  if (r.status() === 404) {
-    const msg = "функція `version` ще не задеплоєна — потрібен передеплой усіх edge-функцій";
-    info.annotations.push({ type: "freshness", description: msg });
-    if (FRESH === "require") throw new Error(msg);
-    return;
-  }
-  let edge: string | undefined; let functions: number | undefined;
-  try { ({ edge, functions } = (await r.json()) as { edge?: string; functions?: number }); } catch { edge = undefined; }
-  if (!r.ok() || !edge) {
-    const msg = `функція version відповіла ${r.status()} без версії — edge-канал перевірити не вдалося`;
-    info.annotations.push({ type: "freshness", description: msg });
-    if (FRESH === "require") throw new Error(msg);
-    return;
-  }
-  info.annotations.push({ type: "freshness", description: `edge на проді: ${edge} (${functions} функцій) · у репо: ${EDGE_VERSION}` });
-  if (edge !== EDGE_VERSION) {
-    const msg = `Edge-функції на проді (${edge}) ≠ репо (${EDGE_VERSION}). Ліки: у чаті Lovable — «Передеплой усі edge-функції з репозиторію».`;
+  // 1) функція `version` — штамп усього пакета; 2) пойменні проби `?version`
+  // п'яти функцій (інша сесія, 22.09) — щоб бачити ЧАСТКОВИЙ передеплой поіменно.
+  const seen: Record<string, string> = {};
+  const probe = async (name: string, url: string) => {
+    const r = await request.get(url, { failOnStatusCode: false });
+    if (r.status() === 404) { seen[name] = "не задеплоєна"; return; }
+    try {
+      const j = (await r.json()) as { edge?: string; build?: string };
+      seen[name] = j.edge ?? j.build ?? `?(${r.status()})`;
+    } catch { seen[name] = `стара версія (${r.status()})`; }
+  };
+  await probe("version", `${SUPABASE_URL}/functions/v1/version`);
+  for (const fn of PROBED_FNS) await probe(fn, `${SUPABASE_URL}/functions/v1/${fn}?version`);
+  const stale = Object.entries(seen).filter(([, v]) => v !== EDGE_VERSION).map(([k, v]) => `${k}: ${v}`);
+  info.annotations.push({ type: "freshness", description: `edge у репо: ${EDGE_VERSION} · прод: ${Object.entries(seen).map(([k, v]) => `${k}=${v}`).join(", ")}` });
+  if (stale.length) {
+    const msg = `Edge-функції на проді застарілі (${stale.join("; ")}) — репо ${EDGE_VERSION}. Ліки: у чаті Lovable — «Передеплой усі edge-функції з репозиторію».`;
     if (FRESH === "require") throw new Error(msg);
     info.annotations.push({ type: "stale", description: msg });
   }

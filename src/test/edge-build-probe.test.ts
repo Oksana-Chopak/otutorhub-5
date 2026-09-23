@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { versionProbe, EDGE_BUILD } from "../../supabase/functions/_shared/build";
+import { EDGE_VERSION, EDGE_FUNCTIONS } from "../../supabase/functions/_shared/version";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const src = (f: string) => readFileSync(join(root, f), "utf8");
@@ -18,7 +19,7 @@ describe("перевірка версії edge-функцій", () => {
   it("GET ?version → мітка збірки, читається з браузера (CORS), без кешу", async () => {
     const r = versionProbe(new Request("https://x.supabase.co/functions/v1/send-push?version"), "send-push")!;
     expect(r.status).toBe(200);
-    expect(await r.json()).toEqual({ fn: "send-push", build: EDGE_BUILD });
+    expect(await r.json()).toEqual({ fn: "send-push", build: EDGE_BUILD, functions: EDGE_FUNCTIONS });
     expect(r.headers.get("access-control-allow-origin")).toBe("*");
     expect(r.headers.get("cache-control")).toBe("no-store");
   });
@@ -29,8 +30,9 @@ describe("перевірка версії edge-функцій", () => {
     expect(versionProbe(new Request("https://x/f?v=1"), "f")).toBeNull();
   });
 
-  it("мітка має вигляд дати пакета — її легко звірити", () => {
-    expect(EDGE_BUILD).toMatch(/^\d{4}-\d{2}-\d{2}\.\d+$/);
+  it("мітка = авто-штамп вмісту функцій (npm run stamp), а не ручне число", () => {
+    expect(EDGE_BUILD).toMatch(/^[0-9a-f]{8}$/);
+    expect(EDGE_BUILD).toBe(EDGE_VERSION);
   });
 
   for (const fn of FNS) {
