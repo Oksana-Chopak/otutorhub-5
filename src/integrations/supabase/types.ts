@@ -2835,6 +2835,7 @@ export type Database = {
         Returns: boolean
       }
       claim_referral: { Args: { _code: string }; Returns: Json }
+      claim_tutor_role: { Args: never; Returns: string }
       create_hub: { Args: { _manager: string; _name: string }; Returns: string }
       create_landing_handoff: {
         Args: { _digest: string; _lang?: string; _list: string }
