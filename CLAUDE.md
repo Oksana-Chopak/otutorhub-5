@@ -95,6 +95,17 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   (SchedulePage копія: поле йде в патч лише коли > 0). Стереже
   `payout-selfheal.test.ts`. Симптом класу: уроки після певної дати з порожньою
   виплатою при живих ставках.
+  ⚠️ ПОРЯДОК ТРИГЕРІВ (24.09, «Самолюк — ставку не задано»): Postgres виконує
+  кілька BEFORE-тригерів одної події ЗА АБЕТКОЮ ІМЕНІ. `trg_protect_lesson_
+  details_payout_insert` (20.06: не-менеджер не вписує виплату сам → NULL) біг
+  ПІСЛЯ `trg_lesson_details_autofill` і стирав щойно підставлену ставку — тому
+  кожен урок, який репетитор ставив САМ, народжувався без виплати, а уроки від
+  менеджера були в порядку. Тепер захист — `trg_00_protect_…` (стоїть першим) і
+  лишає статус `'unpaid'`, не NULL (міграція `20260924160000`). Правило: новий
+  BEFORE-тригер на `lesson_details` — спершу подивись, ПІСЛЯ кого він стане за
+  абеткою. Стереже сценарій `60-payout-when-tutor-creates-lesson.sql`, який
+  створює урок під ролью `authenticated` з JWT репетитора — сценарій, що біжить
+  як postgres (`auth.uid()` = NULL), цього класу НЕ бачить.
 - MANUAL PAID: marking a lesson paid by hand NEVER bypasses the wallet — if the
   pair holds prepaid credit and the lesson has no wallet history, the credit is
   charged automatically (trg_wallet_charge_on_manual_paid). Phantom balances
@@ -173,6 +184,11 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   Lovable ще не підтягнув коміт — 22.09 так і сталось). Обидва штампи звіряє
   з репо робот `tests/prod` у CI після кожного пушу і щоранку, і пише власниці в
   Telegram, що саме застаріло. Стережуть `edge-build-probe.test.ts`, `guardian.test.ts`.
+  Функції з `verify_jwt = true` у `config.toml` шлюз відкидає без JWT (401) ще до
+  нашого коду — робот пробує їх з публічним anon-ключем (бере з секрету
+  `PROD_SUPABASE_ANON_KEY` або з самої збірки сайту); без ключа це «не перевірити»,
+  а НЕ «застаріло» (хибна тривога 23.09 про `remind-payment`). Збій на проді при
+  зелених воротах — 🟠, не 🔴; у повідомленні є адреса, екран і збійні запити.
 - RATE FORM SAFE SAVE (22.09): якщо `TutorRateDialog` не прочитав чинні ставки,
   зберігає ЛИШЕ введені суми — не перезаписує `tutor_details.subjects` і нічого
   не видаляє з `tutor_subject_rates` (видаляти невидиме не можна).

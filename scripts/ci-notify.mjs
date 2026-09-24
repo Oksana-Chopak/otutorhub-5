@@ -56,8 +56,14 @@ if (existsSync(reportFile)) {
       if (t.status === "skipped") prod.skipped.push(spec.title);
       else if (t.status === "expected" || t.status === "flaky") prod.ok.push(spec.title);
       else {
-        const err = stripAnsi(last?.error?.message ?? last?.errors?.[0]?.message ?? "").split("\n").find((l) => l.trim()) ?? "";
-        prod.failed.push(`${spec.title} — ${err.slice(0, 160)}`);
+        // Перший рядок — що впало; наступні до 5 — діагностика робота (адреса, екран,
+        // збійні запити). Без них власниця й агент бачили лише «видно «Не вдалося
+        // завантажити»», а причина жила в закритому журналі GitHub (23.09).
+        const raw = stripAnsi(last?.error?.message ?? last?.errors?.[0]?.message ?? "")
+          .split("\n").map((l) => l.trim()).filter((l) => l && !/^(Call log|- |at |expect\()/i.test(l));
+        const head = (raw[0] ?? "").slice(0, 200);
+        const details = raw.slice(1, 6).map((l) => l.slice(0, 200));
+        prod.failed.push({ title: spec.title, head, details });
       }
     }
   } catch (e) {
@@ -67,22 +73,34 @@ if (existsSync(reportFile)) {
 
 // ── Текст ─────────────────────────────────────────────────────────────────────
 const lines = [];
-const red = gates === "failure" || prod.failed.length > 0;
+const gatesRed = gates === "failure";
+const prodRed = prod.failed.length > 0;
+const red = gatesRed || prodRed;
 const where = sha ? `<code>${esc(sha)}</code>${title ? ` «${esc(title)}»` : ""}` : "";
 
 if (event === "schedule") {
   lines.push(red ? `🌅 <b>Прод уранці: є проблеми</b>` : `🌅 <b>Прод уранці: усе гаразд</b>`);
 } else if (event === "workflow_dispatch") {
   lines.push(red ? `🔎 <b>Перевірка вручну: є проблеми</b>` : `🔎 <b>Перевірка вручну: усе гаразд</b>`);
+} else if (gatesRed) {
+  // Червоний = код у main не пройшов ворота. Це єдиний випадок «не публікуй».
+  lines.push(`🔴 <b>main червоний</b> ${where}`);
+} else if (prodRed) {
+  // Ворота зелені, а на ЖИВОМУ проді робот побачив збій: не про цей пуш, а про те,
+  // що зараз бачать люди. 23.09 це йшло під 🔴 і читалось як «пуш зламав» — ні.
+  lines.push(`🟠 <b>main зелений, але на проді є збій</b> ${where}`);
 } else {
-  lines.push(red ? `🔴 <b>main червоний</b> ${where}` : `🟢 <b>main зелений</b> ${where}`);
+  lines.push(`🟢 <b>main зелений</b> ${where}`);
 }
 if (gatesLine) lines.push(gatesLine);
 
 if (prod.ran) {
   if (prod.failed.length) {
     lines.push(`❌ прод: ${prod.failed.length} збій(-ї)`);
-    for (const f of prod.failed) lines.push(`   • ${esc(f)}`);
+    for (const f of prod.failed) {
+      lines.push(`   • <b>${esc(f.title)}</b> — ${esc(f.head)}`);
+      for (const d of f.details) lines.push(`      ${esc(d)}`);
+    }
   } else {
     lines.push(`✅ прод живий: ${prod.ok.length} перевірок${prod.skipped.length ? `, пропущено ${prod.skipped.length} (немає тестових акаунтів)` : ""}`);
   }
@@ -91,16 +109,20 @@ if (prod.ran) {
 }
 
 // Що робити — одним рядком
-if (gates === "failure") {
+if (gatesRed) {
   lines.push(`\n⛔ <b>НЕ публікуй.</b> Скинь це повідомлення агентові — він знайде причину в журналі.`);
 } else if (event === "push") {
   const todo = [];
   const all = [...prod.stale, ...prod.notes];
   if (!prod.ran || all.some((s) => /Publish|без \/version\.json/.test(s))) todo.push("Publish у Lovable");
-  if (all.some((s) => /edge|передеплой|не задеплоєна/i.test(s))) todo.push("«Передеплой усі edge-функції» у чаті Lovable");
-  lines.push(`\n👉 ${todo.length ? "Можна: " + todo.join(" → ") : "Прод уже на цій версії — робити нічого не треба"}.`);
-} else if (prod.failed.length) {
-  lines.push(`\n👉 Скинь це повідомлення агентові.`);
+  // «не перевірити» (захищена JWT) — не привід до передеплою; лише справжнє «застаріло»
+  if (prod.stale.some((s) => /edge|передеплой|не задеплоєна/i.test(s))) todo.push("«Передеплой усі edge-функції» у чаті Lovable");
+  const step = todo.length ? "Можна: " + todo.join(" → ") : "Прод уже на цій версії — робити нічого не треба";
+  lines.push(prodRed
+    ? `\n👉 ${step}. Збій на проді — скинь це повідомлення агентові: діагностика вже в ньому.`
+    : `\n👉 ${step}.`);
+} else if (prodRed) {
+  lines.push(`\n👉 Скинь це повідомлення агентові — діагностика вже в ньому.`);
 }
 if (runUrl) lines.push(`<a href="${esc(runUrl)}">журнал запуску</a>`);
 

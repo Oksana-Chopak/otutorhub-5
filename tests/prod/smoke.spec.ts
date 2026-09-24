@@ -1,4 +1,6 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, type APIRequestContext } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { EDGE_VERSION } from "../../supabase/functions/_shared/version";
 
 /**
@@ -25,6 +27,41 @@ const EXPECT_SHA = (process.env.EXPECT_SHA ?? "").slice(0, 8);
 const FRESH = process.env.PROD_FRESH === "require" ? "require" : "warn";
 
 const ERROR_TEXTS = ["Щось пішло не так", "Не вдалося завантажити", "Something went wrong"];
+
+// Функції з verify_jwt = true у supabase/config.toml: шлюз Supabase відкидає запит без
+// JWT ще ДО нашого коду (401), тож проба `?version` без ключа не каже нічого про
+// версію. 23.09 робот назвав так `remind-payment` «застарілою» — хибна тривога.
+// Для них проба йде з публічним anon-ключем (він і є валідний JWT ролі anon).
+const JWT_PROTECTED: Set<string> = (() => {
+  const out = new Set<string>();
+  try {
+    const toml = readFileSync(fileURLToPath(new URL("../../supabase/config.toml", import.meta.url)), "utf8");
+    for (const block of toml.split(/\n\s*\[functions\./).slice(1)) {
+      const name = block.match(/^([a-z0-9_-]+)\]/)?.[1];
+      if (name && /verify_jwt\s*=\s*true/.test(block.split(/\n\s*\[/)[0])) out.add(name);
+    }
+  } catch { /* без config.toml — усі функції вважаються відкритими */ }
+  return out;
+})();
+
+// Публічний anon-ключ проду: з секрету CI або з самої збірки на сайті (він там є
+// за визначенням — його бачить кожен браузер). Без нього захищені функції просто
+// позначаються «не перевірити», а не «застарілі».
+async function findAnonKey(request: APIRequestContext): Promise<string | null> {
+  if (process.env.PROD_SUPABASE_ANON_KEY) return process.env.PROD_SUPABASE_ANON_KEY;
+  const isAnonJwt = (tok: string) => {
+    try { return JSON.parse(Buffer.from(tok.split(".")[1], "base64url").toString("utf8")).role === "anon"; } catch { return false; }
+  };
+  try {
+    const html = await (await request.get("/", { headers: { "cache-control": "no-cache" } })).text();
+    const urls = [...html.matchAll(/(?:src|href)="([^"]+\.js)"/g)].map((m) => m[1]).slice(0, 12);
+    for (const u of urls) {
+      const js = await (await request.get(u)).text().catch(() => "");
+      for (const m of js.matchAll(/eyJ[\w-]{10,}\.eyJ[\w-]{10,}\.[\w-]{10,}/g)) if (isAnonJwt(m[0])) return m[0];
+    }
+  } catch { /* сайт не віддав збірку — нижче це стане чесним «не перевірити» */ }
+  return null;
+}
 const CONSOLE_NOISE = /chrome-extension|moz-extension|ERR_BLOCKED_BY_CLIENT|clarity\.ms|facebook|fbevents|favicon|ResizeObserver|Third-party cookie|Permissions policy|was preloaded|net::ERR_|Failed to load resource|\[vite\]|service worker|ServiceWorker|sw\.js/i;
 
 type Persona = { key: string; label: string; email?: string; password?: string; routes: string[] };
@@ -62,14 +99,45 @@ function watch(page: Page): Watch {
   return w;
 }
 
-async function login(page: Page, p: Persona) {
+// Що саме бачив робот у момент збою — щоб повідомлення в Telegram і звіт CI казали
+// причину, а не лише «видно «Не вдалося завантажити»» (перший звіт 23.09 саме так і
+// лишив агента без діагностики: журнал GitHub закритий, а деталі жили лише в ньому).
+async function diagnose(page: Page, w: Watch): Promise<string> {
+  const body = (await page.locator("body").innerText().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 300);
+  const toasts = (await page.locator('[data-sonner-toast], [role="alert"], [role="status"]').allInnerTexts().catch(() => []))
+    .map((t) => t.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 3);
+  const lines = [`адреса: ${page.url()}`];
+  if (toasts.length) lines.push(`повідомлення на екрані: ${toasts.join(" | ").slice(0, 300)}`);
+  lines.push(`екран: «${body}»`);
+  for (const l of w.badResponses.slice(-5)) lines.push(`збій бази/edge: ${l}`);
+  for (const l of w.softResponses.slice(-5)) lines.push(`http: ${l}`);
+  for (const l of w.consoleErrors.slice(-3)) lines.push(`console: ${l}`);
+  for (const l of w.pageErrors.slice(-3)) lines.push(`js: ${l}`);
+  return lines.join("\n");
+}
+
+async function login(page: Page, p: Persona, w: Watch) {
   await page.goto("/auth", { waitUntil: "domcontentloaded" });
   const signin = page.getByRole("tab", { name: /вхід|sign in|logga in/i });
   if (await signin.isVisible().catch(() => false)) await signin.click();
   await page.locator('input[type="email"]:visible').first().fill(p.email!);
   await page.locator('input[type="password"]:visible').first().fill(p.password!);
   await page.locator('button[type="submit"]:visible').first().click();
-  await page.waitForURL(/\/(dashboard|onboarding|student-dashboard)/, { timeout: 45_000 });
+  try {
+    await page.waitForURL(/\/(dashboard|onboarding|student-dashboard)/, { timeout: 45_000 });
+  } catch {
+    // Не «timeout», а ЩО сталося: лишились на /auth (пароль? помилка входу?),
+    // застрягли на «/» без ролі (index.rolePending), чи приземлились деінде.
+    const path = new URL(page.url()).pathname;
+    const stuckOnAuth = path.startsWith("/auth");
+    const stuckOnRoot = path === "/";
+    const why = stuckOnAuth
+      ? "лишились на сторінці входу — вхід не пройшов (пароль тестового акаунта? помилка від auth?)"
+      : stuckOnRoot
+        ? "увійшли, але застрягли на головній — застосунок не бачить ролі акаунта (user_roles порожній для цього користувача?)"
+        : "увійшли, але приземлились на несподіваний маршрут";
+    throw new Error(`${p.label}: вхід не завершився за 45 с — ${why}\n${await diagnose(page, w)}`);
+  }
 }
 
 async function settle(page: Page) {
@@ -126,9 +194,15 @@ test("edge-функції на проді = репо", async ({ request }) => {
   // 1) функція `version` — штамп усього пакета; 2) пойменні проби `?version`
   // п'яти функцій (інша сесія, 22.09) — щоб бачити ЧАСТКОВИЙ передеплой поіменно.
   const seen: Record<string, string> = {};
+  const unverifiable: string[] = [];
+  const anon = await findAnonKey(request);
   const probe = async (name: string, url: string) => {
-    const r = await request.get(url, { failOnStatusCode: false });
+    const protectedFn = JWT_PROTECTED.has(name);
+    if (protectedFn && !anon) { unverifiable.push(name); return; }
+    const headers = anon ? { apikey: anon, Authorization: `Bearer ${anon}` } : {};
+    const r = await request.get(url, { failOnStatusCode: false, headers });
     if (r.status() === 404) { seen[name] = "не задеплоєна"; return; }
+    if (r.status() === 401 && protectedFn) { unverifiable.push(name); return; } // шлюз не пустив навіть з ключем
     try {
       const j = (await r.json()) as { edge?: string; build?: string };
       seen[name] = j.edge ?? j.build ?? `?(${r.status()})`;
@@ -138,6 +212,9 @@ test("edge-функції на проді = репо", async ({ request }) => {
   for (const fn of PROBED_FNS) await probe(fn, `${SUPABASE_URL}/functions/v1/${fn}?version`);
   const stale = Object.entries(seen).filter(([, v]) => v !== EDGE_VERSION).map(([k, v]) => `${k}: ${v}`);
   info.annotations.push({ type: "freshness", description: `edge у репо: ${EDGE_VERSION} · прод: ${Object.entries(seen).map(([k, v]) => `${k}=${v}`).join(", ")}` });
+  if (unverifiable.length) {
+    info.annotations.push({ type: "freshness", description: `версію ${unverifiable.join(", ")} ззовні не перевірити: функція захищена JWT, а ключ проду роботові недоступний` });
+  }
   if (stale.length) {
     const msg = `Edge-функції на проді застарілі (${stale.join("; ")}) — репо ${EDGE_VERSION}. Ліки: у чаті Lovable — «Передеплой усі edge-функції з репозиторію».`;
     if (FRESH === "require") throw new Error(msg);
@@ -149,15 +226,21 @@ for (const p of PERSONAS) {
   test(`${p.label}: логін і головні екрани без збоїв`, async ({ page }) => {
     test.skip(!p.email || !p.password, `TEST_* для «${p.label}» не задано — пропуск`);
     const w = watch(page);
-    await login(page, p);
+    await login(page, p, w);
     for (const route of p.routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await settle(page);
       for (const t of ERROR_TEXTS) {
-        await expect(page.getByText(t, { exact: false }).first(), `${p.label} ${route}: видно «${t}»`).toHaveCount(0);
+        // Не голий «видно текст», а з діагностикою: який запит упав і що на екрані —
+        // інакше причину знає лише закритий журнал GitHub (урок першого звіту 23.09).
+        if ((await page.getByText(t, { exact: false }).count()) > 0) {
+          throw new Error(`${p.label} ${route}: видно «${t}»\n${await diagnose(page, w)}`);
+        }
       }
       // Захищений маршрут не має викидати на /auth (протухла сесія = «зникли уроки», 15.09)
-      expect(page.url(), `${p.label}: ${route} викинув на інший маршрут`).not.toMatch(/\/auth(\?|$)/);
+      if (/\/auth(\?|$)/.test(page.url())) {
+        throw new Error(`${p.label}: ${route} викинув на сторінку входу\n${await diagnose(page, w)}`);
+      }
     }
     report(w, p.label);
   });

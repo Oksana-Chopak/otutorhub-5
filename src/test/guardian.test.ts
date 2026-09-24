@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import yaml from "js-yaml";
@@ -114,5 +114,55 @@ describe("сторож: прогін бази чесний", () => {
       expect(s.trim().startsWith("--") || s.trim().startsWith("BEGIN")).toBe(true);
       expect(s, `${f}: без ROLLBACK стенд забруднюється`).toMatch(/ROLLBACK;\s*$/);
     }
+  });
+});
+
+/**
+ * 24.09 — уроки першого справжнього звіту робота (23.09 18:36):
+ *  • «хабовий репетитор /finances: видно «Не вдалося завантажити»» без жодної
+ *    підказки, ЩО впало — діагностика жила в закритому журналі GitHub;
+ *  • `remind-payment: ?(401)` названо «застарілою», хоча функція просто захищена
+ *    JWT і шлюз відкинув пробу без ключа;
+ *  • 🔴 «main червоний» при зелених воротах — читалось як «пуш зламав прод».
+ */
+describe("сторож: звіт робота каже причину, а не лише факт", () => {
+  it("робот на проді пояснює збій (адреса, екран, збійні запити) і знає, які функції захищені JWT", () => {
+    const spec = read("tests/prod/smoke.spec.ts");
+    expect(spec).toContain("async function diagnose(");
+    expect(spec).toMatch(/вхід не завершився[\s\S]*await diagnose\(page, w\)/);
+    expect(spec).toMatch(/видно «\$\{t\}»\\n\$\{await diagnose\(page, w\)\}/);
+    expect(spec).toContain("verify_jwt");
+    expect(spec).toContain("JWT_PROTECTED.has(name)");
+    expect(spec).toContain("findAnonKey(request)");
+  });
+
+  it("ci-notify: ворота зелені + збій на проді = 🟠 з діагностикою, а не 🔴 «не публікуй»", () => {
+    const tmp = join(ROOT, "node_modules", ".cache", "ci-notify-test");
+    mkdirSync(tmp, { recursive: true });
+    const message = [
+      "хабовий репетитор /finances: видно «Не вдалося завантажити»",
+      "адреса: https://otutorhub.com/finances",
+      "екран: «Не вдалося завантажити …»",
+      "збій бази/edge: GET /rest/v1/student_wallet_balances → 500 canceling statement due to statement timeout",
+    ].join("\n");
+    const report = { suites: [{ specs: [
+      { title: "хабовий репетитор: логін і головні екрани без збоїв", tests: [{ status: "unexpected", annotations: [], results: [{ error: { message } }] }] },
+      { title: "лендінг живий", tests: [{ status: "expected", annotations: [], results: [{}] }] },
+      { title: "edge-функції на проді = репо", tests: [{ status: "expected", annotations: [{ type: "freshness", description: "версію remind-payment ззовні не перевірити: функція захищена JWT, а ключ проду роботові недоступний" }], results: [{}] }] },
+    ] }] };
+    writeFileSync(join(tmp, "prod-report.json"), JSON.stringify(report));
+    const r = spawnSync(process.execPath, [join(ROOT, "scripts/ci-notify.mjs")], {
+      cwd: tmp, encoding: "utf8",
+      env: { ...process.env, GATES_RESULT: "success", EVENT: "push", SHA: "abc1234def", TITLE: "Тест", RUN_URL: "", PROD_REPORT: "prod-report.json" },
+    });
+    expect(r.status, r.stderr).toBe(0);
+    const text = readFileSync(join(tmp, "ci-message.txt"), "utf8");
+    expect(text).toContain("🟠");
+    expect(text).not.toContain("🔴");
+    expect(text).not.toContain("НЕ публікуй");
+    expect(text).toContain("statement timeout"); // діагностика робота доходить до Telegram
+    expect(text).toContain("адреса: https://otutorhub.com/finances");
+    expect(text).not.toContain("Передеплой"); // «не перевірити» (JWT) — не привід до передеплою
+    expect(text).toContain("скинь це повідомлення агентові");
   });
 });
