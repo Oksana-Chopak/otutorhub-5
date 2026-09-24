@@ -1382,7 +1382,7 @@ export default function MyStudentsPage() {
         <QuickLessonDialog
           open={lessonDialog.open}
           onOpenChange={(o) => !o && setLessonDialog(null)}
-          startsAt={new Date(Date.now() + 60 * 60 * 1000)}
+          startsAt={null} /* 24.09: див. QuickLessonDialog — звичний час пари */
           initialStudentId={lessonDialog.studentId}
           onCreated={() => {
             setLessonDialog(null);

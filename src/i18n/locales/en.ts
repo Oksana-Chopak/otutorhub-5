@@ -209,6 +209,22 @@ export const en: LocaleTranslations = {
     planLine: "{{perMonth}}/mo · {{total}} one-off (−{{off}}%)",
     perMonth: "{{price}}/mo",
   },
+  lessonCancelConfirm: {
+    title: "Cancel this lesson?",
+    desc: "The student is notified right away. You can bring the lesson back by switching the status again.",
+    confirm: "Yes, cancel",
+  },
+  claimRole: {
+    title: "Are you a tutor or a student?",
+    desc: "Google sign-in does not tell us — one tap and we open the right app for you.",
+    iAmTutor: "I am a tutor — I teach",
+    iAmStudent: "I am a student — I learn",
+    done: "Done! Opening your tutor workspace",
+    failed: "Could not change the role",
+    refused: "The account stays a student one",
+    refusedHint: "That happens when the account is older or already has student lessons. Write to us and we will switch it by hand.",
+    writeSupport: "Write",
+  },
   common: {
     workspaceUnknown: "Could not determine the workspace type — please reload",
     copyFailed: "Couldn't copy — please copy manually",
@@ -336,6 +352,7 @@ export const en: LocaleTranslations = {
     help: "Help",
     setupGuide: "Setup guide",
     openMenu: "Open menu",
+    openMenuUnread: "Open menu · {{count}} new messages",
     closeMenu: "Close menu",
     studentsShort: "Students",
     newBadge: "New!",
@@ -965,6 +982,8 @@ export const en: LocaleTranslations = {
   },
 
   schedule: {
+    filteredEmptyDesc: "There are lessons, but the selected filters hide them.",
+    filteredEmptyTitle: "Nothing matches the filters",
     createLessonFailed: "Couldn't create the lesson",
     noLessons: "No lessons yet",
     noLessonsDesc: "Create your first lesson — pick a student, subject and time",
@@ -1075,6 +1094,7 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
+    groupPayoutNotTracked: "Group lessons carry no tutor payout — student payments are marked inside the lesson",
     markPaidBtn: "Mark paid",
     bulkMarkConfirmTitle_one: "Change the status of {{count}} row?",
     bulkMarkConfirmTitle_other: "Change the status of {{count}} rows?",
@@ -2332,6 +2352,7 @@ export const en: LocaleTranslations = {
   },
 
   proRulesCard: {
+    unlockCta: "Unlock with a subscription",
     noshowLabel: "No-show",
     noshowHint: "The student did not show up and did not warn",
     reschedulesLabel: "Free reschedules",
@@ -4308,6 +4329,7 @@ export const en: LocaleTranslations = {
     rejectBtn: "Reject",
   },
   recordPaymentExtra: {
+    selectedTotal: "Unpaid: {{count}} for {{sum}}",
     subtitle: "For a specific lesson — or prepayment for future ones",
     tabLesson: "Per lesson",
     tabPrepay: "Prepayment",

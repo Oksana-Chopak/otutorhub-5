@@ -5,6 +5,7 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Loader2, Check, Lock, Info, SlidersHorizontal, ChevronDown, Send, Mail, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 type PaymentMode = "prepaid" | "before_lesson" | "after_lesson";
 type FeePercent = 0 | 50 | 100;
@@ -45,6 +46,7 @@ interface Preset {
 
 export function ProRulesCard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { settings, hasFullPlan, updateSettings, loading } = useWorkspaceSettings();
   const [state, setState] = useState<RulesState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -173,9 +175,15 @@ export function ProRulesCard() {
           </button>
         </div>
         {disabled && (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, color: C.sub, flexShrink: 0 }}>
-            <Lock className="h-3 w-3" /> {t("proRulesCard.availableInPro")}
-          </span>
+          /* 24.09 (аудит шляхів): був напис-тупик. Тепер веде туди, де це вмикають. */
+          <button
+            type="button"
+            onClick={() => navigate("/subscription")}
+            aria-label={t("proRulesCard.unlockCta")}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, color: C.tealD, flexShrink: 0, border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, padding: "6px 2px", minHeight: 36 }}
+          >
+            <Lock className="h-3 w-3" /> {t("proRulesCard.unlockCta")} ›
+          </button>
         )}
       </div>
       {infoOpen && (

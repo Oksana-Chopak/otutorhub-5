@@ -9,6 +9,8 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationBell } from "./NotificationBell";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
+import { ClaimTutorRoleDialog } from "@/components/ClaimTutorRoleDialog";
 import { flushLandingFunnel } from "@/lib/landingFunnel";
 import { healPushSubscription } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +58,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // мобільному хедері (вимога 29.07 — звільнити перший екран під перший урок).
   // Правило лишається: мобільний заголовок рендерить ТІЛЬКИ AppLayout.
   const { user } = useAuth();
+  const unreadChats = useUnreadChats();
 
   // Кроки, зроблені ДО реєстрації, лежали в localStorage — тепер є user_id,
   // і їх можна пришити до акаунта. Одноразово: takeLandingFunnel чистить буфер.
@@ -108,11 +111,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <NotificationBell />
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
-                className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white"
+                className="relative flex h-11 w-11 items-center justify-center rounded-[14px] text-white"
                 style={{ background: "var(--teal,#2BBFAA)" }}
-                aria-label={t("nav.openMenu")}
+                aria-label={unreadChats > 0 ? t("nav.openMenuUnread", { count: unreadChats }) : t("nav.openMenu")}
               >
                 <Menu className="h-5 w-5" />
+                {/* 24.09: чати переїхали з нижньої панелі в меню (рішення власниці),
+                    тож непрочитане мусить бути видно на самому бургері — інакше
+                    воно зникає з очей на телефоні. */}
+                {unreadChats > 0 && (
+                  <span aria-hidden className="border-2 border-card" style={{
+                    position: "absolute", top: -3, right: -3, width: 12, height: 12,
+                    borderRadius: 999, background: "#ef4444",
+                  }} />
+                )}
               </button>
             </div>
           </header>
@@ -122,6 +134,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </main>
       <MobileBottomNav />
+      {/* 24.09: вхід через Google не несе ролі — питаємо одразу після входу. */}
+      <ClaimTutorRoleDialog />
     </div>
     </PaywallProvider>
   );

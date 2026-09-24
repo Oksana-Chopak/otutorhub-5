@@ -324,7 +324,11 @@ Deno.serve(async (req) => {
           userId: lesson.student_id,
           title: `⏰ Урок через ${rule.minutesBefore} хв`,
           body: `${tutorName} · ${lesson.subject} · ${dateStr}`,
-          link: "/student/schedule",
+          // 24.09 (аудит шляхів): вело на список, де урок треба знайти очима.
+          // Тепер сторінка учня сама прокручує до цього уроку (кнопка
+          // «Приєднатися» — на ньому ж). Посилання лишається на своєму домені:
+          // service worker навмисно не пускає зовнішні адреси.
+          link: `/student/schedule?lesson=${lesson.id}`,
           tag: `lesson-${lesson.id}-${rule.kind}`,
         });
         if (tgOk || pushOk) {

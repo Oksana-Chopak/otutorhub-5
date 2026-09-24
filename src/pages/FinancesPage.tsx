@@ -1126,7 +1126,11 @@ export default function FinancesPage() {
     if (coreLock.locked) { coreLock.openPaywall(); return; }
     // No tutor payout is tracked for group lessons (it would leak the hub margin to
     // students via lesson_participants), so the payout toggle is a no-op for them.
-    if (field === "tutor_payout_status" && lesson.kind === "group") return;
+    // 24.09 (аудит шляхів): був мовчазний return — дотик є, реакції нема.
+    if (field === "tutor_payout_status" && lesson.kind === "group") {
+      toast.info(t("finances.groupPayoutNotTracked"));
+      return;
+    }
     const next: PaymentStatus = lesson[field] === "paid" ? "unpaid" : "paid";
     const nextPaidAt = next === "paid" ? new Date().toISOString() : null;
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";

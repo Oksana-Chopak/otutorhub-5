@@ -208,6 +208,22 @@ export const sv: LocaleTranslations = {
     planLine: "{{perMonth}}/mån · {{total}} engångs (−{{off}}%)",
     perMonth: "{{price}}/mån",
   },
+  lessonCancelConfirm: {
+    title: "Avboka lektionen?",
+    desc: "Eleven får ett meddelande direkt. Du kan ta tillbaka lektionen genom att byta status igen.",
+    confirm: "Ja, avboka",
+  },
+  claimRole: {
+    title: "Är du lärare eller elev?",
+    desc: "Google-inloggningen säger inte det — ett tryck, så öppnar vi rätt app.",
+    iAmTutor: "Jag är lärare — jag undervisar",
+    iAmStudent: "Jag är elev — jag studerar",
+    done: "Klart! Öppnar din lärarvy",
+    failed: "Kunde inte byta roll",
+    refused: "Kontot förblir ett elevkonto",
+    refusedHint: "Det händer när kontot är äldre eller redan har elevlektioner. Skriv till oss så byter vi manuellt.",
+    writeSupport: "Skriv",
+  },
   common: {
     workspaceUnknown: "Kunde inte avgöra arbetsytans typ — ladda om sidan",
     copyFailed: "Kunde inte kopiera — kopiera manuellt",
@@ -333,6 +349,7 @@ export const sv: LocaleTranslations = {
     help: "Hjälp",
     setupGuide: "Konfigurationsguide",
     openMenu: "Öppna meny",
+    openMenuUnread: "Öppna meny · {{count}} nya meddelanden",
     closeMenu: "Stäng meny",
     studentsShort: "Elever",
     newBadge: "Ny!",
@@ -471,6 +488,8 @@ export const sv: LocaleTranslations = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    filteredEmptyDesc: "Det finns lektioner, men de valda filtren döljer dem.",
+    filteredEmptyTitle: "Inget matchar filtren",
     createLessonFailed: "Kunde inte skapa lektionen",
     noLessons: "Inga lektioner än",
     noLessonsDesc: "Skapa din första lektion — välj elev, ämne och tid",
@@ -580,6 +599,7 @@ export const sv: LocaleTranslations = {
     createLessonBtn: "Skapa lektion",
   },
   finances: {
+    groupPayoutNotTracked: "Grupplektioner ger ingen lärarersättning — elevernas betalningar markeras inne i lektionen",
     markPaidBtn: "Markera betald",
     bulkMarkConfirmTitle_one: "Ändra status för {{count}} rad?",
     bulkMarkConfirmTitle_other: "Ändra status för {{count}} rader?",
@@ -2312,6 +2332,7 @@ export const sv: LocaleTranslations = {
   },
 
   proRulesCard: {
+    unlockCta: "Lås upp med prenumeration",
     noshowLabel: "Utebliven (no-show)",
     noshowHint: "Eleven dök inte upp och meddelade inte",
     reschedulesLabel: "Gratis ombokningar",
@@ -4288,6 +4309,7 @@ export const sv: LocaleTranslations = {
     rejectBtn: "Avvisa",
   },
   recordPaymentExtra: {
+    selectedTotal: "Obetalda: {{count}} för {{sum}}",
     subtitle: "För en specifik lektion — eller förskottsbetalning för framtida",
     tabLesson: "Per lektion",
     tabPrepay: "Förskottsbetalning",

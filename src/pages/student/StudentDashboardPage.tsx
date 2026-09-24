@@ -451,8 +451,11 @@ export default function StudentDashboardPage() {
         {/* Block 5: Reward collection */}
         <RewardCollection rewards={rewards} loading={rewardsLoading} />
 
-        {/* Block 6: Find tutor (only if no tutor yet) */}
-        {!hasTutor && (
+        {/* Block 6: Find tutor (only if no tutor yet).
+            24.09 (аудит шляхів): блок показувався і тим, чия заявка ВЖЕ в роботі
+            (вище, блок зі статусом), тож людина подавала другу заявку на той
+            самий запит. Показуємо лише тим, хто ще не просив. */}
+        {!hasTutor && !pendingTutorRequest && (
           <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: "1px solid rgba(43,191,170,.28)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>

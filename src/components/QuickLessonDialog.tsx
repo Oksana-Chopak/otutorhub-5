@@ -138,6 +138,16 @@ export function QuickLessonDialog({
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [whenLocal, setWhenLocal] = useState<Date | null>(null);
+  // 24.09 (аудит шляхів): раніше кожен вхід у форму підставляв «зараз» ПРОПОМ,
+  // і через це підказка «та сама пара + тиждень» ніколи не вмикалась (вона
+  // виходила, щойно startsAt не порожній). Тепер слот із календаря лишається
+  // святим, а вхід без слота дає запасний час ТУТ — і підказка знову жива.
+  const fallbackStart = useMemo(() => {
+    const d = new Date();
+    d.setMinutes(0, 0, 0);
+    d.setHours(d.getHours() + 1);
+    return d;
+  }, [open]);
   const [timeEditOpen, setTimeEditOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState(0);
 
@@ -252,7 +262,7 @@ export function QuickLessonDialog({
     [students, studentId]
   );
 
-  const effStartsAt = whenLocal ?? startsAt;
+  const effStartsAt = whenLocal ?? startsAt ?? fallbackStart;
 
   const lock = useCoreLock();
   const submit = async () => {
@@ -498,7 +508,7 @@ export function QuickLessonDialog({
     if (!v) return;
     setTimeTouched(true);
     setWhenLocal((prev) => {
-      const base = prev ?? startsAt; if (!base) return prev;
+      const base = prev ?? startsAt ?? fallbackStart;
       const [y, m, d] = v.split("-").map(Number);
       const next = new Date(base); next.setFullYear(y, m - 1, d); return next;
     });
@@ -507,7 +517,7 @@ export function QuickLessonDialog({
     if (!v) return;
     setTimeTouched(true);
     setWhenLocal((prev) => {
-      const base = prev ?? startsAt; if (!base) return prev;
+      const base = prev ?? startsAt ?? fallbackStart;
       const [h, mi] = v.split(":").map(Number);
       const next = new Date(base); next.setHours(h, mi, 0, 0); return next;
     });

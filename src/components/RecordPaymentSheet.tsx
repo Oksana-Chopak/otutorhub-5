@@ -288,6 +288,17 @@ export function RecordPaymentSheet({
                     {t("recordPaymentExtra.noUnpaidLessons")}
                   </p>
                 ) : (
+                  <>
+                  {/* 24.09 (аудит шляхів): «переказали 1500 за три уроки» людина
+                      звіряла в голові — суми списку ніде не було (у гаманці вона
+                      є, тут не було). Тепер видно одразу. */}
+                  <div className="mb-2 flex items-center justify-between rounded-[10px] px-3 py-2 text-[14px] font-semibold"
+                       style={{ background: "rgba(43,191,170,.10)", color: "var(--teal-text,#1a7a6c)" }}>
+                    <span>{t("recordPaymentExtra.selectedTotal", {
+                      count: pairUnpaid.length,
+                      sum: formatPrice(pairUnpaid.reduce((a, l) => a + Number(l.student_price ?? 0), 0), pairUnpaid[0]?.currency ?? "UAH"),
+                    })}</span>
+                  </div>
                   <ul className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
                     {pairUnpaid.map((l) => (
                       <li
@@ -316,6 +327,7 @@ export function RecordPaymentSheet({
                       </li>
                     ))}
                   </ul>
+                  </>
                 )}
               </>
             )}

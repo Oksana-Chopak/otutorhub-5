@@ -1706,7 +1706,7 @@ export default function DashboardPage() {
       <QuickLessonDialog
         open={quickLessonOpen}
         onOpenChange={setQuickLessonOpen}
-        startsAt={quickLessonOpen ? new Date() : null}
+        startsAt={null} /* 24.09: без слота — форма сама підставить звичний час пари */
         onCreated={() => { loadData(); obProgress.refetch(); }}
         variant={isManager ? "manager" : isHubTutor ? "hub" : "independent"}
       />
@@ -2414,7 +2414,7 @@ export default function DashboardPage() {
                     <button
                       className="w-full rounded-[14px] py-2.5 text-[14px] font-medium transition-colors"
                       style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal, #2BBFAA)" }}
-                      onClick={() => window.location.href = "/finances"}
+                      onClick={() => navigate("/finances?tab=debts")}
                     >
                       {t("dashboard.showAll", { count: pendingPayments.length })} →
                     </button>

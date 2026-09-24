@@ -7,11 +7,13 @@
  */
 import { useLayoutEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, CalendarDays, Wallet, MessageSquare } from "lucide-react";
+import { Home, CalendarDays, Wallet, MessageSquare, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { STUDENT_NAV_DEFS } from "@/components/student/studentNav";
+import { canSee } from "@/lib/roleCapabilities";
 import { cn } from "@/lib/utils";
 
 export function MobileBottomNav() {
@@ -36,6 +38,7 @@ export function MobileBottomNav() {
   const unread = useUnreadChats();
   const location = useLocation();
   const { roles } = useAuth();
+  const { flags, ready: roleReady } = useRoleFlags();
   const { t } = useTranslation();
   const isPureStudent =
     roles.includes("student") && !roles.includes("tutor") && !roles.includes("manager");
@@ -89,11 +92,23 @@ export function MobileBottomNav() {
   // 50+ надворі не бачила ні іконок, ні де вона зараз. Тепер: підпис 13px
   // (мінімум доступності) + читабельні кольори; активний таб видно і кольором,
   // і жирністю, і крапкою — не лише відтінком.
+  // 24.09 (аудит шляхів, рішення власниці): третім пунктом — СПИСОК ЛЮДЕЙ.
+  // Це другий за частотою екран після розкладу, а діставався лише через бургер;
+  // чати рідше щоденні й лишаються в меню та в дзвіночку (з лічильником, який
+  // тепер видно на самому бургері).
+  // Поки персона ще не відома (roleReady=false), НЕ малюємо вкладку за прапорцем:
+  // до відповіді сервера кожен самостійний репетитор виглядає як хабовий (гонка
+  // персон, аудит 01.09) — і людина побачила б, як пункт меню сам перестрибує.
+  const peopleTab = flags.isManager
+    ? { to: "/people", icon: Users, labelKey: "nav.people" }
+    : roleReady && canSee("ownStudents", flags)
+      ? { to: "/my-students", icon: Users, labelKey: "nav.myStudents" }
+      : { to: "/chats", icon: MessageSquare, labelKey: "nav.chats" }; // хабовий: свого списку учнів у нього немає
   const tabs = [
     { to: "/", icon: Home, labelKey: "nav.dashboard" },
     { to: "/schedule", icon: CalendarDays, labelKey: "nav.schedule" },
+    peopleTab,
     { to: "/finances", icon: Wallet, labelKey: "nav.finances" },
-    { to: "/chats", icon: MessageSquare, labelKey: "nav.chats" },
   ] as const;
 
   return (

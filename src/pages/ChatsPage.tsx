@@ -1451,14 +1451,22 @@ export default function ChatsPage() {
                         type="button"
                         onClick={() => {
                           if (selectedThread.ctx?.kind === "debt") {
-                            setDraft((d) => d || t("chats.debtReminderDraft"));
+                            // 24.09 (аудит шляхів): раніше — тихий no-op, якщо в полі
+                            // вже щось було. Тепер текст завжди зʼявляється, а курсор
+                            // стає у поле: людина бачить, що дотик спрацював.
+                            setDraft((d) => (d.trim() ? `${d.trim()}\n${t("chats.debtReminderDraft")}` : t("chats.debtReminderDraft")));
+                            setTimeout(() => {
+                              const el = document.querySelector<HTMLTextAreaElement>('[data-chat-composer="1"]');
+                              el?.focus();
+                              el?.setSelectionRange(el.value.length, el.value.length);
+                            }, 30);
                           } else {
                             // Open the create-lesson dialog with this student preselected,
                             // instead of dumping the user on a blank Schedule page.
                             const sid = selectedThread.student_id;
-                            window.location.href = sid
-                              ? `/schedule?create=1&student=${sid}`
-                              : "/schedule?create=1";
+                            // 24.09: було window.location.href — повне перезавантаження
+                            // застосунку заради переходу всередині нього.
+                            navigate(sid ? `/schedule?create=1&student=${sid}` : "/schedule?create=1");
                           }
                         }}
                         className="flex-shrink-0 rounded-[10px] px-3.5 h-[34px] text-[14px] font-bold text-white"
@@ -1536,7 +1544,7 @@ export default function ChatsPage() {
                     <Paperclip className="h-4 w-4" />
                   </button>
 
-                  <Textarea aria-label={
+                  <Textarea data-chat-composer="1" aria-label={
                       isManager
                         ? t("chats.placeholderManager")
                         : t("chats.composerPlaceholder")

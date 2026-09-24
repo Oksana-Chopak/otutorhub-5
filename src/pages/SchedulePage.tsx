@@ -1567,6 +1567,16 @@ export default function SchedulePage() {
               }
             />
           </EmptyState>
+        ) : filtersActive ? (
+          /* 24.09 (аудит шляхів): порожній стан казав «уроків немає» навіть тоді,
+             коли їх сховали фільтри — і не пропонував їх скинути. */
+          <EmptyState
+            icon={Clock}
+            title={t('schedule.filteredEmptyTitle')}
+            description={t('schedule.filteredEmptyDesc')}
+            actionLabel={t('schedule.resetFilters')}
+            onAction={() => filters.reset()}
+          />
         ) : (
           <EmptyState
             icon={Clock}

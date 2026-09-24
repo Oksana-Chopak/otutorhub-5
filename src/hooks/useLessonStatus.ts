@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { bumpDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { useTranslation } from "react-i18next";
@@ -98,6 +99,17 @@ export function useLessonStatus() {
   };
 
   const cancel = async (l: LessonLite): Promise<boolean> => {
+    // 24.09 (аудит шляхів): скасування летіло з ПЕРШОГО дотику і одразу слало
+    // сповіщення учневі — випадковий дотик по чипу статусу неможливо забрати
+    // назад (видалення уроку підтвердження мало, скасування — ні).
+    const ok = await confirmDialog({
+      title: t("lessonCancelConfirm.title"),
+      description: t("lessonCancelConfirm.desc"),
+      confirmText: t("lessonCancelConfirm.confirm"),
+      cancelText: t("common.cancel"),
+      destructive: true,
+    });
+    if (!ok) return false;
     const { error } = await setLessonStatus(l.id, "cancelled");
     if (error) { toast.error(t("dashboardExtra.statusChangeFailed")); return false; }
     if (l.student_id) {

@@ -1616,6 +1616,21 @@ export default function PeoplePage() {
             const tu = users.find((x) => x.id === id);
             return tu ? fullName(tu) : t("shared.tutor");
           }}
+          // 24.09 (аудит шляхів): кнопка «Призначити репетитора» у формі людини
+          // була мертвою — обробник сюди не передавався, і дотик не робив нічого.
+          onAssignTutor={(studentId) => {
+            const u = users.find((x) => x.id === studentId);
+            setPersonEdit((st) => ({ ...st, open: false }));
+            setAddTutorToStudent({
+              open: true,
+              studentId,
+              studentName: u ? fullName(u) : "",
+              tutorId: "",
+              subject: "",
+              price: "",
+              currency: "UAH",
+            });
+          }}
           onSaved={loadData}
         />
       )}

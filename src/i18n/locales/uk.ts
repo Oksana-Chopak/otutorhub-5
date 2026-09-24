@@ -205,6 +205,22 @@ export const uk = {
     planLine: "{{perMonth}}/міс · {{total}} разово (−{{off}}%)",
     perMonth: "{{price}}/міс",
   },
+  lessonCancelConfirm: {
+    title: "Скасувати урок?",
+    desc: "Учень одразу отримає сповіщення про скасування. Скасований урок можна повернути, змінивши статус назад.",
+    confirm: "Так, скасувати",
+  },
+  claimRole: {
+    title: "Ви репетитор чи учень?",
+    desc: "Вхід через Google не передає цього — скажіть одним дотиком, і ми відкриємо потрібний застосунок.",
+    iAmTutor: "Я репетитор — веду уроки",
+    iAmStudent: "Я учень — навчаюсь",
+    done: "Готово! Відкриваю кабінет репетитора",
+    failed: "Не вдалося змінити роль",
+    refused: "Роль лишилась учнівською",
+    refusedHint: "Так буває, якщо акаунт створено давно або в ньому вже є учнівські уроки. Напишіть нам — переведемо вручну.",
+    writeSupport: "Написати",
+  },
   common: {
     workspaceUnknown: "Не вдалося визначити тип робочого простору — оновіть сторінку",
     copyFailed: "Не вдалося скопіювати — скопіюй вручну",
@@ -332,6 +348,7 @@ export const uk = {
     help: "Допомога",
     setupGuide: "Гайд по налаштуванню",
     openMenu: "Відкрити меню",
+    openMenuUnread: "Відкрити меню · {{count}} нових повідомлень",
     closeMenu: "Закрити меню",
     studentsShort: "Учні",
     newBadge: "Новий!",
@@ -988,6 +1005,8 @@ export const uk = {
 
   // Schedule
   schedule: {
+    filteredEmptyDesc: "Уроки є, але їх сховали обрані фільтри.",
+    filteredEmptyTitle: "Під фільтри нічого не підійшло",
     createLessonFailed: "Не вдалося створити урок",
     noLessons: "Уроків ще немає",
     noLessonsDesc: "Створіть перший урок — оберіть учня, предмет і час",
@@ -1101,6 +1120,7 @@ export const uk = {
 
   // Finances
   finances: {
+    groupPayoutNotTracked: "За групові уроки виплата репетитору не рахується — оплату учнів позначають усередині уроку",
     markPaidBtn: "Оплачено",
     bulkMarkConfirmTitle_one: "Змінити статус {{count}} рядка?",
     bulkMarkConfirmTitle_few: "Змінити статус {{count}} рядків?",
@@ -2360,6 +2380,7 @@ export const uk = {
   },
 
   proRulesCard: {
+    unlockCta: "Відкрити в підписці",
     noshowLabel: "Неявка (no-show)",
     noshowHint: "Учень не прийшов і не попередив",
     reschedulesLabel: "Безкоштовні перенесення",
@@ -4338,6 +4359,7 @@ export const uk = {
     rejectBtn: "Відхилити",
   },
   recordPaymentExtra: {
+    selectedTotal: "Неоплачених: {{count}} на {{sum}}",
     subtitle: "За конкретний урок — або передоплата на майбутні",
     tabLesson: "За урок",
     tabPrepay: "Передоплата",

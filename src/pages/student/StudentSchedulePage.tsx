@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { getLocale } from "@/lib/locale";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,6 +34,12 @@ const STATUS_META: Record<string, { accent: string; bg: string; fg: string }> = 
 export default function StudentSchedulePage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  // 24.09 (аудит шляхів): сповіщення «урок через 15 хв» вело просто на список —
+  // урок треба було знайти очима. Тепер воно приносить сюди ІДЕНТИФІКАТОР уроку,
+  // і сторінка сама прокручує до нього й підсвічує на кілька секунд.
+  const [searchParams] = useSearchParams();
+  const focusLessonId = searchParams.get("lesson");
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   /* Аудит 02.09: помилка читання малювала «уроків немає» — учень із повним
@@ -98,6 +104,16 @@ export default function StudentSchedulePage() {
   const past = lessons.filter((l) => endMs(l) < now);
 
   const D = "Inter, system-ui, sans-serif";
+  useEffect(() => {
+    if (!focusLessonId || loading) return;
+    const el = document.querySelector<HTMLElement>(`[data-lesson-id="${CSS.escape(focusLessonId)}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightId(focusLessonId);
+    const off = setTimeout(() => setHighlightId(null), 4000);
+    return () => clearTimeout(off);
+  }, [focusLessonId, loading, lessons.length]);
+
   const renderList = (items: Lesson[]) => {
     if (loading) return <SkeletonList count={3} />;
     if (loadError)
@@ -132,7 +148,7 @@ export default function StudentSchedulePage() {
           const joinHref = safeHref(l.meeting_url);
           const hasJoinLink = joinHref !== "#" && l.status === "scheduled";
           return (
-            <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "var(--ds-surface,#fff)", opacity: isCancelled ? 0.7 : 1 }}>
+            <li key={l.id} data-lesson-id={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: highlightId === l.id ? "1.5px solid var(--teal-text,#1a7a6c)" : "0.5px solid var(--border)", boxShadow: highlightId === l.id ? "0 0 0 4px rgba(43,191,170,.18)" : undefined, transition: "box-shadow .3s ease, border-color .3s ease", overflow: "hidden", background: "var(--ds-surface,#fff)", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                 <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
                 <span style={{ fontFamily: D, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>

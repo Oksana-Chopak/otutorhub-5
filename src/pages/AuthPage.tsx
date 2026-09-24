@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
+import { rememberSignupRole } from "@/components/ClaimTutorRoleDialog";
 import { landingDraftForSignup, peekHandoffToken, rememberHandoffToken, saveLandingDraft, HANDOFF_TOKEN_RE } from "@/lib/landingFunnel";
 import { BUILD_TAG, BUILD_STAMP } from "@/lib/buildInfo";
 import { logError } from "@/lib/errorLog";
@@ -446,6 +447,11 @@ export default function AuthPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    // 24.09 (аудит шляхів): OAuth не може принести нашу роль — база поставить
+    // «учень». Запамʼятовуємо намір ТУТ, а після входу застосунок перепитує й
+    // ставить роль репетитора (claim_tutor_role) — інакше людина з лендінгу для
+    // репетиторів опинялась в учнівському застосунку без дороги назад.
+    rememberSignupRole(activeTab === "signup" ? signUpData.role : "student");
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: nextPath !== "/" ? `${window.location.origin}/auth?next=${encodeURIComponent(nextPath)}` : window.location.origin,

@@ -34,7 +34,8 @@ import {
   ChevronLeft,
   UserRound,
   ChevronRight,
-  AlertTriangle} from "lucide-react";
+  AlertTriangle,
+  Clock3} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -79,6 +80,7 @@ const allNavItems: NavItem[] = [
   { to: "/wallets", labelKey: "walletsPage.title", icon: Wallet, roles: ["tutor"], independentOnly: true }, // P5: був прихований
   // Достижения — for BOTH tutor kinds: the hub tutor's cabinet must feel as full
   // and motivating as the manager's (streak/level/badges are computed for them too).
+  { to: "/availability", labelKey: "nav.availability", icon: Clock3, roles: ["tutor"] },
   { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"] },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
   // Manager
@@ -100,6 +102,9 @@ const allNavItems: NavItem[] = [
   { to: "/student/payments", labelKey: "studentNav.payments", icon: DollarSign, roles: ["student"] },
   { to: "/student/homework", labelKey: "studentNav.homework", icon: BookOpen, roles: ["student"] },
   { to: "/chats", labelKey: "studentNav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
+  // 24.09 (аудит шляхів): сторінка досягнень учня не мала входу в навігації —
+  // дістатись можна було лише з картки нагород на дашборді.
+  { to: "/student/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["student"] },
   { to: "/student/profile", labelKey: "studentNav.profile", icon: UserCircle, roles: ["student"] },
 ];
 

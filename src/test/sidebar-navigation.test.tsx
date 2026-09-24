@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { AppRole } from "@/hooks/useAuth";
 
 const mockAuth = vi.hoisted(() => ({
@@ -23,6 +24,13 @@ vi.mock("@/hooks/useAuth", () => ({
 }));
 
 vi.mock("@/hooks/useUnreadChats", () => ({ useUnreadChats: () => 0 }));
+// 24.09: нижня панель питає персону (самостійний ↔ хабовий), щоб третім пунктом
+// показати «Мої учні». Персона приходить із useWorkspaceSettings — у тесті її
+// підміняємо, як і решту джерел даних.
+const mockWs = vi.hoisted(() => ({ isIndependent: true, roleReady: true }));
+vi.mock("@/hooks/useWorkspaceSettings", () => ({
+  useWorkspaceSettings: () => ({ ...mockWs, settings: null, loading: false, refresh: vi.fn() }),
+}));
 vi.mock("@/hooks/useAvailabilityRequestCount", () => ({ useAvailabilityRequestCount: () => 0 }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
@@ -64,7 +72,12 @@ function setRoles(roles: AppRole[]) {
 beforeEach(() => setRoles([]));
 
 function renderNav() {
-  return render(<MemoryRouter><MobileBottomNav /></MemoryRouter>);
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter><MobileBottomNav /></MemoryRouter>
+    </QueryClientProvider>,
+  );
 }
 
 describe("MobileBottomNav — пункти за ролями", () => {
@@ -90,6 +103,41 @@ describe("MobileBottomNav — пункти за ролями", () => {
     setRoles(["tutor"]);
     const { container } = renderNav();
     expect(hrefs(container)).toContain("/finances");
+  });
+
+  // 24.09 (аудит шляхів, рішення власниці): третій пункт — список людей, бо це
+  // другий за частотою екран після розкладу, а діставався лише через бургер.
+  it("МЕНЕДЖЕР має внизу «Люди», а не чати", () => {
+    setRoles(["manager"]);
+    const h = hrefs(renderNav().container);
+    expect(h).toContain("/people");
+    expect(h).not.toContain("/chats");
+  });
+
+  it("САМОСТІЙНИЙ репетитор має внизу «Мої учні»", () => {
+    mockWs.isIndependent = true; mockWs.roleReady = true;
+    setRoles(["tutor"]);
+    const h = hrefs(renderNav().container);
+    expect(h).toContain("/my-students");
+    expect(h).not.toContain("/chats");
+  });
+
+  it("ХАБОВИЙ репетитор лишається з чатами (свого списку учнів у нього немає)", () => {
+    mockWs.isIndependent = false; mockWs.roleReady = true;
+    setRoles(["tutor"]);
+    const h = hrefs(renderNav().container);
+    expect(h).toContain("/chats");
+    expect(h).not.toContain("/my-students");
+    mockWs.isIndependent = true;
+  });
+
+  it("поки персона невідома — пункт не стрибає: показуємо чати", () => {
+    mockWs.isIndependent = true; mockWs.roleReady = false;
+    setRoles(["tutor"]);
+    const h = hrefs(renderNav().container);
+    expect(h).toContain("/chats");
+    expect(h).not.toContain("/my-students");
+    mockWs.roleReady = true;
   });
 
   it("STUDENT бачить дзеркало меню StudentLayout (без Фінансів)", () => {
