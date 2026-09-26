@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import LandingPage from "./LandingPage";
 
 const Index = () => {
-  const { user, loading, roles, signOut } = useAuth();
+  const { user, loading, roles, rolesUnreadable, signOut } = useAuth();
   const { t } = useTranslation();
 
   if (loading) {
@@ -25,7 +25,12 @@ const Index = () => {
       return (
         <div className="flex h-screen flex-col items-center justify-center gap-4 px-6 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <p className="max-w-sm text-[15px] text-muted-foreground">{t("index.rolePending")}</p>
+          {/* 26.09: «ролей немає» і «не змогли прочитати ролі» — різні речі.
+              Друге трапляється на лімітах IP (оператор, шкільний Wi-Fi), і
+              людина має чути правду: дані цілі, справа у звʼязку. */}
+          <p className="max-w-sm text-[15px] text-muted-foreground">
+            {t(rolesUnreadable ? "index.rolesUnreadable" : "index.rolePending")}
+          </p>
           <div className="flex gap-3">
             <button type="button" onClick={() => window.location.reload()}
               className="rounded-full border px-4 py-2 text-sm font-semibold">{t("index.retry")}</button>

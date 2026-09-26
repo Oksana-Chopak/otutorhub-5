@@ -7,11 +7,16 @@ import i18n from "@/i18n";
 
 export type AppRole = "manager" | "tutor" | "student";
 
+/** Паузи між спробами прочитати ролі (26.09): швидко, потім терплячіше. */
+const ROLE_RETRY_DELAYS_MS: readonly number[] = [600, 1_800, 4_000];
+
 interface AuthContextValue {
     user: User | null;
     session: Session | null;
     roles: AppRole[];
     loading: boolean;
+    /** Ролі не прочитались після всіх спроб (не «їх немає»). */
+    rolesUnreadable: boolean;
     signOut: () => Promise<void>;
     refreshRoles: () => Promise<void>;
     checkRole: (role: AppRole) => boolean;
@@ -23,6 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [roles, setRoles] = useState<AppRole[]>([]);
+    // Читання ролей не вдалося навіть після ретраїв: стан «ролей немає» тут
+    // означає «не змогли прочитати», і сторінка мусить сказати це словами.
+    const [rolesUnreadable, setRolesUnreadable] = useState(false);
     const [loading, setLoading] = useState(true);
     const mountedRef = useRef(true);
     // 23.09: останні живі токени — щоб після SIGNED_OUT, якого ми не просили
@@ -39,21 +47,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
   }, []);
 
-  const fetchRoles = useCallback(async (userId: string) => {
+  /**
+   * Ролі — це дозвіл на вхід у застосунок: поки їх немає, Index тримає напис
+   * «роль ще не призначена», а ProtectedRoute відкидає людину з її ж сторінки.
+   *
+   * B10: збій ЧИТАННЯ ролей — не те саме, що «ролей немає», тож попередні ролі
+   * зберігаємо. Але на ХОЛОДНОМУ старті попередніх немає: один невдалий запит
+   * (429 на IP оператора, мережа) назавжди лишав людину на спінері — саме так
+   * 26.09 робот-сторож не зміг увійти учнем за 45 секунд. Тому читання роблять
+   * до трьох разів із бекофом, і лише потім здається — тихо, зі збереженням
+   * попереднього стану (у нього є названий вихід із кнопкою «Спробувати ще»).
+   */
+  const fetchRoles = useCallback(async (userId: string, attempt = 0): Promise<void> => {
         const { data, error } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", userId);
-        if (mountedRef.current) {
-                // B10: збій ЧИТАННЯ ролей — не те саме, що «ролей немає».
-                // Раніше error ігнорувався → roles=[] → ProtectedRoute виштовхував
-                // залогіненого репетитора з /finances через один невдалий запит.
-                if (error) {
-                        console.warn("[auth] roles read failed — keeping previous roles", error);
+        if (!mountedRef.current) return;
+        if (error) {
+                if (attempt < ROLE_RETRY_DELAYS_MS.length) {
+                        const wait = ROLE_RETRY_DELAYS_MS[attempt];
+                        console.warn(`[auth] roles read failed — retry in ${wait}ms`, error);
+                        setTimeout(() => { if (mountedRef.current) void fetchRoles(userId, attempt + 1); }, wait);
                         return;
                 }
-                setRoles((data ?? []).map((r) => r.role as AppRole));
+                console.warn("[auth] roles read failed — keeping previous roles", error);
+                setRolesUnreadable(true);
+                return;
         }
+        setRolesUnreadable(false);
+        setRoles((data ?? []).map((r) => r.role as AppRole));
   }, []);
 
   useEffect(() => {
@@ -252,7 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkRole = (role: AppRole) => roles.includes(role);
 
   return (
-        <AuthContext.Provider value={{ user, session, roles, loading, signOut, refreshRoles, checkRole }}>
+        <AuthContext.Provider value={{ user, session, roles, loading, rolesUnreadable, signOut, refreshRoles, checkRole }}>
           {children}
         </AuthContext.Provider>
       );

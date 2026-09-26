@@ -97,6 +97,31 @@ export const isExpectedPaymentLesson = (l: MoneyLesson, nowMs: number = Date.now
 };
 
 /**
+ * ПЕРЕДОПЛАЧЕНИЙ УРОК: майбутній запланований урок, за який уже заплатили
+ * (фідбек менеджера 26.09: «бачу передоплати Ніни — 4 уроки, а Петро створив
+ * уроки Тимура наперед на жовтень і листопад, вони теж передоплачені, але я
+ * цього не бачу»).
+ *
+ * Причина розбіжності — не помилка: `wallet_settle_pair` списує кредит гаманця
+ * на НАЙБЛИЖЧІ неоплачені уроки, включно з майбутніми (ORDER BY starts_at,
+ * `l.status <> 'cancelled'`). Тобто передоплата існує у ДВОХ станах:
+ *   1) ще не розподілена — залишок у `student_wallet_balances` (так видно Ніну);
+ *   2) уже розподілена на конкретні майбутні уроки — залишок 0, а уроки стоять
+ *      `student_payment_status='paid'` (так «зникає» Тимур).
+ * Обидва стани — та сама передоплата, тому «скільки уроків передоплачено» =
+ * залишок гаманця + кількість таких уроків. Подвійного рахунку немає: урок
+ * потрапляє сюди рівно тоді, коли кредит із залишку вже знято.
+ *
+ * Перенесені борги (`carried_over`) — не уроки наперед: вони cancelled+fee.
+ */
+export const isPrepaidAheadLesson = (l: MoneyLesson, nowMs: number = Date.now()): boolean => {
+  if (l.status !== "scheduled") return false;
+  if (l.student_payment_status !== "paid") return false;
+  if (Number(l.student_price ?? 0) <= 0) return false;
+  return new Date(l.starts_at).getTime() > nowMs;
+};
+
+/**
  * Payout owed TO a tutor: ONLY conducted lessons (completed, or already started).
  * Mirrors mark_tutor_payouts_paid (migration 20260722000000) EXACTLY, so the
  * dashboard "до виплати" sum equals what the pay button actually flips — a

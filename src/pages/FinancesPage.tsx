@@ -70,7 +70,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
+import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, isPrepaidAheadLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice} from "@/lib/currency";
 import { useCoreLock } from "@/hooks/useCoreLock";
 import { RemindersRecoveredCard } from "@/components/RemindersRecoveredCard";
@@ -1025,19 +1025,43 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons, transactions, balances, pairRates, pairRateOptions, profiles]);
 
-  // 💳 «Передоплати учнів» для менеджера: станом на зараз, лише додатні залишки.
-  // Джерело — той самий balances (student_wallet_balances) і pairsList (hub-скоуп
-  // уже застосований), тож цифра тут = цифрі в гаманці пари, без другої правди.
+  // 💳 «Передоплати учнів» для менеджера: станом на зараз.
+  // Джерело залишку — той самий balances (student_wallet_balances) і pairsList
+  // (hub-скоуп уже застосований), тож цифра тут = цифрі в гаманці пари.
+  //
+  // Фідбек менеджера 26.09: «бачу передоплати Ніни — 4 уроки; Петро створив
+  // уроки Тимура наперед на жовтень-листопад, вони теж передоплачені, а я цього
+  // не бачу». Так і було: `wallet_settle_pair` списує кредит на найближчі
+  // неоплачені уроки, ВКЛЮЧНО з майбутніми, тож у Тимура залишок уже 0, а
+  // передоплата стоїть на самих уроках. Тому рядок показує ДВА стани однієї
+  // передоплати: нерозподілений залишок і вже розподілені уроки наперед
+  // (isPrepaidAheadLesson — спільний предикат, без другої правди).
   const prepaidRows = useMemo(() => {
+    const nowMs = Date.now();
+    const aheadCount: Record<string, number> = {};
+    const aheadSum: Record<string, number> = {};
+    lessons.forEach((l) => {
+      if (!l.student_id || !isPrepaidAheadLesson(l, nowMs)) return;
+      const key = `${l.tutor_id}:${l.student_id}`;
+      aheadCount[key] = (aheadCount[key] ?? 0) + 1;
+      aheadSum[key] = (aheadSum[key] ?? 0) + Number(l.student_price ?? 0);
+    });
     return pairsList
       .map((p) => {
-        const b = balances[`${p.tutor_id}:${p.student_id}`];
-        return b ? { ...p, lessons: b.lessons_balance || 0, amount: b.amount_balance || 0 } : null;
+        const key = `${p.tutor_id}:${p.student_id}`;
+        const b = balances[key];
+        return {
+          ...p,
+          lessons: b?.lessons_balance || 0,
+          amount: b?.amount_balance || 0,
+          ahead: aheadCount[key] ?? 0,
+          aheadSum: aheadSum[key] ?? 0,
+        };
       })
-      .filter((r): r is NonNullable<typeof r> => !!r && (r.lessons > 0 || r.amount > 0))
+      .filter((r) => r.lessons > 0 || r.amount > 0 || r.ahead > 0)
       .sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pairsList, balances]);
+  }, [pairsList, balances, lessons]);
 
   const unpaidLessonsForSheet = useMemo<UnpaidLessonOption[]>(() =>
     // Prepayment model: recording a payment against an UPCOMING lesson is the
@@ -3145,10 +3169,20 @@ export default function FinancesPage() {
                           <span className="font-semibold text-foreground">{r.student_name}</span>
                           <span className="text-muted-foreground"> · {r.tutor_name}</span>
                         </span>
-                        <span className="shrink-0 font-bold" style={{ color: "var(--teal,#2BBFAA)" }}>
+                        <span className="shrink-0 text-right font-bold" style={{ color: "var(--teal,#2BBFAA)" }}>
                           {r.lessons > 0 && t("finances.prepaidLessonsShort", { count: r.lessons })}
                           {r.lessons > 0 && r.amount > 0 && " + "}
-                          {r.amount > 0 && formatPrice(r.amount, "UAH")}
+                          {r.amount > 0 && formatPrice(r.amount, r.currency ?? "UAH")}
+                          {/* Уроки, за які вже заплатили і які ще не відбулись: та сама
+                              передоплата, лише вже розкладена по датах (фідбек 26.09). */}
+                          {r.ahead > 0 && (
+                            <>
+                              {(r.lessons > 0 || r.amount > 0) && " + "}
+                              <span title={t("finances.prepaidAheadHint")}>
+                                {t("finances.prepaidAheadShort", { count: r.ahead })}
+                              </span>
+                            </>
+                          )}
                         </span>
                       </div>
                     ))}

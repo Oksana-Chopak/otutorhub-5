@@ -4,7 +4,9 @@ import { toast } from "sonner";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox } from "lucide-react";
+import { Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox, Reply, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { SUPPORT_TELEGRAM, supportFallbackUrl } from "@/lib/support";
 
 type Category = "bug" | "idea" | "question" | "other";
 type Status = "new" | "in_progress" | "resolved";
@@ -18,6 +20,11 @@ interface Row {
   status: Status;
   page_url: string | null;
   created_at: string;
+  /* Приходять із міграцією 20260926120000. До її застосування колонок у базі
+     немає — саме тому запит іде `select("*")`: жодного 400 «колонки немає», і
+     відповідь просто не рендериться (інваріант «відсутнє = відсутнє»). */
+  answer?: string | null;
+  answered_at?: string | null;
 }
 
 const CAT: Record<Category, { icon: typeof Bug; bg: string; color: string }> = {
@@ -37,11 +44,51 @@ export default function FeedbackInboxPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [tableMissing, setTableMissing] = useState(false);
+  /* 26.09, живий випадок: у скриньці з 14.09 лежить «Есть ли у вас чат
+     поддержки?» — і відповісти НІЯК, сторінка вміла лише статуси. Питання без
+     відповіді = відтік, тому відповідь пишеться тут і приходить людині
+     дзвіночком (RPC answer_feedback, вона ж і надсилає сповіщення). */
+  const [answering, setAnswering] = useState<Row | null>(null);
+  const [answerText, setAnswerText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const sendAnswer = async () => {
+    const row = answering;
+    if (!row || answerText.trim().length < 2) return;
+    setSending(true);
+    let res: { data?: any; error?: { message: string } | null } = {};
+    try {
+      res = await (supabase.rpc as any)("answer_feedback", { _id: row.id, _text: answerText.trim() });
+    } catch (e) {
+      res = { error: { message: e instanceof Error ? e.message : String(e) } };
+    } finally {
+      setSending(false);
+    }
+    if (res.error || !res.data?.ok) {
+      toast.error(t("feedbackInbox.answerFailed"), { description: res.error?.message ?? res.data?.reason });
+      return;
+    }
+    const sentText = answerText.trim();
+    setRows((prev) => prev.map((r) => (r.id === row.id
+      ? { ...r, status: "resolved" as Status, answer: sentText, answered_at: new Date().toISOString() }
+      : r)));
+    setAnswering(null);
+    setAnswerText("");
+    if (res.data?.delivered === false) {
+      // Звернення без акаунта: відповідь збережена, надіслати нікуди — кажемо це прямо.
+      toast.warning(t("feedbackInbox.answerAnonymous"));
+    } else {
+      toast.success(t("feedbackInbox.answerSent"));
+    }
+  };
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("feedback_submissions")
-      .select("id, user_id, category, message, rating, status, page_url, created_at")
+      // `*`, а не список колонок: відповідь (answer/answered_at) зʼявляється
+      // разом із міграцією 26.09, а фронтенд їде раніше (Publish). Зі списком
+      // PostgREST відповів би 400 на ВЕСЬ запит і скринька стала б порожньою.
+      .select("*")
       .order("created_at", { ascending: false });
     if (error && /does not exist|42P01/i.test(error.message)) {
       setTableMissing(true);
@@ -198,8 +245,27 @@ export default function FeedbackInboxPage() {
                     <p className="mt-1.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{r.page_url}</p>
                   )}
 
+                  {r.answer && (
+                    <div className="mt-2.5 rounded-[12px] border p-2.5" style={{ borderColor: "rgba(43,191,170,.35)", background: "var(--teal-l,#f0fdf9)" }}>
+                      <p className="text-[14px] font-bold" style={{ color: "var(--teal-text,#1a7a6c)" }}>
+                        {t("feedbackInbox.answerLabel")}
+                        {r.answered_at ? ` · ${new Date(r.answered_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}` : ""}
+                      </p>
+                      <p className="mt-1 text-[15px]" style={{ color: "var(--ds-txt,#0f0f1a)", whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{r.answer}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {/* Відповісти можна завжди — і на вирішене теж (людина могла
+                        перепитати). Порожня скринька відповідей — це відтік. */}
+                    <button type="button" onClick={() => { setAnswering(r); setAnswerText(r.answer ?? ""); }}
+                      style={{ height: 44, padding: "0 14px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(43,191,170,.45)", background: "var(--teal-l,#f0fdf9)", color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <Reply className="h-4 w-4" /> {r.answer ? t("feedbackInbox.answerAgain") : t("feedbackInbox.answer")}
+                    </button>
+                  </div>
+
                   {!resolved && (
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-2 flex flex-wrap gap-2">
                       {r.status !== "in_progress" && (
                         <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "in_progress")}
                           style={{ height: 36, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(245,158,11,.35)", background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
@@ -224,6 +290,53 @@ export default function FeedbackInboxPage() {
           </div>
         )}
       </div>
+
+      {/* Аркуш відповіді: форма — завжди нижній аркуш (канон дизайну). */}
+      <Dialog open={!!answering} onOpenChange={(o) => { if (!o) { setAnswering(null); setAnswerText(""); } }}>
+        <DialogContent aria-describedby={undefined} className="w-full max-w-md p-5 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto">
+          <DialogTitle className="text-[19px] font-extrabold">{t("feedbackInbox.answerTitle")}</DialogTitle>
+          {answering && (
+            <>
+              <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
+                {answering.user_id ? (names[answering.user_id] ?? t("feedbackInbox.noName")) : t("feedbackInbox.anonymous")}
+                {" · "}{new Date(answering.created_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}
+              </p>
+              <p className="rounded-[12px] p-2.5 text-[15px]" style={{ background: "var(--ds-surface3,#f6f5f1)", color: "var(--ds-txt,#0f0f1a)", whiteSpace: "pre-wrap", lineHeight: 1.45 }}>
+                {answering.message}
+              </p>
+              {!answering.user_id && (
+                <p className="text-[14px]" style={{ color: "var(--warning-text,#B45309)" }}>{t("feedbackInbox.answerAnonymousHint")}</p>
+              )}
+              {/* Найчастіше питання — «а де чат підтримки?». Готовий текст, щоб
+                  не набирати його щоразу; він описує РЕАЛЬНИЙ шлях у застосунку. */}
+              <button type="button"
+                onClick={() => setAnswerText(t("feedbackInbox.answerTemplateSupport", { handle: SUPPORT_TELEGRAM }))}
+                style={{ alignSelf: "flex-start", minHeight: 44, padding: "0 12px", borderRadius: 999, cursor: "pointer", border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#62677E)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                {t("feedbackInbox.answerTemplateSupportLabel")}
+              </button>
+              <textarea
+                aria-label={t("feedbackInbox.answerLabel")}
+                value={answerText}
+                onChange={(e) => setAnswerText(e.target.value)}
+                rows={5}
+                maxLength={2000}
+                placeholder={t("feedbackInbox.answerPlaceholder")}
+                className="w-full rounded-[12px] border border-input p-3 text-[15px]"
+                style={{ color: "var(--ds-txt,#0f0f1a)", background: "var(--ds-surface,#fff)" }}
+              />
+              <button type="button" disabled={sending || answerText.trim().length < 2} onClick={() => void sendAnswer()}
+                style={{ height: 50, borderRadius: 14, cursor: sending ? "wait" : "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: answerText.trim().length < 2 ? 0.6 : 1 }}>
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Reply className="h-4 w-4" />}
+                {t("feedbackInbox.answerSend")}
+              </button>
+              <a href={supportFallbackUrl("oTutorHub")} target="_blank" rel="noopener noreferrer"
+                className="text-center text-[14px] underline" style={{ color: "var(--sub,#62677E)", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {t("feedbackInbox.answerViaTelegram")}
+              </a>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

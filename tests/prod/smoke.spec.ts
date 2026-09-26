@@ -72,9 +72,9 @@ const PERSONAS: Persona[] = [
   { key: "student", label: "учень", email: process.env.TEST_STUDENT_EMAIL, password: process.env.TEST_STUDENT_PASSWORD, routes: ["/student-dashboard", "/student/schedule", "/student/payments", "/student/homework"] },
 ];
 
-type Watch = { pageErrors: string[]; consoleErrors: string[]; badResponses: string[]; softResponses: string[] };
+type Watch = { pageErrors: string[]; consoleErrors: string[]; badResponses: string[]; softResponses: string[]; rateLimited: string[]; authStatuses: number[] };
 function watch(page: Page): Watch {
-  const w: Watch = { pageErrors: [], consoleErrors: [], badResponses: [], softResponses: [] };
+  const w: Watch = { pageErrors: [], consoleErrors: [], badResponses: [], softResponses: [], rateLimited: [], authStatuses: [] };
   page.on("pageerror", (e) => w.pageErrors.push(String(e.message).slice(0, 300)));
   page.on("console", (m) => {
     if (m.type() !== "error") return;
@@ -86,11 +86,20 @@ function watch(page: Page): Watch {
     const url = r.url();
     if (!url.startsWith(SUPABASE_URL)) return;
     const s = r.status();
-    if (s < 400) return;
     const path = url.slice(SUPABASE_URL.length).split("?")[0];
+    // 26.09: відповідь самого ВХОДУ — окремо. Без неї «не дійшли до дашборда»
+    // і «прод відмовив у вході» виглядають однаково (тайм-аут).
+    if (path.startsWith("/auth/v1/token")) w.authStatuses.push(s);
+    if (s < 400) return;
     let body = "";
     try { body = (await r.text()).slice(0, 200).replace(/\s+/g, " "); } catch { /* тіло могло вже піти */ }
     const line = `${r.request().method()} ${path} → ${s} ${body}`;
+    // 26.09: 429 «забагато запитів» — окремий клас. Ліміт Supabase рахується НА IP
+    // (мобільний оператор і шкільний Wi-Fi ховають за однією адресою сотні людей;
+    // скан логів 16.09 — «permission denied рівно тоді, коли оновлення токена
+    // впирається в ліміт»). Це тимчасова відмова, а не зламаний екран: застосунок
+    // повторює читання сам (fetchWithTimeout), а робот стукає частіше за людину.
+    if (s === 429) w.rateLimited.push(line);
     // 400 (нема колонки/поганий запит), 404 (нема RPC/функції), 5xx — це збої.
     // 401/403 — RLS чи прострочений токен, 406/409 — очікувані відповіді PostgREST.
     if (s === 400 || s === 404 || s >= 500) w.badResponses.push(line);
@@ -107,6 +116,8 @@ async function diagnose(page: Page, w: Watch): Promise<string> {
   const toasts = (await page.locator('[data-sonner-toast], [role="alert"], [role="status"]').allInnerTexts().catch(() => []))
     .map((t) => t.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 3);
   const lines = [`адреса: ${page.url()}`];
+  if (w.rateLimited.length) lines.push(`⚠️ прод обмежував частоту: 429 ×${w.rateLimited.length} — тимчасова відмова на IP, не поломка екрана`);
+  if (w.authStatuses.length) lines.push(`відповідь входу (/auth/v1/token): ${w.authStatuses.join(", ")}`);
   if (toasts.length) lines.push(`повідомлення на екрані: ${toasts.join(" | ").slice(0, 300)}`);
   lines.push(`екран: «${body}»`);
   for (const l of w.badResponses.slice(-5)) lines.push(`збій бази/edge: ${l}`);
@@ -129,6 +140,17 @@ async function login(page: Page, p: Persona, w: Watch) {
     // Не «timeout», а ЩО сталося: лишились на /auth (пароль? помилка входу?),
     // застрягли на «/» без ролі (index.rolePending), чи приземлились деінде.
     const path = new URL(page.url()).pathname;
+    // 26.09: спершу дивимось, що відповів САМ вхід. 429 = ліміт на IP (пройде
+    // за хвилини), 400 = невірні дані тестового акаунта — це різні ліки, а
+    // маршрут у цих двох випадках однаковий.
+    const refused = w.authStatuses.filter((s) => s >= 400);
+    if (refused.length) {
+      throw new Error(
+        `${p.label}: прод відмовив у вході — /auth/v1/token відповів ${refused.join(", ")}` +
+        (refused.includes(429) ? " (429 = ліміт запитів на IP, тимчасово; продукт не зламаний)" : " (400 = невірні дані тестового акаунта)") +
+        `\n${await diagnose(page, w)}`,
+      );
+    }
     const stuckOnAuth = path.startsWith("/auth");
     const stuckOnRoot = path === "/";
     const why = stuckOnAuth

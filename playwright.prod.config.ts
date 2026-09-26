@@ -21,7 +21,10 @@ export default defineConfig({
   expect: { timeout: 20_000 },
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: 2,
+  // 26.09: одна персона за раз. Ліміт запитів Supabase рахується НА IP, а робот
+  // із двох потоків сам створював 429 — і потім звітував про них як про поломку
+  // екранів. Ранкова перевірка не поспішає; довіра до неї коштує дорожче хвилини.
+  workers: 1,
   reporter: [["list"], ["json", { outputFile: "prod-report.json" }], ["html", { open: "never", outputFolder: "prod-report" }]],
   use: {
     baseURL: process.env.PROD_BASE_URL ?? "https://otutorhub.com",
