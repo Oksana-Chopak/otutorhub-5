@@ -226,6 +226,7 @@ export const sv: LocaleTranslations = {
     writeSupport: "Skriv",
   },
   common: {
+    clear: "Rensa",
     workspaceUnknown: "Kunde inte avgöra arbetsytans typ — ladda om sidan",
     copyFailed: "Kunde inte kopiera — kopiera manuellt",
     copy: "Kopiera",
@@ -1745,6 +1746,18 @@ export const sv: LocaleTranslations = {
     activating: "Betalning mottagen — aktiverar prenumerationen…",
 
     activationPending: "Betalningen är klar. Aktiveringen kan ta upp till en minut — prenumerationen slås på själv",},
+  search: {
+    open: "Sök",
+    title: "Hitta en person",
+    placeholder: "Elevens eller lärarens namn",
+    hint: "Skriv minst två bokstäver. Åtgärderna finns direkt: påminn, boka lektion, registrera betalning.",
+    nothing: "Ingen hittades — kontrollera stavningen",
+    debt: "Skyldig {{amount}} · {{count}} lekt.",
+    noDebt: "Inget obetalt",
+    actionLesson: "Lektion",
+    actionPayment: "Betalning",
+    actionMaterials: "Material",
+  },
   afterLesson: {
     title: "Lektionen är slut",
     progress: "Lektion {{current}} av {{total}}",

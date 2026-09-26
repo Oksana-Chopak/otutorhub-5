@@ -227,6 +227,7 @@ export const en: LocaleTranslations = {
     writeSupport: "Write",
   },
   common: {
+    clear: "Clear",
     workspaceUnknown: "Could not determine the workspace type — please reload",
     copyFailed: "Couldn't copy — please copy manually",
     copy: "Copy",
@@ -1765,6 +1766,18 @@ export const en: LocaleTranslations = {
     activating: "Payment received — activating your subscription…",
 
     activationPending: "Payment done. Activation can take up to a minute — the subscription will switch on by itself",},
+  search: {
+    open: "Search",
+    title: "Find a person",
+    placeholder: "Student or tutor name",
+    hint: "Type at least two letters. Actions are right there: remind, schedule, record a payment.",
+    nothing: "Nobody found — check the spelling",
+    debt: "Owes {{amount}} · {{count}} lsn",
+    noDebt: "Nothing owed",
+    actionLesson: "Lesson",
+    actionPayment: "Payment",
+    actionMaterials: "Materials",
+  },
   afterLesson: {
     title: "Lesson is over",
     progress: "Lesson {{current}} of {{total}}",

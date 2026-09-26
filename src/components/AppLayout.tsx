@@ -7,6 +7,7 @@ import { PaywallProvider } from "@/hooks/useCoreLock";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationBell } from "./NotificationBell";
+import { GlobalSearch } from "./GlobalSearch";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
@@ -91,7 +92,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Desktop bell — ONE golden bell on EVERY page (spec: same style on every page).
           Before this, only 4 pages rendered their own lg bell; on People/Schedule/
           Finances/Chats/… notifications were unreachable on desktop. */}
-      <div className="fixed right-6 top-6 z-40 hidden lg:block">
+      {/* Важіль 7 (аудит шляхів 24.09): пошук-намір поруч із дзвіночком —
+          єдина навігація, яка не росте разом із кількістю учнів. ⌘K теж. */}
+      <div className="fixed right-6 top-6 z-40 hidden items-center gap-2 lg:flex">
+        <GlobalSearch />
         <NotificationBell />
       </div>
       <main className="flex-1 overflow-auto pb-20 lg:pb-0">
@@ -108,6 +112,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               )}
             </h1>
             <div className="flex shrink-0 items-center gap-2">
+              <GlobalSearch />
               <NotificationBell />
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
