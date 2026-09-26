@@ -58,7 +58,7 @@ const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "�
 const rsym = (c?: string | null) => RSYM[c ?? "UAH"] ?? (c ?? "₴");
 const RT = {
   uk: {
-    header: "💳 Нагадування про оплату", tutor: "репетитор", sum: "Сума", subj: "Предмет",
+    header: "💳 Нагадування про оплату", tutor: "репетитор", sum: "Сума", subj: "Предмет", iPaid: "Я оплатив",
     prepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній урок (${d}) з ${t}.`,
     before: (d: string, t: string, n: number) => `Нагадуємо про оплату уроку ${d} з ${t}. До початку залишилось ~${n} ${n === 1 ? "день" : "днів"}.`,
     after: (d: string, t: string) => `Дякуємо за урок ${d} з ${t}! Час оплатити заняття.`,
@@ -72,7 +72,7 @@ const RT = {
     debtTotal: "Разом",
   },
   en: {
-    header: "💳 Payment reminder", tutor: "your tutor", sum: "Amount", subj: "Subject",
+    header: "💳 Payment reminder", tutor: "your tutor", sum: "Amount", subj: "Subject", iPaid: "I paid",
     prepaid: (d: string, t: string) => `A prepayment reminder for the upcoming lesson (${d}) with ${t}.`,
     before: (d: string, t: string, n: number) => `Payment reminder for the lesson ${d} with ${t}. ~${n} ${n === 1 ? "day" : "days"} to go.`,
     after: (d: string, t: string) => `Thanks for the lesson ${d} with ${t}! Time to pay for it.`,
@@ -84,7 +84,7 @@ const RT = {
     debtTotal: "Total",
   },
   sv: {
-    header: "💳 Betalningspåminnelse", tutor: "din lärare", sum: "Belopp", subj: "Ämne",
+    header: "💳 Betalningspåminnelse", tutor: "din lärare", sum: "Belopp", subj: "Ämne", iPaid: "Jag har betalat",
     prepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande lektion (${d}) med ${t}.`,
     before: (d: string, t: string, n: number) => `Betalningspåminnelse för lektionen ${d} med ${t}. ~${n} ${n === 1 ? "dag" : "dagar"} kvar.`,
     after: (d: string, t: string) => `Tack för lektionen ${d} med ${t}! Dags att betala.`,
@@ -387,6 +387,10 @@ Deno.serve(async (req) => {
       body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
       link: "/student/payments",
       tag: `payrem-${lesson.id}`,
+      /* Важіль 3в: кнопка просто в сповіщенні. Вона НЕ пише гроші (у service
+         worker немає сесії) — відкриває сторінку оплат із уже наведеною дією
+         «Я оплатив» для цього репетитора, де лишається один дотик. */
+      actions: [{ action: "ipaid", title: T.iPaid, link: `/student/payments?paid=${lesson.tutor_id}` }],
     });
     // In-app 🔔 bell — the universal channel every student sees in the app, whether or
     // not they linked Telegram or granted web-push. The dedup guard above means this
@@ -505,6 +509,7 @@ Deno.serve(async (req) => {
         body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
         link: "/student/payments",
         tag: `payrem-${lesson.id}-${p.student_id}`,
+        actions: [{ action: "ipaid", title: T.iPaid, link: `/student/payments?paid=${lesson.tutor_id}` }],
       });
       // In-app 🔔 — universal channel (same as individual path).
       await supabase.from("notifications").insert({

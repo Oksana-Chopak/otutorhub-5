@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { IPaidButton, type PendingClaim } from "@/components/IPaidButton";
+import { useSearchParams } from "react-router-dom";
 import { ErrorState } from "@/components/ErrorState";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
@@ -59,6 +60,12 @@ export default function StudentPaymentsPage() {
      надсилала другу. Таблиці може ще не бути (міграція їде окремо) — тоді
      просто немає заявок, і екран працює як раніше. */
   const [pendingClaims, setPendingClaims] = useState<Record<string, PendingClaim>>({});
+  /* Важіль 3в: кнопка «Я оплатив» у самому сповіщенні веде сюди з
+     `?paid=<tutorId>` — аркуш відкривається сам, людині лишається один дотик.
+     Гроші при цьому НЕ рухаються: це та сама заявка, яку підтверджує той, хто
+     їх отримує. */
+  const [pushParams] = useSearchParams();
+  const autoPaidTutor = pushParams.get("paid");
   const loadClaims = useCallback(async () => {
     try {
       const { data, error } = await (supabase.from("payment_claims" as any) as any)
@@ -387,6 +394,7 @@ export default function StudentPaymentsPage() {
                   {/* Важіль 4: одразу після реквізитів — «Я оплатив». Гроші вона не
                       міняє: створює заявку, яку підтверджує той, хто їх отримує. */}
                   <IPaidButton
+                    autoOpen={autoPaidTutor === tp.tutor_id}
                     tutorId={tp.tutor_id}
                     tutorName={tp.tutor_name}
                     amountDue={dueByTutor[tp.tutor_id] ?? 0}

@@ -303,7 +303,17 @@ Deno.serve(async (req) => {
   let body: { userId?: string; title?: string; body?: string; link?: string; tag?: string } = {};
   try { body = await req.json(); } catch { /* ignore */ }
 
-  const { userId, title = "oTutorHub", body: msgBody = "", link = "/", tag } = body;
+  const { userId, title = "oTutorHub", body: msgBody = "", link = "/", tag, actions } = body;
+  /* Важіль 3в: кнопки сповіщення. Санітизація тут, а не в sw.js, — щоб у
+     пристрій летіло вже безпечне: максимум дві кнопки (більше платформи й не
+     показують), короткий підпис і ЛИШЕ відносний шлях. */
+  const safeActions = Array.isArray(actions)
+    ? (actions as Array<{ action?: unknown; title?: unknown; link?: unknown }>)
+        .filter((a) => typeof a?.action === "string" && typeof a?.title === "string"
+          && typeof a?.link === "string" && (a.link as string).startsWith("/") && !(a.link as string).startsWith("//"))
+        .slice(0, 2)
+        .map((a) => ({ action: String(a.action).slice(0, 32), title: String(a.title).slice(0, 32), link: String(a.link).slice(0, 300) }))
+    : [];
   if (!userId) {
     return new Response(JSON.stringify({ error: "userId required" }), { status: 400 });
   }
@@ -317,7 +327,7 @@ Deno.serve(async (req) => {
 
   // 40b: раніше тут був ранній вихід «немає веб-підписок → sent 0», і нативні
   // токени не питались зовсім. Тепер обидва транспорти незалежні.
-  const payload = { title, body: msgBody, link, ...(tag ? { tag } : {}) };
+  const payload = { title, body: msgBody, link, ...(tag ? { tag } : {}), ...(safeActions.length ? { actions: safeActions } : {}) };
   let sent = 0;
   if (WEB_PUSH_READY) {
     const list = (subs ?? []) as { endpoint: string; p256dh: string; auth: string }[];

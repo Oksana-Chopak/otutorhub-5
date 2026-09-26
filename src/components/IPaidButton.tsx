@@ -30,6 +30,7 @@ export function IPaidButton({
   currency,
   pending,
   onCreated,
+  autoOpen,
 }: {
   tutorId: string;
   tutorName?: string;
@@ -39,6 +40,8 @@ export function IPaidButton({
   /** Заявка, яка вже чекає підтвердження (щоб не надсилати другу). */
   pending?: PendingClaim | null;
   onCreated?: () => void;
+  /** Прийшли з кнопки сповіщення (`?paid=<tutorId>`) — відкриваємо аркуш самі. */
+  autoOpen?: boolean;
 }) {
   const { t } = useTranslation();
   const haptic = useHaptic();
@@ -50,6 +53,12 @@ export function IPaidButton({
   useEffect(() => {
     if (open) setAmount(amountDue > 0 ? String(amountDue) : "");
   }, [open, amountDue]);
+
+  /* Відкриваємо лише коли заявки ще немає: прийшов із сповіщення, а заявка вже
+     в дорозі — не показуємо форму вдруге, показуємо «чекаємо підтвердження». */
+  useEffect(() => {
+    if (autoOpen && !pending) setOpen(true);
+  }, [autoOpen, pending]);
 
   if (pending) {
     const at = new Date(pending.created_at);
