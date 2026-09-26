@@ -4410,6 +4410,13 @@ export const en: LocaleTranslations = {
     rejectBtn: "Reject",
   },
   recordPaymentExtra: {
+    incomingLabel: "How much came in",
+    incomingSubmit: "Record",
+    incomingSaved: "Recorded — lessons closed: {{count}} 💰",
+    allocCovers: "Covers {{count}} lesson(s): {{dates}}",
+    allocCoversNone: "Not enough to cover a full lesson — it goes to the wallet",
+    allocLeftover: "{{amount}} stays in the wallet and covers the next lessons",
+    allocExact: "Nothing left over — it covers exactly these lessons",
     selectedTotal: "Unpaid: {{count}} for {{sum}}",
     subtitle: "For a specific lesson — or prepayment for future ones",
     tabLesson: "Per lesson",

@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
+import { allocateAmount } from "@/lib/paymentAllocation";
 import { formatPrice } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -155,6 +156,51 @@ export function RecordPaymentSheet({
     setMarkingId(null);
   };
 
+  /* Важіль 5 (аудит шляхів 24.09): «Оля переказала 1500 за три уроки». Людина
+     думає СУМОЮ, а продукт змушував думати структурою: знайти пару, знайти три
+     уроки, натиснути на кожному «Позначити». Тепер сума вводиться першою, і
+     застосунок сам показує, що вона закриває. Запис — канонічним шляхом:
+     поповнення гаманця пари, після якого борги закриває САМА база
+     (wallet_settle_pair). `allocateAmount` — дзеркало того SQL, тож показане
+     збігається з тим, що станеться. */
+  const [incoming, setIncoming] = useState("");
+  const alloc = useMemo(() => {
+    const value = parseFloat(String(incoming).replace(",", "."));
+    if (!Number.isFinite(value) || value <= 0) return null;
+    return allocateAmount(value, pairUnpaid.map((l) => ({
+      id: l.id, starts_at: l.starts_at, student_price: Number(l.student_price ?? 0),
+    })));
+  }, [incoming, pairUnpaid]);
+
+  const submitIncoming = async () => {
+    if (lock.locked) { lock.openPaywall(); return; }
+    if (busy || !pickedPair || !alloc) return;
+    const value = parseFloat(String(incoming).replace(",", "."));
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("wallet_topup" as any, {
+        _tutor_id: pickedPair.tutor_id,
+        _student_id: pickedPair.student_id,
+        _lessons_delta: 0,
+        _amount_delta: value,
+        _note: note || null,
+        _paid_at: paidOn ? new Date(paidOn).toISOString() : null,
+      });
+      if (error) {
+        haptic.error();
+        toast.error(t("recordPayment.saveFailed"), { description: error.message });
+        return;
+      }
+      haptic.success();
+      toast.success(t("recordPaymentExtra.incomingSaved", { count: alloc.covered.length }));
+      setIncoming("");
+      try { await onWalletTopUp(); } finally { setBusy(false); }
+      close();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleTopUp = async () => {
     if (lock.locked) { lock.openPaywall(); return; } // замок 05.09
     if (busy) return; // P7: подвійний тап = гаманець на 20 уроків замість 10 (як у WalletDialog)
@@ -289,6 +335,51 @@ export function RecordPaymentSheet({
                   </p>
                 ) : (
                   <>
+                  {/* Важіль 5: СУМА — перше поле. Розподіл рахує та сама логіка,
+                      що й база, тож «покриває 3 уроки · лишок 0» — не обіцянка,
+                      а опис того, що станеться після дотику. */}
+                  <div className="mb-2 rounded-[12px] p-3" style={{ background: "var(--ds-surface3,#f6f5f1)", border: "1px solid var(--ds-border,#eceef3)" }}>
+                    <label className="text-[14px] font-semibold" htmlFor="rp-incoming">
+                      {t("recordPaymentExtra.incomingLabel")}
+                    </label>
+                    <input
+                      id="rp-incoming"
+                      inputMode="decimal"
+                      value={incoming}
+                      onChange={(e) => setIncoming(e.target.value)}
+                      placeholder={String(pairUnpaid.reduce((a, l) => a + Number(l.student_price ?? 0), 0))}
+                      className="mt-1 h-11 w-full rounded-xl border border-input px-3 text-[15px]"
+                      style={{ color: "var(--ds-txt,#0f0f1a)", background: "var(--ds-surface,#fff)" }}
+                    />
+                    {alloc && (
+                      <>
+                        <p className="mt-2 text-[14px] font-semibold" style={{ color: "var(--teal-text,#1a7a6c)" }}>
+                          {alloc.covered.length > 0
+                            ? t("recordPaymentExtra.allocCovers", {
+                                count: alloc.covered.length,
+                                dates: alloc.covered.map((l) => formatDate(l.starts_at)).join(", "),
+                              })
+                            : t("recordPaymentExtra.allocCoversNone")}
+                        </p>
+                        <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>
+                          {alloc.leftover > 0
+                            ? t("recordPaymentExtra.allocLeftover", { amount: formatPrice(alloc.leftover, pairUnpaid[0]?.currency ?? "UAH") })
+                            : t("recordPaymentExtra.allocExact")}
+                        </p>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void submitIncoming()}
+                          className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-bold"
+                          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", border: "none", cursor: busy ? "wait" : "pointer" }}
+                        >
+                          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                          {t("recordPaymentExtra.incomingSubmit")}
+                        </button>
+                      </>
+                    )}
+                  </div>
+
                   {/* 24.09 (аудит шляхів): «переказали 1500 за три уроки» людина
                       звіряла в голові — суми списку ніде не було (у гаманці вона
                       є, тут не було). Тепер видно одразу. */}

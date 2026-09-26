@@ -4440,6 +4440,13 @@ export const uk = {
     rejectBtn: "Відхилити",
   },
   recordPaymentExtra: {
+    incomingLabel: "Скільки прийшло",
+    incomingSubmit: "Записати",
+    incomingSaved: "Записано — закрито уроків: {{count}} 💰",
+    allocCovers: "Покриває {{count}} ур.: {{dates}}",
+    allocCoversNone: "Цього не хватає на жоден урок повністю — сума ляже на гаманець",
+    allocLeftover: "Лишок {{amount}} лишиться на гаманці й закриє наступні уроки",
+    allocExact: "Лишок 0 — сума закриває рівно ці уроки",
     selectedTotal: "Неоплачених: {{count}} на {{sum}}",
     subtitle: "За конкретний урок — або передоплата на майбутні",
     tabLesson: "За урок",

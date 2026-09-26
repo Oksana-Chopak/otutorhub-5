@@ -4390,6 +4390,13 @@ export const sv: LocaleTranslations = {
     rejectBtn: "Avvisa",
   },
   recordPaymentExtra: {
+    incomingLabel: "Hur mycket kom in",
+    incomingSubmit: "Registrera",
+    incomingSaved: "Registrerat — stängda lektioner: {{count}} 💰",
+    allocCovers: "Täcker {{count}} lektion(er): {{dates}}",
+    allocCoversNone: "Räcker inte till en hel lektion — beloppet läggs i plånboken",
+    allocLeftover: "{{amount}} ligger kvar i plånboken och täcker nästa lektioner",
+    allocExact: "Inget blir kvar — det täcker exakt dessa lektioner",
     selectedTotal: "Obetalda: {{count}} för {{sum}}",
     subtitle: "För en specifik lektion — eller förskottsbetalning för framtida",
     tabLesson: "Per lektion",
