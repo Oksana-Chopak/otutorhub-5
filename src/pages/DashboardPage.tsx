@@ -63,6 +63,8 @@ import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { DayClosedCelebration } from "@/components/DayClosedCelebration";
 import { TopTutorBadge } from "@/components/TopTutorBadge";
 import { useCoreLock } from "@/hooks/useCoreLock";
+import { RemindDebtButton } from "@/components/RemindDebtButton";
+import { useLastReminders } from "@/hooks/useLastReminders";
 import {
   CalendarDays,
   Users,
@@ -128,6 +130,8 @@ export default function DashboardPage() {
   const { user, roles, loading: authLoading } = useAuth();
   const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil, updateSettings } = useWorkspaceSettings();
   const coreLock = useCoreLock();
+  // Важіль 2: «нагадано сьогодні о 14:20» — щоб не питати себе, чи вже нагадувала.
+  const { lastRemindedAt, markReminded } = useLastReminders();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
@@ -1089,6 +1093,26 @@ export default function DashboardPage() {
     [lessons, nowMs, groupUnpaidLessonIds]
   );
 
+  /* Важіль 2 (аудит шляхів 24.09): «Нагадати — там, де видно борг, і на
+     ЛЮДИНУ, а не на урок». Дашборд показував агрегат «N уроків не оплачено» і
+     вів у «Фінанси» — три екрани до дії, яку обіцяє лендінг. Тепер найбільші
+     боржники стоять тут поіменно, з кнопкою нагадування (одне повідомлення про
+     ВЕСЬ борг пари). Групові рядки не беремо: у них борг на учасниках, а не на
+     уроці, і нагадування про них — окрема розмова. */
+  const debtors = useMemo(() => {
+    const byPair = new Map<string, { studentId: string; tutorId: string; sum: number; count: number }>();
+    for (const l of lessons) {
+      if (!l.student_id) continue;
+      if (!isStudentDebtLesson(l)) continue;
+      const key = `${l.tutor_id}:${l.student_id}`;
+      const cur = byPair.get(key) ?? { studentId: l.student_id, tutorId: l.tutor_id, sum: 0, count: 0 };
+      cur.sum += Number(l.student_price ?? 0);
+      cur.count += 1;
+      byPair.set(key, cur);
+    }
+    return [...byPair.values()].sort((a, b) => b.sum - a.sum);
+  }, [lessons]);
+
   // Інваріант живе у financials.ts разом із рештою грошових предикатів:
   // прапор самостійності — обовʼязковий аргумент, забути його неможливо.
   const lessonsWithoutPrice = useMemo(
@@ -1287,15 +1311,34 @@ export default function DashboardPage() {
     if (isTutor && !isManager) {
       // Проведені та не оплачені (незалежний бачить свої, хабовий — нічого, менеджер нижче)
       if (isIndependentTutor && pendingPayments.length > 0) {
-        tasks.push({
-          key: "tutor-unpaid",
-          icon: Banknote,
-          tone: "warning" as const,
-          title: t("dashboardExtra.tutorUnpaidTitle", { count: pendingPayments.length }),
-          description: t("dashboardExtra.tutorUnpaidDesc"),
-          to: "/finances",
-          cta: t("dashboardExtra.tutorUnpaidCta"),
+        // Поіменно — трьох найбільших боржників, із кнопкою «Нагадати» просто тут.
+        debtors.slice(0, 3).forEach((d) => {
+          tasks.push({
+            key: `debtor-${d.tutorId}:${d.studentId}`,
+            icon: Banknote,
+            tone: "warning" as const,
+            title: t("dashboardExtra.debtorTitle", {
+              name: profiles[d.studentId] ?? t("roles.student"),
+              amount: formatPrice(d.sum, pairCurrency[`${d.tutorId}:${d.studentId}`] ?? "UAH"),
+            }),
+            description: t("dashboardExtra.debtorDesc", { count: d.count }),
+            to: "/finances?tab=debts",
+            cta: t("dashboardExtra.tutorUnpaidCta"),
+            remindPair: { studentId: d.studentId, name: profiles[d.studentId] ?? t("roles.student") },
+          });
         });
+        // Решта — одним рядком, щоб картка задач не перетворилась на список.
+        if (debtors.length > 3) {
+          tasks.push({
+            key: "tutor-unpaid",
+            icon: Banknote,
+            tone: "warning" as const,
+            title: t("dashboardExtra.debtorMoreTitle", { count: debtors.length - 3 }),
+            description: t("dashboardExtra.tutorUnpaidDesc"),
+            to: "/finances?tab=debts",
+            cta: t("dashboardExtra.tutorUnpaidCta"),
+          });
+        }
       }
       // Уроки без ціни — ЛИШЕ самостійному. Перевірка 01.09: для хабового
       // `lessons_visible` маскує student_price у NULL (він не має права бачити
@@ -1417,6 +1460,24 @@ export default function DashboardPage() {
     // менеджерські пункти нижче явно закриті isManager — інакше незалежний
     // бачив би той самий борг/урок двічі (гілка репетитора вище вже додала свої).
     // 1. Pending payments — top priority (manager list)
+    if (isManager && debtors.length > 0) {
+      debtors.slice(0, 3).forEach((d) => {
+        tasks.push({
+          key: `debtor-${d.tutorId}:${d.studentId}`,
+          icon: Banknote,
+          tone: "warning" as const,
+          title: t("dashboardExtra.debtorTitle", {
+            name: profiles[d.studentId] ?? t("roles.student"),
+            amount: formatPrice(d.sum, pairCurrency[`${d.tutorId}:${d.studentId}`] ?? "UAH"),
+          }),
+          description: t("dashboardExtra.debtorDescWithTutor", { count: d.count, tutor: profiles[d.tutorId] ?? "" }),
+          to: "/finances?tab=debts",
+          cta: t("dashboardExtra.pendingPaymentsCta"),
+          // Менеджер нагадує за репетитора школи — edge перевіряє скоуп сам.
+          remindPair: { studentId: d.studentId, tutorId: d.tutorId, name: profiles[d.studentId] ?? t("roles.student") },
+        });
+      });
+    }
     if (isManager && pendingPayments.length > 0) {
       tasks.push({
         key: "pending-payments",
@@ -1562,6 +1623,28 @@ export default function DashboardPage() {
       task.tone === "destructive" ? "#3b82f6"
       : task.tone === "warning"    ? "#f59e0b"
       : "var(--sub,#62677E)";
+    if (task.remindPair) {
+      return (
+        <div key={task.key}
+          className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+          style={{ borderLeft: `3.5px solid ${borderColor}` }}>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: iconBg }}>
+            <Icon className="h-4 w-4" style={{ color: iconColor }} />
+          </div>
+          <Link to={task.to} className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
+            <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.description}</p>
+          </Link>
+          <RemindDebtButton
+            studentId={task.remindPair.studentId}
+            tutorId={task.remindPair.tutorId}
+            studentName={task.remindPair.name}
+            lastRemindedAt={lastRemindedAt(task.remindPair.studentId, task.remindPair.tutorId)}
+            onSent={() => markReminded(task.remindPair.studentId, task.remindPair.tutorId)}
+          />
+        </div>
+      );
+    }
     return task.payTutorId ? (
       <div key={task.key}
         className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"

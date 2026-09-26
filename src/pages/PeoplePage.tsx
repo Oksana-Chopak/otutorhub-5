@@ -77,6 +77,8 @@ import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus
 import { safeHref } from "@/lib/safeUrl";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice} from "@/lib/currency";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { RemindDebtButton } from "@/components/RemindDebtButton";
+import { useLastReminders } from "@/hooks/useLastReminders";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
 import { TutorRateDialog } from "@/components/TutorRateDialog";
 
@@ -125,6 +127,8 @@ export default function PeoplePage() {
   const { t } = useTranslation();
   const { user: currentUser, roles } = useAuth();
   const isManager = roles.includes("manager");
+  // Важіль 2: «нагадано сьогодні о 14:20» у смузі боргу.
+  const { lastRemindedAt, markReminded } = useLastReminders();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -2054,6 +2058,40 @@ export default function PeoplePage() {
                 {isManager && u.role === "tutor" && !u.is_pending && (
                   <div className="px-4 py-3 border-b border-border">
                     <PayoutScheduleCard tutorId={u.id} />
+                  </div>
+                )}
+
+                {/* Важіль 2 (аудит шляхів 24.09): борг учня менеджер бачить тут
+                    (і в списку, і в аркуші), а нагадати могла лише з «Фінансів →
+                    Борги», по одному уроку. Тепер дія стоїть поруч із боргом.
+                    Сума — агрегат по всіх парах учня (як у списку), а нагадування
+                    йде ПО ПАРІ: текст повідомлення рахує сама edge-функція, тож
+                    жодного числа тут не вигадуємо. Коли репетиторів кілька —
+                    кнопка на кожного, з іменем. */}
+                {isManager && u.role === "student" && !u.archived_at && !u.is_pending
+                  && Number(u.unpaid_total ?? 0) > 0 && studentPairs.length > 0 && (
+                  <div className="mx-4 mt-3 rounded-[16px] p-3.5" style={{ background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)" }}>
+                    <p className="text-[16px] font-extrabold" style={{ color: "var(--warning-text,#B45309)" }}>
+                      {t("people.debtBandTitle", { amount: formatPrice(Number(u.unpaid_total ?? 0), "UAH") })}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {studentPairs.map((pair) => (
+                        <RemindDebtButton
+                          key={pair.tutor_id}
+                          studentId={u.id}
+                          tutorId={pair.tutor_id}
+                          studentName={`${u.first_name ?? ""} ${u.last_name ?? ""}`.trim()}
+                          lastRemindedAt={lastRemindedAt(u.id, pair.tutor_id)}
+                          onSent={() => markReminded(u.id, pair.tutor_id)}
+                          full={studentPairs.length === 1}
+                        />
+                      ))}
+                    </div>
+                    {studentPairs.length > 1 && (
+                      <p className="mt-1.5 text-[14px]" style={{ color: "var(--warning-text,#B45309)" }}>
+                        {t("people.debtBandMultiTutor")}
+                      </p>
+                    )}
                   </div>
                 )}
 

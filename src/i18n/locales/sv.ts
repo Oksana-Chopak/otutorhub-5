@@ -1591,6 +1591,8 @@ export const sv: LocaleTranslations = {
     hubMarginLabel: "Hubbens marginal:",
     payoutBackfilled: "Taxan tillämpad på {{count}} obetalda lektioner",
     payoutBackfilled_one: "Taxan tillämpad på {{count}} obetald lektion",
+    debtBandTitle: "Skyldig {{amount}}",
+    debtBandMultiTutor: "Eleven har flera lärare — påminnelsen skickas per lärare.",
     statusDebt: "Skuld",
     copyAriaLabel: "Kopiera",
     copied: "Kopierat",
@@ -1743,6 +1745,21 @@ export const sv: LocaleTranslations = {
     activating: "Betalning mottagen — aktiverar prenumerationen…",
 
     activationPending: "Betalningen är klar. Aktiveringen kan ta upp till en minut — prenumerationen slås på själv",},
+  remind: {
+    action: "Påminn",
+    queued: "Påminnelsen skickas om {{seconds}} s",
+    queuedShort: "Skickas om 5 s…",
+    cancelled: "Avbrutet — inget skickades",
+    sent: "Påminnelse skickad ({{labels}})",
+    sentInAppOnly: "Påminnelsen ligger i appen — den syns när eleven öppnar den",
+    doneToday: "Påmind i dag kl. {{when}}",
+    doneOn: "Påmind {{when}}",
+    alreadyReminded: "Redan påmind kl. {{when}} — vänta en timme",
+    noDebt: "Inget obetalt — inget att påminna om 🎉",
+    noContact: "Ingenstans att skicka: eleven har varken Telegram eller e-post",
+    failed: "Kunde inte skicka påminnelsen",
+    channelInApp: "avisering i appen",
+  },
   feedbackInbox: {
     category_bug: "Fel",
     category_idea: "Idé",
@@ -2553,6 +2570,10 @@ export const sv: LocaleTranslations = {
     tutorUnpaidTitle: "{{count}} genomförda lektioner obetalda",
     tutorUnpaidTitle_one: "{{count}} genomförd lektion obetald",
 
+    debtorTitle: "{{name}} är skyldig {{amount}}",
+    debtorDesc: "{{count}} genomförda lektioner obetalda",
+    debtorDescWithTutor: "{{count}} obetalda lektioner · {{tutor}}",
+    debtorMoreTitle: "{{count}} elever till med skuld",
     tutorUnpaidDesc: "Markera som betald — elever har betalat men systemet vet inte om det ännu.",
 
     tutorUnpaidCta: "Till ekonomi",

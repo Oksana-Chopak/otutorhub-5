@@ -29,6 +29,8 @@ import {
 import { UserAvatar } from "@/components/UserAvatar";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import { RemindDebtButton } from "@/components/RemindDebtButton";
+import { useLastReminders } from "@/hooks/useLastReminders";
 import { StudentsSkeleton } from "@/components/PageSkeletons";
 import { studentToasts } from "@/lib/toasts";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
@@ -173,6 +175,8 @@ export default function MyStudentsPage() {
   // Історія уроків на картці: лінива, кешована по учню.
   const navigate = useNavigate();
   const { user, roles } = useAuth();
+  // Важіль 2: підпис «нагадано сьогодні о 14:20» поруч із боргом.
+  const { lastRemindedAt, markReminded } = useLastReminders();
   const isTutor = roles.includes("tutor");
   const { isIndependent, studentCount, refresh, loading: wsLoading, workspaceUnknown } =
     useWorkspaceSettings();
@@ -1026,6 +1030,18 @@ export default function MyStudentsPage() {
                       {/* This opens the WalletDialog (record a payment / manage prepay
                           balance), so the label must say that — it previously read
                           "Remind", which did NOT match the action (dead-label bug). */}
+                      {/* Важіль 2 (аудит шляхів 24.09): борг ВИДНО тут, а нагадати
+                          можна було лише у «Фінансах → Борги», по одному уроку.
+                          Тепер дія стоїть поруч із боргом: одне повідомлення про
+                          ВЕСЬ борг учня, 5 секунд на «Скасувати», і підпис
+                          «нагадано сьогодні о 14:20». */}
+                      <RemindDebtButton
+                        studentId={s.id}
+                        studentName={name}
+                        lastRemindedAt={lastRemindedAt(s.id)}
+                        onSent={() => markReminded(s.id)}
+                        full
+                      />
                       <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id, studentName: name, tutorName: t("common.you"), rate: s.price })}
                         style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "var(--warning-text,#B45309)", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0, flexGrow: 1, minWidth: 160 }}>
                         {t("myStudents.recordPaymentBtn")}

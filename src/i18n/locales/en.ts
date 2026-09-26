@@ -1611,6 +1611,8 @@ export const en: LocaleTranslations = {
     hubMarginLabel: "Hub margin:",
     payoutBackfilled: "Rate applied to {{count}} unpaid lessons",
     payoutBackfilled_one: "Rate applied to {{count}} unpaid lesson",
+    debtBandTitle: "Owes {{amount}}",
+    debtBandMultiTutor: "This student has several tutors — the reminder goes per tutor.",
     statusDebt: "Debt",
     copyAriaLabel: "Copy",
     copied: "Copied",
@@ -1763,6 +1765,21 @@ export const en: LocaleTranslations = {
     activating: "Payment received — activating your subscription…",
 
     activationPending: "Payment done. Activation can take up to a minute — the subscription will switch on by itself",},
+  remind: {
+    action: "Remind",
+    queued: "Reminder goes out in {{seconds}}s",
+    queuedShort: "Sending in 5s…",
+    cancelled: "Cancelled — nothing was sent",
+    sent: "Reminder sent ({{labels}})",
+    sentInAppOnly: "Reminder is in the app — they will see it when they open it",
+    doneToday: "Reminded today at {{when}}",
+    doneOn: "Reminded {{when}}",
+    alreadyReminded: "Already reminded at {{when}} — wait an hour",
+    noDebt: "Nothing owed — nothing to remind about 🎉",
+    noContact: "Nowhere to send: the student has neither Telegram nor email",
+    failed: "Could not send the reminder",
+    channelInApp: "in-app bell",
+  },
   feedbackInbox: {
     category_bug: "Bug",
     category_idea: "Idea",
@@ -2573,6 +2590,10 @@ export const en: LocaleTranslations = {
     tutorUnpaidTitle: "{{count}} conducted lessons unpaid",
     tutorUnpaidTitle_one: "{{count}} conducted lesson unpaid",
 
+    debtorTitle: "{{name}} owes {{amount}}",
+    debtorDesc: "{{count}} conducted lessons unpaid",
+    debtorDescWithTutor: "{{count}} lessons unpaid · {{tutor}}",
+    debtorMoreTitle: "{{count}} more students with debt",
     tutorUnpaidDesc: "Mark as paid — students paid, but the system doesn't know yet.",
 
     tutorUnpaidCta: "To finances",

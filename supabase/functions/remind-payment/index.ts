@@ -1,5 +1,15 @@
-// Sends an immediate payment reminder for a single lesson via Telegram + email.
-// Called from the dashboard "Bell" button by tutor or manager.
+// Надсилає нагадування про оплату (Telegram + пошта + дзвіночок) — одразу, на дотик.
+//
+// Два режими:
+//   { lessonId }  — один урок (як було з початку; звідси кличуть «Фінанси»);
+//   { studentId, tutorId? } — ВСЯ пара «репетитор+учень» одним повідомленням
+//     (важіль 2 аудиту шляхів 24.09: «нагадати — там, де видно борг, і на
+//     ЛЮДИНУ, а не на урок»). Борг людини живе на кількох уроках, а розмова
+//     з нею — одна; надсилати три повідомлення про три уроки означає навчити
+//     її їх не читати. Ядро `sendPaymentReminder` уміло приймати список
+//     уроків від початку — тепер цей режим доступний і з кнопки.
+// tutorId має право передати лише менеджер школи цього репетитора; репетитор
+// нагадує тільки про своїх учнів (tutorId = він сам).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendPaymentReminder } from "../_shared/paymentReminder.ts";
 import { versionProbe } from "../_shared/build.ts";
@@ -39,16 +49,74 @@ Deno.serve(async (req) => {
   const { data: { user }, error: userErr } = await userClient.auth.getUser();
   if (userErr || !user) return json({ error: "Invalid auth token" }, 401);
 
-  let lessonId: string;
+  let lessonId: string | null = null;
+  let studentId: string | null = null;
+  let tutorIdArg: string | null = null;
   try {
     const body = await req.json();
-    lessonId = body.lessonId || body.lesson_id;
-    if (!lessonId) return json({ error: "lessonId required" }, 400);
+    lessonId = body.lessonId || body.lesson_id || null;
+    studentId = body.studentId || body.student_id || null;
+    tutorIdArg = body.tutorId || body.tutor_id || null;
+    if (!lessonId && !studentId) return json({ error: "lessonId or studentId required" }, 400);
   } catch {
     return json({ error: "Invalid JSON" }, 400);
   }
 
   const admin = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Хто питає: менеджер школи? (та сама перевірка, що й у режимі одного уроку)
+  const { data: isManagerData } = await admin.rpc("check_user_role", { _user_id: user.id, _role: "manager" });
+  const callerIsManager = isManagerData === true;
+
+  // ── РЕЖИМ ПАРИ: одне нагадування про ВЕСЬ борг людини ──────────────────────
+  if (studentId) {
+    const tutorId = tutorIdArg ?? user.id;
+    if (tutorId !== user.id) {
+      // За чужого репетитора нагадує лише менеджер ЙОГО школи.
+      if (!callerIsManager) return json({ error: "Not found" }, 404);
+      const { data: scoped } = await admin.rpc("is_manager_of_tutor", { _manager: user.id, _tutor: tutorId });
+      if (scoped !== true) return json({ error: "Not found" }, 404);
+    }
+    let q = admin
+      .from("lessons")
+      .select("id, subject, starts_at, status, source, lesson_details!inner(student_price, student_payment_status, is_cancellation_fee)")
+      .eq("tutor_id", tutorId)
+      .eq("student_id", studentId)
+      .in("status", ["completed", "cancelled"])
+      .limit(500);
+    // Уроки незалежного репетитора — не поле школи (модель «школа = сутність»).
+    if (tutorId !== user.id) q = q.neq("source", "independent");
+    const { data: rows, error: rowsErr } = await q;
+    if (rowsErr) return json({ error: "read_failed" }, 500);
+    // Дзеркало isStudentDebtLesson (src/lib/financials.ts, рішення 04.09):
+    // борг = ПРОВЕДЕНЕ й неоплачене; скасоване — лише зі штрафом.
+    const debts = ((rows ?? []) as any[])
+      .map((l) => ({
+        id: l.id as string, subject: l.subject as string | null, starts_at: l.starts_at as string,
+        student_price: l.lesson_details?.student_price ?? null,
+        status: l.status as string,
+        paid: l.lesson_details?.student_payment_status === "paid",
+        fee: l.lesson_details?.is_cancellation_fee === true,
+      }))
+      .filter((l) => !l.paid && Number(l.student_price ?? 0) > 0 && (l.status === "completed" || (l.status === "cancelled" && l.fee)))
+      .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+    if (debts.length === 0) return json({ success: false, reason: "no_debt" }, 200);
+
+    const pairResult = await sendPaymentReminder({
+      admin, supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN,
+      tutorId, studentId, kind: "manual",
+      dedupKind: "manual", dedupHours: 1,
+      lessons: debts.map((l) => ({ id: l.id, subject: l.subject, starts_at: l.starts_at, student_price: l.student_price })),
+    });
+    if (pairResult.sent === 0 && pairResult.skipped > 0) {
+      return json({ success: false, reason: "already_reminded_today", lastSentAt: pairResult.lastSentAt ?? null }, 200);
+    }
+    if (pairResult.channels.length === 0) return json({ success: false, reason: "no_channels" }, 200);
+    return json({
+      success: true, channels: pairResult.channels, lessons: pairResult.sent,
+      total: debts.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0),
+    });
+  }
 
   const { data: lessonRow } = await admin
     .from("lessons")
@@ -65,11 +133,7 @@ Deno.serve(async (req) => {
   // Менеджерський арм скоуплено: уроки незалежних — не поле школи; з 07.09
   // (модель «школа = сутність») — лише менеджер ШКОЛИ репетитора уроку
   // (is_manager_of_tutor: суперадмін або hub_managers × settings.hub_id).
-  const { data: isManagerData } = await admin.rpc("check_user_role", {
-    _user_id: user.id,
-    _role: "manager",
-  });
-  const isManager = isManagerData === true;
+  const isManager = callerIsManager;
   let managesTutor = false;
   if (isManager && lessonRow) {
     const { data: scoped } = await admin.rpc("is_manager_of_tutor", {
