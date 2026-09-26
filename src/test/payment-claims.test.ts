@@ -11,7 +11,7 @@ const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
  * шляхом — тим самим, яким працює форма оплати.
  */
 describe("«Я оплатив» — заявка, а не оплата (важіль 4)", () => {
-  const mig = () => read("supabase/migrations/20260926140000_payment_claims.sql");
+  const mig = () => read("supabase/migrations/20260926170000_payment_claims.sql");
 
   it("учень не може записати гроші: прямі INSERT/UPDATE відкликані", () => {
     const m = mig();

@@ -299,7 +299,7 @@ describe("звіт робота з живого проду 26.09", () => {
   });
 
   it("міграція закриває дірку в даних: тригер слухає і UPDATE ролі", () => {
-    const m = read("supabase/migrations/20260926130000_hub_tutor_row_and_pending_email.sql");
+    const m = read("supabase/migrations/20260926160000_hub_tutor_row_and_pending_email.sql");
     expect(m).toMatch(/AFTER INSERT OR UPDATE OF role ON public\.user_roles/);
     expect(m, "школа з членства, коли роль міняє не менеджер").toMatch(/FROM public\.hub_members hm WHERE hm\.user_id = NEW\.user_id/);
     expect(m, "бекфіл лише для членів школи — тріал тихо не роздаємо").toMatch(/JOIN public\.hub_members hm ON hm\.user_id = ur\.user_id/);
@@ -307,7 +307,7 @@ describe("звіт робота з живого проду 26.09", () => {
   });
 
   it("запрошені завершують реєстрацію: is_pending_email доступна браузеру", () => {
-    const m = read("supabase/migrations/20260926130000_hub_tutor_row_and_pending_email.sql");
+    const m = read("supabase/migrations/20260926160000_hub_tutor_row_and_pending_email.sql");
     expect(m).toMatch(/GRANT EXECUTE ON FUNCTION public\.is_pending_email\(text\) TO anon, authenticated/);
     // Клієнт справді її кличе — інакше грант був би зайвим розширенням поверхні.
     const auth = read("src/pages/AuthPage.tsx");
