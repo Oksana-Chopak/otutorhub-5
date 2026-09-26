@@ -400,6 +400,18 @@ export default function MyStudentsPage() {
     }
   }, [searchParams, isTutor, isIndependent, setSearchParams]);
 
+  /* Учень із діп-лінка `?price=1`: список вантажиться асинхронно, тож форму
+     відкриваємо, щойно цей учень з'явився в даних. */
+  const [pendingPriceStudentId, setPendingPriceStudentId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pendingPriceStudentId) return;
+    const s = students.find((x) => x.id === pendingPriceStudentId);
+    if (!s) return;
+    openEdit(s);
+    setPendingPriceStudentId(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPriceStudentId, students]);
+
   const openCreate = () => {
     setForm(emptyForm);
     setDialog({ open: true, mode: "create", studentId: null });
@@ -778,9 +790,17 @@ export default function MyStudentsPage() {
   useEffect(() => {
     const openId = searchParams.get("open");
     if (!openId) return;
-    setSelectedStudentId(openId);
+    /* Аудит шляхів 24.09 (§4): у самостійного репетитора урок БЕЗ ЦІНИ не був
+       позначений на картці ніяк, а ціна учня живе саме тут, у його формі. Тому
+       `?open=<id>&price=1` (з рядка-дії на картці уроку) відкриває не аркуш
+       учня, а ФОРМУ — там, де ціну задають. Той самий прийом, що
+       `/people?open=&rate=1` для менеджера (21.09). */
+    const wantPrice = searchParams.get("price") === "1";
+    if (wantPrice) setPendingPriceStudentId(openId);
+    else setSelectedStudentId(openId);
     const n = new URLSearchParams(searchParams);
     n.delete("open");
+    n.delete("price");
     setSearchParams(n, { replace: true });
     // лише при першому заході за посиланням
     // eslint-disable-next-line react-hooks/exhaustive-deps

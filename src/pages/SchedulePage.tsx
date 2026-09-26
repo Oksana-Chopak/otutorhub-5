@@ -14,6 +14,7 @@ import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/less
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { canSee } from "@/lib/roleCapabilities";
 import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { ScheduleSkeleton } from "@/components/PageSkeletons";
 import { lessonToasts } from "@/lib/toasts";
@@ -64,7 +65,7 @@ import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { formatPrice } from "@/lib/currency";
-import { useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ScheduleFiltersSheet } from "@/components/ScheduleFiltersSheet";
 import { useScheduleFilters } from "@/hooks/useScheduleFilters";
@@ -977,6 +978,7 @@ export default function SchedulePage() {
 
   // Tabs: "lessons" (default) and "availability" — only for tutors/managers
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   useEffect(() => {
     const v = searchParams.get("view");
     if (v === "list" || v === "week") setView(v);
@@ -1660,6 +1662,10 @@ export default function SchedulePage() {
                         }
                         onContentClick={() => setDetailsLessonId(lesson.id)}
                         onSetRate={isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.subject ?? null }) : undefined}
+                        /* Аудит шляхів 24.09 (§4): ціна учня в самостійного —
+                           у його формі учня; рядок «Ціну не задано» веде туди. */
+                        onSetPrice={canSee("ownStudents", flags) && lesson.student_id && lesson.source === "independent"
+                          ? () => navigate(`/my-students?open=${lesson.student_id}&price=1`) : undefined}
                         onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => setDetailsLessonId(lesson.id) : undefined}
                         canEdit={isManager || (isTutor && lesson.tutor_id === user?.id)}
                         onCopy={canCopy ? () => openCopy(lesson) : undefined}

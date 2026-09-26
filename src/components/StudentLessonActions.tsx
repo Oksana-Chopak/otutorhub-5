@@ -175,8 +175,11 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
         onClick={() => setRescheduleOpen(true)}
         title={t("studentLessonActionsExtra.rescheduleTitle")}
       >
-        <CalendarClock className="h-3.5 w-3.5 sm:mr-1" />
-        <span className="hidden sm:inline">{t("studentLessonActionsExtra.rescheduleBtn")}</span>
+        {/* Аудит шляхів 24.09 (§4, учень): на телефоні тут були ДВІ ІКОНКИ без
+            підписів — «перенести» і «скасувати» відрізнити неможливо, а title на
+            тачі недосяжний. Підпис тепер завжди видимий. */}
+        <CalendarClock className="h-3.5 w-3.5 mr-1" />
+        <span className="whitespace-nowrap">{t("studentLessonActionsExtra.rescheduleBtn")}</span>
       </Button>
       <Button
         size="sm"
@@ -185,8 +188,8 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
         onClick={() => setCancelOpen(true)}
         title={t("studentLessonActionsExtra.cancelTitle2")}
       >
-        <CalendarX2 className="h-3.5 w-3.5 sm:mr-1" />
-        <span className="hidden sm:inline">{t("studentLessonActionsExtra.cancelBtn2")}</span>
+        <CalendarX2 className="h-3.5 w-3.5 mr-1" />
+        <span className="whitespace-nowrap">{t("studentLessonActionsExtra.cancelBtn2")}</span>
       </Button>
 
       {/* Cancel dialog */}

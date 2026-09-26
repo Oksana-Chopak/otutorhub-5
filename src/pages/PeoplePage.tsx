@@ -1940,6 +1940,27 @@ export default function PeoplePage() {
                   </div>
                 )}
 
+                {/* Аудит шляхів 24.09 (§4, менеджер): «репетитор без заповнених
+                    предметів не має де задати ставку» — уся смужка з олівцем
+                    жила під умовою `subjects.length > 0`, тож у нового репетитора
+                    входу в ставку не було зовсім (крім діп-лінка з дайджесту).
+                    Тепер порожній випадок має свій рядок-дію: та сама форма
+                    `TutorRateDialog`, яка вміє додати предмет. */}
+                {u.role === "tutor" && isManager && !(u.subjects && u.subjects.length > 0) && (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 px-4 py-3 border-b border-border text-left"
+                    style={{ minHeight: 44, cursor: "pointer", background: "transparent" }}
+                    onClick={() => setTutorRate({ open: true, tutorId: u.id, subject: null })}
+                  >
+                    <Tag className="h-4 w-4 shrink-0" style={{ color: "var(--warning-text,#B45309)" }} />
+                    <span className="flex-1 min-w-0 text-[14px] font-semibold" style={{ color: "var(--warning-text,#B45309)" }}>
+                      {t("people.noSubjectsSetRate")}
+                    </span>
+                    <Pencil className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--warning-text,#B45309)" }} />
+                  </button>
+                )}
+
                 {/* Rate row — tutor subjects */}
                 {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
                   <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
@@ -1964,8 +1985,12 @@ export default function PeoplePage() {
                         style={{ color: "var(--sub,#62677E)" }}
                         aria-label={t("people.dialogTutorRateTitle")}
                         onClick={() => {
+                          /* Аудит шляхів 24.09 (§4, менеджер): аркуш людини
+                             закривався В МОМЕНТ відкриття форми, і після
+                             збереження треба було шукати людину знову. Форма —
+                             окремий діалог поверх аркуша, тож закривати аркуш
+                             не потрібно. */
                           setTutorRate({ open: true, tutorId: u.id, subject: null });
-                          setSelectedPerson(null);
                         }}
                       >
                         <Pencil className="h-3.5 w-3.5" />

@@ -73,6 +73,12 @@ interface LessonCardProps {
    *  а ДІЯ. Дотик відкриває форму ставки репетитора (TutorRateDialog) з цим
    *  репетитором і предметом уроку; без хендлера рядок лишається написом. */
   onSetRate?: () => void;
+  /** Аудит шляхів 24.09 (§4): у САМОСТІЙНОГО репетитора урок без ціни учня не
+      був позначений ніяк — рядок просто ховався, і «безкоштовний» урок виглядав
+      як звичайний. Цей проп робить із відсутньої ціни ДІЮ, як onSetRate для
+      менеджера. Передає сторінка, бо лише вона знає, куди ведуть ціни цієї
+      персони (самостійному — його форма учня). */
+  onSetPrice?: () => void;
   /** Pure-student self-service actions (cancel / reschedule request). */
   studentActions?: ReactNode;
   className?: string;
@@ -160,6 +166,7 @@ function LessonCardImpl({
   onWallet,
   onAiNotes,
   onSetRate,
+  onSetPrice,
   studentActions,
   className,
 }: LessonCardProps) {
@@ -209,6 +216,9 @@ function LessonCardImpl({
   const showStudentPay = hasAmount(lesson.student_price);
   const showPayoutRow = withPayout && hasAmount(lesson.tutor_payout);
   const payoutMissing = withPayout && manager && !hasAmount(lesson.tutor_payout);
+  /* Ціни немає І сторінка знає, куди по неї йти. Групові не рахуємо: там гроші
+     на учасниках, а не на уроці (інваріант групових). */
+  const priceMissing = !!onSetPrice && !lesson.group_id && !hasAmount(lesson.student_price);
 
   const tap = onContentClick ?? onEdit;
   const overflowItems = [
@@ -360,7 +370,7 @@ function LessonCardImpl({
         </div>
 
         {/* Payment rows */}
-        {(showStudentPay || showPayoutRow || payoutMissing) && (
+        {(showStudentPay || showPayoutRow || payoutMissing || priceMissing) && (
           <div style={{ borderTop: `1px solid ${L.border}`, padding: "11px 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
             {/* Student payment row only when a real student_price is present. For a HUB
                 tutor student_price is masked to NULL (they must not see/mark the student→hub
@@ -380,6 +390,25 @@ function LessonCardImpl({
             {/* 04.09: для МЕНЕДЖЕРА відсутня виплата — не «нічого», а ПРОБЛЕМА, яку видно.
                 Інваріант «краще відсутність цифри, ніж чужа» лишається — тут не цифра, а
                 позначка «ставку не задано» + єдиний видимий тогл більше не вводить в оману. */}
+            {priceMissing && (
+              <button
+                type="button"
+                onClick={stop(onSetPrice!)}
+                onKeyDown={(e) => e.stopPropagation()}
+                aria-label={t("lessonCard.setPrice")}
+                style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 6, width: "100%", minHeight: 44, padding: "9px 13px 8px", borderRadius: 12, textAlign: "left", cursor: "pointer",
+                  border: "1px dashed rgba(245,158,11,.55)", background: "rgba(245,158,11,.08)", color: "var(--warning-text,#B45309)", fontFamily: L.body }}
+              >
+                <span style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <span aria-hidden style={{ fontSize: 17, width: 20, textAlign: "center", flexShrink: 0, lineHeight: 1.1 }}>🎓</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{t("lessonCard.priceMissingTap")}</span>
+                </span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5, fontFamily: L.display, fontWeight: 800, fontSize: 13.5, whiteSpace: "nowrap" }}>
+                  <Pencil size={15} strokeWidth={2.4} aria-hidden />
+                  {t("lessonCard.setPrice")} ›
+                </span>
+              </button>
+            )}
             {payoutMissing && (
               onSetRate ? (
                 /* 21.09: Telegram каже «ставку не задано», картка каже те саме, а дотик

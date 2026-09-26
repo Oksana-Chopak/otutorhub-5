@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu, Wallet, Calendar, Sparkles, SlidersHorizontal } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { RemindDebtButton } from "@/components/RemindDebtButton";
+import { useLastReminders } from "@/hooks/useLastReminders";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
@@ -119,6 +121,8 @@ export default function ChatsPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
+  // Важіль 2: підпис «нагадано сьогодні о 14:20» і в списку чатів.
+  const { lastRemindedAt, markReminded } = useLastReminders();
   // P8 + аудит 01.09: персона порожнього стану рахується ОДИН раз — і текст, і
   // кнопка беруть її звідси, а не перевіряють прапор кожен по-своєму.
   // Поки персона невідома — «unknown»: краще не показати кнопку зовсім, ніж
@@ -1047,10 +1051,19 @@ export default function ChatsPage() {
                   const isUnread = isUnreadThread(thread);
                   const tName = counterpartName(thread);
                   return (
-                    <button
+                    /* Аудит шляхів 24.09 (§4, чати): «Нагадати →» і «Створити урок →»
+                       виглядали як кнопки, але це був текст — дотик просто відкривав
+                       тред. Щоб дії стали справжніми, рядок більше не <button>
+                       (кнопка в кнопці неприпустима), а div з роллю кнопки і
+                       клавіатурою: Enter/Space відкривають тред, як раніше. */
+                    <div
                       key={thread.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={tName}
                       onClick={() => setSelectedId(thread.id)}
-                      className="w-full text-left transition-all active:scale-[0.995]"
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(thread.id); } }}
+                      className="w-full cursor-pointer text-left transition-all active:scale-[0.995]"
                       style={{
                         borderRadius: 18,
                         border: `1px solid ${selectedId === thread.id ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
@@ -1128,19 +1141,34 @@ export default function ChatsPage() {
                             {thread.ctx.kind === "debt" ? <Wallet className="h-3 w-3" /> : thread.ctx.kind === "lesson" ? <Calendar className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
                             {thread.ctx.text}
                           </span>
+                          {/* Справжні дії. Нагадування — той самий канон, що на
+                              дашборді й у «Людях» (RemindDebtButton), тож і текст,
+                              і дедуп, і «нагадано о 14:20» однакові скрізь. */}
                           {thread.ctx.kind === "debt" && (
-                            <span className="ml-auto text-[14px] font-bold whitespace-nowrap" style={{ color: "var(--warning-text,#B45309)", fontFamily: "Inter, system-ui" }}>
-                              {t("chats.remindArrow")}
+                            <span className="ml-auto" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                              <RemindDebtButton
+                                studentId={thread.student_id}
+                                tutorId={isManager ? thread.tutor_id : undefined}
+                                studentName={tName}
+                                lastRemindedAt={lastRemindedAt(thread.student_id, isManager ? thread.tutor_id : undefined)}
+                                onSent={() => markReminded(thread.student_id, isManager ? thread.tutor_id : undefined)}
+                              />
                             </span>
                           )}
                           {thread.ctx.kind === "new" && (
-                            <span className="ml-auto text-[14px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
+                            <button
+                              type="button"
+                              className="ml-auto flex items-center gap-1.5 rounded-[12px] px-3 text-[15px] font-bold"
+                              style={{ minHeight: 44, background: "rgba(37,99,235,.1)", color: "#2563eb", border: "1px solid rgba(37,99,235,.35)", fontFamily: "Inter, system-ui", cursor: "pointer" }}
+                              onClick={(e) => { e.stopPropagation(); navigate(`/schedule?create=1&student=${thread.student_id}`); }}
+                            >
+                              <Calendar className="h-4 w-4" />
                               {t("chats.createLessonArrow")}
-                            </span>
+                            </button>
                           )}
                         </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })
               )}
@@ -1244,7 +1272,7 @@ export default function ChatsPage() {
                     background: "linear-gradient(160deg,#f8fafa 0%,#f0fdf9 50%,#f8fafa 100%)",
                   }}
                 >
-                  {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
+                  {selectedThread && !showArchived[selectedThread.id] && (
                     <div className="flex justify-center mb-4">
                       <button
                         className="px-3 py-1 rounded-full text-[14px] transition-colors hover:bg-black/5"
@@ -1414,8 +1442,12 @@ export default function ChatsPage() {
                   )}
 
                   {/* Smart card — контекстна дія під останнім повідомленням (tutor/manager
-                      only: the debt card pre-fills a tutor-voiced payment reminder). */}
-                  {canShowContext && selectedThread?.ctx && (selectedThread.ctx.kind === "debt" || selectedThread.ctx.kind === "new") && messages.length > 0 && (
+                      only: the debt card pre-fills a tutor-voiced payment reminder).
+                      Аудит шляхів 24.09 (§4, чати): умова `messages.length > 0`
+                      ховала картку саме там, де вона потрібна найбільше — у
+                      ПОРОЖНЬОМУ треді новенького учня («Створити перший урок»).
+                      Тепер картка є і в порожньому треді. */}
+                  {canShowContext && selectedThread?.ctx && (selectedThread.ctx.kind === "debt" || selectedThread.ctx.kind === "new") && (
                     <div
                       className="flex items-center gap-3 mt-2"
                       style={{

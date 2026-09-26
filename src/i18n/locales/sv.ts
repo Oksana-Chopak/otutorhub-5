@@ -93,6 +93,7 @@ export const sv: LocaleTranslations = {
     markDone: "Klar ✓",
     andPaid: "och betald",
     closeAll: "Stäng dagen ({{count}})",
+    closeAllOlder: "Stäng omarkerade lektioner ({{count}})",
     write: "Skriv",
     openSchedule: "Schema →",
     closedTitle: "Dagen är stängd",
@@ -1600,6 +1601,7 @@ export const sv: LocaleTranslations = {
     actionWallet: "Plånbok",
     assignTutorCta: "Tilldela en lärare",
     actionRate: "Pris",
+    noSubjectsSetRate: "Inga ämnen eller pris än — ange dem",
     subjectRateHint: "ämne · pris · valuta",
     remindBtn: "Påminn",
     assignTutorFirst: "Tilldela en lärare först",
@@ -2015,6 +2017,8 @@ export const sv: LocaleTranslations = {
 
     payoutMissing: "Lärarens arvode ej satt — utbetalning ej beräknad",
     payoutMissingTap: "Arvode ej satt — utbetalning ej beräknad",
+    setPrice: "Ange pris",
+    priceMissingTap: "🎓 Inget pris angivet — lektionen räknas inte i pengarna",
     setRate: "Ange arvode",
     setRateAria: "Ange arvode för läraren {{name}}",
   },
@@ -5223,6 +5227,7 @@ export const sv: LocaleTranslations = {
   closeDayDialog: {
     title: "Stäng dagen",
     subtitle: "Markera vad som hände och vad som betalades",
+    hasOlder: "⚠️ Här finns bortglömda lektioner från tidigare dagar — kolla datumen",
     conductedPill: "Genomförd",
     packageBalance: "📦 paket: {{count}}",
     cancel: "Avbryt",

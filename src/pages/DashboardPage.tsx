@@ -212,6 +212,16 @@ export default function DashboardPage() {
   const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null } | null>(null);
   const setRateOf = (lesson: { tutor_id: string; subject?: string | null; source?: string | null }) =>
     isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.subject ?? null }) : undefined;
+  /* Аудит шляхів 24.09 (§4): у самостійного репетитора урок без ЦІНИ УЧНЯ не був
+     позначений ніяк. Ціна живе в його формі учня, тож дія веде туди —
+     `/my-students?open=<учень>&price=1` відкриває саму форму, а не аркуш. */
+  const setPriceOf = (lesson: { student_id: string | null; source?: string | null }) =>
+    /* Право рахується матрицею (`ownStudents` = «свої учні й свої ціни»), а не
+       голим прапорцем: сторінка /my-students відкрита лише самостійному, і
+       менеджера вона однаково відкинула б на дашборд. */
+    canSee("ownStudents", flags) && lesson.student_id && lesson.source === "independent"
+      ? () => navigate(`/my-students?open=${lesson.student_id}&price=1`)
+      : undefined;
   const [aiNotesOpen, setAiNotesOpen] = useState(false);
   const [closeDayOpen, setCloseDayOpen] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
@@ -928,8 +938,10 @@ export default function DashboardPage() {
   const [queueOpen, setQueueOpen] = useState(false);
   const afterLessonQueue: QueueLesson[] = useMemo(
     () =>
-      todayLessons
-        .filter((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() <= nowMs && (isManager || l.tutor_id === user?.id))
+      lessons
+        .filter((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() <= nowMs
+          && new Date(l.starts_at).getTime() > nowMs - 7 * 24 * 3600_000
+          && (isManager || l.tutor_id === user?.id))
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
         .map((l) => ({
           id: l.id,
@@ -943,16 +955,25 @@ export default function DashboardPage() {
           currency: pairCurrency[`${l.tutor_id}:${l.student_id}`] ?? "UAH",
         })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [todayLessons, nowMs, isManager, user?.id, pairCurrency],
+    [lessons, nowMs, isManager, user?.id, pairCurrency],
   );
 
+  /* Аудит шляхів 24.09 (§4, незалежний репетитор): «Закрити день» бачив ЛИШЕ
+     сьогоднішні минулі уроки — забутий вчорашній лишався поштучним. А
+     непозначений урок — це невидимі гроші: він не в боргах, не в «проведено»,
+     не в сумі. Тепер джерело одне для діалогу, для лічильника в блоці дня і
+     для черги «після уроку»: минулі непозначені уроки за останні 7 днів,
+     від найстарішого. Тиждень, а не «усе»: старіше — це вже робота для
+     розкладу з фільтром, а не для щоденного закриття. */
+  const UNCLOSED_WINDOW_DAYS = 7;
   const closeDayRows: CloseDayRow[] = useMemo(
     () =>
-      todayLessons
+      lessons
         .filter(
           (l) =>
             l.status === "scheduled" &&
             new Date(l.starts_at).getTime() <= nowMs &&
+            new Date(l.starts_at).getTime() > nowMs - UNCLOSED_WINDOW_DAYS * 24 * 3600_000 &&
             (isManager || l.tutor_id === user?.id)
         )
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
@@ -975,7 +996,7 @@ export default function DashboardPage() {
           // per participant in the lesson dialog.
           showPay: !!l.student_id && (isManager || l.source === "independent"),
         })),
-    [todayLessons, nowMs, isManager, user?.id, profiles, pairCurrency]
+    [lessons, nowMs, isManager, user?.id, profiles, pairCurrency]
   );
 
   const upcomingAll = useMemo(
@@ -1913,6 +1934,7 @@ export default function DashboardPage() {
                 }))}
               tomorrow={dayBlockTomorrow}
               pendingCount={closeDayRows.length}
+              pendingOlder={closeDayRows.some((r) => localKey(new Date(r.starts_at)) !== todayKey)}
               onJoin={(href, id) => { logEvent("join_clicked", { from: "dayblock" }); void maybeAutoStartFireflies(id, href); window.open(href, "_blank", "noopener"); }}
               onComplete={async (id, alsoPaid) => {
                 await updateStatus(id, "completed");
@@ -2555,12 +2577,14 @@ export default function DashboardPage() {
                           showTutor
                           meetingUrl={meetingHref}
                           onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
+                          canCopy
                           onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
                           onAiNotes={() => setAiNotesOpen(true)}
                           onWallet={lesson.student_id ? () => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id!, tutor_name: profiles[lesson.tutor_id] ?? "", student_name: profiles[lesson.student_id!] ?? "" }) : undefined}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           onSetRate={setRateOf(lesson)}
+                          onSetPrice={setPriceOf(lesson)}
                           className={lessonSourceTint(lesson.source)}
                           canEditStatus
                           statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
@@ -2686,11 +2710,13 @@ export default function DashboardPage() {
                           showTutor
                           meetingUrl={meetingHref}
                           onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
+                          canCopy
                           onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
                           onAiNotes={() => setAiNotesOpen(true)}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           onSetRate={setRateOf(lesson)}
+                          onSetPrice={setPriceOf(lesson)}
                           className={lessonSourceTint(lesson.source)}
                           canEditStatus={canEditStatus}
                           statusOptions={["pending","scheduled","completed","cancelled"] as LessonStatus[]}
@@ -2720,6 +2746,7 @@ export default function DashboardPage() {
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
                         onSetRate={setRateOf(lesson)}
+                        onSetPrice={setPriceOf(lesson)}
                         canEditStatus={canEditStatus}
                         statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
                         onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}

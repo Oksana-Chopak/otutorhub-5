@@ -40,10 +40,13 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
   );
 }
 
-export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, onWriteSummary, onCloseDay, onOpenQueue, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid" }: {
+export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false, onJoin, onComplete, onWriteSummary, onCloseDay, onOpenQueue, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid" }: {
   lessons: DayLesson[];
   tomorrow: { count: number; firstTime: string | null };
   pendingCount: number;
+  /** У черзі є непозначені уроки з ПОПЕРЕДНІХ днів — тоді підпис інший, бо це
+      вже не «закрити день» (аудит шляхів 24.09, §4). */
+  pendingOlder?: boolean;
   onJoin: (href: string, lessonId: string) => void;
   onComplete: (id: string, alsoPaid: boolean) => void | Promise<void>;
   onWriteSummary: (lessonId: string) => void;
@@ -88,7 +91,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
   const closeBar = pendingCount > 0 ? (
     <div className="mb-4 -mt-2">
       <button type="button" onClick={onCloseDay} style={{ border: "none", background: "transparent", padding: 0, color: "#2BBFAA", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>
-        {t("dayBlock.closeAll", { count: pendingCount })}
+        {t(pendingOlder ? "dayBlock.closeAllOlder" : "dayBlock.closeAll", { count: pendingCount })}
       </button>
     </div>
   ) : null;
@@ -133,7 +136,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
             )}
             {pendingCount >= 1 && (
               <button type="button" onClick={onCloseDay} style={{ display: "block", marginTop: 6, border: "none", background: "transparent", padding: 0, color: "#7ee8d8", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>
-                {t("dayBlock.closeAll", { count: pendingCount })}
+                {t(pendingOlder ? "dayBlock.closeAllOlder" : "dayBlock.closeAll", { count: pendingCount })}
               </button>
             )}
           </span>

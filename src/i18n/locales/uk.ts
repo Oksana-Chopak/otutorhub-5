@@ -89,6 +89,7 @@ export const uk = {
     markDone: "Провів ✓",
     andPaid: "і оплачено",
     closeAll: "Закрити день ({{count}})",
+    closeAllOlder: "Закрити незакриті уроки ({{count}})",
     write: "Написати",
     openSchedule: "Розклад →",
     closedTitle: "День закрито",
@@ -1646,6 +1647,7 @@ export const uk = {
     actionWallet: "Гаманець",
     assignTutorCta: "Призначити репетитора",
     actionRate: "Ставка",
+    noSubjectsSetRate: "Предметів і ставки ще немає — задати",
     subjectRateHint: "предмет · ставка · валюта",
     remindBtn: "Нагадати",
     assignTutorFirst: "Спочатку призначте репетитора",
@@ -2064,6 +2066,8 @@ export const uk = {
 
     payoutMissing: "Ставку репетитора не задано — виплата не порахована",
     payoutMissingTap: "Ставку не задано — виплата не порахована",
+    setPrice: "Задати ціну",
+    priceMissingTap: "🎓 Ціну не задано — урок не потрапить у гроші",
     setRate: "Задати ставку",
     setRateAria: "Задати ставку репетитору {{name}}",
   },
@@ -5290,6 +5294,7 @@ export const uk = {
   closeDayDialog: {
     title: "Закрити день",
     subtitle: "Відміть, що відбулось і що оплачено",
+    hasOlder: "⚠️ Тут є забуті уроки попередніх днів — перевірте дати",
     conductedPill: "Провів",
     packageBalance: "📦 пакет: {{count}}",
     cancel: "Скасувати",

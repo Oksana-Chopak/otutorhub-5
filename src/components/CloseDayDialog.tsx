@@ -265,6 +265,14 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
           <div>
             <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: C.txt }}>{t("closeDayDialog.title")}</div>
             <div style={{ fontSize: 15, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
+            {/* Аудит шляхів 24.09 (§4): сюди тепер потрапляють і забуті уроки
+                попередніх днів. Людина мусить це ЗНАТИ — інакше «Закрити день»
+                позначить учорашнє, а вона думала, що закриває сьогоднішнє. */}
+            {rows.some((r) => new Date(r.starts_at).toDateString() !== new Date().toDateString()) && (
+              <div style={{ fontSize: 14, color: "var(--warning-text,#B45309)", marginTop: 4, fontWeight: 700 }}>
+                {t("closeDayDialog.hasOlder")}
+              </div>
+            )}
           </div>
           <button onClick={() => onOpenChange(false)} aria-label={t("common.close")}
             style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: C.bg, color: C.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>

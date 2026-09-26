@@ -92,6 +92,7 @@ export const en: LocaleTranslations = {
     markDone: "Done ✓",
     andPaid: "and paid",
     closeAll: "Close the day ({{count}})",
+    closeAllOlder: "Close unmarked lessons ({{count}})",
     write: "Write",
     openSchedule: "Schedule →",
     closedTitle: "Day closed",
@@ -1620,6 +1621,7 @@ export const en: LocaleTranslations = {
     actionWallet: "Wallet",
     assignTutorCta: "Assign a tutor",
     actionRate: "Rate",
+    noSubjectsSetRate: "No subjects or rate yet — set them",
     subjectRateHint: "subject · rate · currency",
     remindBtn: "Remind",
     assignTutorFirst: "Assign a tutor first",
@@ -2035,6 +2037,8 @@ export const en: LocaleTranslations = {
 
     payoutMissing: "Tutor rate not set — payout not calculated",
     payoutMissingTap: "Rate not set — payout not calculated",
+    setPrice: "Set the price",
+    priceMissingTap: "🎓 No price set — this lesson stays out of your money",
     setRate: "Set the rate",
     setRateAria: "Set the rate for tutor {{name}}",
   },
@@ -5243,6 +5247,7 @@ export const en: LocaleTranslations = {
   closeDayDialog: {
     title: "Close the day",
     subtitle: "Mark what happened and what was paid",
+    hasOlder: "⚠️ This includes forgotten lessons from earlier days — check the dates",
     conductedPill: "Conducted",
     packageBalance: "📦 package: {{count}}",
     cancel: "Cancel",

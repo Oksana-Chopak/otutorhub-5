@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { computeWeeklyStats } from "@/lib/studentStats";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { PushSettingsCard } from "@/components/PushSettingsCard";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { UserAvatar } from "@/components/UserAvatar";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
@@ -276,6 +277,10 @@ export default function StudentProfilePage() {
               {t("common.logout")}
             </button>
 
+            {/* Аудит шляхів 24.09 (§4): учневі НЕ БУЛО ДЕ ввімкнути пуші —
+                /profile йому закритий, а тумблер у поповері дзвіночка зʼявлявся
+                лише коли сповіщення вже є. Той самий компонент, що в репетитора. */}
+            <PushSettingsCard />
             <DeleteAccountSection />
 
             <div style={{ display: "flex", justifyContent: "center", gap: 16, paddingTop: 2, fontSize: 14 }}>
