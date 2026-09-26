@@ -22,6 +22,7 @@ import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { canSee } from "@/lib/roleCapabilities";
 import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
@@ -43,6 +44,7 @@ import { LessonCard } from "@/components/LessonCard";
 import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { PaymentClaimsCard } from "@/components/PaymentClaimsCard";
+import { AfterLessonSheet, type QueueLesson } from "@/components/AfterLessonSheet";
 import { ActionItemsCard } from "@/components/ActionItemsCard";
 import { StreakCard } from "@/components/StreakCard";
 
@@ -918,6 +920,32 @@ export default function DashboardPage() {
     !!trialBannerKey && !localStorage.getItem(trialBannerKey);
 
   // «Закрити день»: сьогоднішні минулі уроки, що досі в статусі "заплановано"
+  /* Важіль 1 (аудит шляхів 24.09): черга «після уроку». Ті самі уроки, що й у
+     пакетному закритті дня (проведені за часом, але не позначені), тільки тут
+     їх проходять ПООДИНЦІ — з конспектом, домашкою й оплатою в одному аркуші.
+     Гроші беремо з уже завантажених рядків: у хабового вони замасковані базою,
+     і сам аркуш оплату йому не показує. */
+  const [queueOpen, setQueueOpen] = useState(false);
+  const afterLessonQueue: QueueLesson[] = useMemo(
+    () =>
+      todayLessons
+        .filter((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() <= nowMs && (isManager || l.tutor_id === user?.id))
+        .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+        .map((l) => ({
+          id: l.id,
+          subject: l.subject,
+          starts_at: l.starts_at,
+          duration_minutes: Number((l as any).duration_minutes ?? 60),
+          student_id: l.student_id,
+          source: l.source,
+          student_price: l.student_price,
+          student_payment_status: l.student_payment_status,
+          currency: pairCurrency[`${l.tutor_id}:${l.student_id}`] ?? "UAH",
+        })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [todayLessons, nowMs, isManager, user?.id, pairCurrency],
+  );
+
   const closeDayRows: CloseDayRow[] = useMemo(
     () =>
       todayLessons
@@ -1845,6 +1873,7 @@ export default function DashboardPage() {
               }}
               onWriteSummary={(id) => setOpenLessonId(id)}
               onCloseDay={() => setCloseDayOpen(true)}
+              onOpenQueue={afterLessonQueue.length > 0 ? () => setQueueOpen(true) : undefined}
               onPlanNext={() => navigate("/schedule?create=1")}
               onOpenSchedule={() => navigate("/schedule")}
               canMarkPaid={isIndependentTutor || isManager}
@@ -2894,6 +2923,16 @@ export default function DashboardPage() {
       )}
       <AiNotesDialog open={aiNotesOpen} onOpenChange={setAiNotesOpen} />
       <CloseDayDialog open={closeDayOpen} onOpenChange={setCloseDayOpen} rows={closeDayRows} onDone={() => loadData()} />
+      {/* Важіль 1: аркуш «після уроку» з чергою — конспект і домашка першими,
+          далі оплата, і сам перехід до наступного незакритого уроку. */}
+      <AfterLessonSheet
+        open={queueOpen}
+        lessons={afterLessonQueue}
+        studentNames={profiles}
+        canMarkPaid={canSee("markStudentPayment", flags)}
+        onClose={() => setQueueOpen(false)}
+        onChanged={() => void loadData()}
+      />
       <RecordPaymentSheet
         open={paymentSheetOpen}
         onOpenChange={setPaymentSheetOpen}

@@ -35,6 +35,9 @@ const MATRIX: Record<Feature, { manager: boolean; hub: boolean; independent: boo
   moneySummary: { manager: false, hub: false, independent: true, student: false },
   // Власник грошей — менеджер АБО самостійний; хабовий не веде розрахунків:
   walletTopUp:  { manager: true,  hub: false, independent: true, student: false },
+  // 26.09 (аркуш «після уроку»): позначити оплату учня — те саме право, що
+  // поповнити його гаманець. Хабовий репетитор грошей учня не веде.
+  markStudentPayment: { manager: true, hub: false, independent: true, student: false },
   // Every tutor (independent AND hub) — the parity that kept regressing:
   achievements: { manager: false, hub: true,  independent: true, student: false },
   setupGuide:   { manager: false, hub: true,  independent: true, student: false },

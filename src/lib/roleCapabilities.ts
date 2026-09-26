@@ -35,6 +35,7 @@ export type Feature =
   | "moneySummary"   // «% оплат вчасно / зароблено за місяць» — для хабового це гроші ШКОЛИ
   // ── Власник грошей: менеджер (гроші школи) АБО самостійний (свої гроші) ──
   | "walletTopUp"    // поповнити гаманець учня передоплатою — хабовий не веде розрахунків
+  | "markStudentPayment" // позначити оплату учня (аркуш «після уроку», 26.09) — те саме право
   // ── Every teaching tutor (independent AND hub) ──
   | "achievements"   // gamified level / streak / badges — every tutor teaches & earns
   | "setupGuide"     // onboarding guide — every tutor onboards (hub gets a lighter set)
@@ -65,6 +66,7 @@ const INDEPENDENT_ONLY: ReadonlySet<Feature> = new Set<Feature>([
  *  репетитор не веде розрахунків з учнем — це робота школи. */
 const MONEY_OWNER: ReadonlySet<Feature> = new Set<Feature>([
   "walletTopUp",
+  "markStudentPayment",
 ]);
 
 const ANY_TUTOR: ReadonlySet<Feature> = new Set<Feature>([

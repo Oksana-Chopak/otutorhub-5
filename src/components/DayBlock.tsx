@@ -40,7 +40,7 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
   );
 }
 
-export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, onWriteSummary, onCloseDay, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid" }: {
+export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, onWriteSummary, onCloseDay, onOpenQueue, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid" }: {
   lessons: DayLesson[];
   tomorrow: { count: number; firstTime: string | null };
   pendingCount: number;
@@ -48,6 +48,9 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
   onComplete: (id: string, alsoPaid: boolean) => void | Promise<void>;
   onWriteSummary: (lessonId: string) => void;
   onCloseDay: () => void;
+  /** Важіль 1 (аудит шляхів 24.09): черга «після уроку» — конспект, домашка,
+      оплата в одному аркуші, з переходом до наступного незакритого уроку. */
+  onOpenQueue?: () => void;
   onPlanNext: () => void;
   onOpenSchedule: () => void;
   canMarkPaid?: boolean;
@@ -120,6 +123,13 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
               <input type="checkbox" checked={alsoPaid} onChange={(e) => setAlsoPaid(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#2BBFAA" }} />
               {t(paidLabelKey)}
             </label>
+            )}
+            {/* Дві РІЗНІ потреби, тому два різні шляхи: «просто позначити все»
+                (швидкий пакет) і «записати конспект по кожному» (черга). */}
+            {onOpenQueue && (
+              <button type="button" onClick={onOpenQueue} style={{ display: "block", marginTop: 6, border: "none", background: "transparent", padding: 0, color: "#7ee8d8", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                {t("afterLesson.openQueue")}
+              </button>
             )}
             {pendingCount >= 1 && (
               <button type="button" onClick={onCloseDay} style={{ display: "block", marginTop: 6, border: "none", background: "transparent", padding: 0, color: "#7ee8d8", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>
