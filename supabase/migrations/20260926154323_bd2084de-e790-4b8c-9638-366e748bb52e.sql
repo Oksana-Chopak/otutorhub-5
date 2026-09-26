@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.guard_feedback_answer_writes() FROM PUBLIC, anon, authenticated;
