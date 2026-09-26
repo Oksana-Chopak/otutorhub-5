@@ -14,7 +14,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ALL_STEPS, CORE } from "@/lib/onboardingSteps";
+import { ALL_STEPS, CORE, LATER } from "@/lib/onboardingSteps";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const flow = readFileSync(join(root, "src/components/OnboardingFlowB.tsx"), "utf8");
@@ -28,10 +28,16 @@ describe("онбординг закінчується грошима", () => {
     expect(CORE.some((s) => s.action === "debt")).toBe(true);
   });
 
-  it("крок стоїть ДО налаштувань — одразу після першого уроку", () => {
+  it("крок стоїть ОДРАЗУ після першого уроку і завершує шлях майстра", () => {
+    /* 26.09 (важіль 9): налаштування (proRules/autoMark/telegram) більше не
+       кроки майстра — вони переїхали в картки «в момент потреби» на дашборді.
+       Тому «до налаштувань» тепер означає «останнім у шляху»: гроші — рівно
+       після уроку, і далі майстер закінчується числом, а не налаштуваннями. */
     const order = CORE.map((s) => s.action);
-    expect(order.indexOf("debt")).toBeGreaterThan(order.indexOf("lesson"));
-    expect(order.indexOf("debt")).toBeLessThan(order.indexOf("proRules"));
+    expect(order).toEqual(["subject", "student", "lesson", "debt"]);
+    expect(order.indexOf("debt")).toBe(order.indexOf("lesson") + 1);
+    expect(LATER.map((s) => s.action), "налаштування живуть поза майстром")
+      .toEqual(["proRules", "autoMark", "telegram"]);
   });
 
   it("хабовому крок не показується: розрахунки з учнями веде школа", () => {

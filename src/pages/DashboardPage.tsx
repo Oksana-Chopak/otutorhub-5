@@ -1128,6 +1128,12 @@ export default function DashboardPage() {
      боржники стоять тут поіменно, з кнопкою нагадування (одне повідомлення про
      ВЕСЬ борг пари). Групові рядки не беремо: у них борг на учасниках, а не на
      уроці, і нагадування про них — окрема розмова. */
+  /** Скільки уроків уже проведено — момент для «позначати автоматично?». */
+  const conductedCount = useMemo(
+    () => lessons.filter((l) => l.status === "completed").length,
+    [lessons],
+  );
+
   const debtors = useMemo(() => {
     const byPair = new Map<string, { studentId: string; tutorId: string; sum: number; count: number }>();
     for (const l of lessons) {
@@ -1313,6 +1319,38 @@ export default function DashboardPage() {
       desc:  t("dashboardExtra.taskAiDesc"),
       done:  Boolean((settings as any)?.ai_notes_auto), // A7: увімкнув авто-конспекти = виконано
     },
+    /* ВАЖІЛЬ 9 (аудит шляхів 24.09): три НАЛАШТУВАННЯ переїхали з майстра сюди
+       і зʼявляються В МОМЕНТ ПОТРЕБИ, а не всі одразу. Кожне веде в ТОЙ САМИЙ
+       майстер (`/onboarding?step=…`) — друга реалізація тієї ж дії заборонена
+       каноном. Момент для кожного (гейти нижче, у pendingBonusTasks):
+        · Telegram — коли вже є хоч один урок: ранковому дайджесту є що казати;
+        · автопозначення — після трьох проведених уроків: людина вже відчула,
+          що позначати доводиться руками;
+        · правила оплат — коли вже є БОРГ: до першого боргу вони абстракція. */
+    {
+      action: "telegram",
+      emoji: "📲",
+      title: t("dashboardExtra.taskTelegramTitle"),
+      desc:  t("dashboardExtra.taskTelegramDesc"),
+      to:    "/onboarding?step=telegram",
+      done:  obProgress.hasTelegram,
+    },
+    {
+      action: "autoMark",
+      emoji: "✅",
+      title: t("dashboardExtra.taskAutoMarkTitle"),
+      desc:  t("dashboardExtra.taskAutoMarkDesc"),
+      to:    "/onboarding?step=autoMark",
+      done:  Boolean((settings as any)?.auto_complete_prompted),
+    },
+    {
+      action: "proRules",
+      emoji: "🔔",
+      title: t("dashboardExtra.taskProRulesTitle"),
+      desc:  t("dashboardExtra.taskProRulesDesc"),
+      to:    "/onboarding?step=proRules",
+      done:  Boolean((settings as any)?.payment_rules_configured),
+    },
   ] as const;
 
   const pendingBonusTasks = TUTOR_BONUS_TASKS.filter(
@@ -1330,6 +1368,15 @@ export default function DashboardPage() {
          Поки немає жодного учня — кроку немає: спершу «додай учня». */
       && !(isHubTutor && t.action === "payDetails")
       && !(t.action === "payDetails" && !obProgress.hasAnyStudent)
+      /* Момент потреби (важіль 9). Поки моменту не сталося — картки НЕМА:
+         налаштування, показане завчасно, вмикають рідше, а список «зроби ще
+         сім речей» на першому екрані відпускає людину зовсім. */
+      && !(t.action === "telegram" && lessons.length === 0)
+      && !(t.action === "autoMark" && conductedCount < 3)
+      && !(t.action === "proRules" && debtors.length === 0)
+      /* Правила оплат і автопозначення — концепт САМОСТІЙНОГО репетитора:
+         у школі це робота менеджера (той самий HUB_SKIP, що й у майстрі). */
+      && !(isHubTutor && (t.action === "proRules" || t.action === "autoMark"))
   );
 
   const smartTasks = useMemo(() => {

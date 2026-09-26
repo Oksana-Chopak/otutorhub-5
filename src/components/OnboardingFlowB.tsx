@@ -20,7 +20,7 @@ import { lazyArray } from "@/lib/lazyI18n";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
@@ -1336,13 +1336,30 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   // versions, so every reference below is automatically scoped to the visible steps.
   const HUB_SKIP = new Set(["student", "lesson", "debt", "proRules", "autoMark", "referral", "finance"]);
   const visibleSteps = isIndependent ? ALL_STEPS : ALL_STEPS.filter((s) => !HUB_SKIP.has(s.action));
-  const CORE  = visibleSteps.filter((s) => s.group !== "bonus");
+
+  /* ВАЖІЛЬ 9 (аудит шляхів 24.09): «цінність за 60 секунд».
+     Було сім обовʼязкових кроків, з них три — чисті НАЛАШТУВАННЯ (правила
+     оплат, автопозначення, Telegram). Кожен зайвий крок до першого уроку — це
+     частка людей, які не дійшли, а налаштування, показане в момент потреби,
+     вмикають частіше за те саме налаштування в майстрі.
+     Тому шлях майстра = лише `essential`: предмет → учень → перший урок →
+     ГРОШІ. Грошовий крок лишається обовʼязковим і стоїть одразу після уроку —
+     рішення 13.09 («перша сесія закінчується ЧИСЛОМ, а не словами «профіль
+     заповнено»»), і воно ж є другою половиною цінності.
+     Налаштування (`setup`) переїхали в «Що зробити далі» на дашборді, де
+     зʼявляються В МОМЕНТ ПОТРЕБИ, і ведуть у ЦЕЙ САМИЙ майстер за
+     `/onboarding?step=<action>` — щоб реалізація кожної дії лишалась одна. */
+  const [searchParams] = useSearchParams();
+  const singleAction = searchParams.get("step");
+  const singleStep = singleAction ? (visibleSteps.find((s) => s.action === singleAction) ?? null) : null;
+  const CORE  = singleStep ? [singleStep] : visibleSteps.filter((s) => s.group === "essential");
   // A12: ключ «вже редіректили» ставиться ТУТ (прибуття = успішна навігація),
   // а не в Dashboard ДО navigate — інакше збій навігації спалював спробу.
   useEffect(() => {
     if (user) sessionStorage.setItem(`onboarding_redirected_${user.id}`, "1");
   }, [user?.id]);
-  const BONUS = visibleSteps.filter((s) => s.group === "bonus");
+  // Налаштування лишаються досяжними з фінального екрана — разом із бонусами.
+  const BONUS = visibleSteps.filter((s) => s.group === "bonus" || s.group === "setup");
   const TOTAL_XP = visibleSteps.reduce((sum, s) => sum + s.xp, 0);
 
   const [idx, setIdx]             = useState(0);
@@ -1373,7 +1390,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       // КОЖЕН новий акаунт пропускав крок «Оберіть предмет» (порожні subjects
       // каскадом ламали передзаповнення). Семантика тепер «людський крок»:
       // advance пише idx+2, тут віднімаємо 1; свіжий default=1 → індекс 0.
-      if (s > 1 && s <= CORE.length + 1) setIdx(Math.min(s - 1, CORE.length - 1));
+      if (!singleStep && s > 1 && s <= CORE.length + 1) setIdx(Math.min(s - 1, CORE.length - 1));
     }
   }, [wsLoading]);
 
@@ -1493,6 +1510,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   };
 
   const advance = async (): Promise<boolean> => {
+    /* Одиночний крок із дашборда: прогрес майстра не чіпаємо (людина його вже
+       пройшла), а після збереження повертаємо туди, звідки прийшли. */
+    if (singleStep) { navigate("/dashboard"); return true; }
     const next = idx + 1;
     // «людський крок» = індекс+1; зберігаємо крок, ЯКИЙ показати далі → next+1.
     // A15: спершу ЗАПИС; збій → тост і лишаємось на місці (прогрес не бреше).
