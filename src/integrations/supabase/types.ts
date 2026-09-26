@@ -390,6 +390,9 @@ export type Database = {
       }
       feedback_submissions: {
         Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
           category: string
           created_at: string
           id: string
@@ -402,6 +405,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
           category?: string
           created_at?: string
           id?: string
@@ -414,6 +420,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
           category?: string
           created_at?: string
           id?: string
@@ -2812,6 +2821,7 @@ export type Database = {
         }
         Returns: Json
       }
+      answer_feedback: { Args: { _id: string; _text: string }; Returns: Json }
       approve_subscription_request: {
         Args: { _months?: number; _request_id: string; _response?: string }
         Returns: Json
