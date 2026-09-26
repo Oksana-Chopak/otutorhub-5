@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { openExternal } from "@/lib/openExternal";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { IPaidButton, type PendingClaim } from "@/components/IPaidButton";
 import { ErrorState } from "@/components/ErrorState";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
@@ -52,6 +53,28 @@ export default function StudentPaymentsPage() {
   // details in the clipboard instead of forcing a manual re-type from the card above.
   const payInfoFor = (tutorId: string) =>
     tutorPayInfos.find((p) => p.tutor_id === tutorId && p.payment_details);
+  /* Важіль 4 (аудит шляхів 24.09): після «скопіювати реквізити» наставала
+     ТИША — учень не знав, чи побачили його переказ. Заявка «Я оплатив» цю
+     тишу закриває; тут ми лише показуємо, що вона вже в дорозі, щоб людина не
+     надсилала другу. Таблиці може ще не бути (міграція їде окремо) — тоді
+     просто немає заявок, і екран працює як раніше. */
+  const [pendingClaims, setPendingClaims] = useState<Record<string, PendingClaim>>({});
+  const loadClaims = useCallback(async () => {
+    try {
+      const { data, error } = await (supabase.from("payment_claims" as any) as any)
+        .select("id, tutor_id, amount, currency, created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) return;
+      const map: Record<string, PendingClaim> = {};
+      ((data ?? []) as PendingClaim[]).forEach((c) => {
+        if (!map[c.tutor_id]) map[c.tutor_id] = { ...c, amount: Number(c.amount ?? 0) };
+      });
+      setPendingClaims(map);
+    } catch { /* немає таблиці — немає заявок */ }
+  }, []);
+  useEffect(() => { void loadClaims(); }, [loadClaims]);
+
   const copyDetails = (info: TutorPayInfo) => {
     navigator.clipboard.writeText(info.payment_details ?? "");
     hapticTap();
@@ -225,6 +248,15 @@ export default function StudentPaymentsPage() {
   // (+штрафи). Неоплачене майбутнє/непозначене — окремий рядок «Заплановано»,
   // ніколи не сумується з боргом: учениці показували рахунок за урок,
   // який ще не відбувся.
+  /** Скільки учень винен КОНКРЕТНОМУ репетитору (модель боргу 04.09). */
+  const dueByTutor = useMemo(() => {
+    const map: Record<string, number> = {};
+    rows.filter(isOwedRow).forEach((r) => {
+      map[r.tutor_id] = (map[r.tutor_id] ?? 0) + Number(r.student_price ?? 0);
+    });
+    return map;
+  }, [rows]);
+
   const totalsByCurrency = rows.reduce<Record<string, { unpaid: number; upcoming: number; paid: number }>>(
     (acc, r) => {
       const c = r.currency ?? "UAH";
@@ -352,6 +384,16 @@ export default function StudentPaymentsPage() {
                       <Copy className="h-3.5 w-3.5" />
                     </button>
                   </div>
+                  {/* Важіль 4: одразу після реквізитів — «Я оплатив». Гроші вона не
+                      міняє: створює заявку, яку підтверджує той, хто їх отримує. */}
+                  <IPaidButton
+                    tutorId={tp.tutor_id}
+                    tutorName={tp.tutor_name}
+                    amountDue={dueByTutor[tp.tutor_id] ?? 0}
+                    currency={tp.currency}
+                    pending={pendingClaims[tp.tutor_id] ?? null}
+                    onCreated={() => void loadClaims()}
+                  />
                   {/* №17: реквізити містять посилання → справжня кнопка оплати */}
                   {paymentLinkOf(tp.payment_details) && (
                     <button

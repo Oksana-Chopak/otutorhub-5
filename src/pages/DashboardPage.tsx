@@ -42,6 +42,7 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
+import { PaymentClaimsCard } from "@/components/PaymentClaimsCard";
 import { ActionItemsCard } from "@/components/ActionItemsCard";
 import { StreakCard } from "@/components/StreakCard";
 
@@ -1986,6 +1987,10 @@ export default function DashboardPage() {
           {isIndependentTutor && (
             <div className="space-y-3">
               <TutorNotesCard />
+              {/* Важіль 4 (аудит шляхів 24.09): «Оля каже, що оплатила суму X ·
+                  Підтвердити / Ні» — там, де людина починає день. Картки немає,
+                  коли заявок немає (привид «заявок немає 🎉» — це шум). */}
+              <PaymentClaimsCard />
               {/* №11 (ідеї 01.09): домовленості з останніх уроків (Fireflies) —
                   на дашборд, а не на три тапи вглиб. Лише репетиторська персона. */}
               <ActionItemsCard onOpenLesson={(id) => setOpenLessonId(id)} />
@@ -2098,8 +2103,12 @@ export default function DashboardPage() {
 
           {/* Notes — ALWAYS directly under the bubbles, nowhere else (manager). */}
           {isManager && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
               <TutorNotesCard />
+              {/* Важіль 4: заявки «я оплатив» від учнів школи — менеджеру, бо
+                  гроші школи записує він (хабовому репетитору wallet_topup
+                  цього не дозволяє). */}
+              <PaymentClaimsCard />
             </div>
           )}
 
