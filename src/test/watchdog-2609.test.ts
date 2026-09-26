@@ -276,3 +276,53 @@ describe("обгортка fetch: 429 на читанні лікується с�
     expect(n).toBe(1);
   });
 });
+
+/* ───────────────────────────────────────────────────────────────────────────
+   7. ДРУГИЙ ЗВІТ РОБОТА (26.09, вечір) — те, що він назвав сам
+   Хабовий /finances: жодної помилки від бази, а екран показує помилку →
+   рядка налаштувань немає. Учень: 400 invalid_credentials → секрет, не продукт.
+   Плюс 401 на is_pending_email — зламана воронка запрошень.
+   ─────────────────────────────────────────────────────────────────────────── */
+describe("звіт робота з живого проду 26.09", () => {
+  it("«Фінанси» показують помилку ЛИШЕ коли читання справді впало", () => {
+    const f = read("src/pages/FinancesPage.tsx");
+    expect(f, "гілка помилки чіпляється за error, а не за «рядка немає»").toMatch(/if \(wsError\) \{/);
+    expect(f, "стара гілка workspaceUnknown → ErrorState більше не блокує хабового")
+      .not.toMatch(/if \(workspaceUnknown\) \{\s*\n\s*return \(\s*\n\s*<>\s*\n\s*<ErrorState/);
+    expect(f).toMatch(/error: wsError \} = useWorkspaceSettings\(\)/);
+  });
+
+  it("запис лишається обережним: гейт персони в розкладі не прибрано", () => {
+    const sch = read("src/pages/SchedulePage.tsx");
+    expect(sch, "source уроку незмінний — не знаємо персону, не пишемо")
+      .toMatch(/if \(workspaceUnknown\) \{\s*\n\s*toast\.error\(t\("common\.workspaceUnknown"\)\)/);
+  });
+
+  it("міграція закриває дірку в даних: тригер слухає і UPDATE ролі", () => {
+    const m = read("supabase/migrations/20260926130000_hub_tutor_row_and_pending_email.sql");
+    expect(m).toMatch(/AFTER INSERT OR UPDATE OF role ON public\.user_roles/);
+    expect(m, "школа з членства, коли роль міняє не менеджер").toMatch(/FROM public\.hub_members hm WHERE hm\.user_id = NEW\.user_id/);
+    expect(m, "бекфіл лише для членів школи — тріал тихо не роздаємо").toMatch(/JOIN public\.hub_members hm ON hm\.user_id = ur\.user_id/);
+    expect(m, "вбудована перевірка, інакше «застосовано» не означає нічого").toMatch(/не слухає UPDATE — дірка не закрита/);
+  });
+
+  it("запрошені завершують реєстрацію: is_pending_email доступна браузеру", () => {
+    const m = read("supabase/migrations/20260926130000_hub_tutor_row_and_pending_email.sql");
+    expect(m).toMatch(/GRANT EXECUTE ON FUNCTION public\.is_pending_email\(text\) TO anon, authenticated/);
+    // Клієнт справді її кличе — інакше грант був би зайвим розширенням поверхні.
+    const auth = read("src/pages/AuthPage.tsx");
+    expect((auth.match(/is_pending_email/g) ?? []).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("невірний пароль тестового акаунта названий секретом, а не поломкою продукту", () => {
+    const sp = read("tests/prod/smoke.spec.ts");
+    expect(sp).toMatch(/це СЕКРЕТ перевірки, не продукт/);
+    expect(sp).toMatch(/Цією персоною прод НЕ перевірено/);
+  });
+
+  it("сценарій бази є і відкочує себе", () => {
+    const scen = read("scripts/db-replay/scenarios/80-hub-tutor-workspace-row.sql");
+    expect(scen).toMatch(/ROLLBACK;\s*$/);
+    expect(scen).toMatch(/UPDATE public\.user_roles SET role = 'tutor'::app_role WHERE user_id = pupil;/);
+  });
+});

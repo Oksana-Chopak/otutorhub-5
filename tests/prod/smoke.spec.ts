@@ -145,11 +145,16 @@ async function login(page: Page, p: Persona, w: Watch) {
     // маршрут у цих двох випадках однаковий.
     const refused = w.authStatuses.filter((s) => s >= 400);
     if (refused.length) {
-      throw new Error(
-        `${p.label}: прод відмовив у вході — /auth/v1/token відповів ${refused.join(", ")}` +
-        (refused.includes(429) ? " (429 = ліміт запитів на IP, тимчасово; продукт не зламаний)" : " (400 = невірні дані тестового акаунта)") +
-        `\n${await diagnose(page, w)}`,
-      );
+      // 26.09: 400 invalid_credentials — це НЕ поломка продукту, а несправний
+      // секрет перевірки: пароль тестового акаунта не підходить (змінили,
+      // акаунт видалили під час перевірки видалення). Кажемо це словами, щоб
+      // ранковий звіт не читався як «застосунок не працює».
+      const bad = refused.includes(400)
+        ? `невірні дані тестового акаунта (400 invalid_credentials) — це СЕКРЕТ перевірки, не продукт: онови TEST_${p.key === "ind" ? "TUTOR" : p.key === "hub" ? "HUB_TUTOR" : p.key.toUpperCase()}_EMAIL/PASSWORD у секретах GitHub. Цією персоною прод НЕ перевірено`
+        : refused.includes(429)
+          ? "прод обмежив частоту входів (429) — ліміт на IP, тимчасово; продукт не зламаний"
+          : `прод відмовив у вході (${refused.join(", ")})`;
+      throw new Error(`${p.label}: ${bad}\n${await diagnose(page, w)}`);
     }
     const stuckOnAuth = path.startsWith("/auth");
     const stuckOnRoot = path === "/";

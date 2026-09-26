@@ -215,7 +215,7 @@ export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
   const { roles } = useAuth();
-  const { isIndependent, loading: wsLoading, workspaceUnknown } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, error: wsError } = useWorkspaceSettings();
   const coreLock = useCoreLock();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
@@ -2145,10 +2145,20 @@ export default function FinancesPage() {
      читання бачила впевнене «Отримано 0» і «Операцій за період немає».
      Гейт піднято ВИЩЕ за розгалуження персон, щоб накривав усі три. */
   if (isTutor && !isManager) {
-    /* Налаштування прочитались, а рядка немає: персона НЕ «хабовий», персона
-       невідома. Без цієї гілки самостійного репетитора кидало в хабовий
-       кабінет із «До виплати від хабу» замість його власних грошей. */
-    if (workspaceUnknown) {
+    /* 26.09, звіт робота з ЖИВОГО проду: хабовий репетитор бачив тут
+       «Не вдалося завантажити», при цьому база НЕ відповіла жодною помилкою —
+       ані 400, ані 401, ані 429. Тобто читання пройшло, а рядка налаштувань у
+       людини просто НЕМА (дірка в даних: тригер створював його лише на INSERT
+       ролі, а менеджер, який МІНЯЄ роль учня на репетитора, робить UPDATE —
+       див. міграцію 20260926130000). Для ЧИТАННЯ ці два стани різні:
+         · читання ВПАЛО (є error) — чесна помилка з кнопкою «Спробувати ще»;
+         · читання пройшло, рядка немає — самостійного воркспейсу в людини
+           немає, отже це репетитор школи, і його екран виплат безпечний:
+           ціни школи й маржу маскує сама база (lessons_visible), а не ця
+           гілка. Показати виплати правильніше, ніж показати помилку.
+       Для ЗАПИСУ обережність лишається (source уроку незмінний) — гейт у
+       SchedulePage не чіпаємо. */
+    if (wsError) {
       return (
         <>
           <ErrorState onRetry={() => void fetchData()} retrying={loading} />
