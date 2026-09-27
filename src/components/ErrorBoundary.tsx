@@ -22,30 +22,52 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  /** Короткий код цього падіння — те, що людина цитує в підтримку. */
+  ref: string | null;
+}
+
+/**
+ * Референс падіння: 8 символів із часу й випадковості. Свідомо БЕЗ жодних
+ * даних людини — це просто мітка, за якою те саме падіння знаходиться в
+ * консолі, у `error_log` і в «Журналі помилок» адмінки.
+ *
+ * Аудит 18.09: екран казав лише «Щось пішло не так», тож людина, яка писала
+ * власниці, не могла назвати НІЧОГО, за що можна зачепитись, а власниця не
+ * могла звʼязати скаргу з рядком у журналі.
+ */
+function makeRef(): string {
+  const t = Date.now().toString(36).slice(-5);
+  const r = Math.floor(Math.random() * 1296).toString(36).padStart(2, "0");
+  return `${t}${r}`.toUpperCase();
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
+  state: State = { hasError: false, error: null, ref: null };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, ref: makeRef() };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[ErrorBoundary]", error, info.componentStack);
-    void logError(error.message, error.stack, { componentStack: info.componentStack?.slice(0, 4000) });
+    const ref = this.state.ref ?? makeRef();
+    console.error(`[ErrorBoundary ${ref}]`, error, info.componentStack);
+    // Референс їде в журнал — інакше цитувати його було б нікуди.
+    void logError(error.message, error.stack, {
+      ref,
+      componentStack: info.componentStack?.slice(0, 4000),
+    });
   }
 
   componentDidUpdate(prevProps: Props) {
     // Скидаємось лише КОЛИ вже впали і користувач кудись перейшов —
     // у здоровому стані зміна resetKey нічого не перемонтовує.
     if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
-      this.setState({ hasError: false, error: null });
+      this.setState({ hasError: false, error: null, ref: null });
     }
   }
 
   private goHome = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, ref: null });
     this.props.onHome?.();
   };
 
@@ -61,6 +83,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-muted-foreground text-sm max-w-md">
               {i18n.t("errorBoundary.unknownError")}
             </p>
+            {this.state.ref && (
+              <p className="text-[13px] text-muted-foreground">
+                {i18n.t("errorBoundary.refLabel")}{" "}
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+                  {this.state.ref}
+                </code>
+              </p>
+            )}
             <div className="flex flex-wrap items-center justify-center gap-3">
               {this.props.onHome && (
                 <Button onClick={this.goHome}>{i18n.t("errorBoundary.home")}</Button>

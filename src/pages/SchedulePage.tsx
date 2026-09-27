@@ -17,7 +17,6 @@ import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
 import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { ScheduleSkeleton } from "@/components/PageSkeletons";
-import { lessonToasts } from "@/lib/toasts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

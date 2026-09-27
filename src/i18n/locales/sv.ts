@@ -1589,6 +1589,11 @@ export const sv: LocaleTranslations = {
   },
 
   people: {
+    emptyFilter: "Ingen i det här filtret än",
+    showAll: "Visa alla",
+    emptyTutors: "Inga lärare än — perfekt läge att lägga till den första 🚀",
+    emptyStudents: "Dags att träffa din första elev! Lägg till hen och kör 🚀",
+    emptyManagers: "Ingen här än ✨",
     payoutBackfillFailed: "Taxan sparades, men kunde inte tillämpas på befintliga lektioner: {{msg}}",
     hubMarginLabel: "Hubbens marginal:",
     payoutBackfilled: "Taxan tillämpad på {{count}} obetalda lektioner",
@@ -2960,6 +2965,7 @@ export const sv: LocaleTranslations = {
     webOnlyGoogleCalendar: "🗓️ Google Kalender-kopplingen finns i webbversionen — öppna otutorhub.com i din webbläsare.",
   },
   errorBoundary: {
+    refLabel: "Felkod (uppge den till supporten):",
     title: "Något gick fel",
     unknownError: "Ett tekniskt fel på vår sida — vi har fått en signal. Ladda om sidan, det hjälper nästan alltid.",
     reload: "Ladda om",

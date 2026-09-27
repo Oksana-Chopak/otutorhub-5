@@ -32,7 +32,6 @@ import { ErrorState } from "@/components/ErrorState";
 import { RemindDebtButton } from "@/components/RemindDebtButton";
 import { useLastReminders } from "@/hooks/useLastReminders";
 import { StudentsSkeleton } from "@/components/PageSkeletons";
-import { studentToasts } from "@/lib/toasts";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   UserPlus,

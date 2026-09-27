@@ -228,6 +228,64 @@ export default function PeoplePage() {
     setAddOpen(true);
   };
 
+  /**
+   * ЧЕСНИЙ порожній стан вкладки (аудит 18.09: «"Нічого не знайдено" на порожніх
+   * вкладках без жодного пошуку»).
+   *
+   * Три різні причини порожнечі — три різні тексти й три різні дії:
+   *  • шукали і не знайшли → «Нічого не знайдено» + скинути пошук;
+   *  • стоїть фільтр статусу → «У цьому фільтрі поки нікого» + показати всіх;
+   *  • список справді порожній → теплий текст і СПРАВЖНЯ дія «додати».
+   * «Нічого не знайдено» там, де нічого не шукали, — це не косметика: людина
+   * читає це як «дані десь поділись», а правило порожніх станів у CLAUDE.md
+   * вимагає позитивного формулювання і дії.
+   *
+   * Один рендерер на три вкладки: раніше це були три однакові копії, і будь-яка
+   * правка тексту неминуче розʼїхалась би між ними.
+   */
+  const renderEmptyTab = (tab: "tutors" | "students" | "managers") => {
+    const searching = searchQuery.trim() !== "";
+    const filtered = statusFilter !== "all";
+    if (searching) {
+      return (
+        <div className="py-8 text-center">
+          <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+          <button type="button" onClick={() => setSearchQuery("")}
+            className="tap-44 mt-2 text-sm font-semibold text-primary underline">
+            {t("people.resetSearch")}
+          </button>
+        </div>
+      );
+    }
+    if (filtered) {
+      return (
+        <div className="py-8 text-center">
+          <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.emptyFilter")}</p>
+          <button type="button" onClick={() => setStatusFilter("all")}
+            className="tap-44 mt-2 text-sm font-semibold text-primary underline">
+            {t("people.showAll")}
+          </button>
+        </div>
+      );
+    }
+    const copy = {
+      tutors: { text: t("people.emptyTutors"), cta: t("people.addTutor"), role: "tutor" as AppRole },
+      students: { text: t("people.emptyStudents"), cta: t("people.addStudent"), role: "student" as AppRole },
+      managers: { text: t("people.emptyManagers"), cta: null, role: "manager" as AppRole },
+    }[tab];
+    return (
+      <div className="py-8 text-center">
+        <p className="text-sm" style={{ color: "var(--sub)" }}>{copy.text}</p>
+        {copy.cta && (
+          <button type="button" onClick={() => openAddSheet(copy.role)}
+            className="tap-44 mt-3 inline-flex h-11 items-center rounded-[12px] bg-[var(--teal)] px-4 text-[15px] font-semibold text-white">
+            {copy.cta}
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const openChatWith = (userId: string) => {
     navigate(`/chats?with=${userId}`);
   };
@@ -1293,15 +1351,7 @@ export default function PeoplePage() {
           {activeRoleTab === "tutors" && (
             <div className="space-y-2.5">
               {[...tutors, ...(statusFilter === "all" ? noRole : [])].length === 0 ? (
-                <div className="py-8 text-center">
-                  <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
-                  {searchQuery.trim() !== "" && (
-                    <button type="button" onClick={() => setSearchQuery("")}
-                      className="mt-2 text-sm font-semibold text-primary underline">
-                      {t("people.resetSearch")}
-                    </button>
-                  )}
-                </div>
+renderEmptyTab("tutors")
               ) : (
                 [...tutors, ...(statusFilter === "all" ? noRole : [])].map((u) => renderUserCard(u, "primary"))
               )}
@@ -1310,15 +1360,7 @@ export default function PeoplePage() {
           {activeRoleTab === "students" && (
             <div className="space-y-2.5">
               {students.length === 0 ? (
-                <div className="py-8 text-center">
-                  <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
-                  {searchQuery.trim() !== "" && (
-                    <button type="button" onClick={() => setSearchQuery("")}
-                      className="mt-2 text-sm font-semibold text-primary underline">
-                      {t("people.resetSearch")}
-                    </button>
-                  )}
-                </div>
+renderEmptyTab("students")
               ) : (
                 students.map((u) => renderUserCard(u))
               )}
@@ -1327,15 +1369,7 @@ export default function PeoplePage() {
           {activeRoleTab === "managers" && (
             <div className="space-y-2.5">
               {managers.length === 0 ? (
-                <div className="py-8 text-center">
-                  <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
-                  {searchQuery.trim() !== "" && (
-                    <button type="button" onClick={() => setSearchQuery("")}
-                      className="mt-2 text-sm font-semibold text-primary underline">
-                      {t("people.resetSearch")}
-                    </button>
-                  )}
-                </div>
+renderEmptyTab("managers")
               ) : (
                 managers.map((u) => renderUserCard(u, "primary"))
               )}

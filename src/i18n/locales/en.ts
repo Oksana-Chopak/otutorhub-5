@@ -1609,6 +1609,11 @@ export const en: LocaleTranslations = {
   },
 
   people: {
+    emptyFilter: "Nobody in this filter yet",
+    showAll: "Show everyone",
+    emptyTutors: "No tutors yet — a great moment to add the first one 🚀",
+    emptyStudents: "Time to meet your first student! Add them and off you go 🚀",
+    emptyManagers: "Nobody here yet ✨",
     payoutBackfillFailed: "Rate saved, but propagating to existing lessons failed: {{msg}}",
     hubMarginLabel: "Hub margin:",
     payoutBackfilled: "Rate applied to {{count}} unpaid lessons",
@@ -2980,6 +2985,7 @@ export const en: LocaleTranslations = {
     webOnlyGoogleCalendar: "🗓️ Google Calendar connection is available in the web version — open otutorhub.com in your browser.",
   },
   errorBoundary: {
+    refLabel: "Error code (quote it to support):",
     title: "Something went wrong",
     unknownError: "A technical hiccup on our side — we've been notified. Reloading the page almost always helps.",
     reload: "Reload",

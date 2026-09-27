@@ -29,6 +29,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { selectInChunks } from "@/lib/chunkIn";
 import { ErrorState } from "@/components/ErrorState";
 import { enqueue, isOffline } from "@/lib/offlineQueue";
 import { useLocalDraft } from "@/hooks/useLocalDraft";
@@ -478,12 +479,19 @@ export default function ChatsPage() {
       if (!cancelled) setHasMoreMsgs(rows.length === msgLimit);
       const msgs = rows.slice().reverse();
       if (!cancelled) setMessages(msgs);
-      // Load attachments for these messages
+      /* Вкладення й реакції читаються ШМАТКАМИ: `msgLimit` росте з «показати
+         ще», тож у довгому треді в `.in(…)` летіли б сотні UUID — а це межа
+         довжини адреси, після якої запит віддає помилку, яку цей виклик
+         ігнорує. Наслідок був би тихий: надіслані файли просто зникали б із
+         старого треда. */
       if (msgs.length > 0) {
-        const { data: attachData } = await supabase
-          .from("chat_message_attachments")
-          .select("id, message_id, storage_path, file_name, mime_type, size_bytes")
-          .in("message_id", msgs.map((m) => m.id));
+        const { data: attachData } = await selectInChunks<any>(
+          msgs.map((m) => m.id),
+          (chunk) => supabase
+            .from("chat_message_attachments")
+            .select("id, message_id, storage_path, file_name, mime_type, size_bytes")
+            .in("message_id", chunk),
+        );
         if (!cancelled) {
           const grouped: Record<string, MessageAttachment[]> = {};
           (attachData ?? []).forEach((a: any) => {
@@ -497,10 +505,13 @@ export default function ChatsPage() {
       }
       // Load reactions for these messages
       if (msgs.length > 0) {
-        const { data: reactData } = await supabase
-          .from("chat_message_reactions")
-          .select("message_id, user_id, emoji")
-          .in("message_id", msgs.map((m) => m.id));
+        const { data: reactData } = await selectInChunks<any>(
+          msgs.map((m) => m.id),
+          (chunk) => supabase
+            .from("chat_message_reactions")
+            .select("message_id, user_id, emoji")
+            .in("message_id", chunk),
+        );
         if (!cancelled) {
           const grouped: Record<string, Reaction[]> = {};
           (reactData ?? []).forEach((r: any) => {
