@@ -394,8 +394,10 @@ export type Database = {
           answered_at: string | null
           answered_by: string | null
           category: string
+          contact: string | null
           created_at: string
           id: string
+          ip_hash: string | null
           message: string
           page_url: string | null
           rating: number | null
@@ -409,8 +411,10 @@ export type Database = {
           answered_at?: string | null
           answered_by?: string | null
           category?: string
+          contact?: string | null
           created_at?: string
           id?: string
+          ip_hash?: string | null
           message: string
           page_url?: string | null
           rating?: number | null
@@ -424,8 +428,10 @@ export type Database = {
           answered_at?: string | null
           answered_by?: string | null
           category?: string
+          contact?: string | null
           created_at?: string
           id?: string
+          ip_hash?: string | null
           message?: string
           page_url?: string | null
           rating?: number | null
@@ -3045,15 +3051,20 @@ export type Database = {
       is_superadmin: { Args: never; Returns: boolean }
       is_tutor_pro: { Args: { _tutor_id: string }; Returns: boolean }
       landing_bot_username: { Args: never; Returns: string }
-      link_student_by_email: {
-        Args: {
-          _currency?: string
-          _email: string
-          _price: number
-          _subject: string
-        }
-        Returns: string
-      }
+      link_student_by_email:
+        | {
+            Args: { _email: string; _price: number; _subject: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              _currency?: string
+              _email: string
+              _price: number
+              _subject: string
+            }
+            Returns: string
+          }
       log_landing_event: {
         Args: {
           _monthly?: number
@@ -3159,6 +3170,10 @@ export type Database = {
         Returns: undefined
       }
       start_manager_chat: { Args: never; Returns: string }
+      submit_landing_feedback: {
+        Args: { _contact?: string; _message: string; _page_url?: string }
+        Returns: string
+      }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
       update_lesson_details_safe: {
         Args: { _lesson_id: string; _patch: Json }
@@ -3167,6 +3182,13 @@ export type Database = {
       update_my_workspace_settings: {
         Args: { _patch: Json }
         Returns: undefined
+      }
+      user_has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       wallet_adjust: {
         Args: {
