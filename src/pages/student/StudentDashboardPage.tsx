@@ -20,6 +20,7 @@ import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { fetchHomeworkDone } from "@/lib/homeworkDone";
 import { ErrorState } from "@/components/ErrorState";
+import { TutorRequestStatusCard, type TutorRequestRow } from "@/components/student/TutorRequestStatusCard";
 import { computeWeeklyStats } from "@/lib/studentStats";
 import { studentLessonsFilter } from "@/lib/studentLessons";
 
@@ -86,23 +87,31 @@ export default function StudentDashboardPage() {
   // Tutor-less student with an OPEN request: show «запит у роботі» instead of
   // re-offering the find-a-tutor CTA — the request used to be invisible after
   // submit, so students filed duplicates thinking nothing happened.
-  const [pendingTutorRequest, setPendingTutorRequest] = useState(false);
+  /* 27.09 (§4 аудиту): читаємо не «чи є заявка», а САМУ заявку — статус і дату.
+     Без них картка не могла ні сказати «надіслано 3 дні тому», ні вирішити, чи
+     заявку ще можна скасувати (база дозволяє лише поки вона `open`). */
+  const [tutorRequest, setTutorRequest] = useState<TutorRequestRow | null>(null);
+  const [requestReloadKey, setRequestReloadKey] = useState(0);
+  const pendingTutorRequest = tutorRequest !== null;
   useEffect(() => {
     if (!user || ctxLoading || hasTutor) {
-      setPendingTutorRequest(false);
+      setTutorRequest(null);
       return;
     }
     let cancelled = false;
     (async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from("tutor_referral_requests")
-        .select("id", { count: "exact", head: true })
+        .select("id, status, created_at")
         .eq("student_id", user.id)
-        .in("status", ["open", "in_progress"]);
-      if (!cancelled) setPendingTutorRequest((count ?? 0) > 0);
+        .in("status", ["open", "in_progress"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) setTutorRequest((data as TutorRequestRow | null) ?? null);
     })();
     return () => { cancelled = true; };
-  }, [user?.id, ctxLoading, hasTutor]);
+  }, [user?.id, ctxLoading, hasTutor, requestReloadKey]);
 
   const { completedCount, weeklyCount, weeklyRecord } = useMemo(() => {
     const stats = computeWeeklyStats(completedLessons.map((l) => l.starts_at));
@@ -324,15 +333,13 @@ export default function StudentDashboardPage() {
             <SkeletonList count={2} />
           ) : upcoming.length === 0 ? (
             !hasTutor ? (
-              pendingTutorRequest ? (
-                // Request already filed → show its living status, not another CTA.
-                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", borderRadius: 13, padding: "12px 14px", background: "rgba(245,181,68,.1)", border: "1px solid rgba(245,181,68,.35)" }}>
-                  <span style={{ fontSize: 22, lineHeight: 1 }}>⏳</span>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 15, color: "#7a5a14" }}>{t("studentPages.requestPendingTitle")}</p>
-                    <p style={{ fontSize: 14, color: "#9a6a12", marginTop: 2, lineHeight: 1.45 }}>{t("studentPages.requestPendingDesc")}</p>
-                  </div>
-                </div>
+              tutorRequest ? (
+                // Заявка вже подана → показуємо її ЖИВИЙ стан із діями,
+                // а не ще один заклик «знайти репетитора».
+                <TutorRequestStatusCard
+                  request={tutorRequest}
+                  onCancelled={() => setRequestReloadKey((k) => k + 1)}
+                />
               ) : (
               // No tutor yet → don't promise a phantom "lesson coming soon".
               // Offer the real first action: request a tutor.

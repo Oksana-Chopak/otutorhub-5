@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +26,15 @@ interface Props {
   onNext: () => void;
   onToday: () => void;
   onLessonClick?: (lesson: CalendarLesson) => void;
+  /**
+   * §4 аудиту шляхів 24.09: «із сітки тижня не можна нічого, крім відкрити».
+   * Найдорожча дія тут одна — позначити МИНУЛИЙ урок проведеним: поки він не
+   * позначений, його грошей не бачить ні репетитор, ні звіти. Проп навмисно
+   * вузький: жодних інших дій у чипі 20 пікселів заввишки не поміститься
+   * читабельно, а решта живе в аркуші уроку, який відкриває той самий дотик.
+   * Без пропа сітка поводиться точно як раніше (учень, менеджерський огляд).
+   */
+  onMarkConducted?: (lesson: CalendarLesson) => void;
   onSlotClick?: (date: Date) => void;
   nameOf: (id: string) => string;
 }
@@ -73,6 +82,7 @@ export function WeekCalendar({
   onNext,
   onToday,
   onLessonClick,
+  onMarkConducted,
   onSlotClick,
   nameOf,
 }: Props) {
@@ -265,26 +275,59 @@ export function WeekCalendar({
                     (l.duration_minutes / 60) * HOUR_HEIGHT - 2
                   );
                   if (top < 0 || top > HOURS * HOUR_HEIGHT) return null;
+                  /* Позначити можна лише те, що ВЖЕ минуло і досі «заплановано»:
+                     майбутній урок проведеним не буває, а скасований і проведений
+                     позначати нічим. Кнопку показуємо лише коли чип достатньо
+                     високий, інакше вона накрила б собою весь урок. */
+                  const canMark =
+                    !!onMarkConducted &&
+                    l.status === "scheduled" &&
+                    startD.getTime() + l.duration_minutes * 60_000 <= Date.now() &&
+                    height >= 40;
                   return (
-                    <button
+                    /* Не <button>: всередині стоїть справжня кнопка «✓», а кнопка
+                       в кнопці — невалідний HTML і подвійний жест на дотик (той
+                       самий дефект, що був у списку чатів). */
+                    <div
                       key={l.id}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         onLessonClick?.(l);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onLessonClick?.(l);
+                        }
+                      }}
                       className={cn(
-                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[13px] leading-tight overflow-hidden transition-colors",
+                        "absolute left-0.5 right-0.5 z-10 cursor-pointer rounded-md border px-1 py-0.5 text-left text-[13px] leading-tight overflow-hidden transition-colors",
                         statusColor[l.status]
                       )}
                       style={{ top, height }}
                     >
                       {/* Час не дублюємо — його показує вертикальна вісь */}
-                      <div className="font-semibold truncate">
+                      <div className={cn("font-semibold truncate", canMark && "pr-5")}>
                         {nameOf(chipPerson === "tutor" ? l.tutor_id : l.student_id)}
                       </div>
-
-                    </button>
+                      {canMark && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMarkConducted?.(l);
+                          }}
+                          className="tap-44 absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow"
+                          aria-label={t("weekCalendar.markConducted")}
+                          title={t("weekCalendar.markConducted")}
+                        >
+                          <Check className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>

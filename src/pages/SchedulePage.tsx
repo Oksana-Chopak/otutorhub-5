@@ -1517,6 +1517,13 @@ export default function SchedulePage() {
             setQuickSlot(date);
           }}
           onLessonClick={(l) => setDetailsLessonId(l.id)}
+          /* Позначити проведеним із сітки — ТИМ САМИМ каноном, що з картки
+             (updateStatus → useLessonStatus: свято, черга «після уроку»,
+             оптимістичний відкат). Учневі проп не даємо: статуси ставить
+             репетитор або менеджер. */
+          onMarkConducted={
+            isTutor || isManager ? (l) => void updateStatus(l.id, "completed") : undefined
+          }
           nameOf={(id) => profilesMap[id] ?? "?"}
         />
       ) : loading ? (

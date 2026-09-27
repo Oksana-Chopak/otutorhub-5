@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import { insertNotification } from "@/lib/notifications";
+import { useHaptic } from "@/hooks/useHaptic";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -55,6 +56,8 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
   const [reason, setReason] = useState("");
   const [proposedAt, setProposedAt] = useState(toLocalInputValue(startsAt));
   const [submitting, setSubmitting] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const haptic = useHaptic();
 
   const load = async () => {
     if (!user) return;
@@ -80,18 +83,66 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
   if (status !== "scheduled") return null;
   if (loading) return null;
 
+  /* §4 аудиту шляхів 24.09: «своєї заявки на перенесення учень скасувати не
+     може». Тут був ЛИШЕ напис: передумав — і заявка висить, поки репетитор не
+     відповість; людина або пише в чат, або приходить на урок, який сама ж
+     просила перенести. База це дозволяла з квітня (політика «Student cancels
+     own pending request»: свій рядок, статус pending → cancelled) — бракувало
+     саме кнопки. */
+  const withdraw = async () => {
+    if (!pending || !user) return;
+    setWithdrawing(true);
+    const { error } = await supabase
+      .from("lesson_change_requests")
+      .update({ status: "cancelled" })
+      .eq("id", pending.id)
+      .eq("student_id", user.id);
+    setWithdrawing(false);
+    if (error) {
+      haptic.error();
+      toast.error(t("studentLessonActionsExtra.withdrawFailed"), { description: error.message });
+      return;
+    }
+    haptic.success();
+    toast.success(t("studentLessonActionsExtra.withdrawDone"));
+    /* Репетитор МУСИТЬ дізнатись: він міг саме дивитись на цю заявку. Тип
+       несе урок, бо `create_notification` дедуплікує за (user_id, type) на
+       добу — зі спільним типом друге скасування за день не дійшло б. */
+    insertNotification({
+      userId: tutorId,
+      type: `lesson_request_withdrawn_${lessonId}`,
+      title: t("notifications.lessonRequestWithdrawnTitle", {
+        name: user.email?.split("@")[0] ?? t("shared.student"),
+      }),
+      link: "/schedule",
+    });
+    setPending(null);
+  };
+
   if (pending) {
     return (
-      <Badge
-        variant="secondary"
-        className="gap-1 border-warning/30 bg-warning/10 text-warning"
-        title={pending.reason ?? undefined}
-      >
-        <Hourglass className="h-3 w-3" />
-        {pending.kind === "cancel"
-          ? t("studentLessonActions.cancelRequest")
-          : t("studentLessonActions.rescheduleRequest")}
-      </Badge>
+      <div className="flex flex-wrap items-center gap-1">
+        <Badge
+          variant="secondary"
+          className="gap-1 border-warning/30 bg-warning/10 text-warning"
+          title={pending.reason ?? undefined}
+        >
+          <Hourglass className="h-3 w-3" />
+          {pending.kind === "cancel"
+            ? t("studentLessonActions.cancelRequest")
+            : t("studentLessonActions.rescheduleRequest")}
+        </Badge>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-11 px-2 text-[14px] text-muted-foreground hover:text-destructive"
+          onClick={withdraw}
+          disabled={withdrawing}
+        >
+          {withdrawing && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
+          <span className="whitespace-nowrap">{t("studentLessonActionsExtra.withdrawBtn")}</span>
+        </Button>
+      </div>
     );
   }
 

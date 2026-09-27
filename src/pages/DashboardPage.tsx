@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
+import { startManagerChat, managerChatPath } from "@/lib/managerChat";
 import { studentMaterialsPath } from "@/lib/roleCapabilities";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
@@ -147,13 +148,13 @@ export default function DashboardPage() {
   const openManagerChat = async () => {
     trackPaywallClick("hub_manager_chat", "dashboard");
     setOpeningManagerChat(true);
-    const { data, error } = await (supabase as any).rpc("start_manager_chat");
+    const managerId = await startManagerChat();
     setOpeningManagerChat(false);
-    if (error || !data) {
+    if (!managerId) {
       toast.error(t("dashboard.hubManagerFailed"));
       return;
     }
-    navigate(`/chats?with=${data}`);
+    navigate(managerChatPath(managerId));
   };
   const isIndependentTutor = isTutor && !isManager && isIndependent;
   // 11.09: імʼя учня на картці уроку веде в його матеріали (рішення власниці).

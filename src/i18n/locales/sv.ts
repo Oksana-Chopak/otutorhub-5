@@ -2024,6 +2024,7 @@ export const sv: LocaleTranslations = {
   },
 
   weekCalendar: {
+    markConducted: "Markera som genomförd",
     today: "Idag",
     createAt: "Skapa lektion kl {{time}}",
     mon: "Mån",
@@ -2661,6 +2662,8 @@ export const sv: LocaleTranslations = {
 
     payoutMarkedToast: "Utbetalning {{amount}} till {{name}} markerad",},
   notifications: {
+    lessonRequestWithdrawnTitle: "{{name}} drog tillbaka sin förfrågan om lektionsändring",
+    tutorRequestCancelledTitle: "En elev avbröt sin förfrågan om lärare",
     studentAchievementTitle: "🏅 Ny bedrift: {{name}}",
     title: "Aviseringar",
     markAllRead: "Markera alla som lästa",
@@ -2868,6 +2871,16 @@ export const sv: LocaleTranslations = {
     meetingUrlPlaceholder: "https://zoom.us/j/... eller https://meet.google.com/...",
   },
   studentPages: {
+    requestSentToday: "skickad idag",
+    requestSentDaysAgo_one: "skickad för {{count}} dag sedan",
+    requestSentDaysAgo_few: "skickad för {{count}} dagar sedan",
+    requestSentDaysAgo_other: "skickad för {{count}} dagar sedan",
+    requestChatBtn: "Skriv till chefen",
+    requestChatFailed: "Kunde inte öppna chatten med chefen",
+    requestCancelBtn: "Avbryt förfrågan",
+    requestCancelled: "Förfrågan avbruten",
+    requestCancelFailed: "Kunde inte avbryta förfrågan",
+    requestCancelFailedDesc: "Chefen har nog redan börjat — skriv till hen i chatten",
     groupsPartial: "Vissa grupplektioner kunde inte laddas — ladda om sidan",
     requestPendingTitle: "⏳ Förfrågan pågår",
     requestPendingDesc: "Chefen matchar dig redan med en lärare — vi meddelar dig så snart en tilldelas 💛",
@@ -4589,6 +4602,9 @@ export const sv: LocaleTranslations = {
     tutorRateLabel: "Lärarutbetalning",
   },
   studentLessonActionsExtra: {
+    withdrawBtn: "Dra tillbaka förfrågan",
+    withdrawDone: "Förfrågan borttagen — lektionen ligger kvar",
+    withdrawFailed: "Kunde inte ta bort förfrågan",
     cancelDialogDesc: "Lektion {{date}}. Din lärare bekräftar förfrågan. Om det är kort tid kvar till start kan läraren debitera lektionen helt eller delvis — enligt sina regler.",
     rescheduleDialogDesc: "Lektion {{date}}. Föreslå en ny tid — din lärare bekräftar eller avvisar.",
     sendRequestBtn: "Skicka förfrågan",

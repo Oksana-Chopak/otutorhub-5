@@ -2073,6 +2073,7 @@ export const uk = {
   },
 
   weekCalendar: {
+    markConducted: "Позначити проведеним",
     today: "Сьогодні",
     createAt: "Створити урок на {{time}}",
     mon: "Пн",
@@ -2706,6 +2707,8 @@ export const uk = {
     undo: "Скасувати",
     payoutMarkedToast: "Виплату {{amount}} для {{name}} позначено",},
   notifications: {
+    lessonRequestWithdrawnTitle: "{{name}} скасував заявку на зміну уроку",
+    tutorRequestCancelledTitle: "Учень скасував запит на підбір репетитора",
     studentAchievementTitle: "🏅 Нове досягнення: {{name}}",
     title: "Сповіщення",
     markAllRead: "Позначити всі прочитаними",
@@ -2912,6 +2915,16 @@ export const uk = {
     meetingUrlPlaceholder: "https://zoom.us/j/... або https://meet.google.com/...",
   },
   studentPages: {
+    requestSentToday: "надіслано сьогодні",
+    requestSentDaysAgo_one: "надіслано {{count}} день тому",
+    requestSentDaysAgo_few: "надіслано {{count}} дні тому",
+    requestSentDaysAgo_many: "надіслано {{count}} днів тому",
+    requestChatBtn: "Написати менеджеру",
+    requestChatFailed: "Не вдалося відкрити чат із менеджером",
+    requestCancelBtn: "Скасувати запит",
+    requestCancelled: "Запит скасовано",
+    requestCancelFailed: "Запит скасувати не вдалося",
+    requestCancelFailedDesc: "Схоже, менеджер уже взяв його в роботу — напишіть йому в чат",
     groupsPartial: "Частину групових уроків не вдалося завантажити — оновіть сторінку",
     requestPendingTitle: "⏳ Запит у роботі",
     requestPendingDesc: "Менеджер уже підбирає репетитора — сповістимо, щойно призначить 💛",
@@ -4643,6 +4656,9 @@ export const uk = {
     tutorRateLabel: "Виплата репетитору",
   },
   studentLessonActionsExtra: {
+    withdrawBtn: "Скасувати заявку",
+    withdrawDone: "Заявку скасовано — урок лишається за планом",
+    withdrawFailed: "Не вдалося скасувати заявку",
     cancelDialogDesc: "Урок {{date}}. Репетитор підтвердить ваш запит. Якщо до початку залишилось мало часу, репетитор може нарахувати оплату за урок повністю або частково — згідно з його правилами.",
     rescheduleDialogDesc: "Урок {{date}}. Запропонуйте новий час — репетитор підтвердить або відхилить.",
     sendRequestBtn: "Надіслати запит",

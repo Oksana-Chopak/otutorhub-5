@@ -2044,6 +2044,7 @@ export const en: LocaleTranslations = {
   },
 
   weekCalendar: {
+    markConducted: "Mark as conducted",
     today: "Today",
     createAt: "Create lesson at {{time}}",
     mon: "Mon",
@@ -2681,6 +2682,8 @@ export const en: LocaleTranslations = {
 
     payoutMarkedToast: "Payout {{amount}} to {{name}} marked",},
   notifications: {
+    lessonRequestWithdrawnTitle: "{{name}} withdrew their lesson change request",
+    tutorRequestCancelledTitle: "A student cancelled their tutor request",
     studentAchievementTitle: "🏅 New achievement: {{name}}",
     title: "Notifications",
     markAllRead: "Mark all as read",
@@ -2888,6 +2891,16 @@ export const en: LocaleTranslations = {
     meetingUrlPlaceholder: "https://zoom.us/j/... or https://meet.google.com/...",
   },
   studentPages: {
+    requestSentToday: "sent today",
+    requestSentDaysAgo_one: "sent {{count}} day ago",
+    requestSentDaysAgo_few: "sent {{count}} days ago",
+    requestSentDaysAgo_other: "sent {{count}} days ago",
+    requestChatBtn: "Message the manager",
+    requestChatFailed: "Could not open the chat with the manager",
+    requestCancelBtn: "Cancel request",
+    requestCancelled: "Request cancelled",
+    requestCancelFailed: "Could not cancel the request",
+    requestCancelFailedDesc: "Looks like the manager already picked it up — message them in chat",
     groupsPartial: "Some group lessons could not be loaded — please refresh",
     requestPendingTitle: "⏳ Request in progress",
     requestPendingDesc: "The manager is already matching you with a tutor — we'll notify you as soon as one is assigned 💛",
@@ -4609,6 +4622,9 @@ export const en: LocaleTranslations = {
     tutorRateLabel: "Tutor payout",
   },
   studentLessonActionsExtra: {
+    withdrawBtn: "Withdraw request",
+    withdrawDone: "Request withdrawn — the lesson stays as planned",
+    withdrawFailed: "Could not withdraw the request",
     cancelDialogDesc: "Lesson {{date}}. Your tutor will confirm the request. If little time is left before the start, the tutor may charge for the lesson fully or partially — per their rules.",
     rescheduleDialogDesc: "Lesson {{date}}. Propose a new time — your tutor will confirm or decline.",
     sendRequestBtn: "Send request",
