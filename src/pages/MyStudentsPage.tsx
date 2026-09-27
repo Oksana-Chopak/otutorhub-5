@@ -66,6 +66,7 @@ import { StudentGoalCard } from "@/components/StudentGoalCard";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { safeHref, sanitizeHttpUrl } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
+import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import {
   Select,
   SelectContent,
@@ -186,9 +187,11 @@ export default function MyStudentsPage() {
   const [loadError, setLoadError] = useState(false);
   const [students, setStudents] = useState<MyStudent[]>([]);
   const [view, setView] = useState<"active" | "archived">("active");
-  const [dialog, setDialog] = useState<{ open: boolean; mode: "create" | "edit"; studentId: string | null }>(
-    { open: false, mode: "create", studentId: null }
+  const [dialog, setDialog] = useState<{ open: boolean; studentId: string | null }>(
+    { open: false, studentId: null }
   );
+  /* Єдина форма СТВОРЕННЯ учня в застосунку — канон, не копія. */
+  const [quickAdd, setQuickAdd] = useState(false);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [subjectDraft, setSubjectDraft] = useState("");
@@ -392,8 +395,7 @@ export default function MyStudentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     if (searchParams.get("new") === "1" && isTutor && isIndependent) {
-      setForm(emptyForm);
-      setDialog({ open: true, mode: "create", studentId: null });
+      setQuickAdd(true);
       const next = new URLSearchParams(searchParams);
       next.delete("new");
       setSearchParams(next, { replace: true });
@@ -412,10 +414,7 @@ export default function MyStudentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingPriceStudentId, students]);
 
-  const openCreate = () => {
-    setForm(emptyForm);
-    setDialog({ open: true, mode: "create", studentId: null });
-  };
+  const openCreate = () => setQuickAdd(true);
 
   const openEdit = (s: MyStudent) => {
     setForm({
@@ -433,7 +432,7 @@ export default function MyStudentsPage() {
       payment_details: s.payment_details ?? "",
       tutor_notes: s.tutor_notes ?? "",
     });
-    setDialog({ open: true, mode: "edit", studentId: s.id });
+    setDialog({ open: true, studentId: s.id });
   };
 
   const submit = async () => {
@@ -449,18 +448,10 @@ export default function MyStudentsPage() {
       toast.error(t("myStudents.nameRequired"));
       return;
     }
-    /* 13.09, знайдено аудитом перед запуском самостійних: тут стояла вимога
-       email або телефону — і вона суперечила рішенню власниці №13 (01.09),
-       яке ВЖЕ виконане в канонічній формі QuickAddStudentDialog: «контакти
-       НЕобовʼязкові, репетитор часто заводить картку учня, з яким уже
-       займається офлайн». RPC add_or_link_independent_student порожні
-       email+phone підтримує (NULLIF → картка без контактів), імпорт «усе, що
-       є» так само заводить учнів за самим імʼям.
-       Наслідок був найгіршого сорту: людина заповнювала ВСЕ, що позначено
-       зірочкою (імʼя, предмет, ціна), тиснула «Додати» — і діставала відмову
-       про поле, якого форма вимогою не називала. На головній дії головної
-       персони. Вимогу знято; контакт лишається звичайним полем, яке можна
-       заповнити зараз або потім. */
+    /* Контакти тут НЕ обовʼязкові (рішення власниці №13, 01.09): репетитор
+       часто веде картку учня, з яким уже займається офлайн. Вимогу «email або
+       телефон» знято 13.09 — вона відмовляла людині, яка заповнила все, що
+       позначено зірочкою. Не повертати. */
     if (!subject) {
       toast.error(t("myStudents.subjectRequired"));
       return;
@@ -473,123 +464,14 @@ export default function MyStudentsPage() {
     setSubmitting(true);
 
     try {
-      if (dialog.mode === "create") {
-        // Robust add-or-link via ONE SECURITY DEFINER RPC — handles new / existing-student /
-        // already-mine / non-student-email / ghost. No insert→fail→rollback→link dance.
-        const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
-          _first_name: fn ?? "", _last_name: ln ?? "",
-          _email: email ?? "", _phone: phone ?? "",
-          _telegram: form.telegram.trim(), _subject: subject,
-          _price: price, _currency: form.currency || "UAH",
-        } as any);
-        if (rpcErr || !res) {
-          console.error(rpcErr);
-          const msg = String(rpcErr?.message || "");
-          toast.error(msg.includes("EMAIL_NOT_STUDENT")
-            ? t("myStudents.emailNotStudent")
-            : (rpcErr?.message || t("myStudents.createProfileFailed")));
-          setSubmitting(false);
-          return;
-        }
-        const newId = (res as any).student_id as string;
-        const linked = (res as any).action === "linked";
-
-        // Per-tutor payment details (the RPC's rate doesn't carry them). Best-effort.
-        if (form.payment_details.trim()) {
-          await supabase.from("student_rates").update({ payment_details: form.payment_details.trim() } as any)
-            .eq("tutor_id", user.id).eq("student_id", newId).eq("source", "independent");
-        }
-
-        if (linked) {
-          // Existing student linked to this tutor — already in the system, no invite needed.
-          toast.success(t("quickAddStudent.studentLinked"));
-          await load();
-          setDialog({ open: false, mode: "create", studentId: null });
-          setSubmitting(false);
-          return;
-        }
-
-        // New/reclaimed student: add the extra social contacts the RPC didn't set.
-        if (form.facebook_url.trim() || form.instagram_url.trim()) {
-          await supabase.from("profile_contacts").update({
-            facebook_url: form.facebook_url.trim() || null,
-            instagram_url: form.instagram_url.trim() || null,
-          } as any).eq("user_id", newId);
-        }
-
-        // 6. Default meeting URL (Zoom/Meet) — optional
-        const meetingUrlRaw = form.default_meeting_url.trim();
-        const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
-        if (meetingUrlRaw && !meetingUrl) {
-          // Reset the busy flag — this early return used to leave the save button
-          // permanently spinning/disabled after an invalid URL.
-          setSubmitting(false);
-          toast.error(t("myStudents.invalidMeetingUrl"));
-          return;
-        }
-        if (meetingUrl) {
-          await supabase.from("tutor_student_defaults").upsert(
-            {
-              tutor_id: user.id,
-              student_id: newId,
-              default_meeting_url: meetingUrl,
-            },
-            { onConflict: "tutor_id,student_id" }
-          );
-        }
-
-        // 7. Private tutor notes — tutor-only RLS table, the student can never read these
-        const notesVal = form.tutor_notes.trim();
-        if (notesVal) {
-          await (supabase as any).from("tutor_student_notes").upsert(
-            { tutor_id: user.id, student_id: newId, notes: notesVal },
-            { onConflict: "tutor_id,student_id" }
-          );
-        }
-
-        toast.success(t("myStudents.studentAdded"));
-        {
-          const newName = `${form.first_name} ${form.last_name}`.trim();
-          window.setTimeout(() => {
-            toast(t("myStudents.firstStepToastTitle"), {
-              description: newName ? t("myStudents.firstStepToastDescNamed", { name: newName }) : t("myStudents.firstStepToastDesc"),
-              action: { label: t("myStudents.createLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${newId}`) },
-            });
-          }, 600);
-        }
-
-        // Auto-send email invite if we have an email
-        let inviteSent = false;
-        if (email) {
-          const { data: inviteResp, error: inviteErr } = await supabase.functions.invoke(
-            "send-student-invite",
-            { body: { studentId: newId } }
-          );
-          if (!inviteErr && (inviteResp as any)?.success) {
-            inviteSent = true;
-            toast.success(t("myStudents.inviteSent"));
-          } else if (!inviteErr && (inviteResp as any)?.reason === "rate_limited") {
-            toast.info(t("myStudents.inviteRateLimited"));
-          } else {
-            /* 14.09: тут стояв самий лише console.warn — репетитор бачив, що
-               учня створено, і був упевнений, що лист пішов. Діалог із
-               посиланням відкривається нижче в будь-якому разі, але сказати
-               про невдачу треба словами. */
-            console.warn("Auto-invite failed", inviteErr);
-            toast.error(t("myStudents.inviteFailedAddLater"));
-          }
-        }
-
-        // Show invite dialog so the tutor can copy/resend the registration link
-        setInvite({
-          open: true,
-          name: `${fn} ${ln}`.trim(),
-          email: email || null,
-          phone: phone || null,
-          studentId: newId,
-          emailSent: inviteSent,
-        });
-      } else if (dialog.mode === "edit" && dialog.studentId) {
+      /* 27.09 (§4 аудиту шляхів): СТВОРЕННЯ учня переїхало в канонічну форму
+         `QuickAddStudentDialog` — ту саму, що відкриває FAB дашборда. Тут була
+         ДРУГА форма з іншим набором полів (facebook, instagram, посилання на
+         кабінет, реквізити) і власним викликом RPC: людина бачила різні форми
+         залежно від того, звідки натиснула «додати». Цей обробник тепер лише
+         РЕДАГУЄ; гілку створення видалено разом із її запитами, щоб мертвий
+         код не ожив. */
+      if (dialog.studentId) {
         // Аудит 01.09: жоден із трьох записів нижче не перевірявся, а тост
         // казав «Учня оновлено». Відмова RLS чи обрив мережі = стара ціна в БД
         // і пропозиція «розповсюдити нову ціну», якої не існує.
@@ -717,7 +599,7 @@ export default function MyStudentsPage() {
       }
 
       setSubmitting(false);
-      setDialog({ open: false, mode: "create", studentId: null });
+      setDialog({ open: false, studentId: null });
       await Promise.all([load(), refresh()]);
     } finally {
       setSubmitting(false);
@@ -1109,13 +991,20 @@ export default function MyStudentsPage() {
 
 
       {/* Add/Edit Dialog — design-system SF_A «Один потік» */}
+      {/* СТВОРЕННЯ — канон: та сама форма, що з FAB дашборда (§4 аудиту) */}
+      <QuickAddStudentDialog
+        open={quickAdd}
+        onOpenChange={setQuickAdd}
+        onCreated={() => { void load(); }}
+      />
+
       <Dialog
         open={dialog.open}
-        onOpenChange={(v) => !v && setDialog({ open: false, mode: "create", studentId: null })}
+        onOpenChange={(v) => !v && setDialog({ open: false, studentId: null })}
       >
         <DialogContent aria-describedby={undefined} className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[88vh] flex flex-col [&>button.absolute]:hidden">
           {/* Radix a11y (аудит 05.09): sr-only заголовок */}
-          <DialogTitle className="sr-only">{dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}</DialogTitle>
+          <DialogTitle className="sr-only">{t("myStudents.editDialogTitle")}</DialogTitle>
           {/* Drag handle (mobile) */}
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
             <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
@@ -1148,7 +1037,7 @@ export default function MyStudentsPage() {
               fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.sub,
               marginBottom: 7, display: "block",
             };
-            const close = () => setDialog({ open: false, mode: "create", studentId: null });
+            const close = () => setDialog({ open: false, studentId: null });
 
             // Subjects ↔ the existing single `subject` string (comma-joined, queries untouched)
             const subjList = form.subject.split(",").map((s) => s.trim()).filter(Boolean);
@@ -1175,7 +1064,7 @@ export default function MyStudentsPage() {
                 {/* ── Header ── */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 12px", flexShrink: 0 }}>
                   <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: F.txt }}>
-                    {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
+                    {t("myStudents.editDialogTitle")}
                   </div>
                   <button onClick={close} aria-label={t("myStudents.cancelBtn")}
                     style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: F.chip, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1357,7 +1246,7 @@ export default function MyStudentsPage() {
                       boxShadow: submitting ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                     {submitting && <Loader2 size={18} className="animate-spin" />}
-                    {dialog.mode === "create" ? t("myStudents.addBtn") : t("myStudents.saveBtn")}
+                    {t("myStudents.saveBtn")}
                   </button>
                 </div>
               </>

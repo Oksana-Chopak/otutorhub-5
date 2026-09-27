@@ -1566,12 +1566,29 @@ export default function FinancesPage() {
             const studentUnpaid = l.student_payment_status === "unpaid";
             const tutorUnpaid = !isIndependentTutor && !isGroup && l.tutor_payout_status === "unpaid";
             const anyUnpaid = studentUnpaid || tutorUnpaid;
+            /* §4 аудиту шляхів 24.09: пакетна виплата була ЛИШЕ на десктопі —
+               на телефоні менеджер платив по одному уроку. Чекбокс тепер і тут,
+               той самий `toggleRow`/`bulkMark`, що в таблиці. Він окремий
+               елемент керування, а не «вся картка як мішень»: усередині вже є
+               кнопки статусів, і картка-кнопка дала б подвійний жест. */
+            const isSelectedMobile = selected.has(l.id);
             return (
               <div
                 key={l.id}
-                className={cn("p-3", anyUnpaid && "bg-warning/5 border-l-2 border-l-warning")}
+                className={cn(
+                  "p-3",
+                  isSelectedMobile && "bg-primary/5",
+                  !isSelectedMobile && anyUnpaid && "bg-warning/5 border-l-2 border-l-warning",
+                )}
               >
                 <div className="flex items-start justify-between gap-2">
+                  <label className="tap-44 -m-1 flex shrink-0 items-center p-1">
+                    <Checkbox
+                      checked={isSelectedMobile}
+                      onCheckedChange={() => toggleRow(l.id)}
+                      aria-label={t("finances.selectRow")}
+                    />
+                  </label>
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                       <span className="truncate">{l.subject}</span>
@@ -3334,10 +3351,12 @@ export default function FinancesPage() {
             <TabsContent value="debts" className="mt-4">{renderRows(debtsRows)}</TabsContent>
           </Tabs>
 
-          {/* === Selection bar — sticky, only when rows are selected (desktop) === */}
+          {/* === Панель дій — sticky, коли щось вибрано. На телефоні підіймаємо
+               над нижньою навігацією (FAB стоїть на 78px), інакше кнопки
+               ховались би за нею. === */}
           {selected.size > 0 && (
             <div
-              className="sticky bottom-4 z-30 mt-4 hidden items-center gap-2 rounded-[14px] border-[0.5px] bg-card px-4 py-3 lg:flex"
+              className="sticky bottom-[86px] z-30 mt-4 flex flex-wrap items-center gap-2 rounded-[14px] border-[0.5px] bg-card px-4 py-3 lg:bottom-4 lg:flex-nowrap"
               style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", boxShadow: "0 12px 32px -12px rgba(15,15,26,.3)" }}
             >
               <span className="text-[14px] font-bold text-foreground">
@@ -3348,7 +3367,7 @@ export default function FinancesPage() {
                 type="button"
                 disabled={bulkBusy}
                 onClick={() => bulkMark("student_payment_status")}
-                className="flex h-10 items-center gap-1.5 rounded-[12px] px-4 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="flex h-11 items-center gap-1.5 rounded-[12px] px-4 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 <CheckCheck className="h-4 w-4" />
@@ -3359,7 +3378,7 @@ export default function FinancesPage() {
                   type="button"
                   disabled={bulkBusy}
                   onClick={() => bulkMark("tutor_payout_status")}
-                  className="flex h-10 items-center gap-1.5 rounded-[12px] border-[0.5px] bg-card px-4 text-[14px] font-bold transition-colors hover:bg-[#f0fdf9] disabled:opacity-50"
+                  className="flex h-11 items-center gap-1.5 rounded-[12px] border-[0.5px] bg-card px-4 text-[14px] font-bold transition-colors hover:bg-[#f0fdf9] disabled:opacity-50"
                   style={{ borderColor: "#5DCAA5", color: "var(--teal-text,#1a7a6c)", fontFamily: "Inter, system-ui, sans-serif" }}
                 >
                   <CheckCheck className="h-4 w-4" />
@@ -3370,7 +3389,7 @@ export default function FinancesPage() {
                 type="button"
                 onClick={() => setSelected(new Set())}
                 aria-label={t("common.close")}
-                className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
+                className="tap-44 flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
                 style={{ color: "var(--sub,#62677E)" }}
               >
                 <X className="h-4 w-4" />

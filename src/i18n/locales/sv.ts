@@ -2508,6 +2508,9 @@ export const sv: LocaleTranslations = {
   },
 
   dashboardExtra: {
+    payoutOverdueTitle_one: "Utbetalning till {{name}} är {{count}} dag försenad",
+    payoutOverdueTitle_few: "Utbetalning till {{name}} är {{count}} dagar försenad",
+    payoutOverdueTitle_other: "Utbetalning till {{name}} är {{count}} dagar försenad",
 
     showAll: "Visa alla ({{count}})",
     noName: "Okänt",
@@ -3864,6 +3867,7 @@ export const sv: LocaleTranslations = {
     saveBtn: "Spara",
   },
   subscriptionPageExtra: {
+    continueWhereLeftOff: "Fortsätt där du slutade",
     writeSupport: "Kontakta supporten",
     billingHalfyear: "6 månader",
     totalNote: "Engångsbetalning: {{total}}",

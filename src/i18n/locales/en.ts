@@ -2528,6 +2528,9 @@ export const en: LocaleTranslations = {
   },
 
   dashboardExtra: {
+    payoutOverdueTitle_one: "Payout to {{name}} is {{count}} day overdue",
+    payoutOverdueTitle_few: "Payout to {{name}} is {{count}} days overdue",
+    payoutOverdueTitle_other: "Payout to {{name}} is {{count}} days overdue",
 
     showAll: "Show all ({{count}})",
     noName: "Unknown",
@@ -3884,6 +3887,7 @@ export const en: LocaleTranslations = {
     saveBtn: "Save",
   },
   subscriptionPageExtra: {
+    continueWhereLeftOff: "Continue where you left off",
     writeSupport: "Message support",
     billingHalfyear: "6 months",
     totalNote: "One-time charge: {{total}}",

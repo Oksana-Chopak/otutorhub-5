@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { peekReturnTo, takeReturnTo } from "@/lib/returnTo";
 import { isNativeApp, isIosApp } from "@/lib/platform";
 import { configureIap, getIapOffer, purchaseIap, restoreIap, type IapOffer } from "@/lib/iap";
 import { useToast } from "@/hooks/use-toast";
@@ -266,12 +267,17 @@ export default function SubscriptionPage() {
 
   // Показуємо тост після повернення з LiqPay
   useEffect(() => {
-    if (searchParams.get("paid") === "1") {
-      import("sonner").then(({ toast }) => {
-        toast.success(t("subscriptionPageExtra.paymentSuccess"));
-      });
-    }
-  }, [searchParams]);
+    if (searchParams.get("paid") !== "1" || !user) return;
+    import("sonner").then(({ toast }) => {
+      toast.success(t("subscriptionPageExtra.paymentSuccess"));
+    });
+    /* 27.09: тост був єдиним наслідком повернення з LiqPay — статус пише
+       вебхук, а сторінка його не чекала, тож щойно оплативши людина бачила
+       «Free» до ручного перезавантаження. Той самий `waitForActive`, що вже
+       використовує покупка в сторі. */
+    void waitForActive();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user?.id]);
 
   // Лічильник перших 20 Pro-репетиторів (active + trial).
   // MUST use the SECURITY DEFINER RPC: RLS on tutor_workspace_settings is
@@ -402,10 +408,30 @@ export default function SubscriptionPage() {
   ];
 
   const tealRing = "rgba(43,191,170,.28)";
+  /* §4 аудиту шляхів: після оплати людина лишалась на сторінці підписки, а те,
+     по що вона прийшла (записати оплату, поставити урок), губилось. Шлях
+     запамʼятовує замок (`rememberReturnTo`), тут він стає однією кнопкою.
+     Показуємо ЛИШЕ коли підписка справді активна: пропонувати «продовжити» до
+     того, як вебхук підтвердив оплату, означало б вести людину назад у той
+     самий замок. */
+  const returnTo = isActive ? peekReturnTo() : null;
 
   return (
     <>
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
+        {returnTo && (
+          <button
+            type="button"
+            onClick={() => {
+              const target = takeReturnTo();
+              navigate(target ?? "/dashboard");
+            }}
+            className="mb-4 flex h-11 w-full items-center justify-center gap-2 rounded-[14px] text-[15px] font-semibold text-white"
+            style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none", cursor: "pointer", boxShadow: "0 8px 20px -8px rgba(43,191,170,.7)" }}
+          >
+            {t("subscriptionPageExtra.continueWhereLeftOff")} →
+          </button>
+        )}
         {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
           <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker")}</div>

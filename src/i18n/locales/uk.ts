@@ -2559,6 +2559,9 @@ export const uk = {
 
   // Dashboard hardcoded strings
   dashboardExtra: {
+    payoutOverdueTitle_one: "Виплата {{name}} прострочена на {{count}} день",
+    payoutOverdueTitle_few: "Виплата {{name}} прострочена на {{count}} дні",
+    payoutOverdueTitle_many: "Виплата {{name}} прострочена на {{count}} днів",
     showAll: "Показати всі ({{count}})",
     noName: "Без імені",
     greetingMorning: "Доброго ранку",
@@ -3912,6 +3915,7 @@ export const uk = {
     saveBtn: "Зберегти",
   },
   subscriptionPageExtra: {
+    continueWhereLeftOff: "Продовжити те, що почали",
     writeSupport: "Написати в підтримку",
     billingHalfyear: "Півроку",
     totalNote: "Разовий платіж: {{total}}",

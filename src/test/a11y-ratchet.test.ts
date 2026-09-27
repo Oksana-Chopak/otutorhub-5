@@ -721,9 +721,19 @@ describe("матеріали учня · хронологія, розгорну�
       expect(ms).toMatch(/const emailJustAdded = Boolean\(email\) && !before\?\.email;/);
       expect(ms, "лише для того, хто ще не приєднався — не спамити наявних")
         .toMatch(/if \(emailJustAdded && before\?\.is_pending\)/);
-      // у гілці редагування має бути СВІЙ виклик запрошення, не лише у створенні
+      /* 27.09 (§4 аудиту шляхів): СТВОРЕННЯ учня переїхало в канонічну форму
+         `QuickAddStudentDialog` — на «Моїх учнях» була ДРУГА форма з іншим
+         набором полів. Тому тут лишається РІВНО ОДИН виклик (пошта, додана
+         пізніше), а запрошення при створенні стереже канон — перевіряємо обидві
+         половини інваріанта, щоб жодна не зникла тихо. */
       const invites = ms.match(/functions\.invoke\(\s*\n?\s*"send-student-invite"/g) ?? [];
-      expect(invites.length, "створення + додавання пошти пізніше").toBe(2);
+      expect(invites.length, "лише додавання пошти пізніше — створення в каноні").toBe(1);
+      expect(ms, "створення відкриває канонічну форму, а не власну копію")
+        .toMatch(/<QuickAddStudentDialog\s*\n\s*open=\{quickAdd\}/);
+      expect(ms, "другої реалізації створення тут бути не може")
+        .not.toMatch(/add_or_link_independent_student/);
+      expect(read("src/components/QuickAddStudentDialog.tsx"), "канон запрошує при створенні")
+        .toMatch(/functions\.invoke\("send-student-invite"/);
       expect(ms, "тиха невдача тут найгірша — репетитор думає, що лист пішов")
         .toMatch(/t\("myStudents\.inviteFailedAddLater"\)/);
     });

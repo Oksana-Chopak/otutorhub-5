@@ -109,3 +109,26 @@ export function describePayoutSchedule(s: PayoutSchedule): string | null {
 }
 
 export { WEEKDAYS_UK, WEEKDAYS_UK_SHORT };
+
+/**
+ * Скільки днів минуло з ОСТАННЬОГО дня виплати за графіком (0 = саме сьогодні,
+ * null = графіка немає).
+ *
+ * §4 аудиту шляхів 24.09: картка пакетної виплати на дашборді зʼявлялась ЛИШЕ
+ * в день графіка. Пропустив той день — і нагадування нема, а репетитор далі
+ * чекає грошей: непорахована виплата це не косметика, це довіра репетитора до
+ * школи. Тепер картка лишається, поки не виплачено, і чесно каже, на скільки
+ * днів запізнення.
+ *
+ * Свідомо йдемо назад по днях і питаємо ту саму `isPayoutDueToday`, а не пишемо
+ * другу математику графіка: тижні, парність двотижневого циклу й число місяця
+ * мусять мати ОДНЕ джерело правди, інакше дайджест і дашборд розійдуться.
+ */
+export function daysSinceLastPayoutDay(s: PayoutSchedule, today = new Date()): number | null {
+  if (!s.payout_frequency) return null;
+  const t = startOfDay(today);
+  for (let i = 0; i <= 31; i++) {
+    if (isPayoutDueToday(s, new Date(t.getTime() - i * DAY))) return i;
+  }
+  return null;
+}

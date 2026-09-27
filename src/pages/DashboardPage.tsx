@@ -62,7 +62,7 @@ import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
 import { insertNotification } from "@/lib/notifications";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
-import { isPayoutDueToday, nextPayoutDate, type PayoutSchedule } from "@/lib/payoutSchedule";
+import { isPayoutDueToday, nextPayoutDate, daysSinceLastPayoutDay, type PayoutSchedule } from "@/lib/payoutSchedule";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { DayClosedCelebration } from "@/components/DayClosedCelebration";
 import { TopTutorBadge } from "@/components/TopTutorBadge";
@@ -1532,7 +1532,11 @@ export default function DashboardPage() {
     }
     // 0. Дні виплат репетиторам (за графіком)
     payoutSchedules.forEach((sch) => {
-      if (!isPayoutDueToday(sch)) return;
+      /* Було `if (!isPayoutDueToday(sch)) return` — картка існувала РІВНО один
+         день. Тепер вона лишається, поки виплата не зроблена, і підписує
+         запізнення (§4 аудиту шляхів). */
+      const daysLate = daysSinceLastPayoutDay(sch);
+      if (daysLate === null) return;
       // CONDUCTED lessons only — must equal what mark_tutor_payouts_paid flips
       // (isBillableLesson here admitted FUTURE student-prepaid lessons, which the
       // RPC skips → «виплачено», а уроки лишались висіти).
@@ -1547,7 +1551,9 @@ export default function DashboardPage() {
         key: `payout-${sch.user_id}`,
         icon: Wallet,
         tone: "warning" as const,
-        title: t("dashboardExtra.payoutDueTitle", { name: sch.name }),
+        title: daysLate > 0
+          ? t("dashboardExtra.payoutOverdueTitle", { name: sch.name, count: daysLate })
+          : t("dashboardExtra.payoutDueTitle", { name: sch.name }),
         description: sum > 0 ? t("dashboardExtra.payoutDueLessons", { sum: formatPrice(sum, "UAH"), count: unpaid.length }) : t("dashboardExtra.payoutAllPaid"),
         to: "/finances",
         cta: t("dashboardExtra.payoutDueCta"),

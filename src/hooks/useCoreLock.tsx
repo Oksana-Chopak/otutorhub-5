@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { rememberReturnTo } from "@/lib/returnTo";
 
 /**
  * ЗАМОК ПІСЛЯ ТРІАЛУ (рішення власниці 05.09).
@@ -48,6 +49,7 @@ export function useCoreLock() {
 function PaywallSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -82,7 +84,13 @@ function PaywallSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
 
           <button
             type="button"
-            onClick={() => { onOpenChange(false); navigate("/subscription"); }}
+            onClick={() => {
+              /* Запамʼятовуємо, звідки людину перервали, ДО переходу: після
+                 оплати сторінка підписки запропонує повернутись саме туди. */
+              rememberReturnTo(location.pathname + location.search);
+              onOpenChange(false);
+              navigate("/subscription?from=paywall");
+            }}
             className="mt-5 h-[50px] w-full rounded-[14px] text-[16px] font-semibold text-white"
             style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none", cursor: "pointer", boxShadow: "0 8px 20px -8px rgba(43,191,170,.7)" }}
           >
