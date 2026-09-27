@@ -1,3 +1,4 @@
+import { Navigate } from "react-router-dom";
 import { BackToProfile } from "@/components/BackToProfile";
 import { ErrorState } from "@/components/ErrorState";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
@@ -10,7 +11,6 @@ import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
-import { StudentRewardsShelf } from "@/components/StudentRewardsShelf";
 
 export default function AchievementsPage() {
   const { t } = useTranslation();
@@ -25,13 +25,13 @@ export default function AchievementsPage() {
   // Менеджер без ролі tutor отримає від RPC порожній результат — не кличемо.
   useAwardBadges(!isPureStudent && !loading && roleReady, gamification.refresh);
 
-  if (isPureStudent) {
-    return (
-      <>
-        <StudentRewardsShelf />
-      </>
-    );
-  }
+  /* 27.09 (§4 аудиту шляхів): `/achievements` віддавав чистому учневі ТРЕТЮ
+     копію полиці нагород — власний запит, без рівня, без семи досягнень, без
+     серії. Людина, яка тиснула сповіщення про досягнення, опинялась на голій
+     полиці емодзі. Тепер це один і той самий екран: сторінка учня. Копію
+     полиці (`StudentRewardsShelf`) прибрано — канон «одна реалізація на
+     поняття». */
+  if (isPureStudent) return <Navigate to="/student/achievements" replace />;
 
   if (loading) {
     return (

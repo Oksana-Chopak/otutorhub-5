@@ -2,11 +2,16 @@ import { useTranslation } from "react-i18next";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
-import type { StudentReward } from "@/hooks/useStudentRewards";
+import type { StudentReward } from "@/hooks/useStudentGamification";
 
 interface Props {
   rewards: StudentReward[];
   loading: boolean;
+  /* 27.09 (§4 аудиту): емодзі-нагороди від репетитора й сім досягнень були
+     двома непоєднаними системами — тут вони зустрічаються числом, і посилання
+     веде туди, де його видно цілком. */
+  earnedAchievements?: number;
+  totalAchievements?: number;
 }
 
 const C = {
@@ -14,7 +19,7 @@ const C = {
   border: "var(--ds-border,#eceef3)", display: "Inter, system-ui, sans-serif",
 };
 
-export function RewardCollection({ rewards, loading }: Props) {
+export function RewardCollection({ rewards, loading, earnedAchievements, totalAchievements }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -25,7 +30,9 @@ export function RewardCollection({ rewards, loading }: Props) {
           {t("rewardCollection.title")}
         </h2>
         <Link to="/student/achievements" style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.tealD, textDecoration: "none" }}>
-          {t("rewardCollection.seeAll")} →
+          {typeof earnedAchievements === "number" && typeof totalAchievements === "number" && totalAchievements > 0
+            ? `🏅 ${t("rewardCollection.achievementsCount", { earned: earnedAchievements, total: totalAchievements })} →`
+            : `${t("rewardCollection.seeAll")} →`}
         </Link>
       </div>
 

@@ -10,8 +10,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle, Clock } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
-import { useStudentRewards } from "@/hooks/useStudentRewards";
+import { useStudentGamification } from "@/hooks/useStudentGamification";
+import { useStudentAchievementCelebration } from "@/hooks/useStudentAchievementCelebration";
 import { RewardCollection } from "@/components/student/RewardCollection";
+import { StudentStreakCard } from "@/components/student/StudentStreakCard";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
@@ -63,7 +65,23 @@ export default function StudentDashboardPage() {
     return () => clearInterval(id);
   }, []);
 
-  const { rewards, loading: rewardsLoading } = useStudentRewards();
+  /* 27.09: один хук на всю гейміфікацію учня. Раніше дашборд читав нагороди,
+     сторінка досягнень — ачівки, а `/achievements` — третю копію полиці; три
+     поверхні показували три різні «прогреси». */
+  const {
+    rewards,
+    loading: rewardsLoading,
+    earnedAchievements,
+    totalAchievements,
+    achievements,
+    loadError: gamificationError,
+    streak,
+    streakState: streakStatus,
+    goal,
+  } = useStudentGamification();
+  // Розблокування ачівки святкується ОДНАКОВО на дашборді й на сторінці
+  // досягнень — інакше той, хто відкрив лише дашборд, не дізнається про неї.
+  useStudentAchievementCelebration(achievements, rewardsLoading, gamificationError);
 
   // Tutor-less student with an OPEN request: show «запит у роботі» instead of
   // re-offering the find-a-tutor CTA — the request used to be invisible after
@@ -448,8 +466,16 @@ export default function StudentDashboardPage() {
           weeklyRecord={weeklyRecord}
         />
 
+        {/* Block 4b: серія тижнів + ціль тижня (§4 аудиту 24.09) */}
+        <StudentStreakCard streak={streak} state={streakStatus} goal={goal} />
+
         {/* Block 5: Reward collection */}
-        <RewardCollection rewards={rewards} loading={rewardsLoading} />
+        <RewardCollection
+          rewards={rewards}
+          loading={rewardsLoading}
+          earnedAchievements={earnedAchievements}
+          totalAchievements={totalAchievements}
+        />
 
         {/* Block 6: Find tutor (only if no tutor yet).
             24.09 (аудит шляхів): блок показувався і тим, чия заявка ВЖЕ в роботі

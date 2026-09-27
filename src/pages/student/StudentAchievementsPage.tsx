@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { StudentAchievementsGrid } from "@/components/student/StudentAchievementsGrid";
-import { useStudentRewards } from "@/hooks/useStudentRewards";
+import { useStudentGamification } from "@/hooks/useStudentGamification";
+import { useStudentAchievementCelebration } from "@/hooks/useStudentAchievementCelebration";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -8,7 +9,9 @@ import { useTranslation } from "react-i18next";
 
 export default function StudentAchievementsPage() {
   const { t } = useTranslation();
-  const { achievements, earnedAchievements, loading, loadError, reload } = useStudentRewards();
+  const { achievements, earnedAchievements, loading, loadError, reload } = useStudentGamification();
+  // Той, хто прийшов сюди за сповіщенням, мусить побачити свято, а не тиху сітку.
+  useStudentAchievementCelebration(achievements, loading, loadError);
   const { trackPaywallClick } = usePaywallTracking();
 
   // Product analytics: record an achievements-page view (student is authed here).
