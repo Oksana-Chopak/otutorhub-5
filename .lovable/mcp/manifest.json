@@ -74,7 +74,7 @@
       {
         "name": "list_pending_payments",
         "title": "List pending payments",
-        "description": "List lessons where the student payment is still pending (unpaid) — visible to the signed-in user via RLS.",
+        "description": "List lessons where the student payment is still unpaid — visible to the signed-in user via RLS. Includes both conducted lessons (a real debt) and future unpaid ones (expected payment); the view carries no lesson status, so the caller decides.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
