@@ -86,6 +86,10 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
   const { settings, isIndependent, loading: wsLoading } = useWorkspaceSettings();
   const { roles } = useAuth();
   const isManager = roles.includes("manager");
+  /* Ціна учня належить або САМОСТІЙНОМУ репетитору (своя), або МЕНЕДЖЕРУ
+     (виручка школи) — саме вони й вирішують про плату за скасування. Хабовий
+     репетитор її не задає, і в `lessons_visible` вона для нього замаскована. */
+  const canDecideCharge = isIndependent || isManager;
   const [requests, setRequests] = useState<ChangeRequestRow[]>([]);
   const [lessons, setLessons] = useState<Record<string, LessonInfo>>({});
   const [loading, setLoading] = useState(true);
@@ -214,7 +218,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         // For a HUB tutor the student→hub price is the manager's number (and is masked to
         // NULL/0 by lessons_visible here), so NEVER rewrite student_price — that would zero
         // the hub receivable. The tutor just cancels; the hub/manager decides any fee.
-        if (isIndependent) {
+        if (canDecideCharge) {
           // is_cancellation_fee makes the withheld charge visible on money surfaces
           // (the billable predicate counts cancelled lessons only with this marker).
           const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, {
@@ -270,7 +274,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       // The decision must reach the STUDENT — «notifications both ways» was one-way:
       // the student pinged the tutor on submit, but approvals/rescheduls/fees landed
       // silently. type is per-request so the 24h (user,type) dedup can't swallow it.
-      const feeApplied = active.kind === "cancel" && isIndependent && chargeChoice !== "none";
+      const feeApplied = active.kind === "cancel" && canDecideCharge && chargeChoice !== "none";
       const feeAmount = chargeChoice === "partial" ? Math.max(0, Number(partialAmount) || 0) : Number(lesson.student_price ?? 0);
       insertNotification({
         userId: active.student_id,
@@ -455,10 +459,14 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
                   )}
-                  {/* The cancellation CHARGE is an independent-tutor concept (they own the
-                      student price). A hub tutor doesn't set the hub's receivable — student
-                      price is masked here — so they just approve the cancellation. */}
-                  {isIndependent ? (
+                  {/* Рішення про ПЛАТУ за скасування ухвалює той, кому належить
+                      ціна учня: самостійний репетитор — свою, МЕНЕДЖЕР — виручку
+                      школи. Хабовий репетитор її не задає (вона тут замаскована),
+                      тож йому лишається просто підтвердити.
+                      27.09 (аудит 18.09): умова була лише `isIndependent`, тому
+                      менеджер читав записку «вирішує менеджер хабу», адресовану
+                      йому самому, і не мав ЖОДНОГО вибору про плату. */}
+                  {canDecideCharge ? (
                     <>
                       <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
                       <RadioGroup

@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { canSee } from "@/lib/roleCapabilities";
 import { Link } from "react-router-dom";
 
 interface LessonRowFull {
@@ -48,9 +50,13 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   const { user, roles } = useAuth();
   const [row, setRow] = useState<LessonRowFull | null>(null);
   const [studentName, setStudentName] = useState("");
-  // Матеріали учня живуть на /my-students — тобто лише в незалежного репетитора.
-  // Менеджер має свій список у «Людях», учень — свою сторінку; їм посилання не даємо.
-  const isTutorViewer = roles.includes("tutor") && !roles.includes("manager");
+  /* Матеріали учня живуть на /my-students — а ця сторінка є ЛИШЕ в самостійного
+     репетитора: хабового вона відкидає на дашборд. Умова `tutor && !manager`
+     була true й для ХАБОВОГО — тобто дотик по імені вів його в нікуди (аудит
+     18.09: «картка уроку це правило шанує, діалог обходить»). Право рахує
+     roleCapabilities — те саме джерело, що дає `studentHref` картці. */
+  const { flags } = useRoleFlags();
+  const isTutorViewer = canSee("ownStudents", flags);
   const [dtEdit, setDtEdit] = useState(false);
   const [dtVal, setDtVal] = useState("");
   const [durVal, setDurVal] = useState(60);

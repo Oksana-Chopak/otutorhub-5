@@ -83,7 +83,10 @@ function supabaseForUser3(ctx) {
 var list_pending_payments_default = defineTool3({
   name: "list_pending_payments",
   title: "List pending payments",
-  description: "List lessons where the student payment is still pending (unpaid) \u2014 visible to the signed-in user via RLS.",
+  // 27.09: фільтр стояв на статусі "pending", якого в домені НЕМАЄ
+  // (student_payment_status = 'paid' | 'unpaid'), тож інструмент ЗАВЖДИ
+  // повертав порожньо — і виглядало це як «боргів немає».
+  description: "List lessons where the student payment is still unpaid \u2014 visible to the signed-in user via RLS. Includes both conducted lessons (a real debt) and future unpaid ones (expected payment); the view carries no lesson status, so the caller decides.",
   inputSchema: {
     limit: z3.number().int().min(1).max(200).default(50)
   },
@@ -91,7 +94,7 @@ var list_pending_payments_default = defineTool3({
   handler: async ({ limit }, ctx) => {
     if (!ctx.isAuthenticated())
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    const { data, error } = await supabaseForUser3(ctx).from("lesson_details_student").select("lesson_id, student_price, student_payment_status, student_paid_at, is_cancellation_fee").eq("student_payment_status", "pending").limit(limit);
+    const { data, error } = await supabaseForUser3(ctx).from("lesson_details_student").select("lesson_id, student_price, student_payment_status, student_paid_at, is_cancellation_fee").eq("student_payment_status", "unpaid").limit(limit);
     if (error)
       return { content: [{ type: "text", text: error.message }], isError: true };
     return {

@@ -82,13 +82,23 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     if (!ids.length) { setPackMap({}); return; }
     (async () => {
       try {
+        /* 27.09 (аудит 18.09): запит шукав пари САМОГО глядача
+           (`tutor_id = user.id`). У менеджера уроки належать репетиторам школи,
+           тож він НІКОЛИ не бачив передплачених пакетів — а саме йому вони
+           потрібні, коли він закриває день за всіх. Тепер беремо пари з самих
+           рядків дня і ключуємо мапу ПАРОЮ: один учень може мати пакети в
+           різних репетиторів, і склеювати їх у число «по учню» означало б
+           показати чужий залишок. */
+        const tutorIds = Array.from(new Set(rows.map((r) => r.tutor_id).filter(Boolean)));
         const { data } = await (supabase as any)
           .from("student_wallet_balances")
-          .select("student_id, lessons_balance")
-          .eq("tutor_id", user.id)
+          .select("tutor_id, student_id, lessons_balance")
+          .in("tutor_id", tutorIds)
           .in("student_id", ids);
         const m: Record<string, number> = {};
-        ((data ?? []) as any[]).forEach((b: any) => { m[b.student_id] = Number(b.lessons_balance ?? 0); });
+        ((data ?? []) as any[]).forEach((b: any) => {
+          m[`${b.tutor_id}:${b.student_id}`] = Number(b.lessons_balance ?? 0);
+        });
         setPackMap(m);
       } catch { setPackMap({}); }
     })();
@@ -293,8 +303,8 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                   {r.showPay !== false && (
                     <div style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>
                       {formatPrice(r.price, r.currency)}
-                      {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
-                        <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>{t("closeDayDialog.packageBalance", { count: packMap[r.student_id] })}</span>
+                      {r.student_id && (packMap[`${r.tutor_id}:${r.student_id}`] ?? 0) > 0 && (
+                        <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>{t("closeDayDialog.packageBalance", { count: packMap[`${r.tutor_id}:${r.student_id}`] })}</span>
                       )}
                     </div>
                   )}

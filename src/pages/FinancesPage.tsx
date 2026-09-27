@@ -2037,6 +2037,29 @@ export default function FinancesPage() {
       ? formatPrice(0, zeroCur)
       : entries.map(([c, v]) => formatPrice(v, c)).join(" + ");
 
+  /* 27.09 (аудит 18.09, «валюта на екрані виплат»): суми виплат штампувались
+     гривнею ЛІТЕРАЛОМ — і в хабового репетитора, і в менеджера. Валюта пари
+     відома (`student_rates.currency`), тож для шведського чи польського учня це
+     була неправда, і не косметична: та сама цифра в іншій валюті відрізняється
+     в десятки разів.
+     Коли всі виплати періоду в ОДНІЙ валюті, лишаємо те саме число (його рахує
+     база — клієнтським підсумком його не підміняємо), лише підписуємо
+     правильною валютою. Коли валют кілька — розклад «сума + сума» тим самим
+     каноном, що вже діє для доходу самостійного: складати крони з гривнями не
+     можна. Групові рядки виплат не несуть за побудовою. */
+  const payoutRowsForCur = periodBillable.filter((l) => l.kind !== "group");
+  const payoutCurs = Array.from(new Set(
+    payoutRowsForCur.filter((l) => Number(l.tutor_payout ?? 0) > 0).map(rowCurrency),
+  ));
+  const payoutCur = payoutCurs.length <= 1 ? (payoutCurs[0] ?? "UAH") : null;
+  const paidPayoutByCur = sumByCurrency(
+    payoutRowsForCur.filter((l) => l.tutor_payout_status === "paid"),
+    (l) => Number(l.tutor_payout ?? 0), rowCurrency);
+  const duePayoutByCur = sumByCurrency(
+    periodPayoutDue, (l) => Number(l.tutor_payout ?? 0), rowCurrency);
+  const paidPayoutLabel = payoutCur ? formatPrice(totalExpense, payoutCur) : fmtCurList(paidPayoutByCur);
+  const duePayoutLabel = payoutCur ? formatPrice(pendingExpense, payoutCur) : fmtCurList(duePayoutByCur);
+
   // By-student for Cockpit analytics
   const byStudentCockpit = useMemo(() => {
     const COLORS = ["#2BBFAA","#6366f1","#f59e0b","#ef4444","#ec4899","#8b5cf6"];
@@ -2267,11 +2290,11 @@ export default function FinancesPage() {
                   💰 {t("finances.payoutReceived")}
                 </p>
                 <p style={{ fontFamily: H.display, fontWeight: 900, fontSize: 38, color: H.teal, letterSpacing: "-0.025em", lineHeight: 1 }}>
-                  {formatPrice(totalExpense, "UAH")}
+                  {paidPayoutLabel}
                 </p>
                 {pendingExpense > 0 && (
                   <p style={{ fontFamily: H.body, fontSize: 14, color: "rgba(255,255,255,.45)", marginTop: 6 }}>
-                    + {t("finances.payoutPendingAmount", { sum: formatPrice(pendingExpense, "UAH") })}
+                    + {t("finances.payoutPendingAmount", { sum: duePayoutLabel })}
                   </p>
                 )}
               </div>
@@ -2283,7 +2306,7 @@ export default function FinancesPage() {
                   ⏳ {t("finances.payoutPendingLabel")}
                 </p>
                 <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 22, color: H.warnD }}>
-                  {formatPrice(pendingExpense, "UAH")}
+                  {duePayoutLabel}
                 </p>
                 <p style={{ fontFamily: H.body, fontSize: 14, color: H.warnD, opacity: 0.7, marginTop: 2 }}>
                   {t("finances.lessonsCount", { count: pendingCount })}
@@ -2359,7 +2382,7 @@ export default function FinancesPage() {
             {pendingExpense > 0 && (
               <div style={{ borderRadius: 18, padding: "16px 18px", background: H.warnBg, border: `1px solid ${H.warnBorder}` }}>
                 <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: H.warnD, marginBottom: 4 }}>
-                  ⏳ {t("finances.payoutPendingAmount", { sum: formatPrice(pendingExpense, "UAH") })}
+                  ⏳ {t("finances.payoutPendingAmount", { sum: duePayoutLabel })}
                 </p>
                 <p style={{ fontFamily: H.body, fontSize: 14, color: H.warnD, opacity: 0.8 }}>
                   {t("finances.lessonsCount", { count: pendingCount })}
@@ -2368,7 +2391,7 @@ export default function FinancesPage() {
             )}
             <div style={{ borderRadius: 18, padding: "16px 18px", background: "rgba(34,197,94,.06)", border: "1px solid rgba(34,197,94,.2)" }}>
               <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: "var(--success-text,#11803a)", marginBottom: 4 }}>
-                ✓ {t("finances.payoutReceived")}: {formatPrice(totalExpense, "UAH")}
+                ✓ {t("finances.payoutReceived")}: {paidPayoutLabel}
               </p>
               <p style={{ fontFamily: H.body, fontSize: 14, color: "#15803d", opacity: 0.85 }}>
                 {t("finances.lessonsCount", { count: paidCount })}
@@ -3119,7 +3142,7 @@ export default function FinancesPage() {
                   tone="success"
                 />
                 {!isIndependentTutor && (
-                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={`${formatPrice(totalExpense, "UAH")}`} tone="neutral" />
+                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={paidPayoutLabel} tone="neutral" />
                 )}
                 {!isIndependentTutor && (
                   <SummaryStat
@@ -3150,7 +3173,7 @@ export default function FinancesPage() {
                     <SummaryStat
                       icon={ArrowUpRight}
                       label={t("finances.owedToTutorsLabel")}
-                      value={formatPrice(pendingExpense, "UAH")}
+                      value={duePayoutLabel}
                       tone={parity && !parity.ok ? "warning" : "neutral"}
                     />
                   </>
