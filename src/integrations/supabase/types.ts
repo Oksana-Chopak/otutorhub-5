@@ -1493,6 +1493,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_claims: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       paywall_events: {
         Row: {
           created_at: string
@@ -2861,6 +2900,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_payment_claim: {
+        Args: { _amount: number; _note?: string; _tutor_id: string }
+        Returns: Json
+      }
       default_hub_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -3077,6 +3120,10 @@ export type Database = {
         Returns: Json
       }
       rename_hub: { Args: { _hub: string; _name: string }; Returns: undefined }
+      resolve_payment_claim: {
+        Args: { _confirm: boolean; _id: string }
+        Returns: Json
+      }
       resolve_referral_code: {
         Args: { _code: string }
         Returns: {
