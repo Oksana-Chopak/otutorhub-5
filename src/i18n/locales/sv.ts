@@ -227,6 +227,8 @@ export const sv: LocaleTranslations = {
     writeSupport: "Skriv",
   },
   common: {
+    loadFailed: "Kunde inte ladda",
+    saveFailed: "Kunde inte spara",
     clear: "Rensa",
     workspaceUnknown: "Kunde inte avgöra arbetsytans typ — ladda om sidan",
     copyFailed: "Kunde inte kopiera — kopiera manuellt",
@@ -1825,6 +1827,7 @@ export const sv: LocaleTranslations = {
     channelInApp: "avisering i appen",
   },
   feedbackInbox: {
+    contactLabel: "Svara till",
     category_bug: "Fel",
     category_idea: "Idé",
     category_question: "Fråga",
@@ -5434,6 +5437,21 @@ export const sv: LocaleTranslations = {
     paymentMarkedStudent: "✓ Elevens betalning registrerad",
     paymentMarkedTutor: "✓ Lärarens utbetalning registrerad",
     paymentMarkedSum: "Belopp: {{amount}}",
+  },
+
+  landingContact: {
+    title: "Skriv till oss",
+    subtitle: "En fråga, ett tvivel, en idé — grundaren läser den, inte en bot.",
+    messageLabel: "Din fråga",
+    messagePlaceholder: "Till exempel: kan jag hålla ordning på två språk?",
+    contactLabel: "Vart vi svarar",
+    contactPlaceholder: "e-post eller @telegram",
+    contactHint: "Utan kontaktuppgift läser vi men kan inte svara.",
+    send: "Skicka",
+    sentDesc: "Tack! Vi läser och svarar.",
+    tooShort: "Skriv gärna minst några ord",
+    rateLimited: "För många meddelanden denna timme — försök lite senare",
+    failed: "Kunde inte skicka — försök igen",
   },
 
 };

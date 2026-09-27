@@ -62,7 +62,7 @@ export default function ErrorLogPage() {
       .delete()
       .neq("id", "00000000-0000-0000-0000-000000000000");
     if (error) {
-      toast.error(error.message);
+      toast.error(t("common.loadFailed"), { description: error.message || undefined });
       return;
     }
     toast.success(t("errorLog.cleared"));

@@ -224,6 +224,8 @@ export const uk = {
     writeSupport: "Написати",
   },
   common: {
+    loadFailed: "Не вдалося завантажити",
+    saveFailed: "Не вдалося зберегти",
     clear: "Очистити",
     workspaceUnknown: "Не вдалося визначити тип робочого простору — оновіть сторінку",
     copyFailed: "Не вдалося скопіювати — скопіюй вручну",
@@ -1871,6 +1873,7 @@ export const uk = {
     channelInApp: "дзвіночок",
   },
   feedbackInbox: {
+    contactLabel: "Відповісти на",
     category_bug: "Помилка",
     category_idea: "Ідея",
     category_question: "Питання",
@@ -5501,6 +5504,21 @@ export const uk = {
     paymentMarkedStudent: "✓ Оплата від учня зафіксована",
     paymentMarkedTutor: "✓ Виплата репетитору зафіксована",
     paymentMarkedSum: "Сума: {{amount}}",
+  },
+
+  landingContact: {
+    title: "Напишіть нам",
+    subtitle: "Питання, сумнів, ідея — усе читає власниця продукту, не бот.",
+    messageLabel: "Ваше питання",
+    messagePlaceholder: "Наприклад: чи можна вести облік для двох мов?",
+    contactLabel: "Куди відповісти",
+    contactPlaceholder: "пошта або @telegram",
+    contactHint: "Без контакту ми прочитаємо, але відповісти не зможемо.",
+    send: "Надіслати",
+    sentDesc: "Дякуємо! Прочитаємо і відповімо.",
+    tooShort: "Напишіть хоч кілька слів",
+    rateLimited: "Занадто багато звернень за годину — спробуйте трохи пізніше",
+    failed: "Не вдалося надіслати — спробуйте ще раз",
   },
 
 };

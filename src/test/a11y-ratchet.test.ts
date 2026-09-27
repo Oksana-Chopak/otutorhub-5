@@ -926,7 +926,13 @@ describe("матеріали учня · хронологія, розгорну�
     it("бульбашка підтримки зникає, поки відкрита форма", () => {
       const sb = read("src/components/landing/LandingSupportBubble.tsx");
       expect(sb).toMatch(/document\.querySelector\('\[role="dialog"\]\[data-state="open"\]'\)/);
-      expect(sb).toMatch(/if \(!url \|\| hidden \|\| modalOpen\) return null;/);
+      /* 27.09: умова змінилась, інваріант — ні. Бульбашка й далі зникає під
+         чужим відкритим діалогом, але СВОЯ форма звʼязку (вона теж діалог) її
+         не ховає, інакше форма закривала б власну кнопку. І показ більше не
+         вимагає Telegram: форма працює і без нього. */
+      expect(sb).toMatch(/if \(hidden \|\| \(modalOpen && !formOpen\)\) return null;/);
+      expect(sb, "телеграм-кнопка лишається умовною, а не умовою всієї бульбашки")
+        .toMatch(/\{url && \(/);
       expect(sb, "z-index бульбашки мусить бути нижчим за шар діалогів").toMatch(/zIndex: 40/);
     });
 

@@ -23,6 +23,7 @@ interface Row {
   /* Приходять із міграцією 20260926120000. До її застосування колонок у базі
      немає — саме тому запит іде `select("*")`: жодного 400 «колонки немає», і
      відповідь просто не рендериться (інваріант «відсутнє = відсутнє»). */
+  contact?: string | null;
   answer?: string | null;
   answered_at?: string | null;
 }
@@ -241,6 +242,14 @@ export default function FeedbackInboxPage() {
                   <p style={{ marginTop: 11, fontSize: 15, lineHeight: 1.5, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                     {r.message}
                   </p>
+                  {/* 27.09: звернення з лендінгу приходять БЕЗ акаунта, тож
+                      сповіщення в дзвіночок нікуди надіслати. Контакт, який
+                      людина лишила, показуємо поруч — інакше відповісти нічим. */}
+                  {r.contact && (
+                    <p className="mt-1.5 text-[14px] font-semibold" style={{ color: "var(--teal-text,#1a7a6c)" }}>
+                      {t("feedbackInbox.contactLabel")}: {r.contact}
+                    </p>
+                  )}
                   {r.page_url && (
                     <p className="mt-1.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{r.page_url}</p>
                   )}

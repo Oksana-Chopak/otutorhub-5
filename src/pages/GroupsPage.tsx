@@ -752,7 +752,7 @@ function GroupDetailsDialog({
       _price: price,
     });
     if (error) {
-      toast.error(error.message);
+      toast.error(t("common.saveFailed"), { description: error.message || undefined });
       return;
     }
     toast.success(t("groupsPageExtra.priceSaved"));
@@ -945,7 +945,7 @@ function GroupDetailsDialog({
             .eq("group_id", groupId)
             .eq("student_id", picked);
           if (upErr) {
-            toast.error(upErr.message);
+            toast.error(t("common.saveFailed"), { description: upErr.message || undefined });
             return;
           }
           if (priceVal !== null) {
@@ -998,7 +998,7 @@ function GroupDetailsDialog({
       const { error } = await supabase.from("group_enrollments").delete().eq("id", enrollmentId);
       setBusy(false);
       if (error) {
-        toast.error(error.message);
+        toast.error(t("common.saveFailed"), { description: error.message || undefined });
         return;
       }
       toast.success(t("groupsPageExtra.studentRemoved"));
@@ -1013,7 +1013,7 @@ function GroupDetailsDialog({
     if (!(await confirmDialog({ description: t("groupsPageExtra.confirmDelete"), destructive: true, confirmText: t("common.delete") }))) return;
     const { error } = await supabase.from("lesson_groups").delete().eq("id", groupId);
     if (error) {
-      toast.error(error.message);
+      toast.error(t("common.saveFailed"), { description: error.message || undefined });
       return;
     }
     toast.success(t("groupsPageExtra.deleted"));

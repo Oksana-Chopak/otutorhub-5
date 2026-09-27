@@ -92,7 +92,7 @@ export function CurrencyComboBox({ value, onChange, className, disabled }: Props
     const next = Array.from(new Set([...(settings?.custom_currencies ?? []), q]));
     const err = await updateSettings({ custom_currencies: next } as any);
     if (err) {
-      toast.error(err.message);
+      toast.error(t("common.saveFailed"), { description: err.message || undefined });
       return;
     }
     handleSelect(q);

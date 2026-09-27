@@ -228,6 +228,8 @@ export const en: LocaleTranslations = {
     writeSupport: "Write",
   },
   common: {
+    loadFailed: "Could not load",
+    saveFailed: "Could not save",
     clear: "Clear",
     workspaceUnknown: "Could not determine the workspace type — please reload",
     copyFailed: "Couldn't copy — please copy manually",
@@ -1845,6 +1847,7 @@ export const en: LocaleTranslations = {
     channelInApp: "in-app bell",
   },
   feedbackInbox: {
+    contactLabel: "Reply to",
     category_bug: "Bug",
     category_idea: "Idea",
     category_question: "Question",
@@ -5454,6 +5457,21 @@ export const en: LocaleTranslations = {
     paymentMarkedStudent: "✓ Student payment recorded",
     paymentMarkedTutor: "✓ Tutor payout recorded",
     paymentMarkedSum: "Amount: {{amount}}",
+  },
+
+  landingContact: {
+    title: "Write to us",
+    subtitle: "A question, a doubt, an idea — the founder reads it, not a bot.",
+    messageLabel: "Your question",
+    messagePlaceholder: "For example: can I keep records for two languages?",
+    contactLabel: "Where to reply",
+    contactPlaceholder: "email or @telegram",
+    contactHint: "Without a contact we will read it but cannot reply.",
+    send: "Send",
+    sentDesc: "Thank you! We will read it and reply.",
+    tooShort: "Please write at least a few words",
+    rateLimited: "Too many messages this hour — please try a bit later",
+    failed: "Could not send — please try again",
   },
 
 };

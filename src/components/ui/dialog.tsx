@@ -27,14 +27,44 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/**
+ * 27.09, ЖИВА СКАРГА ВЛАСНИЦІ: «закрила сповіщення на хрестик — форма створення
+ * уроку зникла і всі дані з неї зникли, урок не зберігся».
+ *
+ * Причина: тости малюються в СВОЄМУ порталі, поза діалогом. Для Radix будь-яке
+ * натискання поза вмістом діалога — «клік ззовні», а клік ззовні закриває
+ * модалку. Тости стоять по центру ЗВЕРХУ, тобто просто над формою, тож
+ * промахнутись було легко: один дотик по хрестику тоста — і заповнена форма
+ * зникає разом із даними. Це втрата роботи людини, а не косметика.
+ *
+ * Тому: натискання, що почалось усередині шару тостів, для діалога «зовнішнім»
+ * не рахується. Обробники з пропів не губимо — викликаємо їх після.
+ */
+const isInsideToaster = (target: EventTarget | null) =>
+  target instanceof Element && !!target.closest("[data-sonner-toaster]");
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onPointerDownOutside, onInteractOutside, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      onPointerDownOutside={(event) => {
+        if (isInsideToaster(event.target)) {
+          event.preventDefault();
+          return;
+        }
+        onPointerDownOutside?.(event);
+      }}
+      onInteractOutside={(event) => {
+        if (isInsideToaster(event.target)) {
+          event.preventDefault();
+          return;
+        }
+        onInteractOutside?.(event);
+      }}
       className={cn(
         "fixed z-50 flex flex-col gap-4 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         // Mobile: full-screen sheet from the bottom, scrollable
