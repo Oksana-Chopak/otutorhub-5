@@ -1,6 +1,10 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { tutorAiAllowed } from "../_shared/aiGate.ts";
+import {
+  AI_DAILY_LIMIT, AI_SUMMARY_MODEL, AI_TIMEOUT_MS, buildMessages, explainRejection,
+  hasEnoughInput, inputHash, validateAiSummary, type SummaryInput,
+} from "../_shared/aiSummaryGuard.ts";
 
 interface RequestBody {
   lessonId: string;
@@ -92,93 +96,152 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 4. Build prompt
+    // 4. «AI під наглядом» (27.09) — див. _shared/aiSummaryGuard.ts:
+    //    замало даних → моделі не кличемо (жодних вигаданих конспектів);
+    //    стеля на добу і кеш на 7 днів у базі; таймаут; перевірка відповіді;
+    //    кожен виклик — у журнал ai_calls. Результат — ЧЕРНЕТКА для репетитора,
+    //    учню нічого не йде, поки репетитор не натисне «Зберегти».
     const lessonDate = new Date(lesson.starts_at).toLocaleDateString("uk-UA", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
-
-    const userPrompt = `Створи конспект уроку ПРОСТИМ ТЕКСТОМ. Markdown-символи ЗАБОРОНЕНІ (жодних #, *, **, -, \`).
-ПЕРШИЙ рядок — коротка тема уроку (3–6 слів, без слова «Тема» і без двокрапки) — саме він показується у прев'ю «Минулий урок».
-Далі порожній рядок і секції ВЕЛИКИМИ ЛІТЕРАМИ, пункти починай з «• »:
-
-ЩО ПРОЙШЛИ
-• 3–5 ключових пунктів
-ПОВТОРИТИ
-• 1–3 пункти
-МАТЕРІАЛИ
-• лише якщо є посилання чи назви
-
-
-Дані уроку:
-Предмет: ${lesson.subject}
-Дата: ${lessonDate}
-Тривалість: ${lesson.duration_minutes} хв
-
-${summary ? `Чорновий конспект від репетитора:\n${summary}\n` : ""}${homework ? `Домашнє завдання:\n${homework}\n` : ""}${studentNotes ? `Нотатки учня:\n${studentNotes}\n` : ""}
-Пиши українською, лаконічно, для учня. Якщо вхідних даних замало — створи короткий шаблон конспекту для предмета "${lesson.subject}".`;
-
-    // 5. Call Lovable AI Gateway
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableKey) {
-      return new Response(JSON.stringify({ error: "AI service not configured" }), {
-        status: 500,
+    const input: SummaryInput = {
+      subject: String(lesson.subject ?? ""),
+      dateLabel: lessonDate,
+      durationMinutes: Number(lesson.duration_minutes ?? 0),
+      summary,
+      homework,
+      studentNotes,
+    };
+    const hash = inputHash(input);
+    const KIND = "lesson_summary";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const admin = serviceKey ? createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } }) : null;
+    const startedAt = Date.now();
+    const log = async (status: string, extra: { ms?: number; output?: string | null; error?: string | null } = {}) => {
+      if (!admin) return;
+      try {
+        // RPC з міграції 20260927160000 — до перегенерації types.ts кличемо через (rpc as any)
+        await (admin.rpc as any)("ai_call_log", {
+          _tutor: callerId, _lesson: body.lessonId, _kind: KIND, _input_hash: hash, _status: status,
+          _ms: extra.ms ?? Date.now() - startedAt, _model: AI_SUMMARY_MODEL,
+          _output: extra.output ?? null, _error: extra.error ?? null,
+        });
+      } catch (e) {
+        console.error("ai_call_log failed:", (e as any)?.message ?? e);
+      }
+    };
+    const fail = (status: number, message: string, code: string) =>
+      new Response(JSON.stringify({ error: message, code }), {
+        status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+
+    if (!hasEnoughInput(input)) {
+      await log("too_little");
+      return fail(422, "Замало даних для конспекту: напишіть кілька речень у чернетці або домашнє завдання — AI не вигадує зміст уроку.", "too_little");
     }
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Ти асистент-педагог. Створюєш короткі, чіткі конспекти уроків для учнів українською мовою ПРОСТИМ ТЕКСТОМ, без жодних Markdown-символів.",
-          },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    // 4b. Стеля й кеш — у базі. Якщо база недоступна (SQL ще не вставлено),
+    //     працюємо без стелі, але кажемо про це в error_log — не мовчки.
+    let gateAllowed = true;
+    let callsToday = 0;
+    if (admin) {
+      try {
+        const { data: gate, error: gateErr } = await (admin.rpc as any)("ai_call_gate", {
+          _tutor: callerId, _kind: KIND, _input_hash: hash, _max_per_day: AI_DAILY_LIMIT,
+        });
+        if (gateErr) throw gateErr;
+        const cached = gate?.cached;
+        if (typeof cached === "string" && cached.trim()) {
+          await log("cached", { output: null });
+          return new Response(JSON.stringify({ summary: cached, cached: true, ai: true }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        gateAllowed = gate?.allowed !== false;
+        callsToday = Number(gate?.calls_today ?? 0);
+      } catch (e) {
+        const msg = String((e as any)?.message ?? e);
+        console.error("ai_call_gate unavailable:", msg);
+        try {
+          await admin.from("error_log").insert({
+            message: "ai_call_gate недоступна — AI-конспект без стелі й кешу",
+            url: "edge:generate-lesson-summary",
+            context: { error: msg.slice(0, 500) },
+          });
+        } catch { /* логування не ламає відповідь */ }
+      }
+    }
+    if (!gateAllowed) {
+      await log("limited");
+      return fail(429, `Ліміт AI-конспектів на сьогодні вичерпано (${callsToday} із ${AI_DAILY_LIMIT}). Завтра лічильник оновиться.`, "limited");
+    }
+
+    // 5. Call Lovable AI Gateway — з таймаутом, щоб екран не чекав вічно.
+    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableKey) {
+      await log("error", { error: "LOVABLE_API_KEY missing" });
+      return fail(500, "AI service not configured", "not_configured");
+    }
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), AI_TIMEOUT_MS);
+    let aiRes: Response;
+    try {
+      aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: AI_SUMMARY_MODEL,
+          messages: buildMessages(input),
+        }),
+        signal: ctrl.signal,
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      const aborted = (e as any)?.name === "AbortError";
+      await log("error", { error: aborted ? "timeout" : String((e as any)?.message ?? e) });
+      return fail(
+        aborted ? 504 : 502,
+        aborted ? "Модель не відповіла за 25 секунд. Спробуйте ще раз за хвилину." : "AI service error",
+        aborted ? "timeout" : "gateway",
+      );
+    }
+    clearTimeout(timer);
 
     if (aiRes.status === 429) {
-      return new Response(
-        JSON.stringify({ error: "Перевищено ліміт запитів. Спробуйте за хвилину." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      await log("error", { error: "gateway 429" });
+      return fail(429, "Перевищено ліміт запитів. Спробуйте за хвилину.", "gateway_rate_limited");
     }
     if (aiRes.status === 402) {
-      return new Response(
-        JSON.stringify({ error: "Недостатньо AI-кредитів. Поповніть баланс у Lovable Cloud." }),
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      await log("error", { error: "gateway 402" });
+      return fail(402, "Недостатньо AI-кредитів. Поповніть баланс у Lovable Cloud.", "gateway_credits");
     }
     if (!aiRes.ok) {
       const txt = await aiRes.text();
       console.error("AI Gateway error:", aiRes.status, txt);
-      return new Response(
-        JSON.stringify({ error: "AI service error" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      await log("error", { error: `gateway ${aiRes.status}: ${txt.slice(0, 300)}` });
+      return fail(502, "AI service error", "gateway");
     }
 
     const aiData = await aiRes.json();
-    const generated = aiData?.choices?.[0]?.message?.content?.trim() ?? "";
+    const generated: string = aiData?.choices?.[0]?.message?.content ?? "";
 
-    if (!generated) {
-      return new Response(JSON.stringify({ error: "Empty AI response" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // 6. Перевірка відповіді — причина відмови йде репетитору словами.
+    const verdict = validateAiSummary(generated, input);
+    if (!verdict.ok) {
+      await log("rejected", { error: verdict.reason, output: generated.slice(0, 2000) || null });
+      return fail(502, explainRejection(verdict.reason), `rejected_${verdict.reason}`);
     }
 
-    return new Response(JSON.stringify({ summary: generated }), {
+    await log("ok", { output: verdict.summary });
+    return new Response(JSON.stringify({ summary: verdict.summary, ai: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

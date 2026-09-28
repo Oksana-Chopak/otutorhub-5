@@ -194,10 +194,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ─── Auto-send to student (ai_notes_auto_send) ───
-    // If the lesson's tutor opted in, surface the Fireflies summary as the
-    // lesson summary the student sees and notify them — mirroring the manual
-    // "Зберегти і надіслати" path. Best-effort; never fails the webhook.
+    // ─── «AI під наглядом» (27.09): конспект із запису — ЧЕРНЕТКА для репетитора ───
+    // Раніше (за перемикачем ai_notes_auto_send) текст Fireflies без жодного
+    // перегляду лягав у `summary`, який бачить учень, і учню летіло сповіщення
+    // «репетитор надіслав конспект». Тепер учню автоматично не йде нічого:
+    // репетитор отримує сповіщення «конспект із запису готовий», відкриває урок
+    // і одним дотиком («Використати як конспект» → «Зберегти й надіслати»)
+    // публікує те, що перечитав. Best-effort; вебхук не падає.
     if (summaryText) {
       try {
         const { data: lessonRow } = await admin
@@ -206,55 +209,29 @@ Deno.serve(async (req) => {
           .eq("id", lessonId)
           .maybeSingle();
         const tutorId = lessonRow?.tutor_id as string | undefined;
-        const studentId = lessonRow?.student_id as string | undefined;
-
-        if (tutorId && studentId) {
-          const { data: ws } = await admin
-            .from("tutor_workspace_settings")
-            .select("ai_notes_auto_send")
-            .eq("tutor_id", tutorId)
+        if (tutorId) {
+          const notifType = `fireflies_summary_ready_${lessonId}`;
+          const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          const { data: dupe } = await admin
+            .from("notifications")
+            .select("id")
+            .eq("user_id", tutorId)
+            .eq("type", notifType)
+            .gte("created_at", since)
+            .limit(1)
             .maybeSingle();
-
-          if (ws?.ai_notes_auto_send) {
-            // Only fill summary if the tutor hasn't written one manually.
-            const { data: existing } = await admin
-              .from("lesson_details")
-              .select("summary")
-              .eq("lesson_id", lessonId)
-              .maybeSingle();
-            if (!existing?.summary) {
-              await admin
-                .from("lesson_details")
-                .update({ summary: summaryText })
-                .eq("lesson_id", lessonId);
-            }
-
-            // Notify the student. The create_notification RPC requires
-            // auth.uid() (which a service-role call lacks), so insert directly
-            // and replicate its 24h dedup on (user_id, type).
-            const notifType = `summary_added_${lessonId}`;
-            const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { data: dupe } = await admin
-              .from("notifications")
-              .select("id")
-              .eq("user_id", studentId)
-              .eq("type", notifType)
-              .gte("created_at", since)
-              .limit(1)
-              .maybeSingle();
-            if (!dupe) {
-              await admin.from("notifications").insert({
-                user_id: studentId,
-                type: notifType,
-                title: "✨ Конспект уроку готовий",
-                body: "Репетитор надіслав AI-конспект цього уроку.",
-                link: "/schedule",
-              });
-            }
+          if (!dupe) {
+            await admin.from("notifications").insert({
+              user_id: tutorId,
+              type: notifType,
+              title: "🎙 Конспект із запису готовий",
+              body: "Перегляньте його в уроці та надішліть учню одним дотиком — автоматично учню нічого не йде.",
+              link: `/schedule?lesson=${lessonId}`,
+            });
           }
         }
       } catch (e) {
-        console.error("fireflies-webhook auto-send failed (non-blocking):", e);
+        console.error("fireflies-webhook tutor notification failed (non-blocking):", e);
       }
     }
 

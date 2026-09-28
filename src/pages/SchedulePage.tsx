@@ -995,6 +995,15 @@ export default function SchedulePage() {
       n.delete("student");
       setSearchParams(n, { replace: true });
     }
+    // 27.09: сповіщення ведуть В ОБʼЄКТ — «конспект із запису готовий» і
+    // посилання з чату відкривають сам урок, а не «сторінку, де його шукати».
+    const focus = searchParams.get("lesson");
+    if (focus) {
+      setDetailsLessonId(focus);
+      const n = new URLSearchParams(searchParams);
+      n.delete("lesson");
+      setSearchParams(n, { replace: true });
+    }
     // лише при першому відкритті за посиланням
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

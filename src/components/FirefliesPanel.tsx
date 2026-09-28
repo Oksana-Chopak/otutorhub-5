@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Mic, ExternalLink, AlertCircle, ListChecks, FileAudio } from "lucide-react";
+import { Loader2, Mic, ExternalLink, AlertCircle, ListChecks, FileAudio, Sparkles } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 
 interface Sentence {
@@ -19,6 +19,8 @@ interface Props {
   meetingUrl: string | null;
   canRecord: boolean; // true for the tutor of this lesson
   canView: boolean;   // tutor, student, manager — anyone allowed to see the lesson
+  /** 27.09: конспект із запису — чернетка для репетитора; одним дотиком лягає в поле «Конспект» на перегляд. */
+  onUseAsSummary?: (text: string) => void;
 }
 
 interface State {
@@ -39,7 +41,7 @@ const EMPTY: State = {
   audioUrl: null,
 };
 
-export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Props) {
+export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView, onUseAsSummary }: Props) {
   const { t } = useTranslation();
   const [state, setState] = useState<State>(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -181,6 +183,12 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
             <div style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
               <div style={label}>{t("firefliesPanel.summaryLabel")}</div>
               <p style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.55 }}>{state.summary}</p>
+              {onUseAsSummary && (
+                <button type="button" className="tap-44" onClick={() => onUseAsSummary(state.summary!)}
+                  style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                  <Sparkles className="h-4 w-4" /> {t("firefliesPanel.useAsSummary")}
+                </button>
+              )}
             </div>
           )}
 

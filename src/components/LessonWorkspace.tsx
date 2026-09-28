@@ -217,19 +217,41 @@ export function LessonWorkspace({
   const [platform, setPlatform] = useState("meet");
   const [linkMode, setLinkMode] = useState<"permanent" | "once">("permanent");
 
+  /* «AI під наглядом» (27.09): усе від AI — чернетка «перевірте», поки
+     репетитор сам не натисне «Зберегти». Раніше згенероване одразу писалось у
+     базу (перезаписуючи текст репетитора) і йшло учню без жодного перегляду;
+     а «Готово» внизу дописувало його як звичайну правку. Тепер:
+       • текст лягає в поле й у локальну чернетку (закритий діалог його не зʼїсть);
+       • над полем — позначка «Створено AI — перевірте»;
+       • неторкнутий AI-текст НЕ зберігається ні кнопкою «Готово», ні при
+         закритті: у базу і до учня йде лише те, що репетитор перечитав
+         (відредагував або явно зберіг). */
+  const [aiSuggested, setAiSuggested] = useState(false);
+  const takeAiDraft = (text: string, toastTitle: string, toastDesc: string) => {
+    setSummaryDraft(text);
+    setAiSuggested(true);
+    toast({ title: toastTitle, description: toastDesc });
+  };
+
   const generateAiSummary = async () => {
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-lesson-summary", {
         body: { lessonId },
       });
-      if (error) throw error;
+      if (error) {
+        // Edge-функція відповідає словами (замало даних / ліміт / модель не
+        // дотрималась формату) — показуємо саме їх, а не «щось пішло не так».
+        let detail = "";
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.json === "function") detail = (await ctx.json())?.error ?? "";
+        } catch { /* тіло відповіді не JSON — лишаємо загальний текст */ }
+        throw new Error(detail || (error as any)?.message || t("lessonWorkspaceExtra.aiGenerateFailedDesc"));
+      }
       const generated = (data as any)?.summary;
       if (!generated) throw new Error(t("lessonWorkspace.aiEmpty"));
-      setSummaryDraft(generated);
-      // B19: одразу чернетка в БД — закритий діалог не з'їдає згенероване.
-      void updateLessonField("summary", generated);
-      toast({ title: t("lessonWorkspace.aiReady"), description: t("lessonWorkspaceExtra.aiReadyDesc") });
+      takeAiDraft(generated, t("lessonWorkspace.aiReady"), t("lessonWorkspaceExtra.aiReadyDesc"));
     } catch (e: any) {
       toast({
         title: t("lessonWorkspaceExtra.aiGenerateFailed"),
@@ -392,6 +414,7 @@ export function LessonWorkspace({
   };
 
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
+    if (field === "summary") setAiSuggested(false); // явне «Зберегти» = репетитор перечитав
     setSaving(field);
     let cleaned = value;
     if (field === "meeting_url") {
@@ -515,11 +538,12 @@ export function LessonWorkspace({
     onRegisterFlush(async () => {
       if (!canEditTutorFields) return;
       if (homeworkDraft !== (homework ?? "")) await updateLessonField("homework", homeworkDraft);
-      if (summaryDraft !== (summary ?? "")) await updateLessonField("summary", summaryDraft);
+      // Неторкнутий AI-текст «Готово» не зберігає — лише те, що репетитор перечитав.
+      if (!aiSuggested && summaryDraft !== (summary ?? "")) await updateLessonField("summary", summaryDraft);
       if (notesDraft !== (studentNotes ?? "")) await updateLessonField("student_notes", notesDraft);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- updateLessonField перестворюється щорендеру
-  }, [onRegisterFlush, canEditTutorFields, homeworkDraft, summaryDraft, notesDraft, homework, summary, studentNotes]);
+  }, [onRegisterFlush, canEditTutorFields, homeworkDraft, summaryDraft, notesDraft, homework, summary, studentNotes, aiSuggested]);
 
   const canEditStudentNotes = isStudent;
 
@@ -778,10 +802,16 @@ export function LessonWorkspace({
               {aiAllowed && settings?.ai_notes_auto && (
                 <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 14, color: L.txt, lineHeight: 1.45 }}>
                   <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: L.teal }} />
-                  <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoOnSend") : ""}.</span>
+                  <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}.</span>
                 </div>
               )}
-              <textarea ref={summaryGrow} aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => setSummaryDraft(e.target.value)}
+              {aiSuggested && (
+                <div role="status" style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(245,181,68,.55)", background: "rgba(245,181,68,.14)", padding: "10px 12px", marginBottom: 10, fontSize: 14, color: L.txt, lineHeight: 1.45 }}>
+                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#b07a10" }} />
+                  <span><b>{t("lessonWorkspaceExtra.aiDraftTitle")}</b> {t("lessonWorkspaceExtra.aiDraftBody")}</span>
+                </div>
+              )}
+              <textarea ref={summaryGrow} aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); }}
                 placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 10, alignItems: "center" }}>
                 {aiAllowed ? (
@@ -958,7 +988,7 @@ export function LessonWorkspace({
           <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-2.5 text-[14px] text-foreground/80">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             <p>
-              <span className="font-medium text-foreground">{t("lessonWorkspaceExtra.autoSummaryOnTitle")}</span> {t("lessonWorkspaceExtra.autoSummaryOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoSummaryOnSend") : ""}.
+              <span className="font-medium text-foreground">{t("lessonWorkspaceExtra.autoSummaryOnTitle")}</span> {t("lessonWorkspaceExtra.autoSummaryOnBody")}.
             </p>
           </div>
         )}
@@ -972,11 +1002,17 @@ export function LessonWorkspace({
                 </p>
               </div>
             )}
+            {aiSuggested && (
+              <div role="status" className="mb-2 flex items-start gap-2 rounded-md border border-amber-400/60 bg-amber-100/60 p-2.5 text-[14px] text-foreground/90 dark:bg-amber-500/15">
+                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-300" />
+                <p><span className="font-medium text-foreground">{t("lessonWorkspaceExtra.aiDraftTitle")}</span> {t("lessonWorkspaceExtra.aiDraftBody")}</p>
+              </div>
+            )}
             <Textarea aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")}
               rows={5}
               placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")}
               value={summaryDraft}
-              onChange={(e) => setSummaryDraft(e.target.value)}
+              onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); }}
             />
             <Button
               size="sm"
@@ -1009,6 +1045,7 @@ export function LessonWorkspace({
         meetingUrl={(meetingUrl && meetingUrl.trim()) || defaultUrl || null}
         canRecord={isTutor && aiAllowed}
         canView={isTutor || isStudent || isManager}
+        onUseAsSummary={canEditTutorFields ? (text) => takeAiDraft(text, t("lessonWorkspaceExtra.recordingDraftTitle"), t("lessonWorkspaceExtra.aiReadyDesc")) : undefined}
       />
 
       {/* 5b. Lesson feedback (student rating) — only for completed lessons */}

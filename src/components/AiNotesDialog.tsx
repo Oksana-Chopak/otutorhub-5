@@ -59,21 +59,18 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
   const aiAllowed = wsLoading || workspaceUnknown ? false : (!isIndependent || hasFullPlan);
 
   const [auto, setAuto] = useState(!!settings?.ai_notes_auto);
-  const [autoSend, setAutoSend] = useState(!!settings?.ai_notes_auto_send);
   const [busy, setBusy] = useState(false);
 
   // Reflect saved settings whenever they load/change (unless we're mid-write).
   useEffect(() => {
     if (busy) return;
     setAuto(!!settings?.ai_notes_auto);
-    setAutoSend(!!settings?.ai_notes_auto_send);
-  }, [settings?.ai_notes_auto, settings?.ai_notes_auto_send, busy]);
+  }, [settings?.ai_notes_auto, busy]);
 
-  const setFlag = async (patch: { ai_notes_auto?: boolean; ai_notes_auto_send?: boolean }) => {
+  const setFlag = async (patch: { ai_notes_auto?: boolean }) => {
     setBusy(true);
     try {
       if (patch.ai_notes_auto !== undefined) setAuto(patch.ai_notes_auto);
-      if (patch.ai_notes_auto_send !== undefined) setAutoSend(patch.ai_notes_auto_send);
       await updateSettings(patch);
       setBusy(false);
     } finally {
@@ -123,18 +120,17 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <ToggleRow
               on={auto}
-              onChange={(v) => setFlag({ ai_notes_auto: v, ...(v ? {} : { ai_notes_auto_send: false }) })}
+              onChange={(v) => setFlag({ ai_notes_auto: v })}
               disabled={!aiAllowed || busy}
               title={t("aiNotesDialog.autoNoteTitle")}
               desc={t("aiNotesDialog.autoNoteDesc")}
             />
-            <ToggleRow
-              on={autoSend}
-              onChange={(v) => setFlag({ ai_notes_auto_send: v })}
-              disabled={!aiAllowed || !auto || busy}
-              title={t("aiNotesDialog.autoSendTitle")}
-              desc={t("aiNotesDialog.autoSendDesc")}
-            />
+            {/* 27.09 «AI під наглядом»: перемикача «надсилати учневі автоматично»
+                більше немає — конспект із запису приходить репетитору як чернетка,
+                учню йде лише те, що репетитор перечитав і надіслав сам. */}
+            <p style={{ fontSize: 14, color: C.ink2, lineHeight: 1.5, margin: "2px 4px 0" }}>
+              {t("aiNotesDialog.reviewNote")}
+            </p>
           </div>
 
           <button onClick={() => onOpenChange(false)}
