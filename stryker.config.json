@@ -1,14 +1,38 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker/master/packages/core/schema/stryker-schema.json",
   "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.mutation.config.ts"
+  },
   "coverageAnalysis": "perTest",
   "mutate": [
     "src/lib/financials.ts",
     "src/lib/hubPricing.ts",
-    "src/lib/currency.ts",
-    "src/lib/subjects.ts"
+    "src/lib/currency.ts"
   ],
-  "thresholds": { "high": 90, "low": 80, "break": 70 },
+  "ignorePatterns": [
+    "android",
+    "docs",
+    "demo",
+    "dist",
+    "resources",
+    "public",
+    "*.bundle",
+    "reports",
+    "tests"
+  ],
+  "thresholds": {
+    "high": 95,
+    "low": 90,
+    "break": 85
+  },
   "concurrency": 4,
-  "reporters": ["clear-text", "progress"]
+  "reporters": [
+    "clear-text",
+    "progress",
+    "json"
+  ],
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  }
 }

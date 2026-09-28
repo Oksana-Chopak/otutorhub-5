@@ -951,6 +951,16 @@ top of that file. The remaining MED/DELIGHT items there are the next UX backlog.
 
 ---
 
+## Мутаційне тестування грошей (щотижня, `.github/workflows/mutation.yml`)
+- Stryker ламає `src/lib/{financials,hubPricing,currency}.ts` і дивиться, чи тести це
+  помічають; ганяє лише поведінкові тести з `vitest.mutation.config.ts` (ратчети, що
+  читають файли репо, у пісочниці падають хибно). Стеля 85 % (`stryker.config.json`);
+  27.09 було 61.6 % (currency 31 %, financials 73 %) → 90 % після `money-mutants.test.ts`.
+  Локально: `npm i --no-save @stryker-mutator/core@8 @stryker-mutator/vitest-runner@8 && npx stryker run`
+  (у package.json його НЕМАЄ навмисно — не чіпати lockfайли Lovable). Вердикт — рядок у
+  Telegram через `ci-report` (`scripts/mutation-notify.mjs`). Нова грошова функція без
+  тесту, який убиває її мутантів, знижує відсоток — це видно в неділю.
+
 ## CI Checks (run after every commit) — ОДНА команда, той самий список у CI
 ```bash
 npm run gates        # scripts/gates.mjs: typecheck · eslint · vitest · build · i18n · ux · hardcode ·

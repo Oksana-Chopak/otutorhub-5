@@ -49,3 +49,4 @@ prod-report.json
 prod-report/
 ci-message.txt
 gates.log
+reports/mutation/

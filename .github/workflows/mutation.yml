@@ -1,0 +1,63 @@
+# Мутаційне тестування грошових бібліотек (27.09, «Ворота, що спали»).
+# Stryker ламає код (міняє «>» на «>=», «paid» на порожнє, прибирає умови) і
+# дивиться, чи тести це помічають. Живий мутант = зміна грошової логіки, яку
+# жоден тест не ловить. Раз на тиждень + вручну; вердикт — один рядок у Telegram
+# через ту саму edge `ci-report`. Стеля 85 % (stryker.config.json → break).
+# Stryker ставиться в межах запуску (--no-save): у package.json/lockfайлах його
+# немає, щоб не чіпати збірку Lovable.
+name: Мутації грошей
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # неділя 03:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mutation:
+    name: 🧬 Stryker по фінансах
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Stryker (без запису в lockfайли)
+        run: npm i --no-save --no-audit --no-fund @stryker-mutator/core@8 @stryker-mutator/vitest-runner@8
+      - name: Мутаційний прогін
+        id: stryker
+        continue-on-error: true
+        run: npx stryker run
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report
+          path: reports/mutation/mutation.json
+          retention-days: 30
+      - name: Один рядок у Telegram
+        if: always()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          node scripts/mutation-notify.mjs
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET не заданий — повідомлення лише в журналі"; exit 0; fi
+          node -e '
+            const fs = require("fs");
+            const text = fs.readFileSync("ci-message.txt", "utf8");
+            fetch("https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/ci-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-cron-secret": process.env.CRON_SECRET },
+              body: JSON.stringify({ text }),
+            }).then(async (r) => { console.log("ci-report →", r.status, await r.text()); })
+              .catch((e) => console.log("ci-report недосяжний:", e.message));
+          '
+      - name: Вердикт
+        if: steps.stryker.outcome != 'success'
+        run: echo "Мутаційний прогін нижче стелі або впав" && exit 1
