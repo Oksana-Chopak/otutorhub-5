@@ -3,6 +3,7 @@
 // Idempotent via lesson_reminders log. Run on a cron every 5 minutes.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
+import { withJob } from "../_shared/jobRun.ts";
 
 const MIN_MS = 60 * 1000;
 
@@ -46,7 +47,7 @@ function escapeHtml(value: unknown): string {
     .replace(/>/g, "&gt;");
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("lesson-reminders", async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -355,4 +356,4 @@ Deno.serve(async (req) => {
     JSON.stringify({ ok: true, scanned: lessons.length, sent, skipped, autoCompleted }),
     { headers: { "Content-Type": "application/json" } },
   );
-});
+}));

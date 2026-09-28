@@ -5,6 +5,7 @@ import { sendWebPush } from "../_shared/push.ts";
 import { decideDebtReminder, DEBT_INTERVAL_DAYS, buildDebtPairs, splitOtherHistory, type DebtRow } from "../_shared/debtCadence.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
 import { versionProbe } from "../_shared/build.ts";
+import { withJob } from '../_shared/jobRun.ts';
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -98,7 +99,7 @@ const RT = {
 } as const;
 type RtLang = keyof typeof RT;
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("payment-reminders", async (req) => {
   const probe = versionProbe(req, "payment-reminders");
   if (probe) return probe;
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
@@ -723,4 +724,4 @@ Deno.serve(async (req) => {
     JSON.stringify({ ok: true, scanned: lessons.length, groupParticipants: parts.length, sent, debtSent, skipped }),
     { headers: { "Content-Type": "application/json" } },
   );
-});
+}));

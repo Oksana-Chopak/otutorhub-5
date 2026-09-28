@@ -9,6 +9,7 @@ import {
   unpaidTutorPayout,
   unpaidStudentDebt,
 } from "../_shared/digestMoney.ts";
+import { withJob } from "../_shared/jobRun.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -73,7 +74,7 @@ function esc(v: unknown): string {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("tutor-weekly-digest", async (req) => {
   const BOT = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!BOT || !serviceKey) {
@@ -309,4 +310,4 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, week: label, sent }), {
     headers: { "Content-Type": "application/json" },
   });
-});
+}));

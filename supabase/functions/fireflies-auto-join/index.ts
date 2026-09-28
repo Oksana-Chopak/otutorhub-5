@@ -5,6 +5,7 @@
 // Auth: cron shared secret (get_cron_shared_secret), like the other crons.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { tutorAiAllowed } from "../_shared/aiGate.ts";
+import { withJob } from "../_shared/jobRun.ts";
 
 const MIN_MS = 60 * 1000;
 
@@ -32,7 +33,7 @@ async function dispatchBot(apiKey: string, meetingUrl: string, title: string): P
   }
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("fireflies-auto-join", async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const apiKey = Deno.env.get("FIREFLIES_API_KEY");
@@ -132,4 +133,4 @@ Deno.serve(async (req) => {
     JSON.stringify({ ok: true, scanned: lessons.length, started, skipped }),
     { headers: { "Content-Type": "application/json" } },
   );
-});
+}));

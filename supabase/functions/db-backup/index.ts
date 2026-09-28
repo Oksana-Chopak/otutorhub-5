@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withJob } from "../_shared/jobRun.ts";
 
 /**
  * Щоденний бекап критичних таблиць у ПРИВАТНИЙ бакет db-backups (рішення 05.09,
@@ -50,7 +51,7 @@ const PAGE = 1000;
 const RETENTION_DAYS = 30;
 const BUCKET = "db-backups";
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("db-backup", async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
@@ -156,4 +157,4 @@ Deno.serve(async (req) => {
     }),
     { headers: { "Content-Type": "application/json" } },
   );
-});
+}));

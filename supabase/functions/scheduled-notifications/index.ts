@@ -6,6 +6,7 @@
 //
 // Auth: set CRON_SECRET in Supabase Edge Function secrets + GitHub Actions secrets.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withJob } from "../_shared/jobRun.ts";
 
 const UK_MONTHS = [
   "Січень","Лютий","Березень","Квітень","Травень","Червень",
@@ -27,7 +28,7 @@ function tutorEarned(lessons: any[]): number {
   }, 0);
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("scheduled-notifications", async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   if (!supabaseUrl || !serviceKey) {
@@ -258,4 +259,4 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, window, results }), {
     headers: { "Content-Type": "application/json" },
   });
-});
+}));

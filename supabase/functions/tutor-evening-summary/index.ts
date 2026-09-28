@@ -10,6 +10,7 @@
 // Викликається pg_cron о 18:00 UTC (21:00 EEST / 20:00 EET) — міграція
 // 20260901120002_evening_summary.sql.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withJob } from "../_shared/jobRun.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -84,7 +85,7 @@ async function sendTg(token: string, chatId: number, text: string): Promise<bool
   return r.ok;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("tutor-evening-summary", async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) {
     return new Response(JSON.stringify({ error: "Missing env" }), { status: 500 });
@@ -243,4 +244,4 @@ Deno.serve(async (req) => {
   }
 
   return new Response(JSON.stringify({ ok: true, sent, date: today }));
-});
+}));

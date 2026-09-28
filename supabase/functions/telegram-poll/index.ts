@@ -2,6 +2,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendPaymentReminder, normLang } from "../_shared/paymentReminder.ts";
 import { versionProbe } from "../_shared/build.ts";
+import { withJob } from '../_shared/jobRun.ts';
 
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
@@ -14,7 +15,7 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("telegram-poll", async (req) => {
   const probe = versionProbe(req, "telegram-poll");
   if (probe) return probe;
   const startTime = Date.now();
@@ -142,7 +143,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(JSON.stringify({ ok: true, processed, finalOffset: currentOffset }));
-});
+}));
 
 async function sendTg(base: string, chatId: number, text: string, extra: Record<string, unknown> = {}) {
   await fetch(`${base}/sendMessage`, {

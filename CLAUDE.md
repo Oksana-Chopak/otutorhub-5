@@ -269,6 +269,19 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   from summary to fireflies_summary — absent data renders as absent (guarded by
   src/test/security-invariants.test.ts).
 
+### DEAD-MAN SWITCH — кожен cron-запуск лишає слід (27.09) — INVIOLABLE
+- Кожна функція, яку кличе pg_cron/GitHub cron (дайджести, нагадування, бекап,
+  telegram-poll, черга пошти, fireflies-auto-join, archive-old-chats), обгорнута
+  `Deno.serve(withJob("<name>", handler))` (`_shared/jobRun.ts`) → рядок у `job_runs`
+  (`job_run_record`, service_role). Ранковий дайджест суперадміна читає `job_health(26)`
+  і показує: запуски/провали, останню помилку, лічильники, і **поіменно ті щоденні процеси,
+  яких за добу не було** (`EXPECTED_DAILY_JOBS` у `tutor-daily-digest`). Нова cron-функція
+  без `withJob` і без запису в `EXPECTED_DAILY_JOBS` (якщо щоденна) не приймається — гейт
+  `src/test/job-runs.test.ts`, сценарій `98-job-runs.sql`.
+- Лічильники в `job_runs.counts` беруться з JSON-відповіді функції: відповідай
+  `{ sent: N, skipped: M, … }`, а не голим «ok» — інакше зведення не зможе показати
+  «вчора 40, сьогодні 0».
+
 ### AI UNDER SUPERVISION — усе від моделі є чернеткою (27.09) — INVIOLABLE
 - Єдиний імовірнісний вихід продукту — конспект уроку (`generate-lesson-summary`, конспект
   Fireflies). Правило одне: **до учня доходить лише те, що репетитор перечитав** — текст

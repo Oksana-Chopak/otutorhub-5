@@ -21,6 +21,10 @@ const DT = {
     btnRate: (nm: string) => `⚙️ Ставка: ${nm}`,
     btnTutorName: "репетитор",
     errors: (n: number) => `🛠 Технічні помилки за добу: <b>${n}</b> — сторінка /errors`,
+    jobsOk: (ok: number) => `🛡 Нічні процеси за добу: <b>${ok}</b> запусків, збоїв немає`,
+    jobsBad: (ok: number, bad: number) => `🛡 Нічні процеси за добу: <b>${ok}</b> ок, <b>${bad}</b> збій(-ів):`,
+    jobsMissing: (names: string) => `⛔ Не запускались понад добу: ${names}`,
+    jobsUnknown: `🛡 Нічні процеси: зведення прочитати не вдалося (SQL 20260927170000 ще не вставлено?)`,
     tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Сьогодні <b>${n} ${w}</b>:`,
     remind: (s: string) => `\n💳 Нагадай учням про оплату — загалом <b>${s}</b>:`,
@@ -51,6 +55,10 @@ const DT = {
     btnRate: (nm: string) => `⚙️ Rate: ${nm}`,
     btnTutorName: "tutor",
     errors: (n: number) => `🛠 Technical errors in 24 h: <b>${n}</b> — see /errors`,
+    jobsOk: (ok: number) => `🛡 Background jobs in 24 h: <b>${ok}</b> runs, no failures`,
+    jobsBad: (ok: number, bad: number) => `🛡 Background jobs in 24 h: <b>${ok}</b> ok, <b>${bad}</b> failed:`,
+    jobsMissing: (names: string) => `⛔ Did not run for over a day: ${names}`,
+    jobsUnknown: `🛡 Background jobs: could not read the summary (SQL 20260927170000 not applied yet?)`,
     tutNone: "\nA free day today — recharge! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Today: <b>${n} ${w}</b>:`,
     remind: (s: string) => `\n💳 Remind students to pay — total <b>${s}</b>:`,
@@ -81,6 +89,10 @@ const DT = {
     btnRate: (nm: string) => `⚙️ Sats: ${nm}`,
     btnTutorName: "lärare",
     errors: (n: number) => `🛠 Tekniska fel senaste dygnet: <b>${n}</b> — se /errors`,
+    jobsOk: (ok: number) => `🛡 Bakgrundsjobb senaste dygnet: <b>${ok}</b> körningar, inga fel`,
+    jobsBad: (ok: number, bad: number) => `🛡 Bakgrundsjobb senaste dygnet: <b>${ok}</b> ok, <b>${bad}</b> misslyckade:`,
+    jobsMissing: (names: string) => `⛔ Kördes inte på över ett dygn: ${names}`,
+    jobsUnknown: `🛡 Bakgrundsjobb: kunde inte läsa sammanfattningen (SQL 20260927170000 inte inlagd än?)`,
     tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Idag: <b>${n} ${w}</b>:`,
     remind: (s: string) => `\n💳 Påminn elever om betalning — totalt <b>${s}</b>:`,
@@ -103,6 +115,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isPayoutDueToday, kyivNow } from "../_shared/payoutSchedule.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
 import { versionProbe } from "../_shared/build.ts";
+import { withJob } from "../_shared/jobRun.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -153,7 +166,7 @@ function esc(v: unknown): string {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withJob("tutor-daily-digest", async (req) => {
   const probe = versionProbe(req, "tutor-daily-digest");
   if (probe) return probe;
   const BOT = Deno.env.get("TELEGRAM_BOT_TOKEN");
@@ -323,6 +336,46 @@ Deno.serve(async (req) => {
     .select("id", { count: "exact", head: true })
     .gte("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
 
+  // Мертвий вимикач (27.09): зведення нічних/погодинних процесів — ЛИШЕ
+  // суперадміну (platform_admins). Нуль там, де вчора було сорок, — тривога,
+  // яку видно з телефона, а не з логів Supabase, яких ніхто не бачить.
+  const { data: adminRows } = await sb.from("platform_admins").select("user_id");
+  const superadmins = new Set<string>((adminRows ?? []).map((r: any) => String(r.user_id)));
+  const EXPECTED_DAILY_JOBS = [
+    "tutor-daily-digest", "tutor-evening-summary", "payment-reminders", "lesson-reminders",
+    "db-backup", "telegram-poll", "scheduled-notifications",
+  ];
+  let jobHealth: any[] | null = null;
+  if (superadmins.size) {
+    try {
+      // RPC з міграції 20260927170000 — до перегенерації types.ts через (rpc as any)
+      const { data, error } = await (sb.rpc as any)("job_health", { _hours: 26 });
+      if (error) throw error;
+      jobHealth = Array.isArray(data) ? data : [];
+    } catch (e) {
+      console.error("job_health unavailable:", (e as any)?.message ?? e);
+      jobHealth = null;
+    }
+  }
+  const jobLines = (D: any): string[] => {
+    if (jobHealth === null) return [D.jobsUnknown];
+    const ok = jobHealth.reduce((a, j) => a + (Number(j.runs ?? 0) - Number(j.failures ?? 0)), 0);
+    const bad = jobHealth.reduce((a, j) => a + Number(j.failures ?? 0), 0);
+    const out: string[] = [];
+    if (bad > 0) {
+      out.push(D.jobsBad(ok, bad));
+      for (const j of jobHealth.filter((x) => Number(x.failures ?? 0) > 0)) {
+        out.push(`• ${esc(String(j.job))}: ${Number(j.failures)}× — ${esc(String(j.last_error ?? "").slice(0, 120) || "?")}`);
+      }
+    } else {
+      out.push(D.jobsOk(ok));
+    }
+    const seen = new Set(jobHealth.map((j) => String(j.job)));
+    const missing = EXPECTED_DAILY_JOBS.filter((n) => !seen.has(n));
+    if (missing.length) out.push(D.jobsMissing(missing.join(", ")));
+    return out;
+  };
+
   // Школи (модель «школа = сутність», 07.09): менеджер бачить у дайджесті лише
   // уроки/борги репетиторів СВОЄЇ школи. Джерело — hub_managers × settings.hub_id.
   // До застосування етапу A таблиці ще немає — тоді (і лише тоді) поведінка
@@ -480,6 +533,7 @@ Deno.serve(async (req) => {
         keyboard.push([{ text: D.btnRate(shortName(tutorName.get(tid), D.btnTutorName)), url: `${APP_URL}/people?open=${tid}&rate=1${subj}` }]);
       }
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
+      if (superadmins.has(userId)) lines.push(...jobLines(D));
       // Передоплата — це форма з сумою/кількістю уроків, тож не callback, а
       // прямий перехід у застосунок на потрібну вкладку.
       keyboard.push([{ text: D.btnPrepay, url: PREPAY_URL }]);
@@ -576,4 +630,4 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, date: today, sent, build: BUILD_TAG }), {
     headers: { "Content-Type": "application/json" },
   });
-});
+}));
