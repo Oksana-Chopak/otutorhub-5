@@ -39,7 +39,11 @@ describe("перевірка версії edge-функцій", () => {
     it(`${fn}: перевірка версії стоїть ПЕРШОЮ — до ключів, секретів і доступу`, () => {
       const s = src(`supabase/functions/${fn}/index.ts`);
       expect(s).toMatch(/import \{ versionProbe \} from "\.\.\/_shared\/build\.ts";/);
-      const body = s.slice(s.indexOf("Deno.serve(async (req) => {"));
+      // 27.09: cron-функції обгорнуті withJob("<fn>", …) — «мертвий вимикач»;
+      // проба версії й далі мусить стояти першою ВСЕРЕДИНІ обробника.
+      const m = /Deno\.serve\((?:withJob\("[a-z-]+", )?async \(req\) => \{/.exec(s);
+      expect(m, `${fn}: Deno.serve(async (req) => …) не знайдено`).not.toBeNull();
+      const body = s.slice(m!.index);
       // перші рядки обробника: дозволено лише відповідь на CORS-preflight
       const lines = body.split("\n").slice(1).map((l) => l.trim()).filter(Boolean);
       const head = lines[0].startsWith('if (req.method === "OPTIONS")') ? lines.slice(1) : lines;
