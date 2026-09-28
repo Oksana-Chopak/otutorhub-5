@@ -153,7 +153,24 @@ Deno.serve(async (req) => {
   // 6. Build invite URL — use server-side constant to prevent phishing via
   // attacker-controlled Origin header.
   const APP_BASE_URL = Deno.env.get('APP_BASE_URL') ?? 'https://otutorhub.com'
-  const inviteUrl = `${APP_BASE_URL}/auth?signup=1&email=${encodeURIComponent(email)}&role=student`
+  // 27.09: одноразовий ключ у листі — доказ, що людина відкрила саме цю
+  // скриньку. Без нього fast path підтвердження (confirm-pending-signup) зачинений;
+  // без бази (SQL ще не вставлено) лист іде без ключа — учень пройде звичайне
+  // підтвердження листом, як усі.
+  let inviteToken = ''
+  try {
+    const { data: issued, error: issueErr } = await (admin.rpc as any)('issue_invite_token', {
+      _profile: studentId,
+      _email: email,
+    })
+    if (issueErr) throw issueErr
+    if (typeof issued === 'string' && issued) inviteToken = issued
+  } catch (e) {
+    console.error('[send-student-invite] issue_invite_token failed (лист без ключа):', (e as any)?.message ?? e)
+  }
+  const inviteUrl =
+    `${APP_BASE_URL}/auth?signup=1&email=${encodeURIComponent(email)}&role=student` +
+    (inviteToken ? `&invite=${encodeURIComponent(inviteToken)}` : '')
 
   // 7. Invoke send-transactional-email using the service-role key.
   // send-transactional-email is restricted to service-role callers to prevent

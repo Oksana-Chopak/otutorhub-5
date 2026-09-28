@@ -6,7 +6,8 @@
 //
 // Public function (verify_jwt=false). Anyone can call it, but it only acts when
 // (a) the email matches an existing pending profile AND (b) the auth user exists
-// and is unconfirmed.
+// and is unconfirmed AND (c) 27.09: the caller presents the one-time invite
+// token from the invitation email (proof they opened that mailbox).
 //
 // SECURITY: the response is intentionally just { ok: true|false } for EVERY
 // branch — we must not leak whether an email is registered/pending/unconfirmed
@@ -34,11 +35,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json().catch(() => ({}))
+    const { email, invite } = await req.json().catch(() => ({}))
     if (!email || typeof email !== 'string') {
       return ok(false)
     }
     const normalized = email.trim().toLowerCase()
+    // 27.09: без ключа з листа-запрошення fast path зачинений — інакше пошту
+    // запрошеного підтверджував будь-хто, хто її знає і зареєструвався першим.
+    if (!invite || typeof invite !== 'string' || invite.length < 32 || invite.length > 128) {
+      return ok(false)
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -103,7 +109,21 @@ Deno.serve(async (req) => {
       return ok(true) // already confirmed — they can sign in
     }
 
-    // 3. Force-confirm
+    // 3. Ключ із листа: живий, на цю пошту, ще не використаний — і гаситься назавжди.
+    const { data: consumed, error: consumeErr } = await (admin.rpc as any)('consume_invite_token', {
+      _token: invite,
+      _email: normalized,
+    })
+    if (consumeErr) {
+      console.error('confirm-pending-signup: consume_invite_token failed', consumeErr.message)
+      return ok(false)
+    }
+    if (consumed !== true) {
+      console.error('confirm-pending-signup: invite token rejected', { ip })
+      return ok(false)
+    }
+
+    // 4. Force-confirm
     const { error: updErr } = await admin.auth.admin.updateUserById(authUser.id, {
       email_confirm: true,
     })

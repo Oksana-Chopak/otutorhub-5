@@ -119,3 +119,39 @@ describe("міграція 20260927150000_public_doors і сценарій 96", 
     expect(m).toMatch(/IF auth\.uid\(\) IS NOT NULL AND NEW\.source IS DISTINCT FROM OLD\.source THEN/);
   });
 });
+
+describe("ключ у листі-запрошенні: fast path підтвердження — лише з доказом доступу до скриньки", () => {
+  it("лист несе одноразовий ключ &invite=…", () => {
+    const s = noComments(read("supabase/functions/send-student-invite/index.ts"));
+    expect(s).toMatch(/\(admin\.rpc as any\)\('issue_invite_token'/);
+    expect(s).toMatch(/\(inviteToken \? `&invite=\$\{encodeURIComponent\(inviteToken\)\}` : ''\)/);
+  });
+
+  it("confirm-pending-signup без ключа — ok:false; ключ гаситься через consume_invite_token", () => {
+    const s = noComments(read("supabase/functions/confirm-pending-signup/index.ts"));
+    expect(s).toMatch(/const \{ email, invite \} = await req\.json\(\)/);
+    expect(s).toMatch(/if \(!invite \|\| typeof invite !== 'string' \|\| invite\.length < 32 \|\| invite\.length > 128\) \{\s*return ok\(false\)/);
+    expect(s).toMatch(/\(admin\.rpc as any\)\('consume_invite_token'/);
+    expect(s).toMatch(/if \(consumed !== true\) \{[\s\S]*?return ok\(false\)/);
+    // погашення ключа стоїть ДО force-confirm
+    expect(s.indexOf("consume_invite_token")).toBeLessThan(s.indexOf("email_confirm: true"));
+  });
+
+  it("AuthPage кличе fast path лише з ключем і передає його", () => {
+    const s = noComments(read("src/pages/AuthPage.tsx"));
+    expect((s.match(/body: \{ email: parsed\.data\.email, invite: inviteToken \}/g) ?? []).length, "обидва шляхи: реєстрація і вхід без підтвердження").toBe(2);
+    expect(s).toMatch(/if \(isPending && inviteToken\) \{/);
+    expect(s).toMatch(/if \(isPending === true && inviteToken\) \{/);
+    expect(s).not.toMatch(/body: \{ email: parsed\.data\.email \},/);
+  });
+
+  it("міграція 20260927180000 і сценарій 99 на місці, лише для service_role", () => {
+    const MIG = "supabase/migrations/20260927180000_invite_tokens.sql";
+    expect(existsSync(join(ROOT, MIG))).toBe(true);
+    expect(existsSync(join(ROOT, "scripts/db-replay/scenarios/99-invite-token.sql"))).toBe(true);
+    const m = read(MIG);
+    expect(m).toMatch(/REVOKE EXECUTE ON FUNCTION public\.consume_invite_token\(text, text\) FROM PUBLIC, anon, authenticated;/);
+    expect(m).toMatch(/REVOKE EXECUTE ON FUNCTION public\.issue_invite_token\(uuid, text\) FROM PUBLIC, anon, authenticated;/);
+    expect(m).toMatch(/AND t\.used_at IS NULL\s*\n\s*AND t\.expires_at > now\(\)/);
+  });
+});

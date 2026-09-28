@@ -315,6 +315,10 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   `student_id`/`tutor_id` лише під прапорцем `app.pending_profile_merge` (без нього
   кожен запрошений з уроками реєструвався порожнім з 05.05 по 27.09).
   Гейт: `src/test/public-doors.test.ts` + сценарій `96-public-doors.sql`.
+- Підтвердження пошти запрошеного БЕЗ листа Supabase (`confirm-pending-signup`) — лише з
+  одноразовим ключем із листа-запрошення (`&invite=`, `issue_invite_token` /
+  `consume_invite_token`, сценарій `99-invite-token.sql`). Доказ доступу до скриньки —
+  ключ, який прийшов у скриньку; «знаю пошту» доказом не є. Без ключа — звичайний лист.
 
 ### Theme & colors — INVIOLABLE (added 01.08 after repeated dark-theme bugs)
 - **11.09 — ХВИЛЯ КОНТРАСТУ + ЛАГОДЖЕННЯ ДАРКУ (стояча згода власниці на косметику).**

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
 import { rememberSignupRole } from "@/components/ClaimTutorRoleDialog";
@@ -27,6 +27,7 @@ import i18n from "@/i18n";
 const t = i18n.t.bind(i18n);
 
 const REMEMBER_KEY = "tutorhub.rememberMe";
+const INVITE_KEY = "otutorhub.invite";
 
 const signUpSchema = z.object({
   firstName: z.string().trim().min(1, t("authExtra.nameRequired")).max(50),
@@ -177,6 +178,18 @@ export default function AuthPage() {
     (!isConfirmed && !!searchParams.get("email") && !!searchParams.get("role"));
   const initialTab = isInviteContext ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState<string>(isConfirmed ? "signin" : initialTab);
+  /* 27.09: одноразовий ключ із листа-запрошення (?invite=…). Лише з ним сервер
+     підтверджує пошту запрошеного без листа Supabase (fast path): ключ є тільки в
+     того, хто відкрив саме цю скриньку. Тримаємо в sessionStorage, щоб
+     перезавантаження сторінки посеред реєстрації його не згубило. */
+  const inviteToken = useMemo<string | null>(() => {
+    const fromUrl = searchParams.get("invite");
+    try {
+      if (fromUrl) { sessionStorage.setItem(INVITE_KEY, fromUrl); return fromUrl; }
+      return sessionStorage.getItem(INVITE_KEY);
+    } catch { return fromUrl; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- лише при першому відкритті
+  }, []);
   const [pendingHint, setPendingHint] = useState<string | null>(null);
   const [showOptional, setShowOptional] = useState(false);
   const [confirmedNotice, setConfirmedNotice] = useState<boolean>(isConfirmed);
@@ -378,9 +391,9 @@ export default function AuthPage() {
           const { data: isPending } = await supabase.rpc("is_pending_email", {
             _email: parsed.data.email,
           });
-          if (isPending === true) {
+          if (isPending === true && inviteToken) {
             const { error: confirmErr } = await supabase.functions.invoke("confirm-pending-signup", {
-              body: { email: parsed.data.email },
+              body: { email: parsed.data.email, invite: inviteToken },
             });
             // 23.09: збій підтвердження (500 з функції) — у error_log, а не в тишу
             if (confirmErr) void logError(`confirm-pending-signup: ${confirmErr.message}`, null, { where: "signin-unconfirmed" });
@@ -543,10 +556,12 @@ export default function AuthPage() {
     }
 
     // Pending invite fast path: confirm email server-side, then sign in directly.
-    if (isPending) {
+    // 27.09: лише з ключем із листа — без нього запрошений проходить звичайне
+    // підтвердження листом, як усі (лист Supabase іде через наш auth-email-hook).
+    if (isPending && inviteToken) {
       try {
         const { error: confirmErr } = await supabase.functions.invoke("confirm-pending-signup", {
-          body: { email: parsed.data.email },
+          body: { email: parsed.data.email, invite: inviteToken },
         });
         // 23.09: збій підтвердження (500 з функції) — у error_log, а не в тишу
         if (confirmErr) void logError(`confirm-pending-signup: ${confirmErr.message}`, null, { where: "signup-pending" });
@@ -556,6 +571,7 @@ export default function AuthPage() {
         });
         setLoading(false);
         if (!signInErr) {
+          try { sessionStorage.removeItem(INVITE_KEY); } catch { /* ключ уже погашено на сервері */ }
           navigate(nextPath, { replace: true });
           return;
         }
