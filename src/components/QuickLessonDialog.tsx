@@ -36,7 +36,7 @@ import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
-import { useCoreLock } from "@/hooks/useCoreLock";
+import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
 
 interface Props {
   open: boolean;
@@ -306,6 +306,7 @@ export function QuickLessonDialog({
         });
         setSubmitting(false);
         if (error || !lessonId) {
+          if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
           toast.error(error || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
           return;
         }
@@ -365,6 +366,7 @@ export function QuickLessonDialog({
       // Гасіння лишилось одне, у finally.
       if (error) {
         console.error(error);
+        if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
         toast.error((/23505|unique_visible_slot/.test(String((error as any)?.code ?? "") + String(error.message ?? "")) ? t("quickLessonDialog.slotTaken") : error.message) || t("quickLessonDialogExtra.lessonCreateFailed"));
         return;
       }

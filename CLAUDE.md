@@ -886,6 +886,13 @@ fields below before building anything money-related.
   there is NO student-count paywall in code (`useWorkspaceSettings` keeps the counter for
   stats only). `SubscriptionPage.PRO_PRICE_MONTHLY = 249` is the source of truth for price.
 - This is the only place the "Pro / subscription / trial" concepts apply.
+- **Server-side lock (27.09):** the client `coreLocked` is UX (paywall BEFORE the action); the
+  DB is the truth — `trg_00_core_lock` on `lessons` (source='independent') and
+  `student_wallet_transactions` (kind='topup') raises `SUBSCRIPTION_REQUIRED` for an
+  independent tutor writing for themselves without a live trial/subscription (same predicate
+  as `import_student_bundle`: `is_independent_tutor` + `is_tutor_pro`). Managers, students,
+  service writes and hub lessons are untouched. The client maps the error to the paywall via
+  `isSubscriptionRequiredError` (useCoreLock). Scenario `60b-server-core-lock.sql`.
 - **Organic trial EXISTS (don't re-conclude it doesn't):** `handle_new_user` (live body =
   `20260521180319`) bootstraps every new TUTOR's workspace row with
   `subscription_status='trial', trial_until = now() + 30 days` — the landing's «30 днів

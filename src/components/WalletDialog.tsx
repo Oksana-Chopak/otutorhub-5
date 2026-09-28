@@ -21,7 +21,7 @@ import { useStudentWallet } from "@/hooks/useStudentWallet";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
 import i18nInstance from "@/i18n";
-import { useCoreLock } from "@/hooks/useCoreLock";
+import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface WalletDialogProps {
@@ -151,6 +151,7 @@ export function WalletDialog({
         _note: note || null,
       });
       if (error) {
+        if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
         // B5: цикл верифікації, як у RecordPaymentSheet — відповідь могла
         // загубитись у тунелі, а запис УЖЕ стояти в БД. Без цієї перевірки
         // репетитор тисне ще раз і поповнює гаманець двічі.

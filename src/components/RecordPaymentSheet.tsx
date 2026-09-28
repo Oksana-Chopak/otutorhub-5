@@ -22,7 +22,7 @@ import {
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import i18nInstance from "@/i18n";
-import { useCoreLock } from "@/hooks/useCoreLock";
+import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
 const t = i18nInstance.t.bind(i18nInstance);
 
 export interface PairOption {
@@ -187,6 +187,7 @@ export function RecordPaymentSheet({
         _paid_at: paidOn ? new Date(paidOn).toISOString() : null,
       });
       if (error) {
+        if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
         haptic.error();
         toast.error(t("recordPayment.saveFailed"), { description: error.message });
         return;
@@ -235,6 +236,7 @@ export function RecordPaymentSheet({
       });
 
       if (error) {
+        if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
         let writtenTx: { id: string } | null = null;
         for (let attempt = 0; attempt < 3 && !writtenTx; attempt += 1) {
           if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 350));

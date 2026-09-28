@@ -35,6 +35,15 @@ export function PaywallProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * 27.09: замок стоїть і на сервері (тригер enforce_core_lock на lessons і
+ * гаманці, RPC імпорту). Якщо тріал скінчився, поки застосунок був відкритий,
+ * клієнтський прапорець ще «відчинено», а сервер уже відповідає
+ * SUBSCRIPTION_REQUIRED — тоді показуємо пейвол, а не червоний тост із кодом.
+ */
+export const isSubscriptionRequiredError = (e: unknown): boolean =>
+  /SUBSCRIPTION_REQUIRED/.test(String((e as { message?: unknown } | null)?.message ?? e ?? ""));
+
 export function useCoreLock() {
   const { coreLocked } = useWorkspaceSettings();
   const ctx = useContext(PaywallCtx);
