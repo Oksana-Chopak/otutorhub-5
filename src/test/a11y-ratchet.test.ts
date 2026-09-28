@@ -834,7 +834,9 @@ describe("матеріали учня · хронологія, розгорну�
       expect(ws, "робочій області потрібен спосіб віддати чернетки назовні")
         .toMatch(/onRegisterFlush\?: \(fn: \(\) => Promise<void>\) => void;/);
       expect(ws).toMatch(/if \(homeworkDraft !== \(homework \?\? ""\)\) await updateLessonField\("homework", homeworkDraft\);/);
-      expect(ws).toMatch(/if \(summaryDraft !== \(summary \?\? ""\)\) await updateLessonField\("summary", summaryDraft\);/);
+      // 27.09 «AI під наглядом»: неторкнутий AI-текст «Готово» не дописує —
+      // до учня йде лише те, що репетитор перечитав; власна правка дописується як і була.
+      expect(ws).toMatch(/if \(!aiSuggested && summaryDraft !== \(summary \?\? ""\)\) await updateLessonField\("summary", summaryDraft\);/);
       const dlg = read("src/components/LessonDetailsDialog.tsx");
       expect(dlg).toMatch(/onRegisterFlush=\{\(fn\) => \{ flushRef\.current = fn; \}\}/);
       expect(dlg, "«Готово» мусить ЧЕКАТИ запис, а не закривати форму поверх нього")
