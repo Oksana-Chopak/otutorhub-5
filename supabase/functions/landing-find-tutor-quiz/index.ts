@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,24 +28,14 @@ const json = (status: number, body: unknown) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-// Best-effort in-memory rate limiter (per-isolate), keyed by IP+email — this is a public
-// (verify_jwt=false) endpoint that creates accounts + sends mail, so it must throttle
-// signup-spam / email-bombing / referral-request flooding. Mirrors confirm-pending-signup.
-const RL_MAX = 5;
-const RL_WINDOW_MS = 60_000;
-const rlHits = new Map<string, number[]>();
-function rateLimited(key: string): boolean {
-  const now = Date.now();
-  const arr = (rlHits.get(key) ?? []).filter((t) => now - t < RL_WINDOW_MS);
-  arr.push(now);
-  rlHits.set(key, arr);
-  if (rlHits.size > 5000) {
-    for (const [k, v] of rlHits) {
-      if (v.every((t) => now - t >= RL_WINDOW_MS)) rlHits.delete(k);
-    }
-  }
-  return arr.length > RL_MAX;
-}
+// Ліміти (27.09): у БАЗІ, не в памʼяті ізолята — див. _shared/rateLimit.ts.
+//   • 5 анкет за годину з однієї адреси (кожна може створити акаунт і лист);
+//   • 2 анкети на добу на одну пошту (чужу скриньку не завалити листами);
+//   • 500 анкет на добу на всю платформу (стеля від зловмисного шквалу;
+//     при зростанні — підняти тут, це одна цифра).
+const PER_IP_HOUR = 5;
+const PER_EMAIL_DAY = 2;
+const PLATFORM_DAY = 500;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -64,20 +55,22 @@ Deno.serve(async (req) => {
     return json(400, { error: "invalid_input" });
   }
 
-  const ip =
-    req.headers.get("cf-connecting-ip") ??
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown";
-  if (rateLimited(`${ip}:${email}`)) {
-    console.error("landing-find-tutor-quiz rate-limited", { ip });
-    return json(429, { error: "rate_limited" });
-  }
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  const ip = clientIp(req);
+  const verdicts = await Promise.all([
+    rateLimit(admin, "landing_quiz_ip", ip, PER_IP_HOUR, 3600),
+    rateLimit(admin, "landing_quiz_email", email, PER_EMAIL_DAY, 86400),
+    rateLimit(admin, "landing_quiz_all", "platform", PLATFORM_DAY, 86400),
+  ]);
+  if (verdicts.includes("limit")) {
+    console.error("landing-find-tutor-quiz rate-limited", { ip });
+    return json(429, { error: "rate_limited" });
+  }
 
   let userId: string | null = null;
 
@@ -98,14 +91,15 @@ Deno.serve(async (req) => {
     user_metadata: { first_name: name, role: "student" },
   });
 
+  let isNewAccount = false;
   if (createErr) {
-    // Email already registered — find existing user via listUsers paging by email filter.
-    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    const existing = list?.users?.find((u) => u.email?.toLowerCase() === email);
-    if (existing) {
-      userId = existing.id;
-    }
+    // Пошта вже зареєстрована — шукаємо акаунт у базі, а не через
+    // listUsers({perPage: 200}), який після 200-го користувача мовчки «не знаходив».
+    const { data: existingId, error: lookupErr } = await (admin.rpc as any)("user_id_by_email", { _email: email });
+    if (lookupErr) console.error("[landing-find-tutor-quiz] user_id_by_email failed", lookupErr.message);
+    if (typeof existingId === "string" && existingId) userId = existingId;
   } else {
+    isNewAccount = true;
     userId = created.user?.id ?? null;
     // Send a magic-link / password reset so the user can sign in (since password is random).
     try {
@@ -119,8 +113,11 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Save phone in profile_contacts if we have one and a user id.
-  if (userId && phone) {
+  // Телефон у профіль — ЛИШЕ для щойно створеного акаунта. Для вже
+  // зареєстрованої пошти анонім із лендінгу міг перезаписати чужий номер без
+  // жодного підтвердження (27.09) — тепер його номер лишається тільки в самій
+  // заявці (lead_phone), а профіль людини не чіпаємо.
+  if (isNewAccount && userId && phone) {
     await admin.from("profile_contacts").upsert(
       { user_id: userId, phone },
       { onConflict: "user_id" },

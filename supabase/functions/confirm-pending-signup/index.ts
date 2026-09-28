@@ -13,6 +13,7 @@
 // (email enumeration). Real reasons go only to console.error for our logs.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { rateLimit, clientIp } from '../_shared/rateLimit.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,24 +21,12 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type',
 }
 
-// Very small in-memory rate limiter (best-effort, per-isolate). Keyed by IP+email
-// so a single caller can't hammer the endpoint to probe many addresses.
-const RL_MAX = 5
-const RL_WINDOW_MS = 60_000
-const rlHits = new Map<string, number[]>()
-function rateLimited(key: string): boolean {
-  const now = Date.now()
-  const arr = (rlHits.get(key) ?? []).filter((t) => now - t < RL_WINDOW_MS)
-  arr.push(now)
-  rlHits.set(key, arr)
-  // opportunistic cleanup to bound memory
-  if (rlHits.size > 5000) {
-    for (const [k, v] of rlHits) {
-      if (v.every((t) => now - t >= RL_WINDOW_MS)) rlHits.delete(k)
-    }
-  }
-  return arr.length > RL_MAX
-}
+// Ліміти (27.09) — у базі, не в памʼяті ізолята (_shared/rateLimit.ts):
+//   • 5 спроб за хвилину на пару «адреса + пошта» (як і було задумано);
+//   • 60 спроб за годину з однієї адреси — щоб з однієї машини не перебирати
+//     сотні адрес, з'ясовуючи, кого запрошено.
+const PER_IP_EMAIL_MIN = 5
+const PER_IP_HOUR = 60
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,18 +40,19 @@ Deno.serve(async (req) => {
     }
     const normalized = email.trim().toLowerCase()
 
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      req.headers.get('cf-connecting-ip') ||
-      'unknown'
-    if (rateLimited(`${ip}:${normalized}`)) {
-      console.error('confirm-pending-signup rate-limited', { ip })
-      return ok(false)
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceKey)
+
+    const ip = clientIp(req)
+    const verdicts = await Promise.all([
+      rateLimit(admin, 'confirm_signup_pair', `${ip}|${normalized}`, PER_IP_EMAIL_MIN, 60),
+      rateLimit(admin, 'confirm_signup_ip', ip, PER_IP_HOUR, 3600),
+    ])
+    if (verdicts.includes('limit')) {
+      console.error('confirm-pending-signup rate-limited', { ip })
+      return ok(false)
+    }
 
     // 1. Must match a pending ghost profile
     const { data: isPending, error: pendingErr } = await admin.rpc('is_pending_email', {
@@ -85,46 +75,24 @@ Deno.serve(async (req) => {
       return ok(false)
     }
 
-    // 2. Find the auth user by email.
-    // Prefer a direct lookup; fall back to paginating listUsers so this keeps
-    // working past 200 users (the old perPage:200 silently missed users beyond
-    // the first page).
-    let authUser:
-      | { id: string; email?: string; email_confirmed_at?: string | null }
-      | null = null
-
-    const adminApi = admin.auth.admin as unknown as {
-      getUserByEmail?: (
-        e: string,
-      ) => Promise<{ data: { user: typeof authUser } | null; error: unknown }>
-      listUsers: (args: { page: number; perPage: number }) => Promise<{
-        data: { users: NonNullable<typeof authUser>[] } | null
-        error: unknown
-      }>
+    // 2. Акаунт за поштою — з бази (user_id_by_email, міграція 20260927150000):
+    //    без listUsers по 200 сторінок і без залежності від версії SDK.
+    let authUser: { id: string; email?: string; email_confirmed_at?: string | null } | null = null
+    const { data: foundId, error: lookupErr } = await (admin.rpc as any)('user_id_by_email', { _email: normalized })
+    if (lookupErr) {
+      console.error('confirm-pending-signup: user_id_by_email failed', lookupErr.message)
+      return new Response(JSON.stringify({ ok: false, error: 'db' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
-
-    if (typeof adminApi.getUserByEmail === 'function') {
-      const { data, error } = await adminApi.getUserByEmail(normalized)
-      if (error) {
-        console.error('getUserByEmail failed', error)
+    if (typeof foundId === 'string' && foundId) {
+      const { data: byId, error: byIdErr } = await admin.auth.admin.getUserById(foundId)
+      if (byIdErr) {
+        console.error('confirm-pending-signup: getUserById failed', byIdErr.message)
         return ok(false)
       }
-      authUser = data?.user ?? null
-    } else {
-      const perPage = 200
-      for (let page = 1; page <= 50 && !authUser; page++) {
-        const { data, error } = await adminApi.listUsers({ page, perPage })
-        if (error) {
-          console.error('listUsers failed', error)
-          return ok(false)
-        }
-        const users = data?.users ?? []
-        authUser =
-          users.find(
-            (u) => (u.email ?? '').toLowerCase() === normalized,
-          ) ?? null
-        if (users.length < perPage) break // last page reached
-      }
+      authUser = byId?.user ?? null
     }
 
     if (!authUser) {

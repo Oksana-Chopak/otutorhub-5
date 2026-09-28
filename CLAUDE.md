@@ -269,6 +269,23 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   from summary to fireflies_summary — absent data renders as absent (guarded by
   src/test/security-invariants.test.ts).
 
+### PUBLIC DOORS — публічні edge-функції (27.09) — INVIOLABLE
+- Ліміт частоти для функції з `verify_jwt = false`, що створює акаунти, шле листи
+  чи пише в базу від імені аноніма, живе ЛИШЕ в базі: `rateLimit(admin, scope, key,
+  max, windowSeconds)` з `_shared/rateLimit.ts` → RPC `rate_limit_check`. Лічильник у
+  памʼяті ізолята — не ліміт (обнуляється з кожним холодним стартом). Ключ «IP+пошта»
+  — не ліміт (кожна нова пошта = новий ліміт). Мінімум два виміри: адреса + пошта/платформа.
+  Без бази двері не навстіж: запасний лічильник + рядок в `error_log`.
+- Анонім з лендінгу НІКОЛИ не пише в профіль зареєстрованої людини (телефон, імʼя):
+  його дані живуть лише в самій заявці. Акаунт за поштою шукається RPC `user_id_by_email`
+  (service_role), не `listUsers` (перші 200).
+- Злиття запрошеного профілю при реєстрації (`merge_pending_profile`): пошта збігається →
+  переносимо; лише телефон → переносимо ТІЛЬКИ коли в запрошеного пошти немає; контакти
+  чужих людей зі спільним номером не чіпаємо. `protect_lesson_fields` пускає перенесення
+  `student_id`/`tutor_id` лише під прапорцем `app.pending_profile_merge` (без нього
+  кожен запрошений з уроками реєструвався порожнім з 05.05 по 27.09).
+  Гейт: `src/test/public-doors.test.ts` + сценарій `96-public-doors.sql`.
+
 ### Theme & colors — INVIOLABLE (added 01.08 after repeated dark-theme bugs)
 - **11.09 — ХВИЛЯ КОНТРАСТУ + ЛАГОДЖЕННЯ ДАРКУ (стояча згода власниці на косметику).**
   Колір БРЕНДУ і колір ТЕКСТУ — різні речі. `#2BBFAA` як заливка кнопки бездоганний,
