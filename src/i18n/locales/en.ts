@@ -538,6 +538,9 @@ export const en: LocaleTranslations = {
     less: "Collapse",
   },
   landingHero: {
+    sheetOpen: "Keep students in a Google Sheet? Paste the link",
+    sheetLoad: "Read it",
+    sheetHint: "The sheet must be shared as “Anyone with the link”. We'll read the first tab and show the numbers here, just like with a list.",
     docTitle: "the tutor's assistant that chases payments for you",
     eyebrow: "Tutor's assistant",
     title: "Students pay on time.\nYou never nag.",

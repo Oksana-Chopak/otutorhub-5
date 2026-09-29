@@ -92,13 +92,12 @@ describe("edge import-sheet-fetch: лише Google, без прав, з межа
     expect(s()).toMatch(/if \(res\.url\.includes\("accounts\.google\.com"\) \|\| ct\.includes\("text\/html"\) \|\| res\.status === 401 \|\| res\.status === 403\) \{\s*return json\(403, \{ error: "private" \}\);/);
   });
 
-  it("межі: 1 МБ, 500 рядків, 15 с, стеля 30/год у базі, лише для залогіненого", () => {
+  it("межі: 1 МБ, 500 рядків, 15 с, стеля 30/год у базі для залогіненого", () => {
     const src = s();
     expect(src).toMatch(/export const MAX_BYTES = 1_000_000;/);
     expect(src).toMatch(/export const MAX_ROWS = 500;/);
     expect(src).toMatch(/const FETCH_TIMEOUT_MS = 15_000;/);
     expect(src).toMatch(/rateLimit\(admin, "import_sheet_fetch", user\.id, PER_TUTOR_HOUR, 3600\)/);
-    expect(src).toMatch(/if \(!user\) return json\(401, \{ error: "unauthorized" \}\);/);
     expect(read("supabase/config.toml")).toMatch(/\[functions\.import-sheet-fetch\]\s*\n\s*verify_jwt = true/);
   });
 });
@@ -127,5 +126,31 @@ describe("онбординг: перше питання — «Де зараз т
     expect(src).toMatch(/initialSource=\{importSource\}/);
     const sheet = noComments(read("src/components/ImportStudentsSheet.tsx"));
     expect(sheet).toMatch(/useEffect\(\(\) => \{ if \(open\) setSource\(initialSource \?\? "text"\); \}, \[open, initialSource\]\);/);
+  });
+});
+
+describe("лендінг: «маєш Google Таблицю? встав посилання» — ще до реєстрації", () => {
+  it("посилання читається тим самим edge (без акаунта — 5/год з адреси, 500/добу, 200 рядків)", () => {
+    const edge = noComments(read("supabase/functions/import-sheet-fetch/index.ts"));
+    expect(edge).not.toMatch(/if \(!user\) return json\(401/);
+    expect(edge).toMatch(/rateLimit\(admin, "import_sheet_fetch_ip", clientIp\(req\), PER_IP_HOUR_ANON, 3600\)/);
+    expect(edge).toMatch(/rateLimit\(admin, "import_sheet_fetch_all", "platform", PLATFORM_DAY_ANON, 86400\)/);
+    expect(edge).toMatch(/export const MAX_ROWS_ANON = 200;/);
+    expect(edge).toMatch(/const maxRows = user \? MAX_ROWS : MAX_ROWS_ANON;/);
+    const hero = noComments(read("src/components/landing/LandingHero.tsx"));
+    expect(hero).toMatch(/supabase\.functions\.invoke\("import-sheet-fetch", \{ body: \{ url: sheetUrl\.trim\(\) \} \}\)/);
+    expect(hero).toMatch(/setText\(toCanonicalText\(parsedRows, kw\)\);/);
+    expect(hero).toMatch(/landingHero\.sheetOpen/);
+  });
+});
+
+describe("зворотна синхронізація: імпортовані уроки — у Google Календар", () => {
+  it("лише майбутні без події, лише якщо календар підключений, і НЕ для імпорту з календаря", () => {
+    const lib = noComments(read("src/lib/googleCalendarSync.ts"));
+    expect(lib).toMatch(/\.from\("google_calendar_tokens"\)[\s\S]*?\.maybeSingle\(\);\s*if \(!tok\) return 0;/);
+    expect(lib).toMatch(/\.is\("google_event_id", null\)\s*\.gte\("starts_at", new Date\(\)\.toISOString\(\)\)/);
+    const sheet = noComments(read("src/components/ImportStudentsSheet.tsx"));
+    expect(sheet).toMatch(/if \(scheduled > 0 && loadedFrom !== "google_calendar"\) \{\s*void backSyncImportedLessons\(user\.id, importedIds\)/);
+    expect(sheet).toMatch(/setLoadedFrom\("google_calendar"\);/);
   });
 });

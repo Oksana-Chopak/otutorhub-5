@@ -1262,6 +1262,9 @@ export const sv: LocaleTranslations = {
     less: "Fäll ihop",
   },
   landingHero: {
+    sheetOpen: "Har du eleverna i ett Google Kalkylark? Klistra in länken",
+    sheetLoad: "Läs in",
+    sheetHint: "Arket måste vara delat som ”Alla med länken”. Vi läser första fliken och visar siffrorna här, precis som med en lista.",
     docTitle: "lärarens assistent som påminner om betalningar åt dig",
     eyebrow: "Lärarens assistent",
     title: "Eleverna betalar i tid.\nDu tjatar aldrig.",

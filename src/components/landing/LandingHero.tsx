@@ -41,6 +41,13 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
   const { t, i18n } = useTranslation();
   const taId = useId();
   const [text, setText] = useState(() => peekLandingDraft() ?? "");
+  /* 29.09: «маєш Google Таблицю з учнями? встав посилання» — ще до реєстрації.
+     Таблиця стає тими самими рядками в полі (канон), далі все як зі списком:
+     цифри на лендінгу, естафета, той самий екран підтвердження після реєстрації. */
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [sheetBusy, setSheetBusy] = useState(false);
+  const [sheetMsg, setSheetMsg] = useState<string | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const bubbleRef = useRef<HTMLDivElement | null>(null);
 
@@ -74,6 +81,34 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
     day: (wd: number) => t(`importStudents.day${wd}`),
   }), [t]);
   const canonical = useMemo(() => (isExample ? "" : toCanonicalText(rows, kw)), [rows, kw, isExample]);
+  const loadSheet = async () => {
+    if (!sheetUrl.trim() || sheetBusy) return;
+    setSheetBusy(true);
+    setSheetMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("import-sheet-fetch", { body: { url: sheetUrl.trim() } });
+      if (error) {
+        let code = "";
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.json === "function") code = (await ctx.json())?.error ?? "";
+        } catch { /* тіло не JSON */ }
+        const key = code === "private" ? "sheetPrivate" : code === "bad_url" ? "sheetBadUrl" : code === "rate_limited" ? "sheetRateLimited" : code === "too_big" || code === "too_many_rows" ? "sheetTooBig" : "sheetFailed";
+        setSheetMsg(t(`importStudents.${key}`));
+        return;
+      }
+      const csv = (data as any)?.csv;
+      const parsedRows = typeof csv === "string" ? parseStudentList(csv) : [];
+      const ok = parsedRows.filter((r) => !r.error);
+      if (!ok.length) { setSheetMsg(t("importStudents.sourceNothing")); return; }
+      setText(toCanonicalText(parsedRows, kw));
+      setSheetOpen(false);
+      setSheetMsg(null);
+      landingEvent("landing_sheet_loaded", { rows: parsedRows.length, ok: ok.length });
+    } finally {
+      setSheetBusy(false);
+    }
+  };
 
   // Воронка: побачив → почав вставляти → розпізнано → побачив цифри.
   useEffect(() => { landingEvent("landing_view"); metaTrack("PageView"); }, []);
@@ -208,6 +243,28 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
               spellCheck={false}
               className="paste-field"
             />
+            {sheetOpen ? (
+              <div className="paste-sheet">
+                <input
+                  type="url"
+                  inputMode="url"
+                  value={sheetUrl}
+                  onChange={(e) => setSheetUrl(e.target.value)}
+                  aria-label={t("importStudents.sheetUrlLabel")}
+                  placeholder="https://docs.google.com/spreadsheets/d/…"
+                  className="paste-sheet-input"
+                  disabled={sheetBusy}
+                />
+                <button type="button" className="paste-sheet-btn" onClick={loadSheet} disabled={sheetBusy || !sheetUrl.trim()}>
+                  {sheetBusy ? "…" : t("landingHero.sheetLoad")}
+                </button>
+                <p className="paste-sheet-hint">{sheetMsg ?? t("landingHero.sheetHint")}</p>
+              </div>
+            ) : (
+              <button type="button" className="paste-link paste-sheet-open" onClick={() => setSheetOpen(true)}>
+                📊 {t("landingHero.sheetOpen")}
+              </button>
+            )}
             <div className="paste-foot">
               <span className="paste-privacy">🔒 {t("landingHero.privacy")}</span>
               {isExample ? (

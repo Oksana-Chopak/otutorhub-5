@@ -27,6 +27,7 @@ import { currencySymbol, formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { Loader2, Link2, FileUp, ClipboardPaste, CalendarDays } from "lucide-react";
 import { eventsToStudents, calendarToImportText, type CalendarEvent } from "@/lib/calendarImport";
+import { backSyncImportedLessons } from "@/lib/googleCalendarSync";
 
 /** Грошове поле, яке людина може поправити дотиком. */
 type EditableField = "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons";
@@ -157,6 +158,8 @@ export function ImportStudentsSheet({
      рядками імпорту (toCanonicalText) — людина бачить, що ми зрозуміли, може
      поправити, і далі — той самий екран підтвердження. Числа не вигадуються. */
   const [source, setSource] = useState<"text" | "sheet" | "file" | "calendar">(initialSource ?? "text");
+  /** Звідки приїхали рядки, що зараз у полі (для зворотної синхронізації в Google Календар). */
+  const [loadedFrom, setLoadedFrom] = useState<"text" | "google_sheet" | "csv_file" | "google_calendar">("text");
   useEffect(() => { if (open) setSource(initialSource ?? "text"); }, [open, initialSource]);
   const [sheetUrl, setSheetUrl] = useState("");
   const [sheetBusy, setSheetBusy] = useState(false);
@@ -180,6 +183,7 @@ export function ImportStudentsSheet({
     setText(canonical);
     setOverrides({});
     setSource("text");
+    setLoadedFrom(label as "google_sheet" | "csv_file");
     logEvent("import_source", { source: label, rows: parsedRows.length, ok: ok.length });
     toast.success(t("importStudents.sourceLoaded", { count: ok.length }));
   };
@@ -233,6 +237,7 @@ export function ImportStudentsSheet({
       setText(calendarToImportText(imp, kw));
       setOverrides({});
       setSource("text");
+      setLoadedFrom("google_calendar");
       logEvent("import_source", { source: "google_calendar", rows: imp.students.length, skipped: imp.skipped.length });
       toast.success(t("importStudents.calendarLoaded", { count: imp.students.length, skipped: imp.skipped.length }));
     } finally {
@@ -338,6 +343,7 @@ export function ImportStudentsSheet({
     let scheduled = 0;
     const failedNames: string[] = [];
     const notes: Array<{ student_id: string; note: string }> = [];
+    const importedIds: string[] = [];
     // Послідовно, не Promise.all: RPC створює профілі й уроки, і паралельний
     // шквал лише збільшує шанс гонок/лімітів; 20 учнів = кілька секунд.
     for (let i = 0; i < valid.length; i++) {
@@ -381,6 +387,7 @@ export function ImportStudentsSheet({
           if (d.action === "linked") linked++; else added++;
           debtTotal += Number(d.debt_total ?? 0);
           scheduled += Number(d.scheduled ?? 0);
+          if (d.student_id) importedIds.push(d.student_id);
           if (rowNote && d.student_id) notes.push({ student_id: d.student_id, note: rowNote });
         }
       } catch {
@@ -399,6 +406,11 @@ export function ImportStudentsSheet({
     setBusy(false);
     setProgress(null);
     logEvent("students_imported", { added, linked, failed, total: valid.length, debtTotal, scheduled });
+    // 29.09: імпортовані уроки — у Google Календар репетитора, якщо він підключений
+    // (крім імпорту ІЗ календаря: там вони вже є). Best-effort, у фоні.
+    if (scheduled > 0 && loadedFrom !== "google_calendar") {
+      void backSyncImportedLessons(user.id, importedIds).then((n) => { if (n > 0) logEvent("import_backsync_calendar", { lessons: n }); });
+    }
     // 13.09: анонімні «форми» невпізнаного — щоб словник парсера ріс із реальних
     // нотаток. Жодних імен і сум: цифри → #, слова з великої → Х; рядки без
     // імені — лише структура. Це те, на чому вирішуватимемо, чи потрібен AI.

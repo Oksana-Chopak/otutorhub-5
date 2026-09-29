@@ -144,6 +144,13 @@ const landingStyles = `
 .landing-root .paste-field::placeholder { color: var(--muted2); }
 .landing-root .paste-field:focus { border-color: var(--l-accent); box-shadow: 0 0 0 4px rgba(10,186,181,0.18); background: #fff; }
 .landing-root .paste-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.landing-root .paste-sheet-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
+.landing-root .paste-sheet { margin-top: 10px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.landing-root .paste-sheet-input { min-height: 44px; border: 1.5px solid var(--l-border); border-radius: 12px; padding: 0 14px; font: 500 16px/1.4 'Golos Text', system-ui, sans-serif; color: var(--l-ink, #111); background: #fff; }
+.landing-root .paste-sheet-input:focus { outline: none; border-color: var(--l-accent); box-shadow: 0 0 0 4px rgba(10,186,181,0.18); }
+.landing-root .paste-sheet-btn { min-height: 44px; border: none; border-radius: 12px; padding: 0 16px; background: var(--l-accent-btn); color: #fff; font: 700 15px 'Golos Text', system-ui, sans-serif; cursor: pointer; }
+.landing-root .paste-sheet-btn:disabled { opacity: .55; cursor: default; }
+.landing-root .paste-sheet-hint { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--l-muted); line-height: 1.4; }
 .landing-root .paste-privacy { font-size: 14px; color: var(--l-muted); line-height: 1.4; flex: 1 1 240px; }
 .landing-root .paste-link { background: none; border: none; cursor: pointer; font: 700 15px 'Golos Text', system-ui, sans-serif; color: var(--l-accent-text); min-height: 44px; padding: 0 4px; text-decoration: underline; text-underline-offset: 3px; }
 

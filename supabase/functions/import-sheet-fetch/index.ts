@@ -10,11 +10,12 @@
 // і ми чесно відповідаємо «таблиця приватна: відкрий доступ за посиланням».
 //
 // Безпека: лише docs.google.com (жодних довільних адрес — SSRF), ліміт 1 МБ і
-// 500 рядків, таймаут 15 с, стеля 30 таблиць/год на репетитора в базі.
+// 500 рядків, таймаут 15 с, стеля 30 таблиць/год на репетитора в базі; з
+// лендінгу без акаунта — 200 рядків, 5/год з адреси, 500/добу на платформу.
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { versionProbe } from "../_shared/build.ts";
-import { rateLimit } from "../_shared/rateLimit.ts";
+import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,8 +27,12 @@ const json = (status: number, body: unknown) =>
 
 export const MAX_BYTES = 1_000_000;
 export const MAX_ROWS = 500;
+/** Лендінг (без акаунта): менше рядків і жорсткіший ліміт — це публічні двері. */
+export const MAX_ROWS_ANON = 200;
 const FETCH_TIMEOUT_MS = 15_000;
 const PER_TUTOR_HOUR = 30;
+const PER_IP_HOUR_ANON = 5;
+const PLATFORM_DAY_ANON = 500;
 
 /** Посилання на Google Таблицю → адреса експорту CSV. null = не Google Таблиця. */
 export function sheetCsvUrl(raw: string): string | null {
@@ -59,7 +64,6 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
   const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return json(401, { error: "unauthorized" });
 
   let body: { url?: string } = {};
   try { body = await req.json(); } catch { /* порожнє тіло */ }
@@ -67,9 +71,21 @@ Deno.serve(async (req) => {
   if (!csvUrl) return json(400, { error: "bad_url" });
 
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  if ((await rateLimit(admin, "import_sheet_fetch", user.id, PER_TUTOR_HOUR, 3600)) === "limit") {
-    return json(429, { error: "rate_limited" });
+  // Залогінений — 30/год на людину. Лендінг без акаунта (29.09: «маєш Google
+  // Таблицю? встав посилання» ще до реєстрації) — 5/год з адреси і 500/добу на
+  // платформу; ліміти живуть у базі, як у всіх публічних дверей.
+  if (user) {
+    if ((await rateLimit(admin, "import_sheet_fetch", user.id, PER_TUTOR_HOUR, 3600)) === "limit") {
+      return json(429, { error: "rate_limited" });
+    }
+  } else {
+    const verdicts = await Promise.all([
+      rateLimit(admin, "import_sheet_fetch_ip", clientIp(req), PER_IP_HOUR_ANON, 3600),
+      rateLimit(admin, "import_sheet_fetch_all", "platform", PLATFORM_DAY_ANON, 86400),
+    ]);
+    if (verdicts.includes("limit")) return json(429, { error: "rate_limited" });
   }
+  const maxRows = user ? MAX_ROWS : MAX_ROWS_ANON;
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
@@ -95,7 +111,7 @@ Deno.serve(async (req) => {
   const text = await res.text();
   if (text.length > MAX_BYTES) return json(413, { error: "too_big" });
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  if (lines.length > MAX_ROWS + 1) return json(413, { error: "too_many_rows", rows: lines.length - 1 });
+  if (lines.length > maxRows + 1) return json(413, { error: "too_many_rows", rows: lines.length - 1 });
   if (lines.length < 2) return json(422, { error: "empty" });
 
   return json(200, { csv: lines.join("\n"), rows: lines.length - 1 });
