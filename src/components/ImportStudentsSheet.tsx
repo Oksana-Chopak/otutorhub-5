@@ -127,12 +127,15 @@ export function ImportStudentsSheet({
   onOpenChange,
   onImported,
   initialText,
+  initialSource,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onImported?: (result: ImportResult) => void;
   /** Список, який людина набрала ще на лендінгу, до реєстрації. */
   initialText?: string;
+  /** 29.09: з якого джерела відкрити («Де твої учні?» в онбордингу). */
+  initialSource?: "text" | "sheet" | "file" | "calendar";
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -153,7 +156,8 @@ export function ImportStudentsSheet({
      Google Таблиця за посиланням або файл CSV. Таблиця стає тими самими
      рядками імпорту (toCanonicalText) — людина бачить, що ми зрозуміли, може
      поправити, і далі — той самий екран підтвердження. Числа не вигадуються. */
-  const [source, setSource] = useState<"text" | "sheet" | "file" | "calendar">("text");
+  const [source, setSource] = useState<"text" | "sheet" | "file" | "calendar">(initialSource ?? "text");
+  useEffect(() => { if (open) setSource(initialSource ?? "text"); }, [open, initialSource]);
   const [sheetUrl, setSheetUrl] = useState("");
   const [sheetBusy, setSheetBusy] = useState(false);
   const kw: CanonicalWords = useMemo(() => ({

@@ -232,12 +232,18 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
 }
 
 // ── Student inline action ─────────────────────────────────────────────────────
+type ImportSource = "text" | "sheet" | "file" | "calendar";
+
 function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
   defaultSubject: string; onComplete: (id: string, name: string, subject: string) => void; user: any;
-  /** 29.09: «Перенести все, що є» — Google Таблиця, файл або список текстом, замість одного учня руками. */
-  onImportAll?: () => void;
+  /** 29.09: «Де зараз твої учні?» — Google Таблиця / Календар / список текстом → імпорт із цим джерелом. */
+  onImportAll?: (source: ImportSource) => void;
 }) {
   const { t } = useTranslation();
+  /* 29.09: перше питання — не «введи учня», а «де зараз твої учні?». Ручне
+     перенесення зупиняє людей зі старту; троє дверей ведуть у той самий
+     імпорт з екраном підтвердження, четверті — у форму одного учня. */
+  const [mode, setMode] = useState<"choose" | "manual">(onImportAll ? "choose" : "manual");
   const [name,    setName]    = useState("");
   const [email,   setEmail]   = useState("");
   const [subject, setSubject] = useState(defaultSubject);
@@ -286,6 +292,28 @@ function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
     }
   };
 
+  if (mode === "choose" && onImportAll) {
+    const tiles: Array<[ImportSource | "manual", string, string, string]> = [
+      ["sheet", "📊", t("onboardingFlowB.whereSheet"), t("onboardingFlowB.whereSheetDesc")],
+      ["calendar", "📅", t("onboardingFlowB.whereCalendar"), t("onboardingFlowB.whereCalendarDesc")],
+      ["text", "📝", t("onboardingFlowB.whereNotes"), t("onboardingFlowB.whereNotesDesc")],
+      ["manual", "✍️", t("onboardingFlowB.whereManual"), t("onboardingFlowB.whereManualDesc")],
+    ];
+    return (
+      <div className="flex flex-col gap-2.5">
+        <p className="text-[15px]" style={{ color: T.sub }}>{t("onboardingFlowB.whereTitle")}</p>
+        {tiles.map(([key, emoji, title, desc]) => (
+          <button key={key} type="button" className="tap-44 w-full rounded-2xl border-[0.5px] p-3.5 text-left"
+            style={{ borderColor: T.border, background: "var(--ds-card,#fff)" }}
+            onClick={() => (key === "manual" ? setMode("manual") : onImportAll(key))}>
+            <span className="text-[16px] font-bold" style={{ color: T.txt }}>{emoji} {title}</span>
+            <span className="mt-0.5 block text-[14px]" style={{ color: T.muted }}>{desc}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3.5">
       <div>
@@ -319,7 +347,7 @@ function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
         {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.studentSubmit")}
       </Btn>
       {onImportAll && (
-        <button type="button" onClick={onImportAll} className="tap-44 w-full rounded-xl border-[0.5px] text-[15px] font-semibold"
+        <button type="button" onClick={() => setMode("choose")} className="tap-44 w-full rounded-xl border-[0.5px] text-[15px] font-semibold"
           style={{ borderColor: T.border, color: T.tealD, background: "transparent" }}>
           📋 {t("onboardingFlowB.studentImportAll")}
         </button>
@@ -1464,6 +1492,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const hasStudentStep = visibleSteps.some((s) => s.action === "student");
   const [handoff, setHandoff] = useState<string | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [importSource, setImportSource] = useState<ImportSource>("text");
   useEffect(() => {
     if (wsLoading || authLoading || !user || !isTutor || !hasStudentStep) return;
     const h = peekLandingHandoff(user);
@@ -1485,7 +1514,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     reload();
   };
   const handoffSheet = handoff ? (
-    <ImportStudentsSheet open={handoffOpen} onOpenChange={setHandoffOpen} initialText={handoff} onImported={onHandoffImported} />
+    <ImportStudentsSheet open={handoffOpen} onOpenChange={setHandoffOpen} initialText={handoff} initialSource={importSource} onImported={onHandoffImported} />
   ) : null;
 
   // Google Calendar OAuth return
@@ -1801,7 +1830,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               ) : (
                 <>
                   {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); void completeStep(step.id); }} />}
-                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onImportAll={() => setHandoffOpen(true)} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
+                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onImportAll={(src) => { setImportSource(src); setHandoffOpen(true); }} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
                   {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); void completeStep(step.id); }} />}
                   {step.action === "debt"         && <DebtAction    user={user} studentId={addedStudentId} studentName={addedStudentName} onSkip={() => { void completeStep(step.id); }} onComplete={() => { void completeStep(step.id); reload(); }} />}
                   {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { void completeStep(step.id); }} />}

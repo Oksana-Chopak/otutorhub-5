@@ -117,10 +117,15 @@ describe("клієнт: три джерела — один екран підтв
   });
 });
 
-describe("онбординг: перший крок пропонує перенести все, а не додавати по одному", () => {
-  it("кнопка «Перенести все, що є» відкриває той самий імпорт", () => {
+describe("онбординг: перше питання — «Де зараз твої учні?», а не «введи учня»", () => {
+  it("четверо дверей: таблиця, календар, нотатки → імпорт із цим джерелом; вручну → форма", () => {
     const src = noComments(read("src/components/OnboardingFlowB.tsx"));
-    expect(src).toMatch(/onImportAll=\{\(\) => setHandoffOpen\(true\)\}/);
-    expect(src).toMatch(/onboardingFlowB\.studentImportAll/);
+    expect(src).toMatch(/useState<"choose" \| "manual">\(onImportAll \? "choose" : "manual"\)/);
+    for (const k of ["whereSheet", "whereCalendar", "whereNotes", "whereManual", "whereTitle"]) expect(src).toContain(`onboardingFlowB.${k}`);
+    expect(src).toMatch(/onClick=\{\(\) => \(key === "manual" \? setMode\("manual"\) : onImportAll\(key\)\)\}/);
+    expect(src).toMatch(/onImportAll=\{\(src\) => \{ setImportSource\(src\); setHandoffOpen\(true\); \}\}/);
+    expect(src).toMatch(/initialSource=\{importSource\}/);
+    const sheet = noComments(read("src/components/ImportStudentsSheet.tsx"));
+    expect(sheet).toMatch(/useEffect\(\(\) => \{ if \(open\) setSource\(initialSource \?\? "text"\); \}, \[open, initialSource\]\);/);
   });
 });
