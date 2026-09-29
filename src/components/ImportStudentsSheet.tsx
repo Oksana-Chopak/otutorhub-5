@@ -25,7 +25,8 @@ import {
 } from "@/lib/importStudents";
 import { currencySymbol, formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
-import { Loader2, Link2, FileUp, ClipboardPaste } from "lucide-react";
+import { Loader2, Link2, FileUp, ClipboardPaste, CalendarDays } from "lucide-react";
+import { eventsToStudents, calendarToImportText, type CalendarEvent } from "@/lib/calendarImport";
 
 /** Грошове поле, яке людина може поправити дотиком. */
 type EditableField = "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons";
@@ -152,7 +153,7 @@ export function ImportStudentsSheet({
      Google Таблиця за посиланням або файл CSV. Таблиця стає тими самими
      рядками імпорту (toCanonicalText) — людина бачить, що ми зрозуміли, може
      поправити, і далі — той самий екран підтвердження. Числа не вигадуються. */
-  const [source, setSource] = useState<"text" | "sheet" | "file">("text");
+  const [source, setSource] = useState<"text" | "sheet" | "file" | "calendar">("text");
   const [sheetUrl, setSheetUrl] = useState("");
   const [sheetBusy, setSheetBusy] = useState(false);
   const kw: CanonicalWords = useMemo(() => ({
@@ -199,6 +200,48 @@ export function ImportStudentsSheet({
     } finally {
       setSheetBusy(false);
     }
+  };
+  /* Google Календар: наступні 4 тижні → учні з розкладом (лише те, що повторюється).
+     Ціни в календарі немає — і ми її не вигадуємо: людина ставить у превʼю. */
+  const [calBusy, setCalBusy] = useState(false);
+  const [calNotConnected, setCalNotConnected] = useState(false);
+  const loadCalendar = async () => {
+    if (calBusy) return;
+    setCalBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("google-calendar-import", { body: {} });
+      if (error) {
+        let code = "";
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.json === "function") code = (await ctx.json())?.error ?? "";
+        } catch { /* тіло не JSON */ }
+        if (code === "not_connected") { setCalNotConnected(true); return; }
+        toast.error(t(code === "rate_limited" ? "importStudents.sheetRateLimited" : "importStudents.calendarFailed"));
+        return;
+      }
+      const events = ((data as any)?.events ?? []) as CalendarEvent[];
+      const imp = eventsToStudents(events);
+      if (!imp.students.length) {
+        toast.error(t("importStudents.calendarNothing", { count: imp.skipped.length }));
+        return;
+      }
+      setText(calendarToImportText(imp, kw));
+      setOverrides({});
+      setSource("text");
+      logEvent("import_source", { source: "google_calendar", rows: imp.students.length, skipped: imp.skipped.length });
+      toast.success(t("importStudents.calendarLoaded", { count: imp.students.length, skipped: imp.skipped.length }));
+    } finally {
+      setCalBusy(false);
+    }
+  };
+  const connectCalendar = async () => {
+    const { data, error } = await supabase.functions.invoke("google-calendar-auth", {
+      body: { return_to: `${window.location.origin}${window.location.pathname}` },
+    });
+    if (error || !(data as any)?.redirect_url) { toast.error(t("googleCalendar.connectFailed")); return; }
+    const popup = window.open((data as any).redirect_url, "_blank");
+    if (!popup) window.location.href = (data as any).redirect_url;
   };
   const loadFile = async (f: File | null) => {
     if (!f) return;
@@ -406,6 +449,7 @@ export function ImportStudentsSheet({
               ["text", ClipboardPaste, t("importStudents.sourceText")],
               ["sheet", Link2, t("importStudents.sourceSheet")],
               ["file", FileUp, t("importStudents.sourceFile")],
+              ["calendar", CalendarDays, t("importStudents.sourceCalendar")],
             ] as const).map(([key, Icon, label]) => (
               <button key={key} type="button" role="tab" aria-selected={source === key} disabled={busy}
                 onClick={() => setSource(key)}
@@ -444,6 +488,25 @@ export function ImportStudentsSheet({
                 <input type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" className="sr-only" disabled={busy}
                   onChange={(e) => { void loadFile(e.target.files?.[0] ?? null); e.currentTarget.value = ""; }} />
               </label>
+            </div>
+          )}
+
+          {source === "calendar" && (
+            <div className="mt-3 rounded-xl border-[0.5px] border-input bg-background p-3">
+              <p className="text-[14px] text-muted-foreground">{t("importStudents.calendarHint")}</p>
+              {calNotConnected ? (
+                <button type="button" onClick={connectCalendar} disabled={busy}
+                  className="tap-44 mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[15px] font-semibold text-primary-foreground">
+                  <CalendarDays className="h-4 w-4" /> {t("importStudents.calendarConnect")}
+                </button>
+              ) : (
+                <button type="button" onClick={loadCalendar} disabled={busy || calBusy}
+                  className="tap-44 mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[15px] font-semibold text-primary-foreground disabled:opacity-50">
+                  {calBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
+                  {t("importStudents.calendarLoad")}
+                </button>
+              )}
+              {calNotConnected && <p className="mt-2 text-[13px] text-muted-foreground">{t("importStudents.calendarAfterConnect")}</p>}
             </div>
           )}
 

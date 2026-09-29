@@ -307,9 +307,11 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   500 рядків / 15 с / 30 на год у базі), файл CSV. Таблиця → `tableRows` (таб, кома, крапка з
   комою, лапки) → ті самі рядки імпорту (`toCanonicalText`) у полі — людина бачить, що ми
   зрозуміли, править, підтверджує. Числа не вигадуються. В онбордингу крок «учень» має
-  кнопку «Перенести все, що є» → той самий шит. Черга: Google Календар → уроки (наявний
-  OAuth `calendar.events` дає читання), перший екран онбордингу «Де твої учні?».
-  Гейт: `src/test/import-sheet.test.ts` (золоті CSV).
+  кнопку «Перенести все, що є» → той самий шит. Google Календар (edge
+  `google-calendar-import`, той самий OAuth `calendar.events`, лише читання, 28 днів / 500
+  подій / 20 на год): повторювані події з іменем → учні з розкладом (`src/lib/calendarImport.ts`),
+  разові — перелічуються як пропущені, ціни з календаря НЕ вигадуються. Черга: перший екран
+  онбордингу «Де твої учні?». Гейти: `import-sheet.test.ts`, `calendar-import.test.ts`.
 
 ### LOVABLE «SECURITY FINDINGS» — не приймати наосліп (29.09) — INVIOLABLE
 - Автоматична «перевірка безпеки» Lovable забирає EXECUTE у SECURITY DEFINER-функцій, яких

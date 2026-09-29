@@ -97,3 +97,5 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.import-sheet-fetch]
     verify_jwt = true
+  [functions.google-calendar-import]
+    verify_jwt = true
