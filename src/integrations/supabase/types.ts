@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_calls: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          input_hash: string
+          kind: string
+          lesson_id: string | null
+          model: string | null
+          ms: number | null
+          output: string | null
+          status: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_hash: string
+          kind: string
+          lesson_id?: string | null
+          model?: string | null
+          ms?: number | null
+          output?: string | null
+          status: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_hash?: string
+          kind?: string
+          lesson_id?: string | null
+          model?: string | null
+          ms?: number | null
+          output?: string | null
+          status?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       app_events: {
         Row: {
           created_at: string
@@ -677,6 +719,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_runs: {
+        Row: {
+          counts: Json | null
+          error: string | null
+          finished_at: string
+          id: string
+          job: string
+          ms: number | null
+          ok: boolean
+          started_at: string
+          status: number | null
+        }
+        Insert: {
+          counts?: Json | null
+          error?: string | null
+          finished_at?: string
+          id?: string
+          job: string
+          ms?: number | null
+          ok: boolean
+          started_at: string
+          status?: number | null
+        }
+        Update: {
+          counts?: Json | null
+          error?: string | null
+          finished_at?: string
+          id?: string
+          job?: string
+          ms?: number | null
+          ok?: boolean
+          started_at?: string
+          status?: number | null
+        }
+        Relationships: []
       }
       landing_funnel_daily: {
         Row: {
@@ -1568,6 +1646,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_invite_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          profile_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          profile_id: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          profile_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       platform_admins: {
         Row: {
           created_at: string
@@ -1748,6 +1853,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rate_limit_hits: {
+        Row: {
+          hit_at: string
+          id: number
+          key_hash: string
+          scope: string
+        }
+        Insert: {
+          hit_at?: string
+          id?: never
+          key_hash: string
+          scope: string
+        }
+        Update: {
+          hit_at?: string
+          id?: never
+          key_hash?: string
+          scope?: string
+        }
+        Relationships: []
       }
       referral_codes: {
         Row: {
@@ -2866,6 +2992,29 @@ export type Database = {
         }
         Returns: Json
       }
+      ai_call_gate: {
+        Args: {
+          _input_hash: string
+          _kind: string
+          _max_per_day: number
+          _tutor: string
+        }
+        Returns: Json
+      }
+      ai_call_log: {
+        Args: {
+          _error?: string
+          _input_hash: string
+          _kind: string
+          _lesson: string
+          _model?: string
+          _ms?: number
+          _output?: string
+          _status: string
+          _tutor: string
+        }
+        Returns: string
+      }
       answer_feedback: { Args: { _id: string; _text: string }; Returns: Json }
       approve_subscription_request: {
         Args: { _months?: number; _request_id: string; _response?: string }
@@ -2891,6 +3040,10 @@ export type Database = {
       }
       claim_referral: { Args: { _code: string }; Returns: Json }
       claim_tutor_role: { Args: never; Returns: string }
+      consume_invite_token: {
+        Args: { _email: string; _token: string }
+        Returns: boolean
+      }
       create_hub: { Args: { _manager: string; _name: string }; Returns: string }
       create_landing_handoff: {
         Args: { _digest: string; _lang?: string; _list: string }
@@ -3050,6 +3203,22 @@ export type Database = {
       is_pending_profile: { Args: { _user_id: string }; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
       is_tutor_pro: { Args: { _tutor_id: string }; Returns: boolean }
+      issue_invite_token: {
+        Args: { _email: string; _profile: string }
+        Returns: string
+      }
+      job_health: { Args: { _hours?: number }; Returns: Json }
+      job_run_record: {
+        Args: {
+          _counts?: Json
+          _error?: string
+          _job: string
+          _ms: number
+          _ok: boolean
+          _status?: number
+        }
+        Returns: string
+      }
       landing_bot_username: { Args: never; Returns: string }
       link_student_by_email:
         | {
@@ -3117,6 +3286,15 @@ export type Database = {
         Returns: number
       }
       purge_user_data: { Args: { _user_id: string }; Returns: undefined }
+      rate_limit_check: {
+        Args: {
+          _key: string
+          _max: number
+          _scope: string
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3190,6 +3368,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_id_by_email: { Args: { _email: string }; Returns: string }
       wallet_adjust: {
         Args: {
           _amount_delta: number
