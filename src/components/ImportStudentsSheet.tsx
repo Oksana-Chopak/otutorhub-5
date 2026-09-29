@@ -20,10 +20,12 @@ import {
   type RowOverride,
   type UnsureChoice,
   type ScheduleSlot,
+  toCanonicalText,
+  type CanonicalWords,
 } from "@/lib/importStudents";
 import { currencySymbol, formatPrice } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
-import { Loader2 } from "lucide-react";
+import { Loader2, Link2, FileUp, ClipboardPaste } from "lucide-react";
 
 /** Грошове поле, яке людина може поправити дотиком. */
 type EditableField = "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons";
@@ -145,6 +147,65 @@ export function ImportStudentsSheet({
   }, [initialText]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+
+  /* 29.09 «Перенести все, що є» за пару кліків: джерело — вставлений текст,
+     Google Таблиця за посиланням або файл CSV. Таблиця стає тими самими
+     рядками імпорту (toCanonicalText) — людина бачить, що ми зрозуміли, може
+     поправити, і далі — той самий екран підтвердження. Числа не вигадуються. */
+  const [source, setSource] = useState<"text" | "sheet" | "file">("text");
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [sheetBusy, setSheetBusy] = useState(false);
+  const kw: CanonicalWords = useMemo(() => ({
+    debt: t("importStudents.kwDebt"),
+    prepay: t("importStudents.kwPrepay"),
+    lessons: t("importStudents.kwLessons"),
+    money: t("importStudents.kwMoney"),
+    min: t("importStudents.kwMin"),
+    day: (wd: number) => t(`importStudents.day${wd}`),
+  }), [t]);
+  const takeTable = (raw: string, label: string) => {
+    const parsedRows = parseStudentList(raw);
+    const ok = parsedRows.filter((r) => !r.error);
+    if (!ok.length) {
+      toast.error(t("importStudents.sourceNothing"));
+      return;
+    }
+    // Рядки, які парсер не зрозумів, лишаємо як є — людина побачить їх у превʼю.
+    const canonical = toCanonicalText(parsedRows, kw);
+    setText(canonical);
+    setOverrides({});
+    setSource("text");
+    logEvent("import_source", { source: label, rows: parsedRows.length, ok: ok.length });
+    toast.success(t("importStudents.sourceLoaded", { count: ok.length }));
+  };
+  const loadSheet = async () => {
+    if (!sheetUrl.trim() || sheetBusy) return;
+    setSheetBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("import-sheet-fetch", { body: { url: sheetUrl.trim() } });
+      if (error) {
+        let code = "";
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.json === "function") code = (await ctx.json())?.error ?? "";
+        } catch { /* тіло не JSON */ }
+        const key = code === "private" ? "sheetPrivate" : code === "bad_url" ? "sheetBadUrl" : code === "rate_limited" ? "sheetRateLimited" : code === "too_big" || code === "too_many_rows" ? "sheetTooBig" : "sheetFailed";
+        toast.error(t(`importStudents.${key}`));
+        return;
+      }
+      const csv = (data as any)?.csv;
+      if (typeof csv !== "string" || !csv) { toast.error(t("importStudents.sheetFailed")); return; }
+      takeTable(csv, "google_sheet");
+    } finally {
+      setSheetBusy(false);
+    }
+  };
+  const loadFile = async (f: File | null) => {
+    if (!f) return;
+    if (f.size > 1_000_000) { toast.error(t("importStudents.sheetTooBig")); return; }
+    const raw = await f.text();
+    takeTable(raw, "csv_file");
+  };
 
   const parsed = useMemo(() => parseStudentList(text), [text]);
   // 13.09, екран підтвердження: правки дотиком живуть окремо від тексту, з ключем
@@ -339,6 +400,52 @@ export function ImportStudentsSheet({
             📋 {t("importStudents.title")}
           </p>
           <p className="mt-1 text-[14px] text-muted-foreground">{t("importStudents.subtitle")}</p>
+
+          <div className="mt-3 flex gap-2" role="tablist" aria-label={t("importStudents.sourceLabel")}>
+            {([
+              ["text", ClipboardPaste, t("importStudents.sourceText")],
+              ["sheet", Link2, t("importStudents.sourceSheet")],
+              ["file", FileUp, t("importStudents.sourceFile")],
+            ] as const).map(([key, Icon, label]) => (
+              <button key={key} type="button" role="tab" aria-selected={source === key} disabled={busy}
+                onClick={() => setSource(key)}
+                className={`tap-44 flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border-[0.5px] px-2 text-[14px] font-medium ${source === key ? "border-primary bg-primary/10 text-foreground" : "border-input text-muted-foreground"}`}>
+                <Icon className="h-4 w-4" /> {label}
+              </button>
+            ))}
+          </div>
+
+          {source === "sheet" && (
+            <div className="mt-3 rounded-xl border-[0.5px] border-input bg-background p-3">
+              <p className="text-[14px] text-muted-foreground">{t("importStudents.sheetHint")}</p>
+              <input
+                type="url"
+                inputMode="url"
+                value={sheetUrl}
+                onChange={(e) => setSheetUrl(e.target.value)}
+                aria-label={t("importStudents.sheetUrlLabel")}
+                placeholder="https://docs.google.com/spreadsheets/d/…"
+                disabled={busy || sheetBusy}
+                className="mt-2 h-11 w-full rounded-lg border-[0.5px] border-input bg-background px-3 text-[15px] text-foreground focus:outline-none"
+              />
+              <button type="button" onClick={loadSheet} disabled={busy || sheetBusy || !sheetUrl.trim()}
+                className="tap-44 mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[15px] font-semibold text-primary-foreground disabled:opacity-50">
+                {sheetBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+                {t("importStudents.sheetLoad")}
+              </button>
+            </div>
+          )}
+
+          {source === "file" && (
+            <div className="mt-3 rounded-xl border-[0.5px] border-input bg-background p-3">
+              <p className="text-[14px] text-muted-foreground">{t("importStudents.fileHint")}</p>
+              <label className="tap-44 mt-2 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[15px] font-semibold text-primary-foreground">
+                <FileUp className="h-4 w-4" /> {t("importStudents.fileChoose")}
+                <input type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" className="sr-only" disabled={busy}
+                  onChange={(e) => { void loadFile(e.target.files?.[0] ?? null); e.currentTarget.value = ""; }} />
+              </label>
+            </div>
+          )}
 
           <textarea
             value={text}

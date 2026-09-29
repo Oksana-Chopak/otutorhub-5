@@ -232,8 +232,10 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
 }
 
 // ── Student inline action ─────────────────────────────────────────────────────
-function StudentAction({ defaultSubject, onComplete, user }: {
+function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
   defaultSubject: string; onComplete: (id: string, name: string, subject: string) => void; user: any;
+  /** 29.09: «Перенести все, що є» — Google Таблиця, файл або список текстом, замість одного учня руками. */
+  onImportAll?: () => void;
 }) {
   const { t } = useTranslation();
   const [name,    setName]    = useState("");
@@ -316,6 +318,12 @@ function StudentAction({ defaultSubject, onComplete, user }: {
       <Btn disabled={!ok || saving} onClick={save}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.studentSubmit")}
       </Btn>
+      {onImportAll && (
+        <button type="button" onClick={onImportAll} className="tap-44 w-full rounded-xl border-[0.5px] text-[15px] font-semibold"
+          style={{ borderColor: T.border, color: T.tealD, background: "transparent" }}>
+          📋 {t("onboardingFlowB.studentImportAll")}
+        </button>
+      )}
     </div>
   );
 }
@@ -1793,7 +1801,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               ) : (
                 <>
                   {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); void completeStep(step.id); }} />}
-                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
+                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onImportAll={() => setHandoffOpen(true)} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
                   {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); void completeStep(step.id); }} />}
                   {step.action === "debt"         && <DebtAction    user={user} studentId={addedStudentId} studentName={addedStudentName} onSkip={() => { void completeStep(step.id); }} onComplete={() => { void completeStep(step.id); reload(); }} />}
                   {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { void completeStep(step.id); }} />}

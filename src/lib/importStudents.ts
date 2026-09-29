@@ -633,41 +633,89 @@ export function unrecognizedShape(fragment: string): string {
 type Col = "name" | "surname" | "subject" | "price" | "debt" | "prepay" | "day" | "time" | "schedule" | "phone" | "email" | "telegram" | "note" | "duration" | null;
 
 function headerCol(h: string): Col {
-  const w = h.toLowerCase().replace(/['ʼ’`]/g, "").trim();
-  if (/^(імя|имя|name|student|учень|учні|ім'я|full name|піб)$/.test(w)) return "name";
-  if (/^(прізвище|surname|last name)$/.test(w)) return "surname";
-  if (/^(предмет|subject|ämne)$/.test(w)) return "subject";
-  if (/^(ціна|цена|price|rate|ставка|вартість|pris)$/.test(w)) return "price";
-  if (/^(борг|debt|заборгованість|skuld)$/.test(w)) return "debt";
-  if (/^(передоплата|передплата|аванс|prepaid|prepay|prepayment|förskott)$/.test(w)) return "prepay";
-  if (/^(день|дні|день тижня|day|weekday|дн)$/.test(w)) return "day";
-  if (/^(час|time|tid)$/.test(w)) return "time";
-  if (/^(розклад|schedule|schema)$/.test(w)) return "schedule";
-  if (/^(телефон|phone|тел|mobile|телефон батьків)$/.test(w)) return "phone";
-  if (/^(пошта|email|e-mail|mail|epost|e-post)$/.test(w)) return "email";
-  if (/^(telegram|тг|телеграм)$/.test(w)) return "telegram";
-  if (/^(нотатка|коментар|note|notes|comment|примітка)$/.test(w)) return "note";
-  if (/^(тривалість|duration|хв)$/.test(w)) return "duration";
+  // 29.09: заголовки з Google Таблиць приходять як «Ціна (грн)», «Телефон мами»,
+  // «Борг, уроків» — нормалізуємо і дивимось на початок слова, а не на точний збіг.
+  const w = h.toLowerCase().replace(/['ʼ’`]/g, "").replace(/\(.*?\)/g, "").replace(/[,.;:]/g, " ").replace(/\s+/g, " ").trim();
+  if (!w) return null;
+  const starts = (...ps: string[]) => ps.some((x) => w === x || w.startsWith(x + " ") || w.startsWith(x));
+  if (starts("прізвище", "surname", "last name", "efternamn")) return "surname";
+  if (starts("імя", "имя", "name", "student", "учень", "учні", "ученик", "ученица", "студент", "піб", "full name", "namn", "elev", "хто")) return "name";
+  if (starts("предмет", "subject", "ämne", "дисциплін")) return "subject";
+  if (starts("ціна", "цена", "price", "rate", "ставка", "вартість", "стоимость", "pris", "оплата за", "за урок", "за заняття")) return "price";
+  if (starts("борг", "debt", "заборгован", "долг", "skuld", "винен", "винна")) return "debt";
+  if (starts("передоплата", "передплата", "аванс", "prepaid", "prepay", "förskott", "оплачено наперед", "баланс")) return "prepay";
+  if (starts("розклад", "schedule", "schema", "графік", "график")) return "schedule";
+  if (starts("день", "дні", "day", "weekday", "дн", "dag")) return "day";
+  if (starts("час", "time", "tid", "година", "о котрій")) return "time";
+  if (starts("телефон", "phone", "тел", "mobile", "моб", "номер")) return "phone";
+  if (starts("пошта", "email", "e-mail", "mail", "epost", "e-post", "ел")) return "email";
+  if (starts("telegram", "тг", "телеграм")) return "telegram";
+  if (starts("нотатка", "коментар", "note", "comment", "примітк", "заметк", "anteckning")) return "note";
+  if (starts("тривалість", "duration", "хв", "длительн", "längd")) return "duration";
   return null;
 }
 
-function looksLikeTable(text: string): boolean {
+/** Розбір одного рядка CSV (лапки, подвоєні лапки, роздільник , або ;). */
+function splitCsvLine(line: string, delim: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let q = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (q) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { cur += '"'; i++; } else q = false;
+      } else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === delim) { out.push(cur); cur = ""; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out.map((c) => c.trim());
+}
+
+/**
+ * Таблиця як рядки комірок — або null, якщо це не таблиця з заголовком.
+ * Спочатку табуляція (вставка з Excel/Google Таблиць), далі CSV (експорт
+ * Google Таблиці за посиланням) з комою або крапкою з комою. Вільний текст із
+ * комами таблицею НЕ вважається: потрібен рядок-заголовок із колонкою імені.
+ */
+export function tableRows(text: string): string[][] | null {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  if (lines.length < 2) return false;
-  const first = lines[0].split("\t");
-  if (first.length < 2) return false;
-  const cols = first.map(headerCol);
-  return cols.some((c) => c === "name") && cols.filter(Boolean).length >= 2;
+  if (lines.length < 2) return null;
+  const tryWith = (split: (l: string) => string[]): string[][] | null => {
+    const first = split(lines[0]);
+    if (first.length < 2) return null;
+    const cols = first.map(headerCol);
+    if (!cols.some((c) => c === "name") || cols.filter(Boolean).length < 2) return null;
+    return lines.map(split);
+  };
+  return (
+    tryWith((l) => l.split("\t")) ??
+    tryWith((l) => splitCsvLine(l, ",")) ??
+    tryWith((l) => splitCsvLine(l, ";"))
+  );
+}
+
+function looksLikeTable(text: string): boolean {
+  return tableRows(text) !== null;
 }
 
 function tableToLines(text: string): string[] {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  const cols = lines[0].split("\t").map(headerCol);
+  const rowsOfCells = tableRows(text) ?? [];
+  if (!rowsOfCells.length) return [];
+  const cols = rowsOfCells[0].map(headerCol);
   const out: string[] = [];
-  for (const row of lines.slice(1)) {
-    const cells = row.split("\t").map((c) => c.trim());
+  for (const cells of rowsOfCells.slice(1)) {
     const get = (c: Col) => cols.map((k, i) => (k === c ? cells[i] ?? "" : "")).filter(Boolean).join(" ").trim();
-    const name = [get("name"), get("surname")].filter(Boolean).join(" ");
+    // «Прізвище, Імʼя» (таблиця, відсортована за прізвищем) → «Імʼя Прізвище»,
+    // інакше кома розрізала б імʼя на два.
+    let nameCell = get("name");
+    if (nameCell.includes(",")) {
+      const [a, b] = nameCell.split(",").map((x) => x.trim());
+      nameCell = [b, a].filter(Boolean).join(" ");
+    }
+    const name = [nameCell, get("surname")].filter(Boolean).join(" ").replace(/,/g, " ").replace(/\s+/g, " ").trim();
     if (!name) continue;
     const parts: string[] = [name];
     const subj = get("subject"); if (subj) parts.push(subj);

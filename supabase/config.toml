@@ -95,3 +95,5 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.ci-report]
     verify_jwt = false
+  [functions.import-sheet-fetch]
+    verify_jwt = true
