@@ -300,7 +300,7 @@ Deno.serve(async (req) => {
 
   const db = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
-  let body: { userId?: string; title?: string; body?: string; link?: string; tag?: string } = {};
+  let body: { userId?: string; title?: string; body?: string; link?: string; tag?: string; actions?: unknown } = {};
   try { body = await req.json(); } catch { /* ignore */ }
 
   const { userId, title = "oTutorHub", body: msgBody = "", link = "/", tag, actions } = body;
