@@ -63,7 +63,7 @@ describe("ранковий дайджест: зведення нічних пр�
     const src = s();
     expect(src).toMatch(/\(sb\.rpc as any\)\("job_health", \{ _hours: 26 \}\)/);
     expect(src).toMatch(/from\("platform_admins"\)\.select\("user_id"\)/);
-    expect(src).toMatch(/if \(superadmins\.has\(userId\)\) lines\.push\(\.\.\.jobLines\(D\)\);/);
+    expect(src).toMatch(/if \(superadmins\.has\(userId\)\) \{\s*lines\.push\(\.\.\.jobLines\(D\)\);/);
   });
 
   it("мовчання процесу видно: очікувані щоденні процеси, яких немає у зведенні, називаються поіменно", () => {
@@ -91,5 +91,14 @@ describe("міграція 20260927170000_job_runs і сценарій 98", () =
     expect(m).toMatch(/REVOKE EXECUTE ON FUNCTION public\.job_run_record\(text, boolean, integer, integer, jsonb, text\) FROM PUBLIC, anon, authenticated;/);
     expect(m).toMatch(/REVOKE EXECUTE ON FUNCTION public\.job_health\(integer\) FROM PUBLIC, anon, authenticated;/);
     expect(m).toMatch(/DELETE FROM public\.job_runs WHERE started_at < now\(\) - interval '30 days';/);
+  });
+});
+
+describe("цикл «вчимося з продакшену»: невпізнані рядки імпорту — в дайджест суперадміна", () => {
+  it("читає app_events import_unrecognized за 7 днів і показує форми, не зміст", () => {
+    const src = noComments(read("supabase/functions/tutor-daily-digest/index.ts"));
+    expect(src).toMatch(/\.from\("app_events"\)\s*\.select\("props"\)\s*\.eq\("name", "import_unrecognized"\)/);
+    expect(src).toMatch(/if \(importLoop\) lines\.push\(D\.importLoop\(importLoop\.lists, importLoop\.rows, importLoop\.top\)\);/);
+    expect((src.match(/\bimportLoop: \(lists: number, rows: number, top: string\) =>/g) ?? []).length).toBe(3);
   });
 });

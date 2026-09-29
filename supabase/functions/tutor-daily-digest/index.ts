@@ -25,6 +25,7 @@ const DT = {
     jobsBad: (ok: number, bad: number) => `🛡 Нічні процеси за добу: <b>${ok}</b> ок, <b>${bad}</b> збій(-ів):`,
     jobsMissing: (names: string) => `⛔ Не запускались понад добу: ${names}`,
     jobsUnknown: `🛡 Нічні процеси: зведення прочитати не вдалося (SQL 20260927170000 ще не вставлено?)`,
+    importLoop: (lists: number, rows: number, top: string) => `👀 Імпорт за 7 днів: <b>${lists}</b> списків із невпізнаними рядками (${rows} рядків). Найчастіше: ${top}`,
     tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Сьогодні <b>${n} ${w}</b>:`,
     remind: (s: string) => `\n💳 Нагадай учням про оплату — загалом <b>${s}</b>:`,
@@ -59,6 +60,7 @@ const DT = {
     jobsBad: (ok: number, bad: number) => `🛡 Background jobs in 24 h: <b>${ok}</b> ok, <b>${bad}</b> failed:`,
     jobsMissing: (names: string) => `⛔ Did not run for over a day: ${names}`,
     jobsUnknown: `🛡 Background jobs: could not read the summary (SQL 20260927170000 not applied yet?)`,
+    importLoop: (lists: number, rows: number, top: string) => `👀 Imports in 7 days: <b>${lists}</b> lists with unrecognised lines (${rows} lines). Most common: ${top}`,
     tutNone: "\nA free day today — recharge! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Today: <b>${n} ${w}</b>:`,
     remind: (s: string) => `\n💳 Remind students to pay — total <b>${s}</b>:`,
@@ -93,6 +95,7 @@ const DT = {
     jobsBad: (ok: number, bad: number) => `🛡 Bakgrundsjobb senaste dygnet: <b>${ok}</b> ok, <b>${bad}</b> misslyckade:`,
     jobsMissing: (names: string) => `⛔ Kördes inte på över ett dygn: ${names}`,
     jobsUnknown: `🛡 Bakgrundsjobb: kunde inte läsa sammanfattningen (SQL 20260927170000 inte inlagd än?)`,
+    importLoop: (lists: number, rows: number, top: string) => `👀 Importer på 7 dagar: <b>${lists}</b> listor med oigenkända rader (${rows} rader). Vanligast: ${top}`,
     tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Idag: <b>${n} ${w}</b>:`,
     remind: (s: string) => `\n💳 Påminn elever om betalning — totalt <b>${s}</b>:`,
@@ -357,6 +360,38 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       jobHealth = null;
     }
   }
+  // Цикл «вчимося з продакшену» (13.09): імпорт пише в app_events, які рядки не
+  // впізнав — форму, не зміст. Раніше ці записи ніхто не читав. Тепер суперадмін
+  // бачить раз на день: скільки списків спіткнулось і на чому — це і є дані для
+  // рішення «чи потрібен AI-фолбек парсера», без вигадок.
+  let importLoop: { lists: number; rows: number; top: string } | null = null;
+  if (superadmins.size) {
+    try {
+      const { data: ev } = await sb
+        .from("app_events")
+        .select("props")
+        .eq("name", "import_unrecognized")
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString())
+        .limit(500);
+      const counts = new Map<string, number>();
+      let rows = 0;
+      for (const e of ev ?? []) {
+        const shapes = (e as any)?.props?.shapes;
+        if (!Array.isArray(shapes)) continue;
+        for (const sh of shapes) {
+          const key = String(sh?.shape ?? "?").slice(0, 40);
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+          rows += 1;
+        }
+      }
+      if ((ev ?? []).length) {
+        const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${esc(k)} ×${v}`).join(", ") || "—";
+        importLoop = { lists: (ev ?? []).length, rows, top };
+      }
+    } catch (e) {
+      console.error("import loop summary failed:", (e as any)?.message ?? e);
+    }
+  }
   const jobLines = (D: any): string[] => {
     if (jobHealth === null) return [D.jobsUnknown];
     const ok = jobHealth.reduce((a, j) => a + (Number(j.runs ?? 0) - Number(j.failures ?? 0)), 0);
@@ -533,7 +568,10 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
         keyboard.push([{ text: D.btnRate(shortName(tutorName.get(tid), D.btnTutorName)), url: `${APP_URL}/people?open=${tid}&rate=1${subj}` }]);
       }
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
-      if (superadmins.has(userId)) lines.push(...jobLines(D));
+      if (superadmins.has(userId)) {
+        lines.push(...jobLines(D));
+        if (importLoop) lines.push(D.importLoop(importLoop.lists, importLoop.rows, importLoop.top));
+      }
       // Передоплата — це форма з сумою/кількістю уроків, тож не callback, а
       // прямий перехід у застосунок на потрібну вкладку.
       keyboard.push([{ text: D.btnPrepay, url: PREPAY_URL }]);
