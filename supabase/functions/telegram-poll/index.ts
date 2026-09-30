@@ -2,7 +2,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendPaymentReminder, normLang } from "../_shared/paymentReminder.ts";
 import { versionProbe } from "../_shared/build.ts";
-import { withJob } from '../_shared/jobRun.ts';
+import { withJob } from '../_shared/jobRun.ts'
+import { rateLimit } from '../_shared/rateLimit.ts';
 
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
@@ -35,6 +36,15 @@ Deno.serve(withJob("telegram-poll", async (req) => {
   }
 
   const TG_BASE = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+
+  // Оренда (30.09): Telegram дозволяє лише ОДИН getUpdates водночас. Крон стріляє
+  // щохвилини, а прогін триває до ~55 с — при затримці на кілька секунд два
+  // запуски накладаються, і Telegram відповідає 409 Conflict (перший такий збій
+  // побачив дайджест 30.09). Одна оренда на 45 с у базі: другий запуск за цей час
+  // чесно каже «зайнято» і виходить успішно — це не збій.
+  if ((await rateLimit(supabase, 'telegram_poll_lease', 'bot', 1, 45)) === 'limit') {
+    return new Response(JSON.stringify({ ok: true, skipped: 'busy', processed: 0 }));
+  }
 
   const { data: state, error: stateErr } = await supabase
     .from('telegram_bot_state')
@@ -72,6 +82,11 @@ Deno.serve(withJob("telegram-poll", async (req) => {
 
     const data = await resp.json();
     if (!resp.ok) {
+      // 409 = інший getUpdates ще живий (напр., старий ізолят під час передеплою):
+      // наступний хвилинний запуск підбере все — це «зайнято», не збій.
+      if (resp.status === 409) {
+        return new Response(JSON.stringify({ ok: true, skipped: 'conflict', processed, finalOffset: currentOffset }));
+      }
       return new Response(JSON.stringify({ error: data }), { status: 502 });
     }
     const updates = data.result ?? [];

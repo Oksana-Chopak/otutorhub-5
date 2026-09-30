@@ -21,9 +21,16 @@ const DT = {
     btnRate: (nm: string) => `⚙️ Ставка: ${nm}`,
     btnTutorName: "репетитор",
     errors: (n: number) => `🛠 Технічні помилки за добу: <b>${n}</b> — сторінка /errors`,
-    jobsOk: (ok: number) => `🛡 Нічні процеси за добу: <b>${ok}</b> запусків, збоїв немає`,
-    jobsBad: (ok: number, bad: number) => `🛡 Нічні процеси за добу: <b>${ok}</b> ок, <b>${bad}</b> збій(-ів):`,
-    jobsMissing: (names: string) => `⛔ Не запускались понад добу: ${names}`,
+    jobsTitle: "🛡 Нічні процеси за добу:",
+    jobName: (job: string) => ({
+      "tutor-evening-summary": "вечірній підсумок", "payment-reminders": "нагадування про оплату",
+      "lesson-reminders": "нагадування про уроки", "db-backup": "резервна копія", "telegram-poll": "телеграм-бот",
+      "scheduled-notifications": "планові сповіщення", "tutor-weekly-digest": "тижневий дайджест",
+      "payout-reminders": "нагадування про виплати", "process-email-queue": "черга пошти",
+      "fireflies-auto-join": "запис уроків", "archive-old-chats": "архів чатів", "tutor-daily-digest": "ранковий дайджест",
+    } as Record<string, string>)[job] ?? job,
+    jobMissing: "не запускався понад добу",
+    jobFailed: (n: number) => `збоїв: ${n}`,
     jobsUnknown: `🛡 Нічні процеси: зведення прочитати не вдалося (SQL 20260927170000 ще не вставлено?)`,
     importLoop: (lists: number, rows: number, top: string) => `👀 Імпорт за 7 днів: <b>${lists}</b> списків із невпізнаними рядками (${rows} рядків). Найчастіше: ${top}`,
     tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
@@ -56,9 +63,16 @@ const DT = {
     btnRate: (nm: string) => `⚙️ Rate: ${nm}`,
     btnTutorName: "tutor",
     errors: (n: number) => `🛠 Technical errors in 24 h: <b>${n}</b> — see /errors`,
-    jobsOk: (ok: number) => `🛡 Background jobs in 24 h: <b>${ok}</b> runs, no failures`,
-    jobsBad: (ok: number, bad: number) => `🛡 Background jobs in 24 h: <b>${ok}</b> ok, <b>${bad}</b> failed:`,
-    jobsMissing: (names: string) => `⛔ Did not run for over a day: ${names}`,
+    jobsTitle: "🛡 Background jobs in 24 h:",
+    jobName: (job: string) => ({
+      "tutor-evening-summary": "evening summary", "payment-reminders": "payment reminders",
+      "lesson-reminders": "lesson reminders", "db-backup": "backup", "telegram-poll": "Telegram bot",
+      "scheduled-notifications": "scheduled notifications", "tutor-weekly-digest": "weekly digest",
+      "payout-reminders": "payout reminders", "process-email-queue": "email queue",
+      "fireflies-auto-join": "lesson recording", "archive-old-chats": "chat archive", "tutor-daily-digest": "morning digest",
+    } as Record<string, string>)[job] ?? job,
+    jobMissing: "did not run for over a day",
+    jobFailed: (n: number) => `failed: ${n}`,
     jobsUnknown: `🛡 Background jobs: could not read the summary (SQL 20260927170000 not applied yet?)`,
     importLoop: (lists: number, rows: number, top: string) => `👀 Imports in 7 days: <b>${lists}</b> lists with unrecognised lines (${rows} lines). Most common: ${top}`,
     tutNone: "\nA free day today — recharge! 🌴",
@@ -91,9 +105,16 @@ const DT = {
     btnRate: (nm: string) => `⚙️ Sats: ${nm}`,
     btnTutorName: "lärare",
     errors: (n: number) => `🛠 Tekniska fel senaste dygnet: <b>${n}</b> — se /errors`,
-    jobsOk: (ok: number) => `🛡 Bakgrundsjobb senaste dygnet: <b>${ok}</b> körningar, inga fel`,
-    jobsBad: (ok: number, bad: number) => `🛡 Bakgrundsjobb senaste dygnet: <b>${ok}</b> ok, <b>${bad}</b> misslyckade:`,
-    jobsMissing: (names: string) => `⛔ Kördes inte på över ett dygn: ${names}`,
+    jobsTitle: "🛡 Bakgrundsjobb senaste dygnet:",
+    jobName: (job: string) => ({
+      "tutor-evening-summary": "kvällssammanfattning", "payment-reminders": "betalningspåminnelser",
+      "lesson-reminders": "lektionspåminnelser", "db-backup": "säkerhetskopia", "telegram-poll": "Telegram-bot",
+      "scheduled-notifications": "schemalagda aviseringar", "tutor-weekly-digest": "veckosammanfattning",
+      "payout-reminders": "utbetalningspåminnelser", "process-email-queue": "e-postkö",
+      "fireflies-auto-join": "lektionsinspelning", "archive-old-chats": "chattarkiv", "tutor-daily-digest": "morgonsammanfattning",
+    } as Record<string, string>)[job] ?? job,
+    jobMissing: "kördes inte på över ett dygn",
+    jobFailed: (n: number) => `misslyckade: ${n}`,
     jobsUnknown: `🛡 Bakgrundsjobb: kunde inte läsa sammanfattningen (SQL 20260927170000 inte inlagd än?)`,
     importLoop: (lists: number, rows: number, top: string) => `👀 Importer på 7 dagar: <b>${lists}</b> listor med oigenkända rader (${rows} rader). Vanligast: ${top}`,
     tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
@@ -392,22 +413,39 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       console.error("import loop summary failed:", (e as any)?.message ?? e);
     }
   }
+  // Зведення читається людиною з телефона: по рядку на кожен очікуваний процес.
+  // Сам ранковий дайджест зі списку «не запускався» виключено — його рядок
+  // пишеться ПІСЛЯ відповіді, тобто в момент читання цей запуск ще не в журналі
+  // (30.09 перший дайджест доповів «⛔ не запускався» сам на себе).
+  const SELF = "tutor-daily-digest";
+  const primaryCount = (counts: any): number | null => {
+    if (!counts || typeof counts !== "object") return null;
+    for (const k of ["sent", "processed", "created", "tables", "linked", "delivered", "count"]) {
+      if (typeof counts[k] === "number") return counts[k];
+    }
+    return null;
+  };
   const jobLines = (D: any): string[] => {
     if (jobHealth === null) return [D.jobsUnknown];
-    const ok = jobHealth.reduce((a, j) => a + (Number(j.runs ?? 0) - Number(j.failures ?? 0)), 0);
-    const bad = jobHealth.reduce((a, j) => a + Number(j.failures ?? 0), 0);
-    const out: string[] = [];
-    if (bad > 0) {
-      out.push(D.jobsBad(ok, bad));
-      for (const j of jobHealth.filter((x) => Number(x.failures ?? 0) > 0)) {
-        out.push(`• ${esc(String(j.job))}: ${Number(j.failures)}× — ${esc(String(j.last_error ?? "").slice(0, 120) || "?")}`);
+    const byJob = new Map<string, any>(jobHealth.map((j) => [String(j.job), j]));
+    const out: string[] = [D.jobsTitle];
+    const line = (name: string, j: any | undefined) => {
+      if (!j) { out.push(`⛔ ${esc(D.jobName(name))} — ${D.jobMissing}`); return; }
+      const failures = Number(j.failures ?? 0);
+      const runs = Number(j.runs ?? 0);
+      const n = primaryCount(j.last_counts);
+      const tail = n !== null ? ` — ${n}` : runs > 1 ? ` — ${runs}×` : "";
+      if (failures > 0) {
+        out.push(`⚠ ${esc(D.jobName(name))}${tail} · ${D.jobFailed(failures)}: ${esc(String(j.last_error ?? "").slice(0, 100) || "?")}`);
+      } else {
+        out.push(`✓ ${esc(D.jobName(name))}${tail}`);
       }
-    } else {
-      out.push(D.jobsOk(ok));
+    };
+    for (const name of EXPECTED_DAILY_JOBS.filter((x) => x !== SELF)) line(name, byJob.get(name));
+    for (const [name, j] of byJob) {
+      if (EXPECTED_DAILY_JOBS.includes(name) || name === SELF) continue;
+      if (Number(j.failures ?? 0) > 0) line(name, j);
     }
-    const seen = new Set(jobHealth.map((j) => String(j.job)));
-    const missing = EXPECTED_DAILY_JOBS.filter((n) => !seen.has(n));
-    if (missing.length) out.push(D.jobsMissing(missing.join(", ")));
     return out;
   };
 

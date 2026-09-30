@@ -66,17 +66,25 @@ describe("ранковий дайджест: зведення нічних пр�
     expect(src).toMatch(/if \(superadmins\.has\(userId\)\) \{\s*lines\.push\(\.\.\.jobLines\(D\)\);/);
   });
 
-  it("мовчання процесу видно: очікувані щоденні процеси, яких немає у зведенні, називаються поіменно", () => {
+  it("по рядку на кожен очікуваний процес: ✓ з лічильником, ⚠ зі збоєм, ⛔ якщо не запускався", () => {
     const src = s();
     expect(src).toMatch(/const EXPECTED_DAILY_JOBS = \[/);
     for (const n of ["tutor-daily-digest", "payment-reminders", "db-backup", "telegram-poll"]) expect(src).toContain(`"${n}"`);
-    expect(src).toMatch(/if \(missing\.length\) out\.push\(D\.jobsMissing\(missing\.join\(", "\)\)\);/);
+    expect(src).toMatch(/for \(const name of EXPECTED_DAILY_JOBS\.filter\(\(x\) => x !== SELF\)\) line\(name, byJob\.get\(name\)\);/);
+    expect(src).toMatch(/out\.push\(`⛔ \$\{esc\(D\.jobName\(name\)\)\} — \$\{D\.jobMissing\}`\)/);
+    expect(src).toMatch(/out\.push\(`⚠ \$\{esc\(D\.jobName\(name\)\)\}\$\{tail\} · \$\{D\.jobFailed\(failures\)\}/);
   });
 
-  it("без бази — чесне «не вдалося прочитати», а не тиша", () => {
+  it("сам дайджест у списку «не запускався» не зʼявляється — його рядок пишеться після відповіді", () => {
+    const src = s();
+    expect(src).toMatch(/const SELF = "tutor-daily-digest";/);
+    expect(src).toMatch(/if \(EXPECTED_DAILY_JOBS\.includes\(name\) \|\| name === SELF\) continue;/);
+  });
+
+  it("без бази — чесне «не вдалося прочитати», а не тиша; назви процесів — у трьох мовах", () => {
     const src = s();
     expect(src).toMatch(/if \(jobHealth === null\) return \[D\.jobsUnknown\];/);
-    for (const key of ["jobsOk", "jobsBad", "jobsMissing", "jobsUnknown"]) {
+    for (const key of ["jobsTitle", "jobName", "jobMissing", "jobFailed", "jobsUnknown"]) {
       expect((src.match(new RegExp(`\\b${key}:`, "g")) ?? []).length, `${key} у трьох мовах`).toBe(3);
     }
   });
@@ -100,5 +108,14 @@ describe("цикл «вчимося з продакшену»: невпізна�
     expect(src).toMatch(/\.from\("app_events"\)\s*\.select\("props"\)\s*\.eq\("name", "import_unrecognized"\)/);
     expect(src).toMatch(/if \(importLoop\) lines\.push\(D\.importLoop\(importLoop\.lists, importLoop\.rows, importLoop\.top\)\);/);
     expect((src.match(/\bimportLoop: \(lists: number, rows: number, top: string\) =>/g) ?? []).length).toBe(3);
+  });
+});
+
+describe("telegram-poll: один getUpdates водночас", () => {
+  it("оренда 45 с у базі; другий запуск і Telegram 409 — «зайнято», не збій", () => {
+    const src = noComments(read("supabase/functions/telegram-poll/index.ts"));
+    expect(src).toMatch(/rateLimit\(supabase, 'telegram_poll_lease', 'bot', 1, 45\)\) === 'limit'/);
+    expect(src).toMatch(/skipped: 'busy'/);
+    expect(src).toMatch(/if \(resp\.status === 409\) \{\s*return new Response\(JSON\.stringify\(\{ ok: true, skipped: 'conflict'/);
   });
 });
