@@ -10,6 +10,7 @@ import {
   unpaidStudentDebt,
 } from "../_shared/digestMoney.ts";
 import { withJob } from "../_shared/jobRun.ts";
+import { versionProbe } from "../_shared/build.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -75,6 +76,12 @@ function esc(v: unknown): string {
 }
 
 Deno.serve(withJob("tutor-weekly-digest", async (req) => {
+  /* 01.10: проба версії СТОЇТЬ ПЕРШОЮ — без даних і до будь-якої перевірки
+     доступу. Доти цю cron-функцію ззовні неможливо було спитати, чи вона
+     передеплоєна: робот бачив лише пʼять функцій із пробою, а саме у кронів
+     застарілий код непомітний — вони відповідають однаково. */
+  const probe = versionProbe(req, "tutor-weekly-digest");
+  if (probe) return probe;
   const BOT = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!BOT || !serviceKey) {

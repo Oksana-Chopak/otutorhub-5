@@ -1,7 +1,8 @@
 import { test, expect, type Page, type APIRequestContext } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EDGE_VERSION } from "../../supabase/functions/_shared/version";
+import { EDGE_VERSION, EDGE_FN_VERSION } from "../../supabase/functions/_shared/version";
 
 /**
  * РОБОТ-СТОРОЖ — перевіряє ЖИВИЙ прод (22.09).
@@ -214,7 +215,23 @@ test("збірка на проді = main", async ({ request }) => {
   }
 });
 
-const PROBED_FNS = ["payment-reminders", "send-push", "tutor-daily-digest", "telegram-poll", "remind-payment"];
+/* 01.10: список більше не руками — беремо КОЖНУ функцію, яка справді вміє
+   відповідати на `?version` (у ній є виклик `versionProbe`). Ручний список із
+   пʼяти відставав: `google-calendar-import` і `import-sheet-fetch` пробу мали, а
+   в списку їх не було, тож частковий передеплой цих дверей був невидимий. */
+const PROBED_FNS: string[] = (() => {
+  const dir = fileURLToPath(new URL("../../supabase/functions", import.meta.url));
+  try {
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith("_") && e.name !== "version")
+      .filter((e) => {
+        try { return /versionProbe\s*\(/.test(readFileSync(join(dir, e.name, "index.ts"), "utf8")); }
+        catch { return false; }
+      })
+      .map((e) => e.name)
+      .sort();
+  } catch { return []; }
+})();
 
 test("edge-функції на проді = репо", async ({ request }) => {
   const info = test.info();
@@ -231,19 +248,31 @@ test("edge-функції на проді = репо", async ({ request }) => {
     if (r.status() === 404) { seen[name] = "не задеплоєна"; return; }
     if (r.status() === 401 && protectedFn) { unverifiable.push(name); return; } // шлюз не пустив навіть з ключем
     try {
-      const j = (await r.json()) as { edge?: string; build?: string };
-      seen[name] = j.edge ?? j.build ?? `?(${r.status()})`;
+      /* 01.10: функція `version` віддає `self` — штамп САМОЇ себе; проби `?version`
+         віддають `build` — штамп своєї функції. Поле `edge` (пакетний штамп) тут
+         більше не читається: саме воно давало хибне «застаріло» щоранку. */
+      const j = (await r.json()) as { edge?: string; self?: string; build?: string };
+      seen[name] = j.self ?? j.build ?? `?(${r.status()})`;
     } catch { seen[name] = `стара версія (${r.status()})`; }
   };
   await probe("version", `${SUPABASE_URL}/functions/v1/version`);
   for (const fn of PROBED_FNS) await probe(fn, `${SUPABASE_URL}/functions/v1/${fn}?version`);
-  const stale = Object.entries(seen).filter(([, v]) => v !== EDGE_VERSION).map(([k, v]) => `${k}: ${v}`);
-  info.annotations.push({ type: "freshness", description: `edge у репо: ${EDGE_VERSION} · прод: ${Object.entries(seen).map(([k, v]) => `${k}=${v}`).join(", ")}` });
+  /* 01.10 — ПОІМЕННО, а не одним штампом на весь пакет. Lovable передеплоює лише
+     змінені функції, тож пакетний штамп робив «застарілими» всі решту: ранковий
+     звіт 01.10 назвав такими `version`, `payment-reminders`, `send-push` і
+     `remind-payment`, у яких НУЛЬ власних змін із моменту деплою. Це була друга
+     хибна тривога з цієї ж проби (перша — «remind-payment 401» 23.09), а
+     червоне, на яке не треба реагувати, привчає ігнорувати червоне. */
+  const expectedOf = (name: string) => EDGE_FN_VERSION[name] ?? EDGE_VERSION;
+  const stale = Object.entries(seen)
+    .filter(([k, v]) => v !== expectedOf(k))
+    .map(([k, v]) => `${k}: ${v} (репо ${expectedOf(k)})`);
+  info.annotations.push({ type: "freshness", description: `edge поіменно — прод: ${Object.entries(seen).map(([k, v]) => `${k}=${v}`).join(", ")} · пакет у репо: ${EDGE_VERSION}` });
   if (unverifiable.length) {
     info.annotations.push({ type: "freshness", description: `версію ${unverifiable.join(", ")} ззовні не перевірити: функція захищена JWT, а ключ проду роботові недоступний` });
   }
   if (stale.length) {
-    const msg = `Edge-функції на проді застарілі (${stale.join("; ")}) — репо ${EDGE_VERSION}. Ліки: у чаті Lovable — «Передеплой усі edge-функції з репозиторію».`;
+    const msg = `Edge-функції на проді застарілі (${stale.join("; ")}). Застаріла САМЕ ця функція — її власний код змінився після деплою. Ліки: у чаті Lovable — «Передеплой усі edge-функції з репозиторію».`;
     if (FRESH === "require") throw new Error(msg);
     info.annotations.push({ type: "stale", description: msg });
   }

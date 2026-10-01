@@ -5,6 +5,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
 import { withJob } from "../_shared/jobRun.ts";
+import { versionProbe } from "../_shared/build.ts";
 
 interface Sched {
   payout_frequency: string | null;
@@ -57,6 +58,12 @@ async function sendTg(botToken: string, chatId: number, text: string): Promise<b
 }
 
 Deno.serve(withJob("payout-reminders", async (req) => {
+  /* 01.10: проба версії СТОЇТЬ ПЕРШОЮ — без даних і до будь-якої перевірки
+     доступу. Доти цю cron-функцію ззовні неможливо було спитати, чи вона
+     передеплоєна: робот бачив лише пʼять функцій із пробою, а саме у кронів
+     застарілий код непомітний — вони відповідають однаково. */
+  const probe = versionProbe(req, "payout-reminders");
+  if (probe) return probe;
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

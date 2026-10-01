@@ -1,5 +1,61 @@
 // ЗГЕНЕРОВАНО scripts/stamp-edge.mjs — не правити руками.
 // Хеш вмісту всіх edge-функцій (78 файлів, 50 функцій). Функція `version`
 // віддає його назовні; робот у CI звіряє з репо і каже, чи прод крутить свіже.
-export const EDGE_VERSION = "f28728b3";
+export const EDGE_VERSION = "b2de81b3";
 export const EDGE_FUNCTIONS = 50;
+
+// Штамп КОЖНОЇ функції окремо: спільний код + її власні файли. Lovable
+// передеплоює лише змінені, тож один штамп на пакет давав хибне «застаріла»
+// для функцій, яких ніхто не чіпав (ранковий звіт 01.10). Робот звіряє поіменно.
+export const EDGE_FN_VERSION: Record<string, string> = {
+  "admin-stats": "c8dc7620",
+  "archive-old-chats": "e61fd305",
+  "auth-email-hook": "14852fe6",
+  "ci-report": "d39fd854",
+  "confirm-pending-signup": "fd8cbd28",
+  "db-backup": "6c7f4c6f",
+  "delete-account": "44d4e9ef",
+  "fireflies-auto-join": "1e415e68",
+  "fireflies-start-recording": "a3732897",
+  "fireflies-webhook": "2795c74f",
+  "generate-lesson-summary": "11a5764b",
+  "google-calendar-auth": "9ccf4c6e",
+  "google-calendar-callback": "e388089e",
+  "google-calendar-import": "d96d6ac2",
+  "handle-email-suppression": "5c59bd77",
+  "handle-email-unsubscribe": "e5ea52ab",
+  "import-sheet-fetch": "da4d737c",
+  "landing-find-tutor-quiz": "c32d39a4",
+  "landing-spots-left": "62851643",
+  "lesson-reminders": "998d503f",
+  "liqpay-callback": "90ea9da1",
+  "liqpay-cancel": "5552dcde",
+  "liqpay-create-payment": "0605a0df",
+  "manager-delete-user": "10552469",
+  "marketing-unsubscribe": "20748824",
+  "mcp": "be09898f",
+  "meta-capi": "67479041",
+  "notify-cancellation-fee": "22f6cf23",
+  "notify-chat-message": "0cc5bceb",
+  "notify-lesson-rules": "cdfd53ce",
+  "notify-lesson-update": "4b2296d5",
+  "payment-reminders": "842ba61b",
+  "payout-reminders": "2eabccc8",
+  "preview-transactional-email": "2cf9ac45",
+  "process-email-queue": "bb143650",
+  "remind-payment": "27daabf6",
+  "revenuecat-webhook": "d530844a",
+  "scheduled-notifications": "aa98555c",
+  "send-marketing-campaign": "4af0d893",
+  "send-push": "537a3d5e",
+  "send-student-invite": "75240c0b",
+  "send-transactional-email": "3deb1682",
+  "sync-google-calendar": "2c01c52b",
+  "telegram-bot-info": "c4b21cdd",
+  "telegram-link": "984e34d5",
+  "telegram-poll": "c04b217d",
+  "tutor-daily-digest": "03cbdae1",
+  "tutor-evening-summary": "4b044a8b",
+  "tutor-weekly-digest": "ebfa70eb",
+  "version": "59d40465",
+};

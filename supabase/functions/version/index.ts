@@ -7,7 +7,7 @@
 // генерується `scripts/stamp-edge.mjs`): збіглось — прод свіжий; ні — у звіті
 // стоїть «edge-функції застарілі, потрібен передеплой». Нічого приватного тут
 // немає: лише хеш вмісту і кількість функцій.
-import { EDGE_VERSION, EDGE_FUNCTIONS } from "../_shared/version.ts";
+import { EDGE_VERSION, EDGE_FUNCTIONS, EDGE_FN_VERSION } from "../_shared/version.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,7 +18,11 @@ const corsHeaders = {
 Deno.serve((req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   return new Response(
-    JSON.stringify({ edge: EDGE_VERSION, functions: EDGE_FUNCTIONS, at: new Date().toISOString() }),
+    /* 01.10: `edge` — штамп усього пакета (яким він був, коли САМУ цю функцію
+       деплоїли), `self` — штамп цієї функції. Робот звіряє `self`: Lovable
+       передеплоює лише змінені, тож пакетний штамп тут майже завжди «старий», і
+       саме він давав хибне «edge-функції застарілі» щоранку. */
+    JSON.stringify({ edge: EDGE_VERSION, self: EDGE_FN_VERSION["version"] ?? EDGE_VERSION, functions: EDGE_FUNCTIONS, at: new Date().toISOString() }),
     { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" } },
   );
 });

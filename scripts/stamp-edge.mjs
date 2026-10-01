@@ -36,20 +36,50 @@ function walk(dir, acc = []) {
 }
 
 const files = walk(FN).filter((p) => p !== OUT && !/\.(test|spec)\.ts$/.test(p));
-const h = createHash("sha256");
-for (const p of files) {
-  h.update(relative(FN, p));
-  h.update("\0");
-  h.update(readFileSync(p));
-  h.update("\0");
-}
-const stamp = h.digest("hex").slice(0, 8);
+const hashOf = (list) => {
+  const h = createHash("sha256");
+  for (const p of list) {
+    h.update(relative(FN, p));
+    h.update("\0");
+    h.update(readFileSync(p));
+    h.update("\0");
+  }
+  return h.digest("hex").slice(0, 8);
+};
+const stamp = hashOf(files);
 const dirs = readdirSync(FN).filter((d) => !d.startsWith("_") && statSync(join(FN, d)).isDirectory());
+
+/* 01.10 — ШТАМП ПО ФУНКЦІЇ, а не один на всіх.
+   Lovable передеплоює ЛИШЕ змінені функції, а штамп був один на весь пакет —
+   тож будь-яка правка в одній функції робила «застарілими» всі решту, яких
+   ніхто не чіпав. Ранковий звіт 01.10 назвав застарілими `version`,
+   `payment-reminders`, `send-push` і `remind-payment`, у яких НУЛЬ власних
+   змін із моменту деплою: друга хибна тривога з цієї ж проби (перша —
+   «remind-payment 401» 23.09). Червоне, на яке не треба реагувати, привчає
+   ігнорувати червоне.
+   Хеш функції = спільний код (`_shared/*` без самого штампу) + її власні файли.
+   Тобто правка в `_shared` чесно позначає всі (вони його й збирають у себе), а
+   правка в одній функції — лише її. */
+const sharedFiles = files.filter((p) => relative(FN, p).startsWith("_shared"));
+const fnVersions = Object.fromEntries(
+  dirs.map((d) => {
+    const own = files.filter((p) => relative(FN, p).split("/")[0] === d);
+    return [d, hashOf([...sharedFiles, ...own])];
+  }),
+);
+const mapLines = Object.entries(fnVersions).map(([k, v]) => `  "${k}": "${v}",`).join("\n");
 const body = `// ЗГЕНЕРОВАНО scripts/stamp-edge.mjs — не правити руками.
 // Хеш вмісту всіх edge-функцій (${files.length} файлів, ${dirs.length} функцій). Функція \`version\`
 // віддає його назовні; робот у CI звіряє з репо і каже, чи прод крутить свіже.
 export const EDGE_VERSION = "${stamp}";
 export const EDGE_FUNCTIONS = ${dirs.length};
+
+// Штамп КОЖНОЇ функції окремо: спільний код + її власні файли. Lovable
+// передеплоює лише змінені, тож один штамп на пакет давав хибне «застаріла»
+// для функцій, яких ніхто не чіпав (ранковий звіт 01.10). Робот звіряє поіменно.
+export const EDGE_FN_VERSION: Record<string, string> = {
+${mapLines}
+};
 `;
 
 const current = existsSync(OUT) ? readFileSync(OUT, "utf8") : "";
