@@ -754,6 +754,9 @@ export interface CanonicalWords {
   lessons: string; // «уроки»
   money: string;   // «грн»
   min: string;     // «хв»
+  /** Позначка ціни — «по» / «price» / «pris». Мусить бути словом із `PRICE_KW`,
+   *  інакше ціна в канонічному рядку знову стане голим числом (див. нижче). */
+  price: string;
   day: (weekday: number) => string; // 1 → «пн»
 }
 
@@ -769,7 +772,13 @@ export function toCanonicalLine(r: ParsedStudent, w: CanonicalWords): string | n
   const parts: string[] = [];
   if (r.firstName) parts.push([r.firstName, r.lastName].filter(Boolean).join(" "));
   if (r.subject) parts.push(r.subject);
-  if (r.price && r.price > 0) parts.push(String(r.price));
+  /* 01.10: ціна писалась ГОЛИМ числом — і це ламало саму обіцянку цієї функції.
+     На лендінгу поле читається в режимі «debts», де голе число означає БОРГ,
+     тож ціна 500 поверталась боргом 500. Наслідки були два, обидва на живому:
+     список цін із Google Таблиці ставав «вам винні 1 550 ₴», а повторний візит
+     на лендінг (поле засівається збереженою чернеткою) щоразу додавав ціну до
+     боргу й стирав ставку. Позначка робить число однозначним в обох режимах. */
+  if (r.price && r.price > 0) parts.push(`${w.price} ${r.price}`);
   if (r.debtAmount && r.debtAmount > 0) parts.push(`${w.debt} ${r.debtAmount} ${w.money}`);
   if (r.debtLessons && r.debtLessons > 0) parts.push(`${w.debt} ${r.debtLessons} ${w.lessons}`);
   if (r.prepayAmount && r.prepayAmount > 0) parts.push(`${w.prepay} ${r.prepayAmount} ${w.money}`);

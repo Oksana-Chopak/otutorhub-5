@@ -160,7 +160,16 @@ export function ImportStudentsSheet({
   const [source, setSource] = useState<"text" | "sheet" | "file" | "calendar">(initialSource ?? "text");
   /** Звідки приїхали рядки, що зараз у полі (для зворотної синхронізації в Google Календар). */
   const [loadedFrom, setLoadedFrom] = useState<"text" | "google_sheet" | "csv_file" | "google_calendar">("text");
-  useEffect(() => { if (open) setSource(initialSource ?? "text"); }, [open, initialSource]);
+  /* `loadedFrom` скидається РАЗОМ із джерелом: без цього після імпорту з Google
+     Календаря прапорець лишався `google_calendar` на всю сесію сторінки, і
+     наступний імпорт із тексту мовчки НЕ вивантажував уроки в Google Календар
+     (зворотна синхронізація свідомо вимкнена лише для імпорту З календаря). */
+  useEffect(() => {
+    if (open) {
+      setSource(initialSource ?? "text");
+      setLoadedFrom("text");
+    }
+  }, [open, initialSource]);
   const [sheetUrl, setSheetUrl] = useState("");
   const [sheetBusy, setSheetBusy] = useState(false);
   const kw: CanonicalWords = useMemo(() => ({
@@ -169,6 +178,7 @@ export function ImportStudentsSheet({
     lessons: t("importStudents.kwLessons"),
     money: t("importStudents.kwMoney"),
     min: t("importStudents.kwMin"),
+    price: t("importStudents.kwPrice"),
     day: (wd: number) => t(`importStudents.day${wd}`),
   }), [t]);
   const takeTable = (raw: string, label: string) => {
@@ -178,14 +188,20 @@ export function ImportStudentsSheet({
       toast.error(t("importStudents.sourceNothing"));
       return;
     }
-    // Рядки, які парсер не зрозумів, лишаємо як є — людина побачить їх у превʼю.
+    /* 01.10: цей коментар раніше обіцяв, що незрозумілі рядки лишаються в полі,
+       а `toCanonicalText` їх ВІДКИДАЄ. Тобто з таблиці на 30 учнів у полі могло
+       виявитись 27, і ніде ні слова. Рядки відкинути доводиться (вони не
+       розібрані), але кількість приховувати не можна — інакше людина підтвердить
+       імпорт, не знаючи, що когось немає. Правило «ніколи мовчки» діє і тут. */
     const canonical = toCanonicalText(parsedRows, kw);
     setText(canonical);
     setOverrides({});
     setSource("text");
     setLoadedFrom(label as "google_sheet" | "csv_file");
-    logEvent("import_source", { source: label, rows: parsedRows.length, ok: ok.length });
+    const lost = parsedRows.length - ok.length;
+    logEvent("import_source", { source: label, rows: parsedRows.length, ok: ok.length, lost });
     toast.success(t("importStudents.sourceLoaded", { count: ok.length }));
+    if (lost > 0) toast.error(t("importStudents.sourceLost", { count: lost }));
   };
   const loadSheet = async () => {
     if (!sheetUrl.trim() || sheetBusy) return;

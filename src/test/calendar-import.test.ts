@@ -9,7 +9,7 @@ const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
 const noComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 const kw: CanonicalWords = {
-  debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв",
+  debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв", price: "по",
   day: (wd) => ["", "пн", "вт", "ср", "чт", "пт", "сб", "нд"][wd],
 };
 // Понеділок 2026-10-05, місцевий час (тест не залежить від зони: будуємо через Date)

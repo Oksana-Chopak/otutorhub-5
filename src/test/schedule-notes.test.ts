@@ -15,7 +15,7 @@ import { parseStudentLine, parseStudentList, toCanonicalText, type CanonicalWord
 import { digestPreview, calcMoneyPreview } from "@/lib/landingCalc";
 
 const kw: CanonicalWords = {
-  debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв",
+  debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв", price: "по",
   day: (wd) => ["", "пн", "вт", "ср", "чт", "пт", "сб", "нд"][wd],
 };
 const NOTES = "тимур 2 передоплати\nтаня 500 грн борг\nлюся 350\nмаргарита 200\nматематика на середу о 18:00\nукраїнська у вівторок 10 ранку";

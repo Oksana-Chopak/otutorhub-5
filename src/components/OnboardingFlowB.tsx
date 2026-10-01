@@ -1502,9 +1502,14 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wsLoading, authLoading, user?.id, isTutor, hasStudentStep]);
   const onHandoffImported = (r: ImportResult) => {
+    /* Подію воронки пишемо ЛИШЕ коли список справді приїхав із лендінгу: з
+       01.10 цей самий аркуш відкривають плитки «Де зараз твої учні?», і без
+       цієї умови кожен звичайний імпорт зараховувався б лендінгу як виконана
+       обіцянка — воронка `landing_funnel_daily` показувала б те, чого не було. */
+    const fromLanding = handoff !== null;
     consumeLandingHandoff(user);
     setHandoff(null);
-    logEvent("landing_handoff_imported", { ...r }); // воронка: обіцянка лендінгу виконана
+    if (fromLanding) logEvent("landing_handoff_imported", { ...r }); // воронка: обіцянка лендінгу виконана
     // XP — рівно за ті кроки, які список закрив ділом: учень завжди, зустріч —
     // якщо приїхав розклад. Ті самі числа, що й у картках кроків нижче.
     const studentXp = ALL_STEPS.find(x => x.action === "student")?.xp ?? 0;
@@ -1513,9 +1518,25 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     setVictory({ emoji: "🎒", title: t("onboardingFlowB.handoffVictory", { count: r.students }), xp: studentXp + lessonXp, isFinal: false });
     reload();
   };
-  const handoffSheet = handoff ? (
-    <ImportStudentsSheet open={handoffOpen} onOpenChange={setHandoffOpen} initialText={handoff} initialSource={importSource} onImported={onHandoffImported} />
-  ) : null;
+  /* 01.10, блокер Б5: аркуш монтувався ЛИШЕ коли існувала естафета з лендінгу
+     (`handoff`). Але плитки «Де зараз твої учні?» (крок «учень») лише ставлять
+     `handoffOpen = true` — тобто для КОЖНОГО репетитора, який прийшов зі стору
+     або просто зареєструвався, «📊 Google Таблиця», «📅 Google Календар» і
+     «📝 Список текстом» були мертвими кнопками: дотик у пустоту, без спінера й
+     без помилки. Реагувала тільки «✍️ Вручну» — тобто рівно те ручне введення,
+     проти якого пакет і робився. Аркуш тепер є завжди; естафета лишається його
+     НЕОБОВʼЯЗКОВИМ початковим текстом. Та сама причина ламала й тих, хто таки
+     прийшов із лендінгу: після першого імпорту `setHandoff(null)` прибирав
+     аркуш, і плитки вмирали до кінця онбордингу. */
+  const handoffSheet = (
+    <ImportStudentsSheet
+      open={handoffOpen}
+      onOpenChange={setHandoffOpen}
+      initialText={handoff ?? undefined}
+      initialSource={importSource}
+      onImported={onHandoffImported}
+    />
+  );
 
   // Google Calendar OAuth return
   useEffect(() => {

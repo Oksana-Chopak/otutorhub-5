@@ -19,6 +19,7 @@ import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { fetchHomeworkDone } from "@/lib/homeworkDone";
+import { prepaidLessonBalance } from "@/lib/studentPrepaid";
 import { ErrorState } from "@/components/ErrorState";
 import { TutorRequestStatusCard, type TutorRequestRow } from "@/components/student/TutorRequestStatusCard";
 import { computeWeeklyStats } from "@/lib/studentStats";
@@ -234,13 +235,39 @@ export default function StudentDashboardPage() {
       ).length + unpaidGroup,
     );
 
-    // 42: баланс уроків — рахуємо scheduled (prepaid model) з уже завантажених lessons
-    // wallet_balance_view не є у міграціях → db-інваріант це б зловив.
-    // Prepaid: scheduled і не скасований → учень ще не відбув, але вже заплатив.
-    const scheduledPaid = (lessons ?? []).filter((l: any) =>
-      l.status === "scheduled" && l.student_id === user?.id
-    ).length;
-    setLessonsBalance(scheduledPaid);
+    /* Передоплата — СПРАВЖНІЙ баланс пари, а не кількість запланованих уроків.
+       До 01.10 тут рахувались scheduled-уроки з уже прочитаного списку, але
+       `student_id` НЕ входив у select (рядок вище), тож порівняння завжди було
+       false і баланс завжди виходив 0. Наслідок: картка «що далі» ЗАВЖДИ казала
+       «Передоплата вичерпана» кожному учневі, а стани нижче за неї —
+       «Наступний урок», «Серію перервано», «Розклад порожній» — були недосяжні
+       в проді взагалі. Тобто головний екран учня ніколи не показував того, по
+       що він його відкриває.
+
+       Попереджаємо ЛИШЕ тих, у кого передоплата справді ведеться в УРОКАХ:
+       пара з грошовим гаманцем має lessons_balance = 0, і показати їй
+       «уроки закінчились» означало б вигадати число. Правило «нуль ніколи не
+       означає "не задано"» діє й тут: немає передоплати в уроках → null →
+       картка показує наступний урок, а не вимогу грошей. */
+    const [walletsRes, lessonTopupsRes] = await Promise.all([
+      supabase
+        .from("student_wallet_balances")
+        .select("tutor_id, lessons_balance")
+        .eq("student_id", user.id),
+      supabase
+        .from("student_wallet_transactions")
+        .select("tutor_id")
+        .eq("student_id", user.id)
+        .gt("lessons_delta", 0),
+    ]);
+    // Математика — в чистій `prepaidLessonBalance` (там і причина, і тести).
+    setLessonsBalance(
+      prepaidLessonBalance({
+        wallets: walletsRes.data as any[] | null,
+        lessonTopups: lessonTopupsRes.data as any[] | null,
+        readFailed: !!walletsRes.error || !!lessonTopupsRes.error,
+      }),
+    );
     setLoading(false);
   };
 

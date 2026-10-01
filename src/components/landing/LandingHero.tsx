@@ -78,6 +78,7 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
     lessons: t("importStudents.kwLessons"),
     money: t("importStudents.kwMoney"),
     min: t("importStudents.kwMin"),
+    price: t("importStudents.kwPrice"),
     day: (wd: number) => t(`importStudents.day${wd}`),
   }), [t]);
   const canonical = useMemo(() => (isExample ? "" : toCanonicalText(rows, kw)), [rows, kw, isExample]);

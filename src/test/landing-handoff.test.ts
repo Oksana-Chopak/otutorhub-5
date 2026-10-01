@@ -105,7 +105,11 @@ describe("естафета зашита там, де людина справді
   it("онбординг відкриває імпорт з естафети першим екраном і стирає її лише після імпорту", () => {
     const ob = src("src/components/OnboardingFlowB.tsx");
     expect(ob).toMatch(/peekLandingHandoff\(user\)/);
-    expect(ob).toMatch(/<ImportStudentsSheet[\s\S]*initialText=\{handoff\}/);
+    /* 01.10: аркуш монтується ЗАВЖДИ (інакше плитки «Де зараз твої учні?» —
+       мертві кнопки для кожного, хто не прийшов із лендінгу), а естафета
+       лишається його НЕОБОВʼЯЗКОВИМ початковим текстом. */
+    expect(ob).toMatch(/<ImportStudentsSheet[\s\S]*initialText=\{handoff \?\? undefined\}/);
+    expect(ob, "аркуш не під умовою існування естафети").not.toMatch(/const handoffSheet = handoff \?/);
     expect(ob).toMatch(/consumeLandingHandoff\(user\)/);
     // перенесений борг = відповідь на крок «гроші», інакше борг подвоївся б
     expect(ob).toMatch(/l\.carried_over === true/);

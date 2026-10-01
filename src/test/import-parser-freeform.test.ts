@@ -83,13 +83,16 @@ describe("режим «import» — канон застосунку не зру�
 });
 
 describe("канонічний рядок: лендінг → імпорт без втрат", () => {
-  const kw: CanonicalWords = { debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв", day: (d) => ["", "пн", "вт", "ср", "чт", "пт", "сб", "нд"][d] };
+  const kw: CanonicalWords = { debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв", price: "по", day: (d) => ["", "пн", "вт", "ср", "чт", "пт", "сб", "нд"][d] };
   it("те, що розібрано в «debts», імпорт читає однаково", () => {
     const text = "Соня винна за 2 уроки\nМаша - 1200 грн\nАртем 1500\nОля — по 400 — вт,чт 16:30 — заборгувала 3 заняття — оплатила наперед 1 урок\nІгор — англійська — 800 грн за вересень — +380671234567";
     const debts = parseStudentList(text, { mode: "debts" });
     const canon = toCanonicalText(debts, kw);
     expect(canon).toContain("Артем — борг 1500 грн");
-    expect(canon).toContain("Оля — 400 — борг 3 уроки — передоплата 1 уроки — вт,чт 16:30");
+    // 01.10: ціна несе позначку «по». Доти вона стояла голим числом, і цей
+    // самий тест її пропускав, бо читав канон назад у режимі «import», де голе
+    // число і є ціна. Лендінг же читає його в «debts» — див. тест нижче.
+    expect(canon).toContain("Оля — по 400 — борг 3 уроки — передоплата 1 уроки — вт,чт 16:30");
     const back = parseStudentList(canon, { mode: "import" });
     const strip = (r: ReturnType<typeof I>) => ({ n: r.firstName, s: r.subject, p: r.price, dA: r.debtAmount, dL: r.debtLessons, pA: r.prepayAmount, pL: r.prepayLessons, sch: r.schedule, ph: r.phone });
     expect(back.map(strip)).toEqual(debts.map(strip));
@@ -100,5 +103,31 @@ describe("канонічний рядок: лендінг → імпорт бе�
     const canon = toCanonicalText(rows, kw);
     expect(canon).toBe("Даша — борг · вересень");
     expect(parseStudentList(canon)[0]).toMatchObject({ debtAmount: null, debtLessons: null, debtFlag: true });
+  });
+  /* Блокери Б2 і Б3 (аудит 01.10). Лендінг читає поле в режимі «debts», а
+     ЗБЕРІГАЄ в чернетку канонічний текст і засіває ним поле при наступному
+     візиті. Поки ціна писалась голим числом, це давало дві живі помилки:
+     список цін ставав боргом, а кожне повернення на лендінг додавало ціну до
+     боргу й стирало ставку. Тому канон перевіряється в ТОМУ Ж режимі, у якому
+     його читає лендінг, а не лише в «import». */
+  it("Б3: чернетка лендінгу не надуває борг і не губить ставку при повторному візиті", () => {
+    const typed = "Маша — по 500 — борг 1200\nАртем — по 450 — пн 17:00 — не оплатив 3 уроки";
+    const visit1 = parseStudentList(typed, { mode: "debts" });
+    const draft = toCanonicalText(visit1, kw);
+    const visit2 = parseStudentList(draft, { mode: "debts" });
+    expect(calcMoneyPreview(visit2).owed).toBe(calcMoneyPreview(visit1).owed);
+    expect(calcMoneyPreview(visit2).withPrice).toBe(calcMoneyPreview(visit1).withPrice);
+    expect(visit2[0]).toMatchObject({ firstName: "Маша", price: 500, debtAmount: 1200 });
+    // І третій візит так само: канон мусить бути нерухомою точкою.
+    expect(toCanonicalText(visit2, kw)).toBe(draft);
+  });
+  it("Б2: таблиця ЦІН не перетворюється на борг", () => {
+    const csv = "Імʼя,Предмет,Ціна\nМаша,англійська,500\nАртем,математика,450\nСоня,фізика,600";
+    const canon = toCanonicalText(parseStudentList(csv), kw);
+    const onLanding = parseStudentList(canon, { mode: "debts" });
+    const money = calcMoneyPreview(onLanding);
+    expect(money.owed).toBe(0);
+    expect(money.owedStudents).toBe(0);
+    expect(money.withPrice).toBe(3);
   });
 });

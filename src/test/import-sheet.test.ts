@@ -14,7 +14,7 @@ const noComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\
  */
 
 const kw: CanonicalWords = {
-  debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв",
+  debt: "борг", prepay: "передоплата", lessons: "уроки", money: "грн", min: "хв", price: "по",
   day: (wd) => ["", "пн", "вт", "ср", "чт", "пт", "сб", "нд"][wd],
 };
 
@@ -125,7 +125,24 @@ describe("онбординг: перше питання — «Де зараз т
     expect(src).toMatch(/onImportAll=\{\(src\) => \{ setImportSource\(src\); setHandoffOpen\(true\); \}\}/);
     expect(src).toMatch(/initialSource=\{importSource\}/);
     const sheet = noComments(read("src/components/ImportStudentsSheet.tsx"));
-    expect(sheet).toMatch(/useEffect\(\(\) => \{ if \(open\) setSource\(initialSource \?\? "text"\); \}, \[open, initialSource\]\);/);
+    // Джерело І прапорець «звідки приїхали рядки» скидаються разом (01.10):
+    // інакше після імпорту з календаря зворотна синхронізація мовчки вимикалась.
+    expect(sheet).toMatch(/if \(open\) \{\s*setSource\(initialSource \?\? "text"\);\s*setLoadedFrom\("text"\);\s*\}/);
+  });
+
+  /* Блокер Б5 (аудит 01.10). Плитки лише ставлять `handoffOpen = true`, тож
+     аркуш МУСИТЬ бути змонтований незалежно від естафети з лендінгу. Поки він
+     стояв під `handoff ? … : null`, три з чотирьох плиток не робили НІЧОГО для
+     кожного, хто не прийшов із лендінгу — тобто для всіх зі сторів. Попередній
+     ратчет перевіряв лише проводку плиток, тому й пропустив це. */
+  it("аркуш імпорту змонтований завжди — естафета лендінгу лише підставляє текст", () => {
+    const src = noComments(read("src/components/OnboardingFlowB.tsx"));
+    expect(src).not.toMatch(/const handoffSheet = handoff \?/);
+    expect(src).toMatch(/const handoffSheet = \(\s*<ImportStudentsSheet/);
+    expect(src).toMatch(/initialText=\{handoff \?\? undefined\}/);
+    // І подія воронки лендінгу — лише коли список справді з лендінгу.
+    expect(src).toMatch(/const fromLanding = handoff !== null;/);
+    expect(src).toMatch(/if \(fromLanding\) logEvent\("landing_handoff_imported"/);
   });
 });
 

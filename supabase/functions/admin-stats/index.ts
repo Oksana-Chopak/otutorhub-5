@@ -315,7 +315,16 @@ Deno.serve(async (req) => {
     }
     // 02.09: MRR рахується в ГРИВНІ — та сама сітка, що й у src/lib/pricing.ts.
     // Раніше тут були долари, тож цифра в адмінці не збігалася з жодним чеком.
-    const PLAN_UAH: Record<string, number> = { pro_monthly: 299, pro_halfyear: 269, pro_yearly: 249 };
+    /* 01.10: ключі тут були `pro_monthly` / `pro_halfyear` / `pro_yearly`, а
+       `liqpay-callback` пише `current_plan: paymentRow.plan` — тобто `monthly`,
+       `light`, `halfyear`, `yearly` (див. PLANS у `liqpay-create-payment`).
+       Префікса `pro_` немає НІДЕ, тож кожен пошук не влучав і падав у `?? 299`:
+       піврічний рахувався +11 %, річний +20 %, а Light (149 ₴) — рівно вдвічі
+       дорожче, ніж є. MRR — цифра, по якій вирішується ціна й бюджет, тож
+       помилка тут найдорожча саме в плані-рятівнику з потоку скасування.
+       Числа — та сама сітка, що `PRICE_PER_MONTH` + `LIGHT_PRICE_MONTHLY`
+       у `src/lib/pricing.ts` (edge не може імпортувати з `src/`). */
+    const PLAN_UAH: Record<string, number> = { monthly: 299, light: 149, halfyear: 269, yearly: 249 };
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     let mrr = 0, activeN = 0, trialN = 0, newPaid = 0, churned = 0;
     const rows: Record<string, unknown>[] = [];
@@ -334,11 +343,19 @@ Deno.serve(async (req) => {
       else if (trialLeft !== null && trialLeft > 0) stage = trialLeft <= 5 ? "trial_ending" : "trial";
       else if (!w.onboarding_completed) stage = (nowMs - new Date(w.created_at).getTime() > 3 * day) ? "stuck_onboarding" : "new";
       else stage = activated ? "activated" : "new";
-      if (w.subscription_status === "active") { activeN++; mrr += PLAN_UAH[w.current_plan ?? "pro_monthly"] ?? 299; }
+      if (w.subscription_status === "active") { activeN++; mrr += PLAN_UAH[w.current_plan ?? "monthly"] ?? 299; }
       if (trialLeft !== null && trialLeft > 0) trialN++;
       const fp = firstPaidAt.get(w.user_id);
       if (fp && fp >= monthStart.getTime()) newPaid++;
-      if (stage === "churned") churned++;
+      /* 01.10: плитка підписана «Відпали (міс.)», а рахувала ВСІХ, хто колись
+         платив і зараз не платить, — тобто накопичувальне число з дня запуску.
+         Поруч стоїть «Нові платні (міс.)» за місяць, тож пара була незрівнянна:
+         відтік виглядав катастрофічним з першого місяця. Відтік ЦЬОГО місяця =
+         сплачений період скінчився в цьому місяці (дані вже є в lastPeriodEnd). */
+      if (stage === "churned") {
+        const end = lastPeriodEnd.get(w.user_id);
+        if (end && new Date(end).getTime() >= monthStart.getTime()) churned++;
+      }
       let risk: "red" | "orange" | "green" = "green";
       if ((trialLeft !== null && trialLeft >= 0 && trialLeft <= 3 && activated) ||
           w.subscription_status === "past_due" ||
