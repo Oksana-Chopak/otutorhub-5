@@ -289,7 +289,13 @@ describe("звіт робота з живого проду 26.09", () => {
     expect(f, "гілка помилки чіпляється за error, а не за «рядка немає»").toMatch(/if \(wsError\) \{/);
     expect(f, "стара гілка workspaceUnknown → ErrorState більше не блокує хабового")
       .not.toMatch(/if \(workspaceUnknown\) \{\s*\n\s*return \(\s*\n\s*<>\s*\n\s*<ErrorState/);
-    expect(f).toMatch(/error: wsError \} = useWorkspaceSettings\(\)/);
+    expect(f).toMatch(/error: wsError(?:, refresh: refreshWorkspace)? \} = useWorkspaceSettings\(\)/);
+    /* 01.10: кнопка повтору кликала `fetchData()` — тобто перечитувала уроки й
+       гаманці, а впало читання НАЛАШТУВАНЬ. `refetchOnWindowFocus: false`, тож
+       саме воно не перечитувалось: червоний екран стояв поверх грошей, які
+       прочитались нормально, а «Спробувати ще» було декорацією. */
+    expect(f, "повтор мусить перечитати саме те, що впало")
+      .toMatch(/onRetry=\{\(\) => \{ void refreshWorkspace\(\); void fetchData\(\); \}\}/);
   });
 
   it("запис лишається обережним: гейт персони в розкладі не прибрано", () => {

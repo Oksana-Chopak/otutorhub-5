@@ -25,9 +25,18 @@ describe("публічні функції обмежують частоту в �
     it(`${fn}: бере ліміт зі спільного _shared/rateLimit.ts`, () => {
       const s = src();
       expect(s).toMatch(/from ['"]\.\.\/_shared\/rateLimit\.ts['"]/);
-      expect((s.match(/rateLimit\(admin,/g) ?? []).length, "принаймні два виміри: адреса і пошта/платформа")
+      /* 01.10: виміри можуть стояти як окремі виклики або як список, який
+         перевіряється ПОСЛІДОВНО (`rate_limit_check` записує спробу до вердикту,
+         тож паралельна перевірка дозволяла одній адресі зжерти платформений
+         ліміт для всіх). Рахуємо і те, і те — інваріант у кількості вимірів. */
+      const dims = (s.match(/rateLimit\(admin,/g) ?? []).length
+        + (s.match(/^\s*\["[a-z_]+",\s/gm) ?? []).length;
+      expect(dims, "принаймні два виміри: адреса і пошта/платформа")
         .toBeGreaterThanOrEqual(2);
-      expect(s).toMatch(/verdicts\.includes\(['"]limit['"]\)/);
+      /* Вердикт мусить ВЕСТИ до відмови — байдуже, збирали його разом чи
+         перевіряли послідовно (з 01.10 послідовно, див. нижче). */
+      expect(s, "перевищений ліміт мусить віддавати 429")
+        .toMatch(/=== "limit"[\s\S]{0,120}?rate_limited|verdicts\.includes\(['"]limit['"]\)/);
     });
 
     it(`${fn}: власного лічильника в памʼяті більше немає`, () => {
@@ -58,9 +67,18 @@ describe("анкета підбору не переписує чужі дані"
 
   it("ліміт на пошту — щоб чужу скриньку не завалити листами підтвердження", () => {
     const src = s();
-    expect(src).toMatch(/rateLimit\(admin, "landing_quiz_email", email,/);
-    expect(src).toMatch(/rateLimit\(admin, "landing_quiz_ip", ip,/);
-    expect(src).toMatch(/rateLimit\(admin, "landing_quiz_all", "platform",/);
+    /* Три виміри лишаються; з 01.10 вони перевіряються ПОСЛІДОВНО і спільний
+       («platform») — останнім, бо `rate_limit_check` записує спробу ще до
+       вердикту: при паралельній перевірці вже заблокована адреса далі
+       нарощувала платформений лічильник і вимикала анкету для всіх на добу. */
+    expect(src).toMatch(/\["landing_quiz_email", email, PER_EMAIL_DAY, 86400\]/);
+    expect(src).toMatch(/\["landing_quiz_ip", ip, PER_IP_HOUR, 3600\]/);
+    expect(src).toMatch(/\["landing_quiz_all", "platform", PLATFORM_DAY, 86400\]/);
+    const order = ["landing_quiz_ip", "landing_quiz_email", "landing_quiz_all"]
+      .map((k) => src.indexOf(k));
+    expect(order[2], "спільний лічильник чіпаємо останнім").toBeGreaterThan(order[0]);
+    expect(order[2]).toBeGreaterThan(order[1]);
+    expect(src, "вердикти більше не збираються разом").not.toMatch(/verdicts\.includes/);
   });
 });
 

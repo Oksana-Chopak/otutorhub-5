@@ -194,8 +194,11 @@ describe("клієнт: AI-текст — чернетка, поки репет�
 
   it("правка тексту або явне «Зберегти» знімає позначку — це і є перегляд", () => {
     const src = s();
-    expect(src).toMatch(/if \(field === "summary"\) setAiSuggested\(false\);/);
-    expect((src.match(/setSummaryDraft\(e\.target\.value\); setAiSuggested\(false\);/g) ?? []).length, "обидві форми поля").toBe(2);
+    /* 01.10: разом із позначкою забувається і ЗБЕРЕЖЕНИЙ AI-текст — інакше
+       після «закрив — відкрив» вона повернулась би на вже виправлений текст. */
+    expect(src).toMatch(/if \(field === "summary"\) \{ setAiSuggested\(false\); rememberAiText\(null\); \}/);
+    expect((src.match(/setSummaryDraft\(e\.target\.value\); setAiSuggested\(false\); rememberAiText\(null\);/g) ?? []).length,
+      "обидві форми поля").toBe(2);
   });
 
   it("позначка «Створено AI — перевірте» показується в обох виглядах поля", () => {

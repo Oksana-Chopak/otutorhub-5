@@ -62,14 +62,19 @@ Deno.serve(async (req) => {
   });
 
   const ip = clientIp(req);
-  const verdicts = await Promise.all([
-    rateLimit(admin, "landing_quiz_ip", ip, PER_IP_HOUR, 3600),
-    rateLimit(admin, "landing_quiz_email", email, PER_EMAIL_DAY, 86400),
-    rateLimit(admin, "landing_quiz_all", "platform", PLATFORM_DAY, 86400),
-  ]);
-  if (verdicts.includes("limit")) {
-    console.error("landing-find-tutor-quiz rate-limited", { ip });
-    return json(429, { error: "rate_limited" });
+  /* 01.10, та сама причина, що в `import-sheet-fetch`: `rate_limit_check`
+     записує спробу до вердикту, тож паралельна перевірка дозволяла одній адресі
+     зжерти ПЛАТФОРМЕНИЙ ліміт на добу для всіх. Перевіряємо послідовно —
+     найдешевший ключ першим, спільний лічильник чіпаємо лише якщо свої пройшли. */
+  for (const [scope, key, max, win] of [
+    ["landing_quiz_ip", ip, PER_IP_HOUR, 3600],
+    ["landing_quiz_email", email, PER_EMAIL_DAY, 86400],
+    ["landing_quiz_all", "platform", PLATFORM_DAY, 86400],
+  ] as [string, string, number, number][]) {
+    if ((await rateLimit(admin, scope, key, max, win)) === "limit") {
+      console.error("landing-find-tutor-quiz rate-limited", { ip, scope });
+      return json(429, { error: "rate_limited" });
+    }
   }
 
   let userId: string | null = null;

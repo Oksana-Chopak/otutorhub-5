@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { useHaptic } from "@/hooks/useHaptic";
+import { useCoreLock } from "@/hooks/useCoreLock";
 import { burstConfetti } from "@/lib/confetti";
 import { getLocale } from "@/lib/locale";
 import { formatPrice } from "@/lib/currency";
@@ -64,6 +65,7 @@ export function AfterLessonSheet({
 }) {
   const { t } = useTranslation();
   const haptic = useHaptic();
+  const coreLock = useCoreLock();
   const { complete: flowComplete, cancel: flowCancel } = useLessonStatus();
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -127,7 +129,9 @@ export function AfterLessonSheet({
         const s = summary.trim(); const h = homework.trim();
         if (s) patch.summary = s;
         if (h) patch.homework = h;
-        if (canMarkPaid && paid && (lesson.student_payment_status ?? "unpaid") !== "paid") {
+        // Замок перевіряється і тут: `paid` міг лишитись з уроку, відкритого
+        // до того, як тріал скінчився в цій же сесії.
+        if (canMarkPaid && !coreLock.locked && paid && (lesson.student_payment_status ?? "unpaid") !== "paid") {
           patch.student_payment_status = "paid";
           patch.student_paid_at = new Date().toISOString();
         }
@@ -207,7 +211,18 @@ export function AfterLessonSheet({
             {canMarkPaid && price > 0 && (
               <button
                 type="button"
-                onClick={() => { haptic.tap(); setPaid((p) => !p); }}
+                /* Замок 05.09: позначення оплати — ядро. До 01.10 черга «після
+                   уроку» писала оплату повз охоронець (він стояв лише в
+                   `FinancesPage.togglePayment`), а серверний замок UPDATE
+                   `lesson_details` не чіпає — тобто запис проходив. Пейвол
+                   показуємо в момент НАМІРУ, а не ховаємо кнопку: решта кроку
+                   (провести урок, записати конспект і домашку) безкоштовна й
+                   працює далі. */
+                onClick={() => {
+                  if (coreLock.locked) { coreLock.openPaywall(); return; }
+                  haptic.tap();
+                  setPaid((p) => !p);
+                }}
                 aria-pressed={paid}
                 className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[12px] px-3.5 text-[15px] font-bold"
                 style={{

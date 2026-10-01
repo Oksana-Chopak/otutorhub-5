@@ -56,16 +56,28 @@ describe("тижневий дайджест: «Зароблено» = ОТРИМ
   it("функція дайджесту користується КАНОНОМ, а не власною сумою", () => {
     const d = read("supabase/functions/tutor-weekly-digest/index.ts");
     expect(d).toMatch(/from "\.\.\/_shared\/digestMoney\.ts"/);
-    expect(d).toMatch(/const income = independent \? paidStudentIncome\(wLessons\) : paidTutorPayout\(wLessons\);/);
+    /* 01.10: формула більше не залежить від ОДНОГО прапорця на людину — кожен
+       урок рахується за власним `source`. Інваріант той самий і навіть сильніший:
+       ціна учня ніколи не стає «зароблено» хабового, а виплата ніколи не
+       підміняє дохід самостійного. Змішаний репетитор (школа + свої учні) тепер
+       теж рахується правильно. */
+    expect(d).toMatch(/const ownLessons = wLessons\.filter\(\(l: any\) => l\.source === "independent"\);/);
+    expect(d).toMatch(/const hubLessons = wLessons\.filter\(\(l: any\) => l\.source !== "independent"\);/);
+    expect(d, "«зароблено» = свої оплати за свої уроки + виплати за хабові")
+      .toMatch(/const income = paidStudentIncome\(ownLessons\) \+ paidTutorPayout\(hubLessons\);/);
     expect(d, "хабовому «очікують оплати» — його виплати, не борги учнів школі")
-      .toMatch(/const pendingPayout = independent \? 0 : unpaidTutorPayout\(wLessons\);/);
+      .toMatch(/const pendingPayout = unpaidTutorPayout\(hubLessons\);/);
+    expect(d, "борг учнів — лише зі СВОЇХ уроків, інакше це гроші школи")
+      .toMatch(/const debtTotal = unpaidStudentDebt\(ownDebts\);/);
     expect(d, "підпис рядка мусить відрізнятись — це різні гроші")
       .toMatch(/Отримано виплат/);
   });
 
   it("читання «по всій платформі» — сторінками, і збій каже словами", () => {
     const d = read("supabase/functions/tutor-weekly-digest/index.ts");
-    expect((d.match(/fetchAllRows</g) ?? []).length, "три платформених читання").toBe(3);
+    // 01.10: четверте — рядки налаштувань (персони). Доти воно йшло звичайним
+    // `.select()` і обрізалось на ~1000 рядків без помилки.
+    expect((d.match(/fetchAllRows</g) ?? []).length, "чотири платформених читання").toBe(4);
     expect((d.match(/\.order\("id"\)/g) ?? []).length,
       "кожне сторінкове читання мусить мати стабільний порядок").toBeGreaterThanOrEqual(3);
     expect(d).toMatch(/const moneyReadFailed = !!\(lastWeekRes\.error \|\| unpaidRes\.error\);/);
@@ -73,10 +85,14 @@ describe("тижневий дайджест: «Зароблено» = ОТРИМ
       .toMatch(/if \(moneyReadFailed\) lines\.push/);
   });
 
-  it("персона репетитора — з ПРАПОРЦЯ самостійності, а не з hub_id", () => {
+  it("персона репетитора — з SOURCE уроку, а «не знаю» = ХАБОВИЙ", () => {
     const d = read("supabase/functions/tutor-weekly-digest/index.ts");
-    expect(d).toMatch(/select\("tutor_id, independent_workspace"\)/);
-    expect(d).toMatch(/isIndependentTutorOf\.get\(userId\) !== false/);
+    expect(d, "hub_id персони не визначає — тригер штампує його будь-кому")
+      .toMatch(/select\("tutor_id, independent_workspace"\)/);
+    /* `!== false` означало «не знаю → самостійний» і віддавало хабовому
+       репетитору виручку школи. Безпечний бік — ХАБОВИЙ, як у Фінансах. */
+    expect(d).not.toMatch(/isIndependentTutorOf\.get\(userId\) !== false/);
+    expect(d).toMatch(/isIndependentTutorOf\.get\(userId\) === true/);
   });
 });
 

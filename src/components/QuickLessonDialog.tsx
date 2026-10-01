@@ -9,6 +9,7 @@ import { insertNotification } from "@/lib/notifications";
 import { createGroupLesson } from "@/lib/groupLessons";
 import { createGroupWithStudents } from "@/lib/groups";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import {
   Dialog,
   DialogContent,
@@ -265,7 +266,18 @@ export function QuickLessonDialog({
   const effStartsAt = whenLocal ?? startsAt ?? fallbackStart;
 
   const lock = useCoreLock();
+  const { workspaceUnknown } = useWorkspaceSettings();
   const submit = async () => {
+    /* 01.10 (В4): персона НЕ визначена — не пишемо. `variant` сюди передає
+       сторінка як `isManager ? … : isHubTutor ? "hub" : "independent"`, а
+       `isHubTutor` рахується як «репетитор і не менеджер і не самостійний» —
+       тобто при ЗБОЇ читання налаштувань самостійний репетитор стає «хабовим»,
+       і груповий урок пишеться з `source: "hub"`. А `source` з
+       `20260902170000` НЕЗМІННИЙ: такий урок уже не виправити, він назавжди
+       зникає з грошей самостійного. Той самий охоронець давно стоїть у
+       `SchedulePage` і `GroupsPage` — канонічна форма створення уроку була
+       єдиною, де його забули. */
+    if (workspaceUnknown) { toast.error(t("common.workspaceUnknown")); return; }
     // Замок 05.09: нові уроки — лише з підпискою/тріалом (незалежний).
     if (lock.locked) { lock.openPaywall(); return; }
     if (!user || !effStartsAt) return;

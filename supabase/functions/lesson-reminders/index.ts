@@ -81,8 +81,46 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
     return new Response(JSON.stringify({ ok: true, scanned: 0, sent: 0 }));
   }
 
+  /* 01.10 — ГРУПОВІ УРОКИ. У них `lessons.student_id` = NULL (учні звʼязані
+     через `lesson_participants`), а цей сканер жодного фільтра по групових не
+     має. Через це нагадування для ШКІЛ були зламані в обидва боки:
+       • учень групового уроку не отримував НІЧОГО: `chatByUser.get(null)` →
+         undefined, `sendWebPush({ userId: null })` → в пустоту;
+       • журнал дедупу падав на `student_id uuid NOT NULL`, а провал запису лише
+         логується — тобто репетитору ТЕ САМЕ нагадування приходило кожні 5
+         хвилин до кінця вікна: до ~18 разів на «відмітьте статус» (вікно 90 хв)
+         і до ~72 на добове (вікно 6 год).
+     Групові уроки — це продукт шкіл, тобто било саме по платних школах. */
+  const groupLessonIds = lessons.filter((l: any) => !l.student_id).map((l: any) => l.id);
+  const participantsByLesson = new Map<string, string[]>();
+  if (groupLessonIds.length) {
+    const { data: parts, error: partsErr } = await supabase
+      .from("lesson_participants")
+      .select("lesson_id, student_id")
+      .in("lesson_id", groupLessonIds);
+    if (partsErr) console.error("lesson-reminders: учасників груп не прочитано —", partsErr.message);
+    for (const pr of (parts ?? []) as any[]) {
+      if (!pr.student_id) continue;
+      participantsByLesson.set(pr.lesson_id, [...(participantsByLesson.get(pr.lesson_id) ?? []), pr.student_id]);
+    }
+    // Сортуємо, щоб «перший учасник» був той самий між запусками крона.
+    for (const [k, v] of participantsByLesson) participantsByLesson.set(k, [...v].sort());
+  }
+  /** Кому адресований урок: індивідуальний — учневі, груповий — усім учасникам. */
+  const studentsOf = (l: any): string[] =>
+    l.student_id ? [l.student_id as string] : (participantsByLesson.get(l.id) ?? []);
+  /** Що писати в колонку `student_id` журналу. Дедуп тримає
+   *  UNIQUE(lesson_id, recipient_id, reminder_kind) — цієї колонки в ключі немає
+   *  і ніхто її не читає (єдине читання журналу бере lesson_id/recipient_id/kind),
+   *  тож для групового уроку беремо ПЕРШОГО учасника. Якщо учасників немає —
+   *  дедупити нічим, і тоді ми НЕ надсилаємо: мовчання краще за спам кожні 5 хв. */
+  const logStudentOf = (l: any): string | null => studentsOf(l)[0] ?? null;
+
   // Fetch telegram links for all relevant users
-  const userIds = Array.from(new Set(lessons.flatMap((l: any) => [l.tutor_id, l.student_id])));
+  const userIds = Array.from(new Set([
+    ...lessons.flatMap((l: any) => [l.tutor_id, l.student_id]),
+    ...Array.from(participantsByLesson.values()).flat(),
+  ].filter(Boolean)));
   const { data: tgLinks } = await supabase
     .from("user_telegram_links")
     .select("user_id, chat_id")
@@ -169,8 +207,10 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
       const fbTrigger = endMs + 60 * MIN_MS;
       const fbWindow = 90 * MIN_MS;
       if (now >= fbTrigger && now - fbTrigger <= fbWindow) {
-        const studentChat = chatByUser.get(lesson.student_id);
-        const fbKey = `${lesson.id}:${lesson.student_id}:feedback_nudge`;
+        // Груповий урок — кожному учаснику окремо (у нього свій чат і свій журнал).
+        for (const sid of studentsOf(lesson)) {
+        const studentChat = chatByUser.get(sid);
+        const fbKey = `${lesson.id}:${sid}:feedback_nudge`;
         if (!sentSet.has(fbKey)) {
           const tutorName = nameById.get(lesson.tutor_id) ?? "репетитором";
           const text =
@@ -178,7 +218,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
             `Відкрийте урок у застосунку і поставте оцінку — це допоможе репетитору і іншим учням.`;
           const tgOk = studentChat ? await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text) : false;
           const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
-            userId: lesson.student_id,
+            userId: sid,
             title: "⭐ Як пройшов урок?",
             body: `Оцініть урок з ${tutorName} (${lesson.subject})`,
             link: "/student-dashboard",
@@ -188,8 +228,8 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
             const { error: logErr } = await supabase.from("lesson_reminders").insert({
               lesson_id: lesson.id,
               tutor_id: lesson.tutor_id,
-              student_id: lesson.student_id,
-              recipient_id: lesson.student_id,
+              student_id: sid,
+              recipient_id: sid,
               recipient_role: "student",
               reminder_kind: "feedback_nudge",
               channel: tgOk ? "telegram" : "webpush",
@@ -200,6 +240,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
             if (logErr) console.error("lesson-reminders: журнал не записався — дедуп зламано", logErr.message);
             sent++;
           } else skipped++;
+        }
         }
       }
     }
@@ -219,7 +260,13 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
         const tutorChat = chatByUser.get(lesson.tutor_id);
         const key = `${lesson.id}:${lesson.tutor_id}:${n.kind}`;
         if (sentSet.has(key)) continue;
-        const studentName = nameById.get(lesson.student_id) ?? "учнем";
+        /* Без учасників груповий урок дедупити нічим — тоді не надсилаємо:
+           мовчання краще за те саме нагадування кожні 5 хвилин. */
+        const logSid = logStudentOf(lesson);
+        if (!logSid) continue;
+        const studentName = lesson.student_id
+          ? (nameById.get(lesson.student_id) ?? "учнем")
+          : `групою (${studentsOf(lesson).length})`;
         const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", {
           timeZone: "Europe/Kyiv",
           day: "2-digit",
@@ -243,7 +290,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
           const { error: logErr } = await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
-            student_id: lesson.student_id,
+            student_id: logSid,
             recipient_id: lesson.tutor_id,
             recipient_role: "tutor",
             reminder_kind: n.kind,
@@ -274,7 +321,12 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
         hour: "2-digit",
         minute: "2-digit",
       });
-      const studentName = nameById.get(lesson.student_id) ?? "учень";
+      const preLogSid = logStudentOf(lesson);
+      // Груповий урок без учасників дедупити нічим — краще тиша, ніж кожні 5 хв.
+      if (!preLogSid) continue;
+      const studentName = lesson.student_id
+        ? (nameById.get(lesson.student_id) ?? "учень")
+        : `групою (${studentsOf(lesson).length})`;
       const tutorName = nameById.get(lesson.tutor_id) ?? "репетитор";
       const link = lesson.meeting_url
         ? `\n\n🔗 <a href="${escapeHtmlAttr(String(lesson.meeting_url))}">Посилання на урок</a>`
@@ -299,7 +351,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
           const { error: logErr } = await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
-            student_id: lesson.student_id,
+            student_id: preLogSid,
             recipient_id: lesson.tutor_id,
             recipient_role: "tutor",
             reminder_kind: rule.kind,
@@ -313,16 +365,19 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
         } else skipped++;
       }
 
-      // Send to student
-      const studentChat = chatByUser.get(lesson.student_id);
-      const studentKey = `${lesson.id}:${lesson.student_id}:${rule.kind}`;
+      // Send to student — у груповому уроці КОЖНОМУ учаснику окремо: доти
+      // `chatByUser.get(null)` і `sendWebPush({ userId: null })` відправляли
+      // нагадування в пустоту, і учні шкіл не отримували їх узагалі.
+      for (const sid of studentsOf(lesson)) {
+      const studentChat = chatByUser.get(sid);
+      const studentKey = `${lesson.id}:${sid}:${rule.kind}`;
       if (!sentSet.has(studentKey)) {
         const text =
           `⏰ Урок з <b>${escapeHtml(tutorName)}</b> через ${rule.minutesBefore} хв\n` +
           `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;
         const tgOk = studentChat ? await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text) : false;
         const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
-          userId: lesson.student_id,
+          userId: sid,
           title: `⏰ Урок через ${rule.minutesBefore} хв`,
           body: `${tutorName} · ${lesson.subject} · ${dateStr}`,
           // 24.09 (аудит шляхів): вело на список, де урок треба знайти очима.
@@ -336,8 +391,8 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
           const { error: logErr } = await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
-            student_id: lesson.student_id,
-            recipient_id: lesson.student_id,
+            student_id: sid,
+            recipient_id: sid,
             recipient_role: "student",
             reminder_kind: rule.kind,
             channel: tgOk ? "telegram" : "webpush",
@@ -348,6 +403,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
           if (logErr) console.error("lesson-reminders: журнал не записався — дедуп зламано", logErr.message);
           sent++;
         } else skipped++;
+      }
       }
     }
   }

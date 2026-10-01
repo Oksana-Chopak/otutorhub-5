@@ -227,9 +227,26 @@ export function LessonWorkspace({
          закритті: у базу і до учня йде лише те, що репетитор перечитав
          (відредагував або явно зберіг). */
   const [aiSuggested, setAiSuggested] = useState(false);
+  /* 01.10 (В8): прапорець був звичайним `useState`, а ТЕКСТ від моделі
+     переживав закриття уроку в localStorage (`useLocalDraft`). Тобто після
+     «закрив — відкрив» текст лишався в полі, а позначка «Створено AI —
+     перевірте» зникала, охоронець у flush більше нічого не тримав, і «Готово»
+     зберігало та надсилало учневі неперечитаний текст моделі — рівно те, проти
+     чого зроблений пакет T. Тому поряд із чернеткою зберігаємо САМ AI-текст: при
+     відновленні прапорець ставиться, лише якщо чернетка дослівно дорівнює йому.
+     Так «репетитор уже правив» визначається фактом, а не памʼяттю вкладки. */
+  const aiKey = lessonId ? `otutorhub.aiDraft.lesson.${lessonId}.summary` : null;
+  const rememberAiText = (text: string | null) => {
+    if (!aiKey) return;
+    try {
+      if (text === null) localStorage.removeItem(aiKey);
+      else localStorage.setItem(aiKey, text);
+    } catch { /* приватний режим / квота — прапорець просто не переживе вкладку */ }
+  };
   const takeAiDraft = (text: string, toastTitle: string, toastDesc: string) => {
     setSummaryDraft(text);
     setAiSuggested(true);
+    rememberAiText(text);
     toast({ title: toastTitle, description: toastDesc });
   };
 
@@ -274,6 +291,16 @@ export function LessonWorkspace({
   // Оголошені ПІСЛЯ prop-sync ефекту, щоб відновлення не затиралось пропсами.
   const hwLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.homework` : null, homeworkDraft, setHomeworkDraft);
   const sumLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.summary` : null, summaryDraft, setSummaryDraft);
+  /* Відновлення позначки: чернетка дорівнює збереженому AI-тексту → репетитор
+     його ще не торкався. Будь-яка правка робить порівняння нерівним, тож
+     позначка знімається сама, без окремого прапорця. */
+  useEffect(() => {
+    if (!aiKey) return;
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(aiKey); } catch { saved = null; }
+    if (saved && saved.trim() && summaryDraft === saved) setAiSuggested(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiKey, summaryDraft]);
   const noteLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.student_notes` : null, notesDraft, setNotesDraft);
   const meetLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.meeting_url` : null, meetingDraft, setMeetingDraft);
   const privLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.private` : null, privateNotesDraft, setPrivateNotesDraft);
@@ -414,7 +441,7 @@ export function LessonWorkspace({
   };
 
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
-    if (field === "summary") setAiSuggested(false); // явне «Зберегти» = репетитор перечитав
+    if (field === "summary") { setAiSuggested(false); rememberAiText(null); } // явне «Зберегти» = репетитор перечитав
     setSaving(field);
     let cleaned = value;
     if (field === "meeting_url") {
@@ -811,7 +838,7 @@ export function LessonWorkspace({
                   <span><b>{t("lessonWorkspaceExtra.aiDraftTitle")}</b> {t("lessonWorkspaceExtra.aiDraftBody")}</span>
                 </div>
               )}
-              <textarea ref={summaryGrow} aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); }}
+              <textarea ref={summaryGrow} aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); rememberAiText(null); }}
                 placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 10, alignItems: "center" }}>
                 {aiAllowed ? (
@@ -1012,7 +1039,7 @@ export function LessonWorkspace({
               rows={5}
               placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")}
               value={summaryDraft}
-              onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); }}
+              onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); rememberAiText(null); }}
             />
             <Button
               size="sm"

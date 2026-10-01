@@ -16,6 +16,7 @@ import { Loader2, X, Check } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 import { useHaptic } from "@/hooks/useHaptic";
+import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
 import { burstConfetti } from "@/lib/confetti";
 
 export interface CloseDayRow {
@@ -70,6 +71,7 @@ const Pill = ({ on, label, gold, onClick }: { on: boolean; label: string; gold?:
 export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
   const { t } = useTranslation();
   const haptic = useHaptic();
+  const coreLock = useCoreLock();
   const { user } = useAuth();
   const [state, setState] = useState<Record<string, { done: boolean; paid: boolean }>>({});
   const [busy, setBusy] = useState(false);
@@ -126,6 +128,13 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
   const [planBusy, setPlanBusy] = useState(false);
   const [doneStat, setDoneStat] = useState<{ count: number; student: string | null }>({ count: 0, student: null });
   const apply = async () => {
+    /* Замок 05.09: позначення оплат — ядро, лише з підпискою/тріалом. До 01.10
+       охоронець стояв ЛИШЕ в `FinancesPage.togglePayment`, а «Закрити день» —
+       головний щоденний ритуал продукту — писав оплати повз нього. Серверний
+       замок (`trg_00_core_lock`) закриває INSERT уроків і поповнення гаманця, а
+       UPDATE `lesson_details` не чіпає, тож ці записи справді проходили в базу:
+       єдині платні ворота продукту обходились найчастішою дією. */
+    if (coreLock.locked) { coreLock.openPaywall(); return; }
     setBusy(true);
     try {
       const doneRows = rows.filter((r) => state[r.id]?.done);
@@ -182,7 +191,14 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         user!.id,
       );
       setPlanBusy(false);
-      if (error) { toast.error(t("onboardingFlowB.saveFailed")); return; }
+      /* Серверний замок відмовляє рядком `SUBSCRIPTION_REQUIRED: …`, а тут
+         показувалось глухе «Не вдалося зберегти» — людина не могла відрізнити
+         замок від збою. Пропозиція замість коду: той самий пейвол, що й усюди. */
+      if (error) {
+        if (isSubscriptionRequiredError(error)) { coreLock.openPaywall(); return; }
+        toast.error(t("onboardingFlowB.saveFailed"));
+        return;
+      }
       toast.success(t("closeDaySummary.createdBulk", { count }));
       logEvent("bulk_next_created", { count }); // C6
       bumpDataVersion(); // C3

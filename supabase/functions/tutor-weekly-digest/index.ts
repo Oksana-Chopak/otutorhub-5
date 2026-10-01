@@ -189,10 +189,17 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
      прапорця, і пізніший UPDATE прапорця hub_id не чистить (пастка 26.09).
      Від цього залежить, ЧИЇ гроші показати репетитору — свою виплату чи
      виручку школи. */
-  const { data: wsRows } = await sb.from("tutor_workspace_settings")
-    .select("tutor_id, independent_workspace");
+  /* 01.10: це читання «по всій платформі» йшло звичайним `.select()` — тобто
+     обрізалось на ~1000 рядків БЕЗ помилки (інваріант EDGE READS PAGE), і
+     репетиторів за межею сторінки персона не мала взагалі. Три інші платформені
+     читання в цьому файлі вже сторінками; це лишалось єдиним. */
+  const wsRes = await fetchAllRows<any>((a, b) => sb.from("tutor_workspace_settings")
+    .select("tutor_id, independent_workspace")
+    .order("tutor_id")
+    .range(a, b));
+  if (wsRes.error) console.error("tutor-weekly-digest: персони не прочитані —", wsRes.error);
   const isIndependentTutorOf = new Map<string, boolean>(
-    (wsRows ?? []).map((r: any) => [r.tutor_id, r.independent_workspace === true]),
+    (wsRes.data ?? []).map((r: any) => [r.tutor_id, r.independent_workspace === true]),
   );
   const inManagerHub = (managerId: string, tutorId: string) =>
     !hubModel || hubOfTutor.get(tutorId) === hubOfManager.get(managerId);
@@ -252,15 +259,35 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
       /* 27.09, той самий клас, що дефект ранкового дайджесту (закритий 22.09):
          ХАБОВОМУ репетитору тут показувалась ціна учня — тобто виручка ШКОЛИ й
          витік її маржі, а не гроші репетитора. Самостійний бачить свої оплати,
-         хабовий — свою виплату. І в обох випадках лише ОТРИМАНЕ. */
-      const independent = isIndependentTutorOf.get(userId) !== false;
-      const income = independent ? paidStudentIncome(wLessons) : paidTutorPayout(wLessons);
+         хабовий — свою виплату. І в обох випадках лише ОТРИМАНЕ.
+
+         01.10: сама формула була правильна, а ПЕРСОНА — ні. Прапорець читався
+         через «не дорівнює false», тобто «не знаю → самостійний», і витік
+         відкривався знову. «Не знаю» було не теорією:
+         рядка налаштувань могло не бути (дірка 26.09, бекфіл покрив лише тих,
+         хто вже в `hub_members`), читання того рядка йшло БЕЗ `fetchAllRows`
+         (обрізалось на ~1000 рядків без помилки) і без `error`.
+         Тому гроші більше не залежать від одного прапорця на людину: кожен
+         урок рахується за ВЛАСНИМ `source` — той самий канон, що в ранковому й
+         вечірньому дайджестах. Змішаний випадок (репетитор у школі, який веде
+         ще й своїх учнів) тепер теж правильний, а не «безпечно неправильний». */
       const myDebts = (unpaid ?? []).filter((l: any) => l.tutor_id === userId);
+      const ownLessons = wLessons.filter((l: any) => l.source === "independent");
+      const hubLessons = wLessons.filter((l: any) => l.source !== "independent");
+      const ownDebts = myDebts.filter((l: any) => l.source === "independent");
+      // «Зароблено» = ОТРИМАНЕ: свої оплати за свої уроки + виплати за хабові.
+      const income = paidStudentIncome(ownLessons) + paidTutorPayout(hubLessons);
       /* Хабовому «очікують оплати» — це НЕ борги учнів перед школою (чужі
          гроші), а його невиплачені виплати. */
-      const pendingPayout = independent ? 0 : unpaidTutorPayout(wLessons);
-      const debtTotal = independent ? unpaidStudentDebt(myDebts) : 0;
-      const debtStudents = independent ? new Set(myDebts.map((l: any) => l.student_id)).size : 0;
+      const pendingPayout = unpaidTutorPayout(hubLessons);
+      const debtTotal = unpaidStudentDebt(ownDebts);
+      const debtStudents = new Set(ownDebts.map((l: any) => l.student_id)).size;
+      /* Прапорець лишається ЛИШЕ для формулювання рядка. Коли уроків немає
+         зовсім, беремо рядок налаштувань, і «не знаю» = ХАБОВИЙ — безпечний
+         бік, той самий, що у Фінансах (`FinancesPage`: немає рядка → хабовий). */
+      const independent = wLessons.length > 0 || myDebts.length > 0
+        ? ownLessons.length + ownDebts.length >= hubLessons.length
+        : isIndependentTutorOf.get(userId) === true;
 
       // Always send, even if no lessons
 

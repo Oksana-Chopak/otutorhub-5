@@ -215,7 +215,7 @@ export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
   const { roles } = useAuth();
-  const { isIndependent, loading: wsLoading, error: wsError } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, error: wsError, refresh: refreshWorkspace } = useWorkspaceSettings();
   const coreLock = useCoreLock();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
@@ -2199,9 +2199,14 @@ export default function FinancesPage() {
        Для ЗАПИСУ обережність лишається (source уроку незмінний) — гейт у
        SchedulePage не чіпаємо. */
     if (wsError) {
+      /* 01.10: повтор кликав `fetchData()` — тобто перечитував уроки й гаманці,
+         а впало читання НАЛАШТУВАНЬ. У `App.tsx` стоїть
+         `refetchOnWindowFocus: false`, тож сам запит теж не перечитувався:
+         кнопка «Спробувати ще» була декорацією, і червоний екран стояв поверх
+         грошей, які прочитались нормально. Повторюємо те, що впало. */
       return (
         <>
-          <ErrorState onRetry={() => void fetchData()} retrying={loading} />
+          <ErrorState onRetry={() => { void refreshWorkspace(); void fetchData(); }} retrying={loading} />
         </>
       );
     }
@@ -2648,6 +2653,13 @@ export default function FinancesPage() {
                         </div>
                         <button
                           onClick={() => {
+                            /* Замок 05.09: охоронець живе в `togglePayment`, а ця
+                               кнопка кличе `writeStudentPayment` НАПРЯМУ, тобто
+                               «Позначити всі оплаченими» обходило пейвол. Серверний
+                               замок UPDATE `lesson_details` не покриває, тож записи
+                               справді проходили — одна кнопка знімала платні ворота
+                               з усього боргу разом. */
+                            if (coreLock.locked) { coreLock.openPaywall(); return; }
                             const snapshot = debtList.map(l => ({ id: l.id, status: l.student_payment_status, paidAt: l.student_paid_at }));
                             const ids = snapshot.map(s => s.id);
                             const nowIso = new Date().toISOString();

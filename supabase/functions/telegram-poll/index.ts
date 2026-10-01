@@ -403,10 +403,26 @@ async function handleDigestCallback(base: string, db: any, cq: any,
     }).map((l: any) => l.id as string);
     if (ids.length === 0) { await answerCb(base, cqId, L.nopayout); return; }
     const now = new Date().toISOString();
-    await db.from('lesson_details')
-      .update({ tutor_payout_status: 'paid', tutor_paid_at: now })
-      .in('lesson_id', ids).or('tutor_payout_status.is.null,tutor_payout_status.neq.paid'); // NULL = unpaid (COALESCE у RPC)
-    await db.from('tutor_details').update({ payout_last_marked_at: now }).eq('user_id', targetTutorId);
+    /* 01.10: гілку «👛 Виплатив(ла)» (13.09) не зачепила правка 18.09 для
+       сусідньої гілки боргів — тут `error` не читався, а нижче менеджеру одразу
+       відповідали «✅ Виплату позначено… Застосунок уже знає». При збої він бачив
+       зелене підтвердження, репетитор лишався невиплаченим у журналі, і наступне
+       нагадування виставляло ті самі гроші знову. Той самий спосіб, що в гілці
+       `hpaid`: спершу довести запис, потім святкувати. */
+    let wrote = true;
+    {
+      const { error } = await db.from('lesson_details')
+        .update({ tutor_payout_status: 'paid', tutor_paid_at: now })
+        .in('lesson_id', ids).or('tutor_payout_status.is.null,tutor_payout_status.neq.paid'); // NULL = unpaid (COALESCE у RPC)
+      if (error) { console.error('telegram-poll tpaid lesson_details', error.message); wrote = false; }
+    }
+    if (!wrote) { await answerCb(base, cqId, L.writeFailed); return; }
+    {
+      const { error } = await db.from('tutor_details').update({ payout_last_marked_at: now }).eq('user_id', targetTutorId);
+      // Дата останньої позначки — службова: її збій не скасовує саму виплату,
+      // але мовчати про нього не можна (наступне нагадування прийде зарано).
+      if (error) console.error('telegram-poll tpaid payout_last_marked_at', error.message);
+    }
     await db.from('manager_audit_log').insert({
       actor_id: tutorId, action: 'mark_payout_paid_via_telegram', entity_type: 'tutor_payout', entity_id: targetTutorId,
       before: { unpaid_lessons: ids, sum, hub_id: hm.hub_id },

@@ -96,13 +96,27 @@ Deno.serve(withJob("payout-reminders", async (req) => {
   // (the financial columns were moved off the lessons table). Reading them from lessons
   // returned nothing, so payout reminders silently never fired. Source them from
   // lesson_details, joined back to the lesson's tutor via lesson_id.
+  /* 01.10: тут стояв лише `.neq("status", "cancelled")`, тож у суму потрапляли
+     ЗАЯВКИ (`pending`) і МАЙБУТНІ заплановані уроки. Канон виплати — лише
+     ПРОВЕДЕНЕ: `isPayoutDueLesson` (`src/lib/financials.ts`) і RPC
+     `mark_tutor_payouts_paid` вимагають `status <> 'pending'` і
+     (`completed` або `starts_at <= now()`), плюс виплату > 0. Через це ранковий
+     Telegram казав менеджеру одну суму («Петро — 4 800 ₴, 12 ур.»), а застосунок
+     і сама кнопка «Виплатив(ла)» — іншу. Менеджер платить по тій, що прийшла
+     першою, тож розбіжність тут коштує справжніх грошей. */
+  const nowMs = Date.now();
   const { data: dueLessons } = await admin
     .from("lessons")
-    .select("id, tutor_id")
+    .select("id, tutor_id, status, starts_at")
     .in("tutor_id", dueIds)
-    .neq("status", "cancelled");
+    .neq("status", "cancelled")
+    .neq("status", "pending");
   const tutorByLesson = new Map<string, string>();
-  for (const l of (dueLessons ?? []) as any[]) tutorByLesson.set(l.id, l.tutor_id);
+  for (const l of (dueLessons ?? []) as any[]) {
+    const conducted = l.status === "completed" || new Date(l.starts_at).getTime() <= nowMs;
+    if (!conducted) continue;
+    tutorByLesson.set(l.id, l.tutor_id);
+  }
 
   const sumBy = new Map<string, number>();
   const cntBy = new Map<string, number>();
@@ -116,7 +130,12 @@ Deno.serve(withJob("payout-reminders", async (req) => {
     for (const d of (details ?? []) as any[]) {
       const tid = tutorByLesson.get(d.lesson_id);
       if (!tid) continue;
-      sumBy.set(tid, (sumBy.get(tid) ?? 0) + (Number(d.tutor_payout) || 0));
+      // Виплата 0/NULL = «ставку не задано», а не «нуль гривень»: такий урок у
+      // канонічному предикаті не рахується ні в суму, ні в кількість — інакше
+      // «12 уроків» стояло б поруч із сумою за 7 (той самий клас, що у Фінансах).
+      const payout = Number(d.tutor_payout) || 0;
+      if (payout <= 0) continue;
+      sumBy.set(tid, (sumBy.get(tid) ?? 0) + payout);
       cntBy.set(tid, (cntBy.get(tid) ?? 0) + 1);
     }
   }

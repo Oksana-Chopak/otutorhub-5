@@ -25,7 +25,11 @@ describe("аудит 18.09: фальшивий успіх і мовчазні г
     const f = read("supabase/functions/telegram-poll/index.ts");
     const writes = f.match(/wrote = false/g) ?? [];
     expect(writes.length, "чотири оновлення статусу — чотири перевірки").toBeGreaterThanOrEqual(4);
-    expect((f.match(/if \(!wrote\) \{ await answerCb\(base, cqId, L\.writeFailed\); return; \}/g) ?? []).length).toBe(2);
+    /* 01.10: третя — гілка «👛 Виплатив(ла)» (вона з 13.09, і правка 18.09 її не
+       зачепила: менеджер бачив зелене «Застосунок уже знає», а репетитор
+       лишався невиплаченим у журналі). Перевірок стає більше, не менше. */
+    expect((f.match(/if \(!wrote\) \{ await answerCb\(base, cqId, L\.writeFailed\); return; \}/g) ?? []).length)
+      .toBeGreaterThanOrEqual(3);
     for (const loc of ["Не вдалося зберегти", "Could not save", "Kunde inte spara"]) {
       expect(f, `текст збою для ${loc} відсутній`).toContain(loc);
     }

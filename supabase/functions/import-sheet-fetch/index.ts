@@ -79,11 +79,18 @@ Deno.serve(async (req) => {
       return json(429, { error: "rate_limited" });
     }
   } else {
-    const verdicts = await Promise.all([
-      rateLimit(admin, "import_sheet_fetch_ip", clientIp(req), PER_IP_HOUR_ANON, 3600),
-      rateLimit(admin, "import_sheet_fetch_all", "platform", PLATFORM_DAY_ANON, 86400),
-    ]);
-    if (verdicts.includes("limit")) return json(429, { error: "rate_limited" });
+  /* 01.10: обидва ключі перевірялись ПАРАЛЕЛЬНО, а `rate_limit_check` записує
+     спробу беззастережно — ще до вердикту. Тобто вже заблокована адреса далі
+     нарощувала ПЛАТФОРМЕНИЙ лічильник, і 501 дешевий запит з однієї машини
+     вимикав читання Google Таблиці ДЛЯ ВСІХ відвідувачів до кінця добового
+     вікна (а іншого шляху для аноніма тут немає). Тому перевірка послідовна:
+     найдешевший ключ першим, і при відмові ми не торкаємось спільного. */
+    if ((await rateLimit(admin, "import_sheet_fetch_ip", clientIp(req), PER_IP_HOUR_ANON, 3600)) === "limit") {
+      return json(429, { error: "rate_limited" });
+    }
+    if ((await rateLimit(admin, "import_sheet_fetch_all", "platform", PLATFORM_DAY_ANON, 86400)) === "limit") {
+      return json(429, { error: "rate_limited" });
+    }
   }
   const maxRows = user ? MAX_ROWS : MAX_ROWS_ANON;
 

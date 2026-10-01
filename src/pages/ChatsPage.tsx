@@ -402,46 +402,49 @@ export default function ChatsPage() {
           }
         }
       } else {
-        // Determine tutor/student roles for the pair
-        const { data: otherRoles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", withId);
-        const otherIsTutor = (otherRoles ?? []).some((r: any) => r.role === "tutor");
-        const otherIsStudent = (otherRoles ?? []).some((r: any) => r.role === "student");
-        const otherIsManager = (otherRoles ?? []).some((r: any) => r.role === "manager");
+        /* 01.10 (В7): тут читались РОЛІ співрозмовника — `user_roles` з
+           `.eq("user_id", withId)`. Але політики цієї таблиці пускають лише
+           свій рядок і менеджера (`auth.uid() = user_id` або
+           `has_role(…,'manager')`), тож для учня й для репетитора відповідь
+           ЗАВЖДИ порожня: жодна гілка не спрацьовувала, `tutorId` лишався null
+           і функція тихо виходила — без тосту, без нічого. Працювало це лише
+           там, де тред УЖЕ існував (його засіває `loadThreads` з уроків і
+           ставок). Тому учень групового уроку не міг написати репетиторові
+           взагалі: груповий урок має `student_id = NULL`, а менеджер може
+           посадити учня в групу без рядка `student_rates`. І саме чат
+           `/student/payments` пропонує як вихід для пар без реквізитів.
+
+           Ролі співрозмовника тут не потрібні й не мали бути потрібні: слот
+           репетитора — це я, якщо я репетитор, інакше співрозмовник (менеджер
+           за домовленістю займає слот учня — так само робить
+           `start_manager_chat`). Чи існує звʼязок, вирішує сам
+           `get_or_create_chat_thread`: він приймає пару і за уроками, і за
+           ставками, і за участю в групі (`lesson_participants`,
+           `group_enrollments`). Відмову показуємо словами. */
         const myIsTutor = roles.includes("tutor");
-        let tutorId: string | null = null;
-        let studentId: string | null = null;
-        if (myIsTutor && otherIsStudent) {
-          tutorId = myId;
-          studentId = withId;
-        } else if (!myIsTutor && otherIsTutor) {
-          tutorId = withId;
-          studentId = myId;
-        } else if (myIsTutor && otherIsManager) {
-          // Tutor ↔ hub manager support thread (manager occupies the student slot).
-          tutorId = myId;
-          studentId = withId;
-        }
-        if (!tutorId || !studentId) {
-          // Maybe thread already exists
-          const match = threads.find(
-            (t) =>
-              (t.tutor_id === myId && t.student_id === withId) ||
-              (t.student_id === myId && t.tutor_id === withId)
-          );
-          if (match) setSelectedId(match.id);
-          return;
-        }
-        const { data: threadId } = await supabase.rpc("get_or_create_chat_thread", {
+        const tutorId = myIsTutor ? myId : withId;
+        const studentId = myIsTutor ? withId : myId;
+        const { data: threadId, error } = await supabase.rpc("get_or_create_chat_thread", {
           _tutor_id: tutorId,
           _student_id: studentId,
         });
-        if (threadId) {
+        if (!error && threadId) {
           await loadThreads();
           setSelectedId(threadId as string);
+          return;
         }
+        // Сервер не підтвердив пару — може, тред усе-таки вже є.
+        const match = threads.find(
+          (t) =>
+            (t.tutor_id === myId && t.student_id === withId) ||
+            (t.student_id === myId && t.tutor_id === withId)
+        );
+        if (match) { setSelectedId(match.id); return; }
+        // Мовчазний вихід читався як «кнопка не працює». Тепер — причина словами.
+        toast({
+          title: t("chats.noThreadTitle"),
+          description: t("chats.createViaButton"),
+        });
       }
       // Clean URL
       const url = new URL(window.location.href);

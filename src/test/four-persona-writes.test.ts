@@ -123,7 +123,13 @@ describe("П3.21 · шар B — трипваєр: guard замка стоїть
   ];
 
   it.each(GUARDED)("$file · $handler", ({ file, handler }) => {
-    const text = readFileSync(join(src, file), "utf8");
+    /* 01.10: ратчет міряв перші 400 СИМВОЛІВ тіла обробника разом із
+       коментарями, тож пояснення причини правки «виштовхувало» guard за межу і
+       ворота червоніли на правильному коді. Міряємо КОД: коментарі прибираємо
+       до зрізу. Інваріант той самий — guard стоїть до першого запису. */
+    const text = readFileSync(join(src, file), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
     const at = text.indexOf(handler);
     expect(at, `${file}: обробник «${handler}» зник — онови цей тест свідомо`).toBeGreaterThan(-1);
     // Guard мусить стояти в перших рядках тіла обробника (до першого запису).
