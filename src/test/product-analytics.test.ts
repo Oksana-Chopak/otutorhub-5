@@ -92,6 +92,9 @@ describe("щоденна рутина: Telegram-рядок і PR від Claude C
     expect(w).toMatch(/node scripts\/errors-daily\.mjs/);
     expect(w).toMatch(/uses: anthropics\/claude-code-action@v1/);
     expect(w).toMatch(/if: \$\{\{ env\.HAS_CLAUDE_KEY == 'true' && steps\.report\.outputs\.new != '0'/);
+    // без дозволених інструментів Claude в режимі автоматизації нічого не виправить
+    expect(w).toMatch(/--allowedTools "Read,Edit,Write,Glob,Grep,Bash\(npm:\*\),Bash\(npx:\*\),Bash\(node:\*\),Bash\(git:\*\),Bash\(gh:\*\)"/);
+    expect(w).toMatch(/claude_code_oauth_token: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
     expect(w).toMatch(/Заборонено: пушити в main/);
     const s = noComments(read("supabase/functions/errors-report/index.ts"));
     expect(s).toMatch(/if \(!provided \|\| !expected \|\| provided !== expected\)/);

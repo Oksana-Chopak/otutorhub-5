@@ -5,7 +5,8 @@
 # групи і в репо заданий ANTHROPIC_API_KEY — запускає Claude Code, який
 # розбирає їх по коду і відкриває PR із виправленням (ніколи не пушить у main,
 # не чіпає міграції й секрети). Без ключа — лише звіт.
-# Потрібно один раз: GitHub-застосунок Claude на репо + секрет ANTHROPIC_API_KEY.
+# Потрібно один раз: GitHub-застосунок Claude на репо + секрет ANTHROPIC_API_KEY
+# (ключ з Claude Console) або CLAUDE_CODE_OAUTH_TOKEN (токен підписки з `claude setup-token`).
 name: Щоденні помилки
 
 on:
@@ -18,6 +19,7 @@ permissions:
   pull-requests: write
   issues: write
   id-token: write
+  actions: read
 
 concurrency:
   group: errors-daily
@@ -29,7 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      HAS_CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      # Будь-який із двох: ключ API (Claude Console) або токен підписки (claude setup-token).
+      HAS_CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' || secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
     outputs:
       new: ${{ steps.report.outputs.new }}
     steps:
@@ -65,7 +68,12 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: "--max-turns 60"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # У режимі автоматизації Claude не має інструментів, поки їх не дозволити:
+          # без цього рядка він лише прочитав би звіт і нічого не виправив.
+          claude_args: |
+            --max-turns 60
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(gh:*)"
           prompt: |
             Ти працюєш у репозиторії oTutorHub. Прочитай CLAUDE.md і HANDOFF.md — там правила проєкту.
             У файлі errors-24h.json — помилки продукту за останню добу, згруповані; поле is_new=true означає, що такої помилки раніше не було.
