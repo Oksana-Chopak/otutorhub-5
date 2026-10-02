@@ -1,7 +1,7 @@
 // ЗГЕНЕРОВАНО scripts/stamp-edge.mjs — не правити руками.
-// Хеш вмісту всіх edge-функцій (86 файлів, 51 функцій). Функція `version`
+// Хеш вмісту всіх edge-функцій (80 файлів, 51 функцій). Функція `version`
 // віддає його назовні; робот у CI звіряє з репо і каже, чи прод крутить свіже.
-export const EDGE_VERSION = "4760ea1b";
+export const EDGE_VERSION = "83fadb40";
 export const EDGE_FUNCTIONS = 51;
 
 // Штамп КОЖНОЇ функції окремо: спільний код + її власні файли. Lovable
@@ -10,7 +10,7 @@ export const EDGE_FUNCTIONS = 51;
 export const EDGE_FN_VERSION: Record<string, string> = {
   "admin-stats": "1ed5bc38",
   "archive-old-chats": "68fd444f",
-  "auth-email-hook": "52fde496",
+  "auth-email-hook": "65cd27bb",
   "ci-report": "bdd769df",
   "confirm-pending-signup": "d0088d15",
   "db-backup": "06e843f7",
@@ -23,8 +23,8 @@ export const EDGE_FN_VERSION: Record<string, string> = {
   "google-calendar-auth": "4bc3789b",
   "google-calendar-callback": "d881d5c1",
   "google-calendar-import": "37df6bf5",
-  "handle-email-suppression": "64b8b01c",
-  "handle-email-unsubscribe": "b8290b8a",
+  "handle-email-suppression": "0fb25b2d",
+  "handle-email-unsubscribe": "66c7b39e",
   "import-sheet-fetch": "9a89853b",
   "landing-find-tutor-quiz": "51baa25f",
   "landing-spots-left": "c4062668",
@@ -42,15 +42,15 @@ export const EDGE_FN_VERSION: Record<string, string> = {
   "notify-lesson-update": "58dcfc30",
   "payment-reminders": "ef042793",
   "payout-reminders": "3412765a",
-  "preview-transactional-email": "ae813d4b",
-  "process-email-queue": "7f17ee74",
+  "preview-transactional-email": "6e1f742f",
+  "process-email-queue": "3a2ff90e",
   "remind-payment": "ae2f6e2e",
   "revenuecat-webhook": "cc93da48",
   "scheduled-notifications": "8843e4c6",
   "send-marketing-campaign": "912ab32a",
   "send-push": "aad5d42c",
   "send-student-invite": "9b159b96",
-  "send-transactional-email": "d20d3465",
+  "send-transactional-email": "ada20fff",
   "sync-google-calendar": "de525966",
   "telegram-bot-info": "916db26d",
   "telegram-link": "4f31ace8",
