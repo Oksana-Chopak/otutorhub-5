@@ -8,6 +8,7 @@
 // (manager_purge_user, від імені менеджера — він пише manager_audit_log);
 // (4) admin.auth.admin.deleteUser(targetId); (5) дописати в аудит.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { withErrorLog } from '../_shared/errorLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +22,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("manager-delete-user", async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -115,4 +116,4 @@ Deno.serve(async (req) => {
     console.error('manager-delete-user error', e);
     return json({ error: 'Internal error' }, 500);
   }
-});
+}));

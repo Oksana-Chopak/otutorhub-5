@@ -2,8 +2,9 @@
 // to the recipient. Uses service role key for auth instead of webhook secret.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendWebPush } from '../_shared/push.ts';
+import { withErrorLog } from '../_shared/errorLog.ts';
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("notify-chat-message", async (req) => {
   try {
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
     console.error('notify-chat-message error:', msg);
     return new Response(JSON.stringify({ error: msg }), { status: 500 });
   }
-});
+}));
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

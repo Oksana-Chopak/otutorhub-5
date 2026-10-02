@@ -5,6 +5,7 @@
 // tutor -> own-student delivery: no hub margin or other tutors' data involved.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { withErrorLog } from '../_shared/errorLog.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +16,7 @@ const corsHeaders = {
 const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("notify-lesson-rules", async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -214,7 +215,7 @@ Deno.serve(async (req) => {
     console.error('notify-lesson-rules error', err)
     return json({ error: 'internal' }, 500)
   }
-})
+}))
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

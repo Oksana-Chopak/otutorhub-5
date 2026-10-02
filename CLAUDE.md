@@ -269,6 +269,27 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   from summary to fireflies_summary — absent data renders as absent (guarded by
   src/test/security-invariants.test.ts).
 
+### PRODUCT ANALYTICS & LOG MANAGEMENT (02.10)
+- **Записи використання:** `app_open` (раз на сесію: роль, платформа) і `page_view` (раз на шлях
+  за 5 хв, шлях без id) пише `AppLayout` через `src/lib/productTelemetry.ts`; ключові дії
+  екрани пишуть самі (`logEvent`: student_added, lesson_created, students_imported, …).
+  Нова важлива дія без `logEvent` — невидима у воронці.
+- **Воронка й активність:** `admin_product_funnel(weeks)` (лише суперадмін) → адмінка
+  (`src/components/admin/ProductHealth.tsx`): когорти за тижнем — зареєструвались → учень →
+  урок → **AHA** (перша позначена оплата чи поповнення за 14 днів) → D7/D30 → платять →
+  відвалились (14+ днів без активності); DAU/WAU/MAU за ролями; 14 днів активності.
+- **Прапорці функцій:** `feature_flags` (enabled × rollout_pct за хешем людини × allow_users),
+  клієнт — `useFeatureFlag(key, fallback=true)` з `src/lib/featureFlags.ts` (без бази —
+  fallback, функція не зникає). Кожен прапорець мусить гейтити справжню функцію (зараз: таблиця,
+  календар, посилання на лендінгу, AI-кнопка). Перемикачі — в адмінці.
+- **Помилки:** кожна edge-функція-запит обгорнута `withErrorLog("<name>", handler)`
+  (`_shared/errorLog.ts`: 5xx і винятки → `error_log`, 4xx і проби — ні); cron-функції —
+  `withJob`; `mcp` — автогенерований плагіном Lovable на кожному build, його не обгортаємо. `error_groups(hours)` групує без id і позначає НОВІ; їх читають адмінка, ранковий
+  дайджест суперадміна (🧯) і щоденна рутина `.github/workflows/errors-daily.yml` (06:15 UTC:
+  Telegram-рядок; з `ANTHROPIC_API_KEY` у секретах — Claude Code відкриває PR із виправленням
+  нових груп, ніколи не пушить у main і не чіпає міграції). Гейт:
+  `src/test/product-analytics.test.ts`, сценарій `06-product-analytics.sql`.
+
 ### DEAD-MAN SWITCH — кожен cron-запуск лишає слід (27.09) — INVIOLABLE
 - Кожна функція, яку кличе pg_cron/GitHub cron (дайджести, нагадування, бекап,
   telegram-poll, черга пошти, fireflies-auto-join, archive-old-chats), обгорнута

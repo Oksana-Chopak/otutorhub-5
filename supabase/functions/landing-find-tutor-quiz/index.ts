@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,7 +38,7 @@ const PER_IP_HOUR = 5;
 const PER_EMAIL_DAY = 2;
 const PLATFORM_DAY = 500;
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("landing-find-tutor-quiz", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
 
@@ -162,4 +163,4 @@ Deno.serve(async (req) => {
   }
 
   return json(200, { ok: true });
-});
+}));

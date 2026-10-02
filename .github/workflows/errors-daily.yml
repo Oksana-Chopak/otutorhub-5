@@ -1,0 +1,77 @@
+# Щоденний лог-менеджмент (02.10): «як я дізнаюсь, що в користувача щось пішло
+# не так, до того, як він напише?» — ось так.
+# 06:15 UTC щодня (після ранкового дайджесту): читає помилки за добу групами
+# (edge errors-report), шле один рядок у Telegram (ci-report), а якщо є НОВІ
+# групи і в репо заданий ANTHROPIC_API_KEY — запускає Claude Code, який
+# розбирає їх по коду і відкриває PR із виправленням (ніколи не пушить у main,
+# не чіпає міграції й секрети). Без ключа — лише звіт.
+# Потрібно один раз: GitHub-застосунок Claude на репо + секрет ANTHROPIC_API_KEY.
+name: Щоденні помилки
+
+on:
+  schedule:
+    - cron: "15 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: errors-daily
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: 🧯 Помилки за добу
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    outputs:
+      new: ${{ steps.report.outputs.new }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Прочитати помилки й написати в Telegram
+        id: report
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node scripts/errors-daily.mjs
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET не заданий — повідомлення лише в журналі"; exit 0; fi
+          node -e '
+            const fs = require("fs");
+            const text = fs.readFileSync("ci-message.txt", "utf8");
+            fetch("https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/ci-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-cron-secret": process.env.CRON_SECRET },
+              body: JSON.stringify({ text }),
+            }).then(async (r) => { console.log("ci-report →", r.status, await r.text()); })
+              .catch((e) => console.log("ci-report недосяжний:", e.message));
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: errors-24h
+          path: errors-24h.json
+          retention-days: 14
+      - name: Claude Code — розібрати нові помилки й відкрити PR
+        if: ${{ env.HAS_CLAUDE_KEY == 'true' && steps.report.outputs.new != '0' && steps.report.outputs.new != '' }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--max-turns 60"
+          prompt: |
+            Ти працюєш у репозиторії oTutorHub. Прочитай CLAUDE.md і HANDOFF.md — там правила проєкту.
+            У файлі errors-24h.json — помилки продукту за останню добу, згруповані; поле is_new=true означає, що такої помилки раніше не було.
+            Завдання:
+            1. Для кожної НОВОЇ групи знайди в коді місце, яке її спричиняє (url підказує сторінку чи edge-функцію: «edge:<name>» — supabase/functions/<name>/index.ts).
+            2. Якщо причину видно і виправлення локальне — виправ її і додай тест або ратчет, який ловить цей клас (src/test/).
+            3. Запусти `npm run gates:fast` і домагайся зеленого.
+            4. Створи гілку claude/errors-<дата>, закоміть і відкрий Pull Request у main з описом: яка помилка, чому виникала, що змінено, що НЕ перевірено на живому.
+            Заборонено: пушити в main; змінювати supabase/migrations/*, supabase/config.toml, секрети, .github/workflows/*; «виправляти» помилку, ховаючи її в try/catch без причини. Якщо причина не ясна — не вгадуй: опиши знахідку в PR-коментарі або issue і зупинись.

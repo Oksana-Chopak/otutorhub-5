@@ -10,11 +10,12 @@
 // Кому: усім із platform_admins, у кого є привʼязаний Telegram (chat_id).
 // Що: текст як є (HTML Telegram), без даних користувачів — лише вердикт робота.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("ci-report", async (req) => {
   if (req.method !== "POST") return json(405, { error: "POST only" });
 
   const secret = Deno.env.get("CRON_SECRET");
@@ -61,4 +62,4 @@ Deno.serve(async (req) => {
     else failed.push(`${l.user_id}: ${r.status}`);
   }
   return json(200, { ok: failed.length === 0, sent, failed });
-});
+}));

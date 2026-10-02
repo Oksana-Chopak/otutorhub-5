@@ -9,6 +9,7 @@
 // list, the groups list with members, a pricing summary, and 60-day activity.
 // READ-ONLY. Detail (lists/pricing/activity) is a recent window; totals are all-time.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +21,7 @@ const WINDOW_LESSONS = 500; // recent lessons used for the list
 const DETAIL_LIMIT = 3000;  // safety cap for detail tables
 const ACTIVITY_DAYS = 60;
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("admin-stats", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -430,7 +431,7 @@ Deno.serve(async (req) => {
     console.error("admin-stats error", e);
     return json({ error: "Internal error" }, 500);
   }
-});
+}));
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

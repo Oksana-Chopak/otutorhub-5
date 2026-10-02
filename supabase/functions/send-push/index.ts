@@ -8,6 +8,7 @@
 // POST body: { userId: string, title: string, body?: string, link?: string }
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { versionProbe } from "../_shared/build.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 // 13.09: публічний ключ — той самий, що в src/lib/pushConfig.ts (він публічний
 // за задумом), тож секрет VAPID_PUBLIC_KEY не обовʼязковий. Без ПРИВАТНОГО
@@ -274,7 +275,7 @@ async function fcmSendNative(fcmDb: any, fcmUserId: string, msg: { title: string
   return okCount;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("send-push", async (req) => {
   const probe = versionProbe(req, "send-push");
   if (probe) return probe;
   if (req.method !== "POST") {
@@ -350,4 +351,4 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, sent, sentNative, web: WEB_PUSH_READY ? "ok" : "not_configured" }), {
     headers: { "Content-Type": "application/json" },
   });
-});
+}));

@@ -2,13 +2,14 @@
 // updates the lesson homework and/or summary.
 import { corsHeaders } from "npm:@supabase/supabase-js/cors";
 import { createClient } from "npm:@supabase/supabase-js";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 interface RequestBody {
   lessonId: string;
   changed: Array<"homework" | "summary">;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("notify-lesson-update", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -180,4 +181,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

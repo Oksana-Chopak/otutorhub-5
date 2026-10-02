@@ -3,6 +3,7 @@
 // Validates permissions, fetches data, and invokes send-transactional-email.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { withErrorLog } from '../_shared/errorLog.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ const corsHeaders = {
 
 const RATE_LIMIT_HOURS = 24
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("send-student-invite", async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -203,7 +204,7 @@ Deno.serve(async (req) => {
   }
 
   return json({ success: true, queued: true, email })
-})
+}))
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

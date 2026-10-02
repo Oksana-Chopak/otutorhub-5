@@ -3,13 +3,14 @@
 // API rate-limit exhaustion via unbounded outbound `getMe` calls.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { withErrorLog } from '../_shared/errorLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("telegram-bot-info", async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   // Require authenticated user (verify JWT in code; do not trust unverified claims).
@@ -75,4 +76,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-});
+}));

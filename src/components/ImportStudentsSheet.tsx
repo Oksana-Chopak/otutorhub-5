@@ -28,6 +28,7 @@ import { logEvent } from "@/lib/analytics";
 import { Loader2, Link2, FileUp, ClipboardPaste, CalendarDays } from "lucide-react";
 import { eventsToStudents, calendarToImportText, type CalendarEvent } from "@/lib/calendarImport";
 import { backSyncImportedLessons } from "@/lib/googleCalendarSync";
+import { useFeatureFlag } from "@/lib/featureFlags";
 
 /** Грошове поле, яке людина може поправити дотиком. */
 type EditableField = "price" | "debtAmount" | "debtLessons" | "prepayAmount" | "prepayLessons";
@@ -157,6 +158,9 @@ export function ImportStudentsSheet({
      Google Таблиця за посиланням або файл CSV. Таблиця стає тими самими
      рядками імпорту (toCanonicalText) — людина бачить, що ми зрозуміли, може
      поправити, і далі — той самий екран підтвердження. Числа не вигадуються. */
+  // 02.10: прапорці функцій — вимкнути джерело можна без релізу (адмінка → прапорці).
+  const flagSheet = useFeatureFlag("import_sheet_link");
+  const flagCalendar = useFeatureFlag("import_google_calendar");
   const [source, setSource] = useState<"text" | "sheet" | "file" | "calendar">(initialSource ?? "text");
   /** Звідки приїхали рядки, що зараз у полі (для зворотної синхронізації в Google Календар). */
   const [loadedFrom, setLoadedFrom] = useState<"text" | "google_sheet" | "csv_file" | "google_calendar">("text");
@@ -482,7 +486,7 @@ export function ImportStudentsSheet({
               ["sheet", Link2, t("importStudents.sourceSheet")],
               ["file", FileUp, t("importStudents.sourceFile")],
               ["calendar", CalendarDays, t("importStudents.sourceCalendar")],
-            ] as const).map(([key, Icon, label]) => (
+            ] as const).filter(([key]) => (key !== "sheet" || flagSheet) && (key !== "calendar" || flagCalendar)).map(([key, Icon, label]) => (
               <button key={key} type="button" role="tab" aria-selected={source === key} disabled={busy}
                 onClick={() => setSource(key)}
                 className={`tap-44 flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border-[0.5px] px-2 text-[14px] font-medium ${source === key ? "border-primary bg-primary/10 text-foreground" : "border-input text-muted-foreground"}`}>

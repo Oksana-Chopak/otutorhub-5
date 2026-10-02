@@ -1,6 +1,9 @@
 import { useLocation } from "react-router-dom";
 import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { useTranslation } from "react-i18next";
+import { useRoleFlags } from "@/hooks/useRoleFlags";
+import { logAppOpen, logPageView } from "@/lib/productTelemetry";
+import { isNativeApp, isIosApp } from "@/lib/platform";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { PaywallProvider } from "@/hooks/useCoreLock";
@@ -67,6 +70,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // 22.09: браузер із підпискою на СТАРОМУ ключі лагодить себе при відкритті
   // застосунку — інакше пуші тихо не доходили б, поки людина не зайде в профіль.
   useEffect(() => { if (user) void healPushSubscription(user.id); }, [user?.id]);
+  // 02.10: записи використання — app_open раз на сесію і page_view раз на шлях
+  // за 5 хв. Із них адмінка рахує DAU/WAU/MAU і воронку (admin_product_funnel).
+  const { flags: roleFlags, ready: rolesReady } = useRoleFlags();
+  const roleName = !rolesReady ? null : roleFlags.isManager ? "manager" : roleFlags.isTutor ? "tutor" : roleFlags.isStudent ? "student" : null;
+  useEffect(() => {
+    if (!user) return;
+    logAppOpen(roleName, isNativeApp() ? (isIosApp() ? "ios" : "android") : "web");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- раз на сесію, роль підтягнеться у page_view
+  }, [user?.id]);
+  useEffect(() => { if (user) logPageView(pathname, roleName); }, [user?.id, pathname, roleName]);
   const isDashboard = pathname === "/" || pathname === "/dashboard";
   const [firstName, setFirstName] = useState("");
   useEffect(() => {

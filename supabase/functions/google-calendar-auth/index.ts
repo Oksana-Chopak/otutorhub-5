@@ -14,6 +14,7 @@
 // The session JWT only ever travels in an Authorization header, never in a URL.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,7 +88,7 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("google-calendar-auth", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -185,4 +186,4 @@ Deno.serve(async (req) => {
   }
 
   return jsonResponse({ error: "method not allowed" }, 405);
-});
+}));

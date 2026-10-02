@@ -13,6 +13,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendPaymentReminder } from "../_shared/paymentReminder.ts";
 import { versionProbe } from "../_shared/build.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,7 +31,7 @@ function json(body: unknown, status = 200) {
 
 
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("remind-payment", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const probe = versionProbe(req, "remind-payment");
   if (probe) return probe;
@@ -181,4 +182,4 @@ Deno.serve(async (req) => {
     return json({ success: false, reason: "no_channels", hasEmail: !!email }, 200);
   }
   return json({ success: true, channels, telegram: channels.includes("telegram"), email: channels.includes("email") });
-});
+}));

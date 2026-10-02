@@ -3,6 +3,7 @@
 // cron shared secret as Authorization.
 import { corsHeaders } from "npm:@supabase/supabase-js/cors";
 import { createClient } from "npm:@supabase/supabase-js";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 interface Body {
   lesson_id: string;
@@ -13,7 +14,7 @@ interface Body {
   subject: string;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("notify-cancellation-fee", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -118,4 +119,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

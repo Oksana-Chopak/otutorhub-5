@@ -3,6 +3,7 @@ import {
   decodeBase64,
   encodeBase64,
 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,7 +33,7 @@ function addMonths(date: Date, months: number): Date {
   return d;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("liqpay-callback", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -157,4 +158,4 @@ Deno.serve(async (req) => {
     console.error("liqpay-callback unhandled error:", e);
     return new Response("Internal server error", { status: 500, headers: corsHeaders });
   }
-});
+}));

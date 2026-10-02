@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { WebhookError, verifyWebhookRequest } from 'npm:@lovable.dev/webhooks-js'
+import { withErrorLog } from '../_shared/errorLog.ts'
 
 // Suppression event payload sent by the Go API when Mailgun reports
 // a bounce, complaint, or unsubscribe.
@@ -31,7 +32,7 @@ function jsonResponse(data: Record<string, unknown>, status = 200): Response {
   })
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("handle-email-suppression", async (req) => {
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'Method not allowed' }, 405)
   }
@@ -133,7 +134,7 @@ Deno.serve(async (req) => {
   })
 
   return jsonResponse({ success: true })
-})
+}))
 
 function mapReasonToStatus(
   reason: string,

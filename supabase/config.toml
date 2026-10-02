@@ -99,3 +99,5 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.google-calendar-import]
     verify_jwt = true
+  [functions.errors-report]
+    verify_jwt = false

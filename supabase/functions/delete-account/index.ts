@@ -5,6 +5,7 @@
 // Бізнес-записи іншої сторони (уроки, оплати) лишаються — це транзакційна
 // історія контрагента, сторами дозволено.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { withErrorLog } from '../_shared/errorLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("delete-account", async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -63,4 +64,4 @@ Deno.serve(async (req) => {
     console.error('delete-account error', e);
     return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500, headers: corsHeaders });
   }
-});
+}));

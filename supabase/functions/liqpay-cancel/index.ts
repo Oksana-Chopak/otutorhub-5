@@ -3,6 +3,7 @@
 // scheme of liqpay-create-payment. verify_jwt=true.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,7 +22,7 @@ async function sha1Base64(input: string): Promise<string> {
   return encodeBase64(new Uint8Array(buf));
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("liqpay-cancel", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -101,4 +102,4 @@ Deno.serve(async (req) => {
     console.error("liqpay-cancel error:", e);
     return json({ error: "Cancel failed" }, 500);
   }
-});
+}));

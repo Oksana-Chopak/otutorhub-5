@@ -10,6 +10,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { versionProbe } from "../_shared/build.ts";
 import { rateLimit } from "../_shared/rateLimit.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,7 +52,7 @@ async function getValidToken(admin: any, userId: string, clientId: string, clien
   return await refreshAccessToken(admin, data as TokenRow, clientId, clientSecret);
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("google-calendar-import", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const probe = versionProbe(req, "google-calendar-import");
   if (probe) return probe;
@@ -101,4 +102,4 @@ Deno.serve(async (req) => {
     }));
 
   return json(200, { events, days: IMPORT_DAYS });
-});
+}));

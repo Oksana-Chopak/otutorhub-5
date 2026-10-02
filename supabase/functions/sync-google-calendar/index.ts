@@ -6,6 +6,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 interface TokenRow {
   user_id: string;
@@ -62,7 +63,7 @@ async function getValidToken(
   return await refreshAccessToken(admin, data as TokenRow, clientId, clientSecret);
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("sync-google-calendar", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -216,4 +217,4 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, results }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-});
+}));

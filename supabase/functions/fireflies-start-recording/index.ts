@@ -1,8 +1,9 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { tutorAiAllowed } from "../_shared/aiGate.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("fireflies-start-recording", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -161,4 +162,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

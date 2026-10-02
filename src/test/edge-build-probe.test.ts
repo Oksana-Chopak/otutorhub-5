@@ -68,7 +68,7 @@ describe("перевірка версії edge-функцій", () => {
       expect(s).toMatch(/import \{ versionProbe \} from "\.\.\/_shared\/build\.ts";/);
       // 27.09: cron-функції обгорнуті withJob("<fn>", …) — «мертвий вимикач»;
       // проба версії й далі мусить стояти першою ВСЕРЕДИНІ обробника.
-      const m = /Deno\.serve\((?:withJob\("[a-z-]+", )?async \(req\) => \{/.exec(s);
+      const m = /Deno\.serve\((?:(?:withJob|withErrorLog)\("[a-z-]+", )?async \(req\) => \{/.exec(s);
       expect(m, `${fn}: Deno.serve(async (req) => …) не знайдено`).not.toBeNull();
       const body = s.slice(m!.index);
       // перші рядки обробника: дозволено лише відповідь на CORS-preflight

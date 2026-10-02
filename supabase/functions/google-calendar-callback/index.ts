@@ -5,6 +5,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const REDIRECT_URI =
   "https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/google-calendar-callback";
@@ -87,7 +88,7 @@ async function verifyState(value: string | null, secret: string): Promise<
   }
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("google-calendar-callback", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const url = new URL(req.url);
@@ -166,4 +167,4 @@ Deno.serve(async (req) => {
     console.error("Callback error", e);
     return Response.redirect(withCalendarParam(returnTo, "error", "exception"), 302);
   }
-});
+}));

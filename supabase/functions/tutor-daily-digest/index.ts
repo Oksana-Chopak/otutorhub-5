@@ -30,6 +30,8 @@ const DT = {
       "fireflies-auto-join": "запис уроків", "archive-old-chats": "архів чатів", "tutor-daily-digest": "ранковий дайджест",
     } as Record<string, string>)[job] ?? job,
     jobMissing: "не запускався понад добу",
+    errTop: (n: number, newN: number) => `🧯 Помилки за добу: <b>${n}</b> груп, нових: <b>${newN}</b> — найгучніші:`,
+    errNew: "НОВА",
     jobFailed: (n: number) => `збоїв: ${n}`,
     jobsUnknown: `🛡 Нічні процеси: зведення прочитати не вдалося (SQL 20260927170000 ще не вставлено?)`,
     importLoop: (lists: number, rows: number, top: string) => `👀 Імпорт за 7 днів: <b>${lists}</b> списків із невпізнаними рядками (${rows} рядків). Найчастіше: ${top}`,
@@ -72,6 +74,8 @@ const DT = {
       "fireflies-auto-join": "lesson recording", "archive-old-chats": "chat archive", "tutor-daily-digest": "morning digest",
     } as Record<string, string>)[job] ?? job,
     jobMissing: "did not run for over a day",
+    errTop: (n: number, newN: number) => `🧯 Errors in 24 h: <b>${n}</b> groups, new: <b>${newN}</b> — loudest:`,
+    errNew: "NEW",
     jobFailed: (n: number) => `failed: ${n}`,
     jobsUnknown: `🛡 Background jobs: could not read the summary (SQL 20260927170000 not applied yet?)`,
     importLoop: (lists: number, rows: number, top: string) => `👀 Imports in 7 days: <b>${lists}</b> lists with unrecognised lines (${rows} lines). Most common: ${top}`,
@@ -114,6 +118,8 @@ const DT = {
       "fireflies-auto-join": "lektionsinspelning", "archive-old-chats": "chattarkiv", "tutor-daily-digest": "morgonsammanfattning",
     } as Record<string, string>)[job] ?? job,
     jobMissing: "kördes inte på över ett dygn",
+    errTop: (n: number, newN: number) => `🧯 Fel senaste dygnet: <b>${n}</b> grupper, nya: <b>${newN}</b> — högst:`,
+    errNew: "NY",
     jobFailed: (n: number) => `misslyckade: ${n}`,
     jobsUnknown: `🛡 Bakgrundsjobb: kunde inte läsa sammanfattningen (SQL 20260927170000 inte inlagd än?)`,
     importLoop: (lists: number, rows: number, top: string) => `👀 Importer på 7 dagar: <b>${lists}</b> listor med oigenkända rader (${rows} rader). Vanligast: ${top}`,
@@ -425,6 +431,26 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
     }
     return null;
   };
+  // 02.10: помилки групами (error_groups) — нові першими, топ-3, лише суперадміну.
+  let errGroups: any[] | null = null;
+  if (superadmins.size) {
+    try {
+      const { data, error } = await (sb.rpc as any)("error_groups", { _hours: 24, _limit: 20 });
+      if (error) throw error;
+      errGroups = Array.isArray(data) ? data : [];
+    } catch (e) {
+      console.error("error_groups unavailable:", (e as any)?.message ?? e);
+    }
+  }
+  const errLines = (D: any): string[] => {
+    if (!errGroups || !errGroups.length) return [];
+    const newN = errGroups.filter((g) => g.is_new).length;
+    const out = [D.errTop(errGroups.length, newN)];
+    for (const g of errGroups.slice(0, 3)) {
+      out.push(`• ${g.is_new ? `<b>${D.errNew}</b> ` : ""}×${Number(g.hits)} ${esc(String(g.sample ?? "").slice(0, 90))}${g.url ? ` (${esc(String(g.url))})` : ""}`);
+    }
+    return out;
+  };
   const jobLines = (D: any): string[] => {
     if (jobHealth === null) return [D.jobsUnknown];
     const byJob = new Map<string, any>(jobHealth.map((j) => [String(j.job), j]));
@@ -608,6 +634,7 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
       if (superadmins.has(userId)) {
         lines.push(...jobLines(D));
+        lines.push(...errLines(D));
         if (importLoop) lines.push(D.importLoop(importLoop.lists, importLoop.rows, importLoop.top));
       }
       // Передоплата — це форма з сумою/кількістю уроків, тож не callback, а

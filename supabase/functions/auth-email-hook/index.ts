@@ -9,6 +9,7 @@ import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
 import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
 import { EmailChangeEmail } from '../_shared/email-templates/email-change.tsx'
 import { ReauthenticationEmail } from '../_shared/email-templates/reauthentication.tsx'
+import { withErrorLog } from '../_shared/errorLog.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -292,7 +293,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   )
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("auth-email-hook", async (req) => {
   const url = new URL(req.url)
 
   // Handle CORS preflight for main endpoint
@@ -316,4 +317,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
-})
+}))

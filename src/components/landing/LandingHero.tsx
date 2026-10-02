@@ -8,6 +8,7 @@ import { parseStudentList, toCanonicalText, unsureNote, IMPORT_CURRENCY, type Ca
 import { calcMoneyPreview, digestPreview, CALC_WEEKS, formatDigestDay } from "@/lib/landingCalc";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
+import { useFeatureFlag } from "@/lib/featureFlags";
 import { landingEvent, saveLandingDraft, peekLandingDraft, rememberHandoffToken } from "@/lib/landingFunnel";
 import { metaTrack } from "@/lib/metaPixel";
 
@@ -44,6 +45,7 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
   /* 29.09: «маєш Google Таблицю з учнями? встав посилання» — ще до реєстрації.
      Таблиця стає тими самими рядками в полі (канон), далі все як зі списком:
      цифри на лендінгу, естафета, той самий екран підтвердження після реєстрації. */
+  const flagSheetLink = useFeatureFlag("landing_sheet_link");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetUrl, setSheetUrl] = useState("");
   const [sheetBusy, setSheetBusy] = useState(false);
@@ -244,7 +246,7 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
               spellCheck={false}
               className="paste-field"
             />
-            {sheetOpen ? (
+            {!flagSheetLink ? null : sheetOpen ? (
               <div className="paste-sheet">
                 <input
                   type="url"

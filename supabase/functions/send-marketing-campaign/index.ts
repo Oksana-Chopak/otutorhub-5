@@ -1,5 +1,6 @@
 // Send marketing campaign to independent tutors via Brevo
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,7 +52,7 @@ function buildEmail(opts: {
 </div></body></html>`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -225,4 +226,4 @@ Deno.serve(async (req) => {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

@@ -1,5 +1,6 @@
 // Public endpoint to handle one-click marketing unsubscribes
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,7 @@ const admin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("marketing-unsubscribe", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -71,4 +72,4 @@ Deno.serve(async (req) => {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

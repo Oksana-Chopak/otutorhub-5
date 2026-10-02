@@ -16,6 +16,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { versionProbe } from "../_shared/build.ts";
 import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,7 +53,7 @@ export function sheetCsvUrl(raw: string): string | null {
   return `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv${gid ? `&gid=${encodeURIComponent(gid)}` : ""}`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("import-sheet-fetch", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const probe = versionProbe(req, "import-sheet-fetch");
   if (probe) return probe;
@@ -122,4 +123,4 @@ Deno.serve(async (req) => {
   if (lines.length < 2) return json(422, { error: "empty" });
 
   return json(200, { csv: lines.join("\n"), rows: lines.length - 1 });
-});
+}));

@@ -16,6 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ProductHealth } from "@/components/admin/ProductHealth";
 
 interface Member { name: string; price: number | null; }
 interface LessonRow {
@@ -404,6 +405,9 @@ export default function AdminStatsPage() {
                     </div>
                   )}
                 </section>
+
+                {/* 02.10: здоровʼя продукту — воронка до AHA, активність, помилки групами, прапорці */}
+                <ProductHealth />
 
                 <section className={card}>
                   <h2 className="text-[15px] font-bold">{t("adminCrm.moneyTitle")}</h2>

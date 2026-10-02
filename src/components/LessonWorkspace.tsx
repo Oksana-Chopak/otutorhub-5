@@ -25,6 +25,7 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { FirefliesPanel } from "@/components/FirefliesPanel";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
+import { useFeatureFlag } from "@/lib/featureFlags";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
@@ -226,6 +227,7 @@ export function LessonWorkspace({
        • неторкнутий AI-текст НЕ зберігається ні кнопкою «Готово», ні при
          закритті: у базу і до учня йде лише те, що репетитор перечитав
          (відредагував або явно зберіг). */
+  const flagAiSummary = useFeatureFlag("ai_lesson_summary");
   const [aiSuggested, setAiSuggested] = useState(false);
   /* 01.10 (В8): прапорець був звичайним `useState`, а ТЕКСТ від моделі
      переживав закриття уроку в localStorage (`useLocalDraft`). Тобто після
@@ -841,7 +843,7 @@ export function LessonWorkspace({
               <textarea ref={summaryGrow} aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => { setSummaryDraft(e.target.value); setAiSuggested(false); rememberAiText(null); }}
                 placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 10, alignItems: "center" }}>
-                {aiAllowed ? (
+                {aiAllowed && flagAiSummary ? (
                   <button className="tap-44" type="button" onClick={generateAiSummary} disabled={aiLoading}
                     style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
                     {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -977,7 +979,7 @@ export function LessonWorkspace({
             {t("lessonWorkspaceExtra.summaryHeading")}
           </div>
           {canEditTutorFields && (
-            aiAllowed ? (
+            aiAllowed && flagAiSummary ? (
               <Button
                 size="sm"
                 variant="outline"

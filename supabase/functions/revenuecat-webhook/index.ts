@@ -6,8 +6,9 @@
 // app_user_id у подіях == Supabase user.id (ми передаємо його при configure()).
 // Авторизація: заголовок Authorization має дорівнювати REVENUECAT_WEBHOOK_SECRET.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { withErrorLog } from '../_shared/errorLog.ts';
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("revenuecat-webhook", async (req) => {
   try {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -114,4 +115,4 @@ Deno.serve(async (req) => {
     console.error('revenuecat-webhook error', e);
     return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
   }
-});
+}));

@@ -5,12 +5,13 @@ import {
   AI_DAILY_LIMIT, AI_SUMMARY_MODEL, AI_TIMEOUT_MS, buildMessages, explainRejection,
   hasEnoughInput, inputHash, validateAiSummary, type SummaryInput,
 } from "../_shared/aiSummaryGuard.ts";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 interface RequestBody {
   lessonId: string;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("generate-lesson-summary", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -252,4 +253,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

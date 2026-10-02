@@ -15,6 +15,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { rateLimit, clientIp } from '../_shared/rateLimit.ts'
+import { withErrorLog } from '../_shared/errorLog.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,7 +30,7 @@ const corsHeaders = {
 const PER_IP_EMAIL_MIN = 5
 const PER_IP_HOUR = 60
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("confirm-pending-signup", async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -137,7 +138,7 @@ Deno.serve(async (req) => {
     console.error('confirm-pending-signup error', err)
     return ok(false)
   }
-})
+}))
 
 function ok(value: boolean) {
   return new Response(JSON.stringify({ ok: value }), {

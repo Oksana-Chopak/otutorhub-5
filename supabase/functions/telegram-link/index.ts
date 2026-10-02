@@ -1,12 +1,13 @@
 // Generates a fresh Telegram link code for the authenticated user
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { withErrorLog } from '../_shared/errorLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("telegram-link", async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -49,4 +50,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-});
+}));

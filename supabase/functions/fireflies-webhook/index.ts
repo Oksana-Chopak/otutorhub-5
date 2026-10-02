@@ -1,5 +1,6 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { withErrorLog } from "../_shared/errorLog.ts";
 
 // Public webhook: Fireflies POSTs here when a transcript is ready.
 // Configure the URL in Fireflies dashboard:
@@ -14,7 +15,7 @@ function safeEqual(a: string, b: string): boolean {
   return r === 0;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("fireflies-webhook", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405, headers: corsHeaders });
@@ -247,4 +248,4 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

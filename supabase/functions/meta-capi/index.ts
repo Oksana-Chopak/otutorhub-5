@@ -13,6 +13,7 @@
  * ЛИШЕ після згоди на куки. Імен, телефонів, пошт і самого списку учнів тут
  * немає й бути не може: тіло розбирається по білому списку полів.
  */
+import { withErrorLog } from "../_shared/errorLog.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -25,7 +26,7 @@ const json = (status: number, body: unknown) =>
 const ALLOWED = new Set(["PageView", "Lead", "CompleteRegistration"]);
 const API_VERSION = "v21.0";
 
-Deno.serve(async (req) => {
+Deno.serve(withErrorLog("meta-capi", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
 
@@ -83,4 +84,4 @@ Deno.serve(async (req) => {
   } catch {
     return json(200, { sent: false, status: 0 });
   }
-});
+}));
