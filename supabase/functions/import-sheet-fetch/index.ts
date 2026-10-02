@@ -118,7 +118,8 @@ Deno.serve(withErrorLog("import-sheet-fetch", async (req) => {
   if (len > MAX_BYTES) return json(413, { error: "too_big" });
   const text = await res.text();
   if (text.length > MAX_BYTES) return json(413, { error: "too_big" });
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  // Порожні рядки таблиці експортуються як ",,,," — це не рядки даних.
+  const lines = text.split(/\r?\n/).filter((l) => l.replace(/[,;\t"\s]/g, "") !== "");
   if (lines.length > maxRows + 1) return json(413, { error: "too_many_rows", rows: lines.length - 1 });
   if (lines.length < 2) return json(422, { error: "empty" });
 

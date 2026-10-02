@@ -430,6 +430,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          allow_users: string[]
+          description: string | null
+          enabled: boolean
+          key: string
+          rollout_pct: number
+          updated_at: string
+        }
+        Insert: {
+          allow_users?: string[]
+          description?: string | null
+          enabled?: boolean
+          key: string
+          rollout_pct?: number
+          updated_at?: string
+        }
+        Update: {
+          allow_users?: string[]
+          description?: string | null
+          enabled?: boolean
+          key?: string
+          rollout_pct?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback_submissions: {
         Row: {
           answer: string | null
@@ -2992,6 +3019,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_product_funnel: { Args: { _weeks?: number }; Returns: Json }
       ai_call_gate: {
         Args: {
           _input_hash: string
@@ -3072,6 +3100,11 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      error_groups: {
+        Args: { _hours?: number; _limit?: number }
+        Returns: Json
+      }
+      error_signature: { Args: { _message: string }; Returns: string }
       expire_lapsed_subscriptions: { Args: never; Returns: number }
       finances_period_totals: {
         Args: { _from: string; _tutor?: string }
@@ -3276,6 +3309,7 @@ export type Database = {
         Args: { _hub: string; _tutor: string }
         Returns: undefined
       }
+      my_feature_flags: { Args: never; Returns: Json }
       normalize_subject: { Args: { t: string }; Returns: string }
       notify_managers: {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
