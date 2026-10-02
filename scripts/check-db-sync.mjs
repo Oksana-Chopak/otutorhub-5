@@ -34,11 +34,42 @@ const isLovableHash = (f) => /^\d{14}_[0-9a-f]{8}-[0-9a-f]{4}-/.test(f);
 const hashes = files.filter(isLovableHash);
 const watermark = hashes.length ? hashes[hashes.length - 1].slice(0, 14) : "00000000000000";
 
+/* 02.10 — ВОРОТА НЕ ВМІЛИ ПРОЧИТАТИ ВЛАСНИЙ ЖУРНАЛ.
+   Рядки журналу розбирались регуляркою «четверта клітинка починається з ✅», де
+   клітинки — це `[^|]*`. Але в журналі повно `|` ВСЕРЕДИНІ лапок: перевірка
+   прав написана як `… → `t | t``, сигнатури як `foo(a|b)` тощо — 34 рядки з 35.
+   Поки файл стояв ВИЩЕ водяного знаку, це нічого не ламало. 02.10 знак
+   переїхав через нього (Lovable застосував SQL прав своїм хеш-файлом), рядок
+   став «нижче знаку» — і ворота оголосили main червоним, хоча в базі все стоїть
+   і 23 вбудовані перевірки пройшли. Тобто червоне було про розмітку таблиці, а
+   не про продукт: рівно той клас, що вчить ігнорувати червоне.
+   Тепер клітинки ріжемо, замаскувавши вміст лапок. */
+const maskBackticks = (line) => line.replace(/`[^`]*`/g, (m) => "`" + "·".repeat(Math.max(0, m.length - 2)) + "`");
+const ledgerCells = (line) => {
+  const masked = maskBackticks(line);
+  const parts = masked.split("|");
+  // Беремо межі з маскованого рядка, а текст — з оригінального.
+  const out = [];
+  let at = 0;
+  for (const part of parts) {
+    out.push(line.slice(at, at + part.length));
+    at += part.length + 1;
+  }
+  return out.map((c) => c.trim());
+};
+const ledgerRows = ledger.split("\n").filter((l) => /^\|/.test(l)).map(ledgerCells);
+const rowIsLive = (cells) => (cells[4] ?? "").startsWith("✅");
 const appliedInLedger = new Set(
-  [...ledger.matchAll(/^\|\s*`?(\d{14}[^`|\s]*)`?\s*\|[^|]*\|[^|]*\|\s*✅/gm)].map((m) => m[1]),
+  ledgerRows
+    .filter(rowIsLive)
+    .map((c) => (c[1] ?? "").match(/^`?(\d{14}[^`\s]*)`?$/)?.[1])
+    .filter(Boolean),
 );
 // Рядок журналу `< YYYYMMDDHHMMSS` = усе нижче цього знаку є історією (застосовано).
-const historyBelow = ledger.match(/^\|\s*`<\s*(\d{14})[^`]*`[^|]*\|[^|]*\|[^|]*\|\s*✅/m)?.[1] ?? "00000000000000";
+const historyBelow = ledgerRows
+  .filter(rowIsLive)
+  .map((c) => (c[1] ?? "").match(/^`<\s*(\d{14})/)?.[1])
+  .find(Boolean) ?? "00000000000000";
 
 const above = [], belowUnknown = [];
 for (const f of files) {
