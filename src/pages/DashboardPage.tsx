@@ -1836,19 +1836,27 @@ export default function DashboardPage() {
                   <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--teal)" }} />
                   {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
                 </Link>
-                {!showAllUpcoming && upcomingAll.length > upcomingLessons.length && (
-                  <button onClick={() => setShowAllUpcoming(true)}
-                    style={{ border: "none", background: "transparent", padding: 0, color: "var(--teal-text,#1a7a6c)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                    {t("dashboardExtra.showAll", { count: upcomingAll.length })}
-                  </button>
-                )}
-                {/* amber-400 давав 1,54:1 на світлому тлі — на сонці напису просто
+                {/* 03.10, скарга власниці: «Показати всі біля Очікують оплати (2) на
+                    дашборді, при натисканні просто цифра зникає». Кнопка «Показати всі»
+                    стояла САМЕ ТУТ, у шапці, а розгортала список «Найближчі уроки» —
+                    пів екрана нижче, за бульбашками, нотатками й блоком оплат. Тож дотик
+                    не давав жодної видимої зміни: єдине, що відбувалось на очах, —
+                    кнопка зникала сама (умова `!showAllUpcoming`), і згорнути назад було
+                    нічим (`dashboard.hide` лежав у всіх трьох словниках непідключений).
+                    Перенесено ПІД сам список, де наслідок видно відразу.
+                    Поруч стояв напис «Очікують оплати» без числа й без адреси — саме
+                    його й читали як «показати всі неоплачені». Тепер це посилання з
+                    лічильником, що веде в борги.
+                    amber-400 давав 1,54:1 на світлому тлі — на сонці напису просто
                     немає. amber-700 лишає сигнал і дає 5,3:1 (аудит 10.09). */}
                 {pendingPayments.length > 0 && (
-                  <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400">
+                  <Link
+                    to="/finances?tab=debts"
+                    className="inline-flex items-center gap-1 font-medium text-amber-700 underline-offset-2 hover:underline dark:text-amber-400"
+                  >
                     <Clock className="h-3.5 w-3.5" />
-                    {t("pendingPayments.title")}
-                  </span>
+                    {t("dashboardExtra.pendingPaymentsTitle", { count: pendingPayments.length })}
+                  </Link>
                 )}
               </p>
               {/* Trial countdown — між афірмацією і кнопками, читабельно */}
@@ -2612,7 +2620,9 @@ export default function DashboardPage() {
                   {pendingPayments.length > 5 && (
                     <button
                       className="w-full rounded-[14px] py-2.5 text-[14px] font-medium transition-colors"
-                      style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal, #2BBFAA)" }}
+                      /* 03.10: напис був брендовим тилом на майже білому — 2,30:1.
+                         Заливка лишається брендовою, напис бере текстовий токен. */
+                      style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal-text,#1a7a6c)", minHeight: 44 }}
                       onClick={() => navigate("/finances?tab=debts")}
                     >
                       {t("dashboard.showAll", { count: pendingPayments.length })} →
@@ -2765,6 +2775,20 @@ export default function DashboardPage() {
                   })
                 )}
               </div>
+              {/* Той самий жест, що в блоці оплат нижче: кнопка живе ПІД списком, і її
+                  дотик видно тут же — список одразу довшає. Стоїть ПОЗА прокруткою
+                  (`max-h-[60vh]`), інакше «Сховати» опинялось би в кінці 60vh гортання.
+                  «Сховати» повертає згорнутий вигляд: ключ `dashboard.hide` був у трьох
+                  словниках із самого початку, але не був підключений ніде. */}
+              {(showAllUpcoming || upcomingAll.length > upcomingLessons.length) && (
+                <button
+                  className="mt-2.5 w-full rounded-[14px] py-2.5 text-[14px] font-medium transition-colors"
+                  style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal-text,#1a7a6c)", minHeight: 44 }}
+                  onClick={() => setShowAllUpcoming((v) => !v)}
+                >
+                  {showAllUpcoming ? t("dashboard.hide") : `${t("dashboard.showAll", { count: upcomingAll.length })} ↓`}
+                </button>
+              )}
             </section>
 
             <section className="order-2 min-w-0">
