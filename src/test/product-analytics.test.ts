@@ -97,7 +97,13 @@ describe("щоденна рутина: Telegram-рядок і PR від Claude C
     expect(w).toMatch(/claude_code_oauth_token: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
     expect(w).toMatch(/Заборонено: пушити в main/);
     const s = noComments(read("supabase/functions/errors-report/index.ts"));
-    expect(s).toMatch(/if \(!provided \|\| !expected \|\| provided !== expected\)/);
+    // 06.10: GitHub надсилає env CRON_SECRET (як для ci-report), а не vault-секрет pg_cron —
+    // перша версія порівнювала лише з vault і відповідала власним 403. Тепер env перший,
+    // vault — запасний, і без секрету доступу немає.
+    expect(s).toMatch(/const envSecret = Deno\.env\.get\("CRON_SECRET"\) \?\? ""/);
+    expect(s).toMatch(/let authorized = !!provided && !!envSecret && provided === envSecret/);
+    expect(s).toMatch(/if \(!authorized && provided\) \{[\s\S]*?sb\.rpc\("get_cron_shared_secret"\)[\s\S]*?authorized = !!vaultSecret && provided === vaultSecret/);
+    expect(s).toMatch(/if \(!authorized\) \{[\s\S]*?status: 403/);
     expect(read("supabase/config.toml")).toMatch(/\[functions\.errors-report\]\s*\n\s*verify_jwt = false/);
   });
   it("ранковий дайджест суперадміна показує нові групи помилок першими", () => {

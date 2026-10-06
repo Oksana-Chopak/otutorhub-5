@@ -29,6 +29,18 @@ BEGIN
      OR has_function_privilege('authenticated', 'public.get_cron_shared_secret()', 'EXECUTE') THEN
     RAISE EXCEPTION 'секрет крону читається з браузера';
   END IF;
-  RAISE NOTICE '✅ права edge-функцій і реєстрації на місці; секрет крону — лише service_role';
+  -- 06.10: секрет pg_cron ротовано (20261006120000) — значення народжується в базі й
+  -- віддається лише цією функцією: рівно один запис у vault, 64 hex, і це НЕ те
+  -- значення, що з 12.05 лежало в репо (перевіряємо хешем, не самим значенням).
+  IF (SELECT count(*) FROM vault.decrypted_secrets WHERE name = 'cron_shared_secret') <> 1 THEN
+    RAISE EXCEPTION 'cron_shared_secret: у vault має бути рівно один запис';
+  END IF;
+  IF coalesce(public.get_cron_shared_secret(), '') !~ '^[0-9a-f]{64}$' THEN
+    RAISE EXCEPTION 'get_cron_shared_secret() віддає не 64-символьний hex';
+  END IF;
+  IF md5(public.get_cron_shared_secret()) = '1685d6901c830db06f02c6629f172128' THEN
+    RAISE EXCEPTION 'cron_shared_secret: у vault і далі значення з репо (12.05) — ротація 06.10 не застосована';
+  END IF;
+  RAISE NOTICE '✅ права edge-функцій і реєстрації на місці; секрет крону — лише service_role, ротований, 64 hex';
 END $$;
 ROLLBACK;

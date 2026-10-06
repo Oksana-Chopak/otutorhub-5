@@ -208,6 +208,11 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   рядок у журналі. SQL власниці — у чат цілком, ніколи «скопіюй з репо».
   «Done» лише після `✅ live` у скрипті. (Старий `outputs/PROD-DB-SYNC.sql`
   ніколи не існував у репо — рядок був фантомом.)
+  **Доказ змістом (06.10):** після вставки Lovable пише той самий SQL своїм хеш-файлом, і
+  `check-db-sync` доводить міграцію нижче знаку постатейно (`scripts/db-replay/
+  sql-statements.mjs`) — main більше не червоніє через відсталий журнал (02.10), а
+  розбіжність хоч в одному statement називається поіменно. Тому паста для власниці несе
+  ті самі statements, що й файл у репо: коментарі скорочувати можна, SQL — ні.
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the
@@ -302,6 +307,16 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 - Лічильники в `job_runs.counts` беруться з JSON-відповіді функції: відповідай
   `{ sent: N, skipped: M, … }`, а не голим «ok» — інакше зведення не зможе показати
   «вчора 40, сьогодні 0».
+- **ДВА СЕКРЕТИ, НЕ ОДИН (06.10).** `CRON_SECRET` у секретах edge-функцій = `CRON_SECRET` у
+  GitHub Secrets — ним ходять воркфлоу (`ci-report`, `errors-report`, `scheduled-notifications`,
+  перевірка `Deno.env.get("CRON_SECRET")`). `cron_shared_secret` у vault бази
+  (`get_cron_shared_secret()`) — ним ходить pg_cron до нічних функцій. Вони НЕ збігаються.
+  06.10 `errors-report` перевіряла лише vault, GitHub надсилав env → щоденна рутина отримала
+  власний 403 замість звіту. Правило: функцію, яку кличе GitHub, перевіряти з env (vault —
+  запасний); функцію, яку кличе pg_cron, — з vault. Стереже `guardian.test.ts` («кожна
+  функція, яку кличе GitHub, приймає env CRON_SECRET» — імена беруться з воркфлоу і скриптів).
+  Значення vault-секрету з 12.05 лежало в репо (`20260512234710_…`) — ротовано міграцією
+  `20261006120000` (нове значення народжується в базі й ніде не показується).
 - Живий доказ 30.09: перший дайджест з блоком «🛡» прийшов і одразу показав 1 збій
   `telegram-poll` (Telegram 409 Conflict — два getUpdates наклались) і «⛔ tutor-daily-digest не
   запускався» — хибно, сам на себе (його рядок пишеться ПІСЛЯ відповіді). З 30.09 блок — по

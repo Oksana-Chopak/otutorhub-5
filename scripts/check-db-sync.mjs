@@ -22,6 +22,7 @@
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { persistentStatements, proveByContent, indexAppliedStatements, acceptsHashFor } from "./db-replay/sql-statements.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MIG = join(ROOT, "supabase/migrations");
@@ -71,13 +72,32 @@ const historyBelow = ledgerRows
   .map((c) => (c[1] ?? "").match(/^`<\s*(\d{14})/)?.[1])
   .find(Boolean) ?? "00000000000000";
 
-const above = [], belowUnknown = [];
+/* 06.10 — ДОКАЗ ЗМІСТОМ, щоб main не червонів після кожної вставки.
+   02.10 власниця вставила SQL, Lovable записав його хеш-файлом, водяний знак переїхав
+   через нашу міграцію — і ворота оголосили main червоним, доки в журнал не дописали ✅.
+   Тобто червоне було про ЖУРНАЛ, а не про базу. Тепер файл нижче знаку вважається
+   застосованим, якщо КОЖЕН його statement, що лишає слід у базі, є серед statements
+   застосованих хеш-файлів Lovable (постатейно, без коментарів і самоперевірок;
+   `scripts/db-replay/sql-statements.mjs`). Журнал лишається для людей — ворота
+   нагадують дописати ✅, але не падають. Розбіжність хоч в одному statement =
+   недоведено → як і раніше, журнал або червоне. Доказом слугують лише хеш-файли,
+   не старші за саму міграцію (мінус доба): права, що повторюються з файла у файл,
+   інакше «доводились» би старими вставками ще до того, як власниця вставила нову. */
+const appliedStatements = indexAppliedStatements(hashes.map((h) => ({ file: h, sql: readFileSync(join(MIG, h), "utf8") })));
+const contentProof = (f) => proveByContent(persistentStatements(readFileSync(join(MIG, f), "utf8")), appliedStatements, acceptsHashFor(f));
+
+const above = [], belowUnknown = [], provenByContent = [], ledgerDrift = [];
 for (const f of files) {
   if (isLovableHash(f)) continue;
   const ts = f.slice(0, 14);
   const known = [...appliedInLedger].some((k) => f.startsWith(k));
-  if (ts > watermark) above.push(f);
-  else if (!known && ts >= historyBelow) belowUnknown.push(f);
+  if (ts > watermark) { above.push(f); continue; }
+  if (ts < historyBelow) continue;
+  const proof = contentProof(f);
+  if (!known && proof.proven) provenByContent.push({ f, files: proof.files });
+  else if (!known) belowUnknown.push({ f, missing: proof.missing });
+  else if (!proof.proven && proof.missing.length < persistentStatements(readFileSync(join(MIG, f), "utf8")).length)
+    ledgerDrift.push({ f, missing: proof.missing });   // журнал каже ✅, а зміст частково інший
 }
 
 // Маркери «живе в проді» для міграцій, що заявляють їх у коментарі:
@@ -126,8 +146,22 @@ for (const f of files) {
 console.log(`═ Водяний знак Lovable: ${watermark} (${hashes.at(-1) ?? "—"})`);
 console.log(`\n▶ Вище водяного знаку (Lovable ЗАСТОСУЄ при наступному «виконай»): ${above.length}`);
 for (const f of above) console.log(`   ${f}`);
-console.log(`\n⚠ Нижче водяного знаку і НЕ позначені ✅ у docs/PROD-DB-SYNC.md (Lovable пропустить мовчки): ${belowUnknown.length}`);
-for (const f of belowUnknown) console.log(`   ${f}`);
+console.log(`\n⚠ Нижче водяного знаку, НЕ позначені ✅ у docs/PROD-DB-SYNC.md і НЕ доведені змістом (Lovable пропустить мовчки): ${belowUnknown.length}`);
+for (const { f, missing } of belowUnknown) {
+  console.log(`   ${f}`);
+  for (const s of missing.slice(0, 3)) console.log(`      ∅ не знайдено в жодному хеш-файлі: ${s.slice(0, 120)}${s.length > 120 ? "…" : ""}`);
+}
+if (provenByContent.length) {
+  console.log(`\n✅ Нижче водяного знаку, доведені ЗМІСТОМ (кожен statement є в хеш-файлі Lovable) — допиши ✅ у журнал: ${provenByContent.length}`);
+  for (const { f, files: hs } of provenByContent) console.log(`   ${f}  ← ${hs.join(", ")}`);
+}
+if (ledgerDrift.length) {
+  console.log(`\n⚠ Журнал каже ✅, а зміст у хеш-файлах Lovable частково ІНШИЙ (перевір, що саме в проді): ${ledgerDrift.length}`);
+  for (const { f, missing } of ledgerDrift) {
+    console.log(`   ${f}`);
+    for (const s of missing.slice(0, 3)) console.log(`      ≠ ${s.slice(0, 120)}${s.length > 120 ? "…" : ""}`);
+  }
+}
 console.log(`\n◆ LIVE-MARKER перевірка проти types.ts: ${markers.length}`);
 const badge = { live: "✅ live      ", no: "⛔ NOT live  ", unprovable: "❓ не доводиться" };
 for (const m of markers) console.log(`   ${badge[m.state]}  ${m.f}  ← ${m.marker}`);

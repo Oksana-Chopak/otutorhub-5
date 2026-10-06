@@ -21,7 +21,17 @@ if (!secret) {
   try {
     const res = await fetch(`${base}/errors-report?hours=24`, { headers: { "x-cron-secret": secret } });
     const body = await res.text();
-    if (!res.ok) throw new Error(`${res.status} ${body.slice(0, 200)}`);
+    if (!res.ok) {
+      // 06.10: перший запуск упав саме так — функція відповіла власним 403, бо
+      // перевіряла vault-секрет pg_cron, а GitHub надсилає env CRON_SECRET.
+      // Рядок у Telegram мусить називати причину, а не питати «передеплоєна?».
+      const why = res.status === 401 || res.status === 403
+        ? "секрет не збігається: CRON_SECRET у GitHub ≠ тому, що перевіряє errors-report (у неї мають бути env CRON_SECRET або vault)"
+        : res.status === 404
+          ? "функції errors-report немає на проді — вона не задеплоєна (config.toml + передеплой edge)"
+          : `edge errors-report відповіла ${res.status} ${body.slice(0, 160)}`;
+      throw new Error(why);
+    }
     report = JSON.parse(body);
     if (report.total === 0) {
       text = "🧯 Щоденні помилки: за добу жодної ✓";
@@ -30,7 +40,7 @@ if (!secret) {
       text = `🧯 Щоденні помилки: <b>${report.total}</b> груп, нових <b>${report.new}</b>\n${top.join("\n")}${runUrl ? `\nЗвіт: ${runUrl}` : ""}`;
     }
   } catch (e) {
-    text = `🔴 Щоденні помилки: не вдалося прочитати журнал (${esc(e.message)}). Edge errors-report передеплоєна?`;
+    text = `🔴 Щоденні помилки: не вдалося прочитати журнал — ${esc(e.message)}.`;
   }
 }
 writeFileSync("errors-24h.json", JSON.stringify(report, null, 2));

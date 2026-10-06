@@ -73,6 +73,28 @@ describe("сторож: три канали доставки мають штам
     expect(cr).toContain('from("platform_admins")');
   });
 
+  it("edge: кожна функція, яку кличе GitHub, приймає env CRON_SECRET (06.10: errors-report перевіряла лише vault-секрет pg_cron → 403 замість звіту)", () => {
+    // У проєкті ДВА секрети: CRON_SECRET (секрети edge = GitHub Secrets; ним ходять
+    // воркфлоу) і cron_shared_secret у vault (get_cron_shared_secret(); ним ходить
+    // pg_cron). Функція, яку кличе воркфлоу, зобовʼязана порівнювати з env —
+    // vault може лишатись запасним. Імена беремо з самих воркфлоу та скриптів,
+    // щоб нова функція в рутині не могла зʼявитись без цієї перевірки.
+    const dir = join(ROOT, ".github/workflows");
+    const called = new Set<string>();
+    const harvest = (text: string) => {
+      for (const m of text.matchAll(/functions\/v1\/([a-z0-9-]+)/g)) called.add(m[1]);
+      for (const m of text.matchAll(/\$\{base\}\/([a-z0-9-]+)/g)) called.add(m[1]);
+    };
+    for (const f of readdirSync(dir).filter((f) => /\.ya?ml$/.test(f))) harvest(readFileSync(join(dir, f), "utf8"));
+    for (const f of readdirSync(join(ROOT, "scripts")).filter((f) => f.endsWith(".mjs"))) harvest(read(`scripts/${f}`));
+    called.delete("version"); // публічна проба збірки — без секрету за задумом
+    expect([...called].sort()).toEqual(expect.arrayContaining(["ci-report", "errors-report", "scheduled-notifications"]));
+    for (const name of called) {
+      const src = read(`supabase/functions/${name}/index.ts`);
+      expect(src, `${name}: GitHub надсилає env CRON_SECRET — функція мусить порівнювати саме з ним`).toContain('Deno.env.get("CRON_SECRET")');
+    }
+  });
+
   it("фронтенд: штамп джерел вшивається збіркою (vite.config.ts), видимий у index.html, buildInfo, /auth", () => {
     expect(read("vite.config.ts")).toContain('fileName: "version.json"');
     expect(read("vite.config.ts")).toContain("sourceStamp()");
