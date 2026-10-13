@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getLocale } from "@/lib/locale";
 import { useHaptic } from "@/hooks/useHaptic";
 import { REMIND_DELAY_MS, cancelRemind, isRemindPending, remindKey, scheduleRemind } from "@/lib/remindPair";
+import { RemindSheet } from "@/components/RemindSheet";
 
 /**
  * 🔔 Нагадати — ОДНА дія на КОЖНІЙ поверхні, де видно борг (важіль 2 аудиту
@@ -19,6 +20,10 @@ import { REMIND_DELAY_MS, cancelRemind, isRemindPending, remindKey, scheduleRemi
  *  · 5 секунд на «Скасувати» ДО відправки — надіслане не відкликається;
  *  · після відправки — підпис «нагадано сьогодні о 14:20», щоб не питати себе,
  *    чи вже нагадувала.
+ *  · 13.10 (пре-мортем): дотик відкриває аркуш RemindSheet — автоматично (якщо
+ *    є Telegram/пошта) АБО переслати самому у Viber/Telegram/WhatsApp/SMS з
+ *    магічним посиланням на сторінку «борг · реквізити · Я оплатив(ла)». Так
+ *    нагадування працює і для учня БЕЗ акаунта — тобто для всіх.
  */
 export function RemindDebtButton({
   studentId,
@@ -43,6 +48,7 @@ export function RemindDebtButton({
   const key = remindKey(studentId, tutorId);
   const [queued, setQueued] = useState(isRemindPending(key));
   const [busy, setBusy] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const send = async () => {
     setQueued(false);
@@ -110,9 +116,19 @@ export function RemindDebtButton({
       : t("remind.action");
 
   return (
+    <>
+    <RemindSheet
+      open={sheetOpen}
+      onOpenChange={setSheetOpen}
+      studentId={studentId}
+      tutorId={tutorId}
+      studentName={studentName}
+      onAutoSend={start}
+      onShared={onSent}
+    />
     <button
       type="button"
-      onClick={start}
+      onClick={() => { haptic.tap(); setSheetOpen(true); }}
       disabled={busy}
       aria-label={t("remind.action")}
       style={{
@@ -128,5 +144,6 @@ export function RemindDebtButton({
       {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : valid && !queued ? <Check className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
       {label}
     </button>
+    </>
   );
 }

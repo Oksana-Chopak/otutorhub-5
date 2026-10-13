@@ -26,6 +26,7 @@ const T = {
     many: (tutor: string, n: number) => `${tutor} нагадує про оплату: ${n} ур. очікують на оплату.`,
     sum: "Сума", thanks: "Дякуємо! 🙏", inappBody: (n: number) => `${n} ур. очікують на оплату.`,
     footer: "Деталі — у розділі «Оплати» застосунку.",
+    payLink: "Реквізити й кнопка «Я оплатив(ла)»:",
   },
   en: {
     header: "💳 Payment reminder",
@@ -34,6 +35,7 @@ const T = {
     many: (tutor: string, n: number) => `${tutor} reminds you: ${n} lessons are awaiting payment.`,
     sum: "Amount", thanks: "Thank you! 🙏", inappBody: (n: number) => `${n} lessons are awaiting payment.`,
     footer: "Details are in the app's «Payments» section.",
+    payLink: "Payment details and the «I’ve paid» button:",
   },
   sv: {
     header: "💳 Betalningspåminnelse",
@@ -42,6 +44,7 @@ const T = {
     many: (tutor: string, n: number) => `${tutor} påminner: ${n} lektioner väntar på betalning.`,
     sum: "Belopp", thanks: "Tack! 🙏", inappBody: (n: number) => `${n} lektioner väntar på betalning.`,
     footer: "Detaljer finns under «Betalningar» i appen.",
+    payLink: "Betalningsuppgifter och knappen «Jag har betalat»:",
   },
 } as const;
 
@@ -129,10 +132,20 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
 
   const channels: string[] = [];
 
+  // 13.10: магічне посилання на публічну сторінку «борг · реквізити · Я оплатив(ла)»
+  // — у кожному автоматичному нагадуванні, щоб відповісти можна було одним дотиком
+  // без входу в застосунок. Токен на пару один (payment_link_for_pair, service role).
+  let payUrl = "";
+  try {
+    const { data: tok } = await (admin.rpc as any)("payment_link_for_pair", { _tutor_id: tutorId, _student_id: studentId });
+    const appUrl = (Deno.env.get("APP_URL") ?? "https://otutorhub.com").replace(/\/+$/, "");
+    if (typeof tok === "string" && /^[0-9a-f]{64}$/.test(tok)) payUrl = `${appUrl}/pay/${tok}`;
+  } catch { /* без посилання нагадування все одно піде */ }
+
   // 3) Telegram
   const chatId = tg?.chat_id ? Number(tg.chat_id) : null;
   if (chatId && botToken) {
-    const text = `${tr.header}\n\n${esc(body)}${sumLine ? `\n\n${sumLine}` : ""}\n\n${tr.footer}\n${tr.thanks}`;
+    const text = `${tr.header}\n\n${esc(body)}${sumLine ? `\n\n${sumLine}` : ""}${payUrl ? `\n\n${tr.payLink}\n${payUrl}` : ""}\n\n${tr.footer}\n${tr.thanks}`;
     const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
@@ -154,6 +167,7 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
         templateData: {
           studentName, tutorName, subject: first.subject ?? "—",
           lessonDate: fmtDate(first.starts_at), amount: total, lessonsCount: fresh.length, lang,
+          payUrl: payUrl || undefined,
         },
       }),
     });

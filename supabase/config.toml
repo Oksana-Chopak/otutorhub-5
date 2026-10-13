@@ -97,6 +97,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.import-sheet-fetch]
     verify_jwt = true
+  [functions.pay-link]
+    verify_jwt = false
   [functions.google-calendar-import]
     verify_jwt = true
   [functions.errors-report]

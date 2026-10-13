@@ -2,6 +2,7 @@
 import * as React from 'npm:react@18.3.1'
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -19,6 +20,8 @@ interface Props {
   lessonDate?: string
   amount?: number
   appName?: string
+  /** 13.10: публічна сторінка «борг · реквізити · Я оплатив(ла)» без входу */
+  payUrl?: string
 }
 
 const main = {
@@ -77,6 +80,7 @@ function PaymentReminderEmail({
   lessonDate,
   amount,
   appName = 'oTutorHub',
+  payUrl,
 }: Props) {
   const greeting = studentName ? `Привіт, ${studentName}!` : 'Привіт!'
   return (
@@ -94,6 +98,16 @@ function PaymentReminderEmail({
           </Text>
           {amount && amount > 0 ? (
             <Section style={amountBox}>Сума до сплати: {amount} ₴</Section>
+          ) : null}
+          {payUrl ? (
+            <Section style={{ margin: '18px 0 6px' }}>
+              <Button
+                href={payUrl}
+                style={{ backgroundColor: '#2BBFAA', color: '#0f0f1a', fontWeight: 700, fontSize: '15px', borderRadius: '12px', padding: '13px 20px', textDecoration: 'none', display: 'inline-block' }}
+              >
+                Реквізити й «Я оплатив(ла)» →
+              </Button>
+            </Section>
           ) : null}
           <Text style={paragraph}>
             Дякуємо! 🙏 Якщо вже оплатили — просто проігноруйте це повідомлення.
@@ -116,5 +130,6 @@ export const template: TemplateEntry = {
     subject: 'Англійська мова',
     lessonDate: '15 квітня',
     amount: 450,
+    payUrl: 'https://otutorhub.com/pay/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
   },
 }

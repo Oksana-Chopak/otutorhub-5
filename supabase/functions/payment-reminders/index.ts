@@ -20,6 +20,8 @@ interface WorkspaceSettings {
   trial_until: string | null;
 }
 
+const APP_URL = (Deno.env.get("APP_URL") ?? "https://otutorhub.com").replace(/\/+$/, "");
+
 function isProActive(s: WorkspaceSettings): boolean {
   if (s.subscription_status === "active") return true;
   if (s.subscription_status === "trial" && s.trial_until) {
@@ -66,6 +68,7 @@ const RT = {
     gPrepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній груповий урок (${d}) з ${t}.`,
     gPay: (d: string, t: string) => `Груповий урок ${d} з ${t} — час оплатити заняття.`,
     debtHeader: "💳 Є неоплачені уроки",
+    payLink: "Реквізити й кнопка «Я оплатив(ла)»:",
     debt: (n: number, t: string) =>
       n === 1
         ? `Залишився один неоплачений урок з ${t}.`
@@ -80,6 +83,7 @@ const RT = {
     gPrepaid: (d: string, t: string) => `A prepayment reminder for the upcoming group lesson (${d}) with ${t}.`,
     gPay: (d: string, t: string) => `Group lesson ${d} with ${t} — time to pay.`,
     debtHeader: "💳 Unpaid lessons",
+    payLink: "Payment details and the «I’ve paid» button:",
     debt: (n: number, t: string) =>
       n === 1 ? `One lesson with ${t} is still unpaid.` : `${n} lessons with ${t} are still unpaid.`,
     debtTotal: "Total",
@@ -92,6 +96,7 @@ const RT = {
     gPrepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande grupplektion (${d}) med ${t}.`,
     gPay: (d: string, t: string) => `Grupplektion ${d} med ${t} — dags att betala.`,
     debtHeader: "💳 Obetalda lektioner",
+    payLink: "Betalningsuppgifter och knappen «Jag har betalat»:",
     debt: (n: number, t: string) =>
       n === 1 ? `En lektion med ${t} är fortfarande obetald.` : `${n} lektioner med ${t} är fortfarande obetalda.`,
     debtTotal: "Totalt",
@@ -683,7 +688,14 @@ Deno.serve(withJob("payment-reminders", async (req) => {
         const tname = tutorName.get(pair.tutor_id) ?? T.tutor;
         const body = T.debt(pair.count, tname);
         const sumLine = `${T.debtTotal}: ${pair.total} ${cur}`;
-        const text = `${T.debtHeader}\n\n${escapeHtml(body)}\n\n<b>${escapeHtml(sumLine)}</b>`;
+        // 13.10: у кожному автоматичному нагадуванні — магічне посилання на сторінку
+        // «борг · реквізити · Я оплатив(ла)», щоб відповісти одним дотиком без входу.
+        let payUrl = "";
+        try {
+          const { data: tok } = await (supabase.rpc as any)("payment_link_for_pair", { _tutor_id: pair.tutor_id, _student_id: pair.student_id });
+          if (typeof tok === "string" && /^[0-9a-f]{64}$/.test(tok)) payUrl = `${APP_URL}/pay/${tok}`;
+        } catch { /* нагадування йде і без посилання */ }
+        const text = `${T.debtHeader}\n\n${escapeHtml(body)}\n\n<b>${escapeHtml(sumLine)}</b>${payUrl ? `\n\n${T.payLink}\n${payUrl}` : ""}`;
 
         const chatId = chatByUser.get(pair.student_id);
         const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
@@ -691,7 +703,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
           userId: pair.student_id,
           title: T.debtHeader,
           body: `${body} ${sumLine}.`,
-          link: "/student/payments",
+          link: payUrl || "/student/payments",
           tag: `debt-${pair.tutor_id}-${pair.student_id}`,
         });
         await supabase.from("notifications").insert({
