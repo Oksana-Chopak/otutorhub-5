@@ -37,30 +37,11 @@ const SEGMENTS: { value: Segment; labelKey: string }[] = [
 /**
  * 13.10 (пре-мортем, рішення власниці): усі зміни — одним оновленням, і тоді
  * одна розсилка «ось, користуйтеся». Шаблон кладе в поля готовий каркас листа
- * і Telegram-тексту; адмін лише править список змін. Текст тут українською
- * свідомо: розсилка йде українській базі, а не з мови інтерфейсу адміна.
+ * і Telegram-тексту (ключі marketing.presetUpdate*; текст українською в усіх
+ * локалях свідомо: розсилка йде українській базі, а не мовою інтерфейсу адміна),
+ * адмін лише править список змін.
  */
-const UPDATE_PRESET = {
-  subject: "Що нового в oTutorHub — оновлення застосунку",
-  htmlBody: [
-    "<p>Ми оновили застосунок — ось що змінилось:</p>",
-    "<ul>",
-    "<li><b>Нагадування без акаунта учня.</b> Натисни «Нагадати» → отримаєш посилання й готовий текст у Viber/Telegram/WhatsApp. Учень бачить борг, реквізити й кнопку «Я оплатив(ла)» — без реєстрації. Ти підтверджуєш одним дотиком.</li>",
-    "<li><b>…</b></li>",
-    "</ul>",
-    "<p>Усе вже працює у вебі та в застосунку на телефоні.</p>",
-    "<p><a href='https://otutorhub.com/'>Відкрити oTutorHub</a></p>",
-    "<p>Якщо щось незручно — відповідай на цей лист, читаю кожен.</p>",
-  ].join("\n"),
-  telegramText: [
-    "Ми оновили застосунок — ось що змінилось:",
-    "",
-    "• Нагадування без акаунта учня: «Нагадати» → посилання й готовий текст у Viber/Telegram/WhatsApp. Учень бачить борг, реквізити й кнопку «Я оплатив(ла)» без реєстрації; ти підтверджуєш одним дотиком.",
-    "• …",
-    "",
-    "Відкрити: https://otutorhub.com/",
-  ].join("\n"),
-};
+const UPDATE_PRESET_KEYS = { subject: "marketing.presetUpdateSubject", htmlBody: "marketing.presetUpdateHtml", telegramText: "marketing.presetUpdateTelegram" } as const;
 
 interface Campaign {
   id: string;
@@ -147,9 +128,9 @@ export default function MarketingPage() {
   }, []);
 
   const applyUpdatePreset = () => {
-    setSubject(UPDATE_PRESET.subject);
-    setHtmlBody(UPDATE_PRESET.htmlBody);
-    setTelegramText(UPDATE_PRESET.telegramText);
+    setSubject(t(UPDATE_PRESET_KEYS.subject));
+    setHtmlBody(t(UPDATE_PRESET_KEYS.htmlBody));
+    setTelegramText(t(UPDATE_PRESET_KEYS.telegramText));
     setViaEmail(true);
     setViaTelegram(true);
   };

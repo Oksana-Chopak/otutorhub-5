@@ -145,7 +145,7 @@ describe("дроти ланцюжка й розсилки", () => {
     expect(e).toMatch(/telegram_sent: tgSent,\s*\n\s*telegram_failed: tgFailed,/);
     expect(e).toMatch(/"has_telegram"\]/);
     const p = read("src/pages/MarketingPage.tsx");
-    expect(p).toMatch(/const UPDATE_PRESET = \{/);
+    expect(p).toMatch(/const UPDATE_PRESET_KEYS = \{/);
     expect(p).toMatch(/body: \{ subject, htmlBody, telegramText, channels, segment, dryRun: false \}/);
     expect(p).toMatch(/\(supabase\.rpc as any\)\("lifecycle_summary", \{ _days: 30 \}\)/);
     expect(p).toMatch(/value: "has_telegram"/);
