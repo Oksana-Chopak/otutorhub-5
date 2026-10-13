@@ -3,6 +3,7 @@
 import { template as studentInvite } from './student-invite.tsx'
 import { template as paymentReminder } from './payment-reminder.tsx'
 import { template as cancellationRules } from './cancellation-rules.tsx'
+import { template as lifecycleNudge } from './lifecycle-nudge.tsx'
 
 export type TemplateEntry = {
   component: (props: any) => any
@@ -17,4 +18,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'student-invite': studentInvite,
   'payment-reminder': paymentReminder,
   'cancellation-rules': cancellationRules,
+  'lifecycle-nudge': lifecycleNudge,
 }

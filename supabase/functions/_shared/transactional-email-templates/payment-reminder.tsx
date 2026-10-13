@@ -22,6 +22,8 @@ interface Props {
   appName?: string
   /** 13.10: публічна сторінка «борг · реквізити · Я оплатив(ла)» без входу */
   payUrl?: string
+  /** 13.10: учню без акаунта — запрошення створити його (домашка, конспекти, історія оплат) */
+  registerUrl?: string
 }
 
 const main = {
@@ -81,6 +83,7 @@ function PaymentReminderEmail({
   amount,
   appName = 'oTutorHub',
   payUrl,
+  registerUrl,
 }: Props) {
   const greeting = studentName ? `Привіт, ${studentName}!` : 'Привіт!'
   return (
@@ -112,6 +115,12 @@ function PaymentReminderEmail({
           <Text style={paragraph}>
             Дякуємо! 🙏 Якщо вже оплатили — просто проігноруйте це повідомлення.
           </Text>
+          {registerUrl ? (
+            <Text style={paragraph}>
+              Створіть акаунт учня — домашка, конспекти уроків, розклад і вся історія оплат будуть в одному місці:{' '}
+              <a href={registerUrl} style={{ color: '#0F6E56', fontWeight: 600 }}>створити акаунт →</a>
+            </Text>
+          ) : null}
           <Text style={footer}>{appName} — облік уроків і оплат для репетиторів.</Text>
         </Container>
       </Body>

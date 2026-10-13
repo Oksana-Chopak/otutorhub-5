@@ -13,7 +13,7 @@ const noComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\
  * сценарій 06-product-analytics.sql; тут — що клієнт і edge підключені до неї.
  */
 
-const CRON = ["payment-reminders", "payout-reminders", "lesson-reminders", "tutor-daily-digest", "tutor-evening-summary", "tutor-weekly-digest", "scheduled-notifications", "db-backup", "telegram-poll", "fireflies-auto-join", "archive-old-chats", "process-email-queue"];
+const CRON = ["payment-reminders", "payout-reminders", "lesson-reminders", "tutor-daily-digest", "tutor-evening-summary", "tutor-weekly-digest", "scheduled-notifications", "db-backup", "telegram-poll", "fireflies-auto-join", "archive-old-chats", "process-email-queue", "lifecycle-nudges"];
 
 describe("помилки edge-функцій більше не зникають у логах Supabase", () => {
   const fns = readdirSync(join(ROOT, "supabase/functions")).filter((d) => !d.startsWith("_") && existsSync(join(ROOT, "supabase/functions", d, "index.ts")));

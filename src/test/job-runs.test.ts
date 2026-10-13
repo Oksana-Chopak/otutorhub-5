@@ -17,6 +17,7 @@ const CRON_FUNCTIONS = [
   "payment-reminders", "payout-reminders", "lesson-reminders", "tutor-daily-digest",
   "tutor-evening-summary", "tutor-weekly-digest", "scheduled-notifications", "db-backup",
   "telegram-poll", "fireflies-auto-join", "archive-old-chats", "process-email-queue",
+  "lifecycle-nudges",
 ];
 
 describe("кожна cron-функція лишає слід у job_runs", () => {

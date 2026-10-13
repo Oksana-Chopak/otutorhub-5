@@ -99,6 +99,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.pay-link]
     verify_jwt = false
+  [functions.lifecycle-nudges]
+    verify_jwt = false
   [functions.google-calendar-import]
     verify_jwt = true
   [functions.errors-report]

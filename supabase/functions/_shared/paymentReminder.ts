@@ -27,6 +27,7 @@ const T = {
     sum: "Сума", thanks: "Дякуємо! 🙏", inappBody: (n: number) => `${n} ур. очікують на оплату.`,
     footer: "Деталі — у розділі «Оплати» застосунку.",
     payLink: "Реквізити й кнопка «Я оплатив(ла)»:",
+    register: "Створіть акаунт учня — домашка, конспекти уроків, розклад і вся історія оплат будуть в одному місці:",
   },
   en: {
     header: "💳 Payment reminder",
@@ -36,6 +37,7 @@ const T = {
     sum: "Amount", thanks: "Thank you! 🙏", inappBody: (n: number) => `${n} lessons are awaiting payment.`,
     footer: "Details are in the app's «Payments» section.",
     payLink: "Payment details and the «I’ve paid» button:",
+    register: "Create a student account — homework, lesson notes, timetable and the whole payment history in one place:",
   },
   sv: {
     header: "💳 Betalningspåminnelse",
@@ -45,6 +47,7 @@ const T = {
     sum: "Belopp", thanks: "Tack! 🙏", inappBody: (n: number) => `${n} lektioner väntar på betalning.`,
     footer: "Detaljer finns under «Betalningar» i appen.",
     payLink: "Betalningsuppgifter och knappen «Jag har betalat»:",
+    register: "Skapa ett elevkonto — läxor, lektionsanteckningar, schema och hela betalningshistoriken på ett ställe:",
   },
 } as const;
 
@@ -107,7 +110,7 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
 
   // 2) Люди, контакти, мова
   const [{ data: sp }, { data: tp }, { data: contact }, { data: tg }] = await Promise.all([
-    admin.from("profiles").select("first_name, last_name, preferred_language").eq("id", studentId).maybeSingle(),
+    admin.from("profiles").select("first_name, last_name, preferred_language, is_pending").eq("id", studentId).maybeSingle(),
     admin.from("profiles").select("first_name, last_name").eq("id", tutorId).maybeSingle(),
     admin.from("profile_contacts").select("email").eq("user_id", studentId).maybeSingle(),
     admin.from("user_telegram_links").select("chat_id").eq("user_id", studentId).maybeSingle(),
@@ -138,14 +141,19 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
   let payUrl = "";
   try {
     const { data: tok } = await (admin.rpc as any)("payment_link_for_pair", { _tutor_id: tutorId, _student_id: studentId });
-    const appUrl = (Deno.env.get("APP_URL") ?? "https://otutorhub.com").replace(/\/+$/, "");
-    if (typeof tok === "string" && /^[0-9a-f]{64}$/.test(tok)) payUrl = `${appUrl}/pay/${tok}`;
+    const base = (Deno.env.get("APP_URL") ?? "https://otutorhub.com").replace(/\/+$/, "");
+    if (typeof tok === "string" && /^[0-9a-f]{64}$/.test(tok)) payUrl = `${base}/pay/${tok}`;
   } catch { /* без посилання нагадування все одно піде */ }
+
+  // 13.10 (рішення власниці): учню без акаунта — нагадати, що він може його створити
+  // й бачити домашку, конспекти, розклад та історію оплат. Лише для pending-профілю.
+  const appUrl = (Deno.env.get("APP_URL") ?? "https://otutorhub.com").replace(/\/+$/, "");
+  const registerUrl = sp?.is_pending ? `${appUrl}/auth?signup=1&role=student` : "";
 
   // 3) Telegram
   const chatId = tg?.chat_id ? Number(tg.chat_id) : null;
   if (chatId && botToken) {
-    const text = `${tr.header}\n\n${esc(body)}${sumLine ? `\n\n${sumLine}` : ""}${payUrl ? `\n\n${tr.payLink}\n${payUrl}` : ""}\n\n${tr.footer}\n${tr.thanks}`;
+    const text = `${tr.header}\n\n${esc(body)}${sumLine ? `\n\n${sumLine}` : ""}${payUrl ? `\n\n${tr.payLink}\n${payUrl}` : ""}${registerUrl ? `\n\n${tr.register}\n${registerUrl}` : ""}\n\n${tr.footer}\n${tr.thanks}`;
     const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
@@ -168,6 +176,7 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
           studentName, tutorName, subject: first.subject ?? "—",
           lessonDate: fmtDate(first.starts_at), amount: total, lessonsCount: fresh.length, lang,
           payUrl: payUrl || undefined,
+          registerUrl: registerUrl || undefined,
         },
       }),
     });

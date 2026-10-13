@@ -1,6 +1,14 @@
-// Send marketing campaign to independent tutors via Brevo
+// Send marketing campaign to independent tutors via Brevo — і в Telegram-бот (13.10).
+//
+// 13.10 (пре-мортем): сегменти «платять»/«закінчився» порівнювали статуси, яких
+// у базі немає (виправлено в get_marketing_recipients, міграція 20261013150000),
+// а розсилка йшла лише поштою. Тепер канали обирає адмін: пошта (HTML) і/або
+// Telegram (звичайний текст у бот тим, хто його підключив). Лічильники по
+// каналах — окремо, щоб історія не брехала.
+// deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { stripHtml } from "../_shared/htmlToText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,17 +103,35 @@ Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
 
     const body = await req.json();
     const { subject, htmlBody, segment, dryRun } = body ?? {};
+    const channels: string[] = Array.isArray(body?.channels) && body.channels.length
+      ? body.channels.filter((c: unknown) => c === "email" || c === "telegram")
+      : ["email"];
+    const wantEmail = channels.includes("email");
+    const wantTelegram = channels.includes("telegram");
+    if (!wantEmail && !wantTelegram) {
+      return new Response(JSON.stringify({ error: "Invalid channels" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (typeof subject !== "string" || subject.length < 1 || subject.length > 200) {
       return new Response(JSON.stringify({ error: "Invalid subject" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (typeof htmlBody !== "string" || htmlBody.length < 1 || htmlBody.length > 100000) {
+    if (wantEmail && (typeof htmlBody !== "string" || htmlBody.length < 1 || htmlBody.length > 100000)) {
       return new Response(JSON.stringify({ error: "Invalid htmlBody" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const allowedSegments = ["all_independent", "trial", "trial_ending_soon", "pro_active", "expired"];
+    // Telegram: звичайний текст (без HTML-розмітки — бот показує як є); якщо адмін
+    // не написав окремий, беремо лист без тегів. Ліміт Telegram — 4096 символів.
+    const telegramText = stripHtml(typeof body?.telegramText === "string" && body.telegramText.trim() ? body.telegramText : (typeof htmlBody === "string" ? htmlBody : "")).slice(0, 3800);
+    if (wantTelegram && telegramText.length < 1) {
+      return new Response(JSON.stringify({ error: "Invalid telegramText" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const allowedSegments = ["all_independent", "trial", "trial_ending_soon", "pro_active", "expired", "has_telegram"];
     if (!allowedSegments.includes(segment)) {
       return new Response(JSON.stringify({ error: "Invalid segment" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -116,11 +142,19 @@ Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
     const { data: recipients, error: recErr } = await userClient
       .rpc("get_marketing_recipients", { _segment: segment });
     if (recErr) throw recErr;
-    const list = (recipients ?? []) as Array<{ user_id: string; email: string; first_name: string | null; last_name: string | null }>;
+    const list = (recipients ?? []) as Array<{ user_id: string; email: string; first_name: string | null; last_name: string | null; telegram_chat_id?: number | null; preferred_language?: string | null }>;
+    const withTelegram = list.filter((r) => r.telegram_chat_id).length;
 
     if (dryRun) {
-      return new Response(JSON.stringify({ count: list.length, sample: list.slice(0, 5).map(r => r.email) }), {
+      return new Response(JSON.stringify({ count: list.length, telegram: withTelegram, sample: list.slice(0, 5).map(r => r.email) }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const BOT = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
+    if (wantTelegram && !BOT) {
+      return new Response(JSON.stringify({ error: "Telegram bot is not configured" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -129,7 +163,8 @@ Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
       .from("marketing_campaigns")
       .insert({
         created_by: userData.user.id,
-        subject, html_body: htmlBody, segment,
+        subject, html_body: typeof htmlBody === "string" ? htmlBody : "", segment,
+        channels, telegram_text: wantTelegram ? telegramText : null,
         recipients_total: list.length,
         status: "sending",
         started_at: new Date().toISOString(),
@@ -140,9 +175,25 @@ Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
 
     // Fire-and-forget background send
     const sendAll = async () => {
-      let sent = 0, failed = 0;
+      let sent = 0, failed = 0, tgSent = 0, tgFailed = 0;
       const errors: Array<{ email: string; error: string; status?: number }> = [];
       for (const r of list) {
+        // Telegram — тим, хто підключив бот
+        if (wantTelegram && r.telegram_chat_id) {
+          try {
+            const tr = await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: r.telegram_chat_id, text: `${subject}\n\n${telegramText}`, disable_web_page_preview: true }),
+            });
+            if (tr.ok) tgSent++;
+            else { tgFailed++; errors.push({ email: r.email, status: tr.status, error: `telegram: ${(await tr.text().catch(() => "")).slice(0, 300)}` }); }
+            await new Promise((res) => setTimeout(res, 100));
+          } catch (e) {
+            tgFailed++;
+            errors.push({ email: r.email, error: `telegram: ${(e instanceof Error ? e.message : String(e)).slice(0, 300)}` });
+          }
+        }
+        if (!wantEmail) continue;
         try {
           // Get or create unsub token
           let token: string;
@@ -203,7 +254,9 @@ Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
       await admin.from("marketing_campaigns").update({
         recipients_sent: sent,
         recipients_failed: failed,
-        status: failed > 0 && sent === 0 ? "failed" : "completed",
+        telegram_sent: tgSent,
+        telegram_failed: tgFailed,
+        status: (failed + tgFailed) > 0 && (sent + tgSent) === 0 ? "failed" : "completed",
         completed_at: new Date().toISOString(),
         errors: errors,
       }).eq("id", campaign.id);
@@ -217,7 +270,7 @@ Deno.serve(withErrorLog("send-marketing-campaign", async (req) => {
       sendAll();
     }
 
-    return new Response(JSON.stringify({ campaignId: campaign.id, count: list.length }), {
+    return new Response(JSON.stringify({ campaignId: campaign.id, count: list.length, telegram: withTelegram, channels }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

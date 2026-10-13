@@ -20,7 +20,8 @@ type Segment =
   | "trial"
   | "trial_ending_soon"
   | "pro_active"
-  | "expired";
+  | "expired"
+  | "has_telegram";
 
 /** Аудит 01.09: мітки рахувались один раз при завантаженні чанка і не
  *  перемальовувались при зміні мови. Тепер це ключі, а мітка береться в рендері. */
@@ -30,7 +31,36 @@ const SEGMENTS: { value: Segment; labelKey: string }[] = [
   { value: "trial_ending_soon", labelKey: "marketing.segmentTrialEnding" },
   { value: "pro_active", labelKey: "marketing.segmentProActive" },
   { value: "expired", labelKey: "marketing.segmentExpired" },
+  { value: "has_telegram", labelKey: "marketing.segmentHasTelegram" },
 ];
+
+/**
+ * 13.10 (пре-мортем, рішення власниці): усі зміни — одним оновленням, і тоді
+ * одна розсилка «ось, користуйтеся». Шаблон кладе в поля готовий каркас листа
+ * і Telegram-тексту; адмін лише править список змін. Текст тут українською
+ * свідомо: розсилка йде українській базі, а не з мови інтерфейсу адміна.
+ */
+const UPDATE_PRESET = {
+  subject: "Що нового в oTutorHub — оновлення застосунку",
+  htmlBody: [
+    "<p>Ми оновили застосунок — ось що змінилось:</p>",
+    "<ul>",
+    "<li><b>Нагадування без акаунта учня.</b> Натисни «Нагадати» → отримаєш посилання й готовий текст у Viber/Telegram/WhatsApp. Учень бачить борг, реквізити й кнопку «Я оплатив(ла)» — без реєстрації. Ти підтверджуєш одним дотиком.</li>",
+    "<li><b>…</b></li>",
+    "</ul>",
+    "<p>Усе вже працює у вебі та в застосунку на телефоні.</p>",
+    "<p><a href='https://otutorhub.com/'>Відкрити oTutorHub</a></p>",
+    "<p>Якщо щось незручно — відповідай на цей лист, читаю кожен.</p>",
+  ].join("\n"),
+  telegramText: [
+    "Ми оновили застосунок — ось що змінилось:",
+    "",
+    "• Нагадування без акаунта учня: «Нагадати» → посилання й готовий текст у Viber/Telegram/WhatsApp. Учень бачить борг, реквізити й кнопку «Я оплатив(ла)» без реєстрації; ти підтверджуєш одним дотиком.",
+    "• …",
+    "",
+    "Відкрити: https://otutorhub.com/",
+  ].join("\n"),
+};
 
 interface Campaign {
   id: string;
@@ -43,14 +73,25 @@ interface Campaign {
   status: string;
   created_at: string;
   errors: Array<{ email: string; error: string; status?: number }> | null;
+  channels?: string[] | null;
+  telegram_text?: string | null;
+  telegram_sent?: number | null;
+  telegram_failed?: number | null;
 }
+
+interface LifecycleRow { kind: string; count: number; last_at: string | null }
 
 export default function MarketingPage() {
   const { t } = useTranslation();
   const [segment, setSegment] = useState<Segment>("all_independent");
   const [subject, setSubject] = useState("");
   const [htmlBody, setHtmlBody] = useState("");
+  const [telegramText, setTelegramText] = useState("");
+  const [viaEmail, setViaEmail] = useState(true);
+  const [viaTelegram, setViaTelegram] = useState(true);
   const [count, setCount] = useState<number | null>(null);
+  const [countTelegram, setCountTelegram] = useState<number | null>(null);
+  const [lifecycle, setLifecycle] = useState<LifecycleRow[] | null>(null);
   const [loadingCount, setLoadingCount] = useState(false);
   const [sending, setSending] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -78,9 +119,11 @@ export default function MarketingPage() {
   const loadCampaigns = async () => {
     setLoading(true);
     setLoadError(false);
+    // 13.10: «*» — нові колонки (channels, telegram_*) зʼявляться в types.ts лише після
+    // вставки SQL; до того вони читаються як необовʼязкові поля.
     const { data, error } = await supabase
       .from("marketing_campaigns")
-      .select("id, subject, segment, html_body, recipients_total, recipients_sent, recipients_failed, status, created_at, errors")
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(20);
     if (error) {
@@ -88,13 +131,29 @@ export default function MarketingPage() {
       setLoading(false);
       return;
     }
-    setCampaigns((data ?? []) as Campaign[]);
+    setCampaigns((data ?? []) as unknown as Campaign[]);
     setLoading(false);
+  };
+
+  const loadLifecycle = async () => {
+    const { data, error } = await (supabase.rpc as any)("lifecycle_summary", { _days: 30 });
+    if (error) { setLifecycle(null); return; }
+    setLifecycle(Array.isArray(data) ? (data as LifecycleRow[]) : []);
   };
 
   useEffect(() => {
     loadCampaigns();
+    loadLifecycle();
   }, []);
+
+  const applyUpdatePreset = () => {
+    setSubject(UPDATE_PRESET.subject);
+    setHtmlBody(UPDATE_PRESET.htmlBody);
+    setTelegramText(UPDATE_PRESET.telegramText);
+    setViaEmail(true);
+    setViaTelegram(true);
+  };
+  const channels = [viaEmail ? "email" : null, viaTelegram ? "telegram" : null].filter(Boolean) as string[];
 
   const checkCount = async () => {
     setLoadingCount(true);
@@ -105,6 +164,7 @@ export default function MarketingPage() {
       });
       if (error) throw error;
       setCount((data as any).count);
+      setCountTelegram(typeof (data as any).telegram === "number" ? (data as any).telegram : null);
     } catch (e: any) {
       toast.error(e.message ?? t("marketing.countFailed"));
     } finally {
@@ -113,7 +173,11 @@ export default function MarketingPage() {
   };
 
   const send = async () => {
-    if (!subject.trim() || !htmlBody.trim()) {
+    if (!channels.length) {
+      toast.error(t("marketing.pickChannel"));
+      return;
+    }
+    if (!subject.trim() || (viaEmail && !htmlBody.trim()) || (viaTelegram && !telegramText.trim() && !htmlBody.trim())) {
       toast.error(t("marketing.fillSubjectAndBody"));
       return;
     }
@@ -126,13 +190,15 @@ export default function MarketingPage() {
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-marketing-campaign", {
-        body: { subject, htmlBody, segment, dryRun: false },
+        body: { subject, htmlBody, telegramText, channels, segment, dryRun: false },
       });
       if (error) throw error;
       toast.success(`${t("marketing.started")} — ${t("marketing.recipientsCount", { count: (data as any).count })}`);
       setSubject("");
       setHtmlBody("");
+      setTelegramText("");
       setCount(null);
+      setCountTelegram(null);
       setTimeout(loadCampaigns, 1500);
     } catch (e: any) {
       toast.error(e.message ?? t("marketing.sendFailed"));
@@ -171,7 +237,26 @@ export default function MarketingPage() {
                 <Button variant="outline" size="sm" onClick={checkCount} disabled={loadingCount}>
                   {loadingCount ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Users className="mr-2 h-4 w-4" />}
                   {t("marketing.countRecipients")} {count !== null && <span className="ml-2 font-semibold">{count}</span>}
+                  {countTelegram !== null && <span className="ml-2 text-muted-foreground">· ✈ {countTelegram}</span>}
                 </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("marketing.channels")}</Label>
+                <div className="flex flex-wrap gap-2">
+                  <label className="flex items-center gap-2 rounded-[12px] border-[0.5px] border-border px-3 text-[15px]" style={{ minHeight: 44, cursor: "pointer" }}>
+                    <input type="checkbox" checked={viaEmail} onChange={(e) => setViaEmail(e.target.checked)} style={{ width: 18, height: 18 }} />
+                    ✉ {t("marketing.channelEmail")}
+                  </label>
+                  <label className="flex items-center gap-2 rounded-[12px] border-[0.5px] border-border px-3 text-[15px]" style={{ minHeight: 44, cursor: "pointer" }}>
+                    <input type="checkbox" checked={viaTelegram} onChange={(e) => setViaTelegram(e.target.checked)} style={{ width: 18, height: 18 }} />
+                    ✈ {t("marketing.channelTelegram")}
+                  </label>
+                  <Button type="button" variant="outline" size="sm" onClick={applyUpdatePreset} style={{ minHeight: 44 }}>
+                    🆕 {t("marketing.presetUpdate")}
+                  </Button>
+                </div>
+                <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("marketing.channelsHint")}</p>
               </div>
 
               <div className="space-y-2">
@@ -197,6 +282,20 @@ export default function MarketingPage() {
                   {t("marketing.htmlHint")}
                 </p>
               </div>
+
+              {viaTelegram && (
+                <div className="space-y-2">
+                  <Label>{t("marketing.telegramText")}</Label>
+                  <Textarea aria-label={t("marketing.telegramText")}
+                    value={telegramText}
+                    onChange={(e) => setTelegramText(e.target.value)}
+                    rows={6}
+                    placeholder={t("marketing.telegramPlaceholder")}
+                    maxLength={3800}
+                  />
+                  <p className="text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("marketing.telegramHint")}</p>
+                </div>
+              )}
 
               <Button onClick={send} disabled={sending} className="w-full">
                 {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
@@ -225,6 +324,29 @@ export default function MarketingPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+          <CardHeader>
+            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("marketing.lifecycleTitle")}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t("marketing.lifecycleSubtitle")}</p>
+          </CardHeader>
+          <CardContent>
+            {lifecycle === null ? (
+              <p className="text-sm text-muted-foreground">{t("marketing.lifecycleUnavailable")}</p>
+            ) : lifecycle.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("marketing.lifecycleEmpty")}</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {lifecycle.map((r) => (
+                  <div key={r.kind} className="rounded-[12px] border-[0.5px] border-border bg-card px-3 py-2 text-[14px]">
+                    <div className="font-semibold text-foreground">{t(`marketing.kind_${r.kind}`, { defaultValue: r.kind })}</div>
+                    <div className="text-muted-foreground">{t("marketing.lifecycleCount", { count: r.count })}{r.last_at ? ` · ${new Date(r.last_at).toLocaleDateString(getLocale())}` : ""}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
@@ -264,8 +386,9 @@ export default function MarketingPage() {
                         </div>
                         <div className="text-right text-[14px] shrink-0">
                           <div className="font-semibold">
-                            {c.recipients_sent}/{c.recipients_total}
-                            {c.recipients_failed > 0 && <span className="text-destructive"> ({t("marketing.failedCount", { count: c.recipients_failed })})</span>}
+                            {(c.channels ?? ["email"]).includes("email") && <>✉ {c.recipients_sent}/{c.recipients_total}</>}
+                            {(c.channels ?? []).includes("telegram") && <> · ✈ {c.telegram_sent ?? 0}</>}
+                            {(c.recipients_failed > 0 || (c.telegram_failed ?? 0) > 0) && <span className="text-destructive"> ({t("marketing.failedCount", { count: c.recipients_failed + (c.telegram_failed ?? 0) })})</span>}
                           </div>
                           <div className="text-muted-foreground capitalize">{c.status}</div>
                         </div>
@@ -282,6 +405,13 @@ export default function MarketingPage() {
                               className="w-full min-h-[300px] rounded border bg-white"
                             />
                           </div>
+
+                          {c.telegram_text && (
+                            <div>
+                              <div className="text-[14px] font-semibold text-muted-foreground mb-1">{t("marketing.telegramText")}</div>
+                              <pre className="whitespace-pre-wrap rounded border bg-background p-2 text-[14px] text-foreground" style={{ fontFamily: "inherit" }}>{c.telegram_text}</pre>
+                            </div>
+                          )}
 
                           <div>
                             <div className="text-[14px] font-semibold text-muted-foreground mb-1">

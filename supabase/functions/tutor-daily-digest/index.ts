@@ -28,6 +28,7 @@ const DT = {
       "scheduled-notifications": "планові сповіщення", "tutor-weekly-digest": "тижневий дайджест",
       "payout-reminders": "нагадування про виплати", "process-email-queue": "черга пошти",
       "fireflies-auto-join": "запис уроків", "archive-old-chats": "архів чатів", "tutor-daily-digest": "ранковий дайджест",
+      "lifecycle-nudges": "ланцюжок листів/Telegram",
     } as Record<string, string>)[job] ?? job,
     jobMissing: "не запускався понад добу",
     errTop: (n: number, newN: number) => `🧯 Помилки за добу: <b>${n}</b> груп, нових: <b>${newN}</b> — найгучніші:`,
@@ -72,6 +73,7 @@ const DT = {
       "scheduled-notifications": "scheduled notifications", "tutor-weekly-digest": "weekly digest",
       "payout-reminders": "payout reminders", "process-email-queue": "email queue",
       "fireflies-auto-join": "lesson recording", "archive-old-chats": "chat archive", "tutor-daily-digest": "morning digest",
+      "lifecycle-nudges": "lifecycle emails/Telegram",
     } as Record<string, string>)[job] ?? job,
     jobMissing: "did not run for over a day",
     errTop: (n: number, newN: number) => `🧯 Errors in 24 h: <b>${n}</b> groups, new: <b>${newN}</b> — loudest:`,
@@ -116,6 +118,7 @@ const DT = {
       "scheduled-notifications": "schemalagda aviseringar", "tutor-weekly-digest": "veckosammanfattning",
       "payout-reminders": "utbetalningspåminnelser", "process-email-queue": "e-postkö",
       "fireflies-auto-join": "lektionsinspelning", "archive-old-chats": "chattarkiv", "tutor-daily-digest": "morgonsammanfattning",
+      "lifecycle-nudges": "livscykelmejl/Telegram",
     } as Record<string, string>)[job] ?? job,
     jobMissing: "kördes inte på över ett dygn",
     errTop: (n: number, newN: number) => `🧯 Fel senaste dygnet: <b>${n}</b> grupper, nya: <b>${newN}</b> — högst:`,
@@ -373,7 +376,7 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
   const superadmins = new Set<string>((adminRows ?? []).map((r: any) => String(r.user_id)));
   const EXPECTED_DAILY_JOBS = [
     "tutor-daily-digest", "tutor-evening-summary", "payment-reminders", "lesson-reminders",
-    "db-backup", "telegram-poll", "scheduled-notifications",
+    "db-backup", "telegram-poll", "scheduled-notifications", "lifecycle-nudges",
   ];
   let jobHealth: any[] | null = null;
   if (superadmins.size) {
