@@ -105,3 +105,110 @@ describe("finances_period_totals дзеркалить financials.ts", () => {
     expect(page).toMatch(/finances\.totalsParityMismatch/);
   });
 });
+
+/**
+ * САМОЗВІРКА БОРГІВ — 13.10, скарга власниці. Вона переслала рядок бейджа
+ * дослівно: «⚠️ Розбіжність із базою: у базі 850 ₴, у застосунку 500 ₴».
+ *
+ * Із цього рядка не можна зробити нічого. Бейдж показував СУМУ двох половин
+ * («учні винні» + «школа винна репетиторам»), хоч `ok` рахувався по кожній
+ * окремо з аудиту 05.09 — тобто перевірка знала відповідь і викидала її.
+ * Гірше: вона кричала там, де порівнювала непорівнюване — бо
+ * `manager_debts_summary()` не приймає репетитора, а клієнтські суми зважають
+ * на фільтр «Репетитор», і бо клієнт читає лише останній рік зі стелею 500
+ * рядків. Тривога, що спрацьовує на справному стані, вчить ігнорувати тривогу.
+ */
+describe("самозвірка боргів: бейдж називає половину і не кричить дарма", () => {
+  const debtsFile = readdirSync(migDir)
+    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => readFileSync(join(migDir, f), "utf8").includes("FUNCTION public.manager_debts_summary"))
+    .sort().at(-1)!;
+  const debtsSql = readFileSync(join(migDir, debtsFile), "utf8");
+
+  it("SQL-функція НЕ приймає репетитора — тому фільтр мусить знімати бейдж", () => {
+    // Доказ, що гард нижче потрібен, а не параноя: підпис без аргументів.
+    expect(stripSqlComments(debtsSql)).toMatch(/FUNCTION public\.manager_debts_summary\(\)/);
+    expect(page, "з вибраним репетитором клієнт — підмножина школи")
+      .toMatch(/if \(tutorFilter !== "all"\) \{ setParity\(null\); return; \}/);
+    expect(page, "інакше бейдж лишався б із числами попереднього стану")
+      .toMatch(/\}, \[isManager, loading, tutorFilter, truncatedYear, pendingIncome, pendingExpense\]\);/);
+  });
+
+  it("кожна половина звіряється зі СВОЇМ числом, і сум більше немає", () => {
+    expect(page).toMatch(/inOk: Math\.abs\(inDb - pendingIncome\) <= 1/);
+    expect(page).toMatch(/outOk: Math\.abs\(outDb - pendingExpense\) <= 1/);
+    expect(page, "саме ця сума й зʼїла відповідь").not.toMatch(/db: inDb \+ outDb/);
+    expect(page, "одного прапорця «ok» на дві половини більше нема").not.toMatch(/parity\.ok\b/);
+  });
+
+  it("бейдж каже, ЯКА половина розійшлась", () => {
+    expect(page).toMatch(/finances\.parityMismatchIn/);
+    expect(page).toMatch(/finances\.parityMismatchOut/);
+    expect(page, "сумарний рядок 850/500 більше не рендериться")
+      .not.toMatch(/t\("finances\.parityMismatch"/);
+    // Жовтим світиться та плитка, що розійшлась, а не обидві.
+    expect(page).toMatch(/tone=\{parity && !parity\.inOk \? "warning" : pendingIncome > 0/);
+    expect(page).toMatch(/tone=\{parity && !parity\.outOk \? "warning" : "neutral"\}/);
+  });
+
+  it("обрізаний масив — це «звірка неповна», а не «розбіжність»", () => {
+    expect(page).toMatch(/partial: !!truncatedYear/);
+    expect(page, "неповнота не малюється як дефект грошей")
+      .toMatch(/if \(parity\.partial\) return \{ ok: true, lines: \[t\("finances\.parityPartial"\)\] \};/);
+  });
+
+  it("предикати боргу в SQL і TS лишаються тим самим правилом", () => {
+    const code = stripSqlComments(debtsSql);
+    // Борг учня: проведений (або скасований зі штрафом) + ціна > 0 + не оплачений.
+    expect(code).toMatch(/l\.status = 'completed'\s*\n?\s*OR \(l\.status = 'cancelled' AND coalesce\(ld\.is_cancellation_fee,false\)\)/);
+    expect(ts).toMatch(/if \(l\.status === "cancelled"\) return l\.is_cancellation_fee === true;/);
+    // Виплата: лише проведене, ніколи групові рядки.
+    expect(code).toMatch(/l\.status = 'completed' OR l\.starts_at <= now\(\)/);
+    expect(code, "виплата рахується лише по негрупових уроках").toMatch(/l\.group_id IS NULL/);
+    expect(ts).toMatch(/if \(l\.is_group\) return false;/);
+  });
+});
+
+/**
+ * БОРГ БЕЗ ПЕРІОДУ — і на клієнті теж (інваріант 04.09, рішення власниці).
+ *
+ * `manager_debts_summary()` рахує дебіторку по ВСІЙ історії. Клієнт читав
+ * гроші одним запитом із `starts_at >= now() - 365 днів` (M2, заради швидкості
+ * оборотів) — і цим накладав період на величину, яка періоду не має. Дату уроку
+ * ставить людина, тож зворотно датований урок (закритий минулий рік, перенесений
+ * облік) просто зникав із «Учні винні», а бейдж самозвірки казав «у базі 850 ₴,
+ * у застосунку 500 ₴» і не казав, чому. Фільтр місяця керує ОБОРОТАМИ; дебіторка
+ * з нього не зникає — так само, як у `periodStudentDebts`, що навмисно НЕ
+ * фільтрується по періоду.
+ */
+describe("борг без періоду: клієнт дочитує дебіторку поза річним вікном", () => {
+  it("є окреме читання, що СТРОГО доповнює вікно оборотів", () => {
+    expect(page, "вікно оборотів лишається як було").toMatch(/\.gte\("starts_at", oneYearAgo\)/);
+    expect(page, "доповнення: старіше за межу І не оплачено")
+      .toMatch(/\.lt\("starts_at", edge\)\s*\n\s*\.eq\("student_payment_status", "unpaid"\)/);
+    expect(page, "групова половина боргу теж дочитується")
+      .toMatch(/\.lt\("starts_at", edge\)\s*\n\s*\.eq\("status", "completed"\)/);
+  });
+
+  it("рядки Й ІМЕНА беруться зі злитих масивів — старий борг не приїжджає як «—»", () => {
+    expect(page).toMatch(/const indivRaw = dedupeById\(/);
+    expect(page).toMatch(/const groupRaw = dedupeById\(/);
+    expect(page).toMatch(/const mapped: LessonRow\[\] = indivRaw\.map\(/);
+    expect(page).toMatch(/const groupRows: LessonRow\[\] = groupRaw\.flatMap\(/);
+    // Збір id для профілів — із тих самих масивів, інакше імені в боргу не буде.
+    expect(page).toMatch(/indivRaw\.forEach\(\(l\) => \{\s*\n\s*if \(l\.student_id\) profileIds\.add/);
+    expect(page).toMatch(/groupRaw\.forEach\(\(l\) => \{/);
+    expect(page, "рядки більше не будуються з необʼєднаного масиву")
+      .not.toMatch(/LessonRow\[\] = \(\(lessonsData \?\? \[\]\) as any\[\]\)/);
+  });
+
+  it("збій цих читань — чесний збій, а не «боргів немає»", () => {
+    // Інваріант 22.09: збій читання грошей НІКОЛИ не стає «все закрито».
+    expect(page).toMatch(/if \(lErr \|\| gErr \|\| txErr \|\| balErr \|\| rErr \|\| odErr \|\| ogErr\) \{/);
+  });
+
+  it("дебіторка на клієнті лишається без фільтра періоду", () => {
+    // Сусідній інваріант, який і робить це читання осмисленим.
+    expect(page).toMatch(/const periodStudentDebts = useMemo\(\s*\n\s*\(\) => tutorScoped\.filter\(\(l\) => isStudentDebtLesson\(l\)\),/);
+  });
+});

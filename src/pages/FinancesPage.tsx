@@ -394,6 +394,8 @@ export default function FinancesPage() {
       { data: txData, error: txErr },
       { data: balData, error: balErr },
       { data: ratesData, error: rErr },
+      { data: oldDebtData, error: odErr },
+      { data: oldGroupDebtData, error: ogErr },
     ] = await Promise.all([
       (async () => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
@@ -459,11 +461,66 @@ export default function FinancesPage() {
         .from("student_rates")
         .select("tutor_id, student_id, subject, price_per_lesson, currency, archived_at")
         .is("archived_at", null),
+      /* БОРГ — величина БЕЗ ПЕРІОДУ (інваріант 04.09, рішення власниці). Основні
+         грошові читання вище свідомо обмежені останнім роком і 500 рядками —
+         це про ОБОРОТИ. На дебіторку таке обмеження накладати НЕ МОЖНА: дату
+         уроку ставить людина, і зворотно датований урок (перенесений облік,
+         закритий минулий рік) просто зникав із «Учні винні», хоч
+         `manager_debts_summary()` його рахує. Саме цей клас і дав 13.10
+         скаргу «у базі 850, у застосунку 500» (ворота currency не пускають
+         знак гривні в блоковий коментар — суми тут без нього).
+         Читання СТРОГО доповнює вікно (`lt` проти `gte` вище), тож дублів за
+         побудовою немає; неоплачених проведених уроків за визначенням мало. */
+      (async () => {
+        const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const run = (withFee: boolean, withCarried: boolean = false) => {
+          let q = supabase
+            .from("lessons_visible")
+            .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") + (withCarried ? ", carried_over" : "") as any)
+            .not("student_id", "is", null)
+            .lt("starts_at", edge)
+            .eq("student_payment_status", "unpaid")
+            .limit(500);
+          if (isManager) q = (q as any).neq("source", "independent");
+          return q.order("starts_at", { ascending: false });
+        };
+        const res = await run(true, true);
+        if (!res.error) return res;
+        const res2 = await run(true);
+        return res2.error ? run(false) : res2;
+      })(),
+      /* Те саме для груп: у `manager_debts_summary` борг групи рахується з
+         `lesson_participants`, тож без цього читання стара група лишалась би
+         різницею, якої не видно. */
+      (async () => {
+        const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        let q = supabase
+          .from("lessons")
+          .select("id, subject, starts_at, status, tutor_id")
+          .not("group_id", "is", null)
+          .lt("starts_at", edge)
+          .eq("status", "completed")
+          .limit(500);
+        if (isManager) q = (q as any).neq("source", "independent");
+        const { data: gl, error } = await q.order("starts_at", { ascending: false });
+        if (error || !gl || gl.length === 0) return { data: gl ?? [], error };
+        const { data: parts } = await (supabase.from("lesson_participants_visible" as any) as any)
+          .select("id, lesson_id, student_id, student_price, student_payment_status, student_paid_at")
+          .in("lesson_id", (gl as any[]).map((l) => l.id))
+          .eq("student_payment_status", "unpaid");
+        const byLesson = new Map<string, any[]>();
+        ((parts ?? []) as any[]).forEach((pp) => {
+          const arr = byLesson.get(pp.lesson_id) ?? [];
+          arr.push(pp);
+          byLesson.set(pp.lesson_id, arr);
+        });
+        return { data: (gl as any[]).map((l) => ({ ...l, lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
+      })(),
     ]);
     // Аудит 01.09: перевірявся лише перший запит, і навіть він лише тостом —
     // після невдалого читання екран малював «Прибуток 0 ₴» і «Оплат не знайдено»,
     // тобто помилка виглядала точно як «даних немає». Груповий дохід зникав тихо.
-    if (lErr || gErr || txErr || balErr || rErr) {
+    if (lErr || gErr || txErr || balErr || rErr || odErr || ogErr) {
       setLoadError(true);
       setLoading(false);
       return;
@@ -493,15 +550,27 @@ export default function FinancesPage() {
       setTruncatedYear(hit && (n.lessons > 500 || n.groups > 500 || n.tx > 500) ? n : null);
     }
 
+    /* Вікно оборотів (останній рік, 500 рядків) + доповнення по боргу поза ним.
+       Далі УСЕ читає ці злиті масиви — і збір id для імен, і самі рядки: інакше
+       старий борг приїхав би без імені («—»), що на екрані грошей не краще за
+       його відсутність. Дедуп за id — на випадок рівно-межового рядка (два
+       `Date.now()` у двох запитах відстоять на мікросекунди). */
+    const dedupeById = <T extends { id: string }>(rows: T[]): T[] => {
+      const seen = new Set<string>();
+      return rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+    };
+    const indivRaw = dedupeById([...((lessonsData ?? []) as any[]), ...((oldDebtData ?? []) as any[])]);
+    const groupRaw = dedupeById([...((groupLessonsData ?? []) as any[]), ...((oldGroupDebtData ?? []) as any[])]);
+
     // Fetch profiles for EVERY referenced user id (individual student/tutor +
     // GROUP participant student ids + wallet/rate pairs) via .in() — a blind
     // .limit(300) page silently dropped group participants, so their name showed "—".
     const profileIds = new Set<string>();
-    ((lessonsData ?? []) as any[]).forEach((l) => {
+    indivRaw.forEach((l) => {
       if (l.student_id) profileIds.add(l.student_id);
       if (l.tutor_id) profileIds.add(l.tutor_id);
     });
-    ((groupLessonsData ?? []) as any[]).forEach((l) => {
+    groupRaw.forEach((l) => {
       if (l.tutor_id) profileIds.add(l.tutor_id);
       ((l.lesson_participants ?? []) as any[]).forEach((p) => {
         if (p.student_id) profileIds.add(p.student_id);
@@ -532,7 +601,7 @@ export default function FinancesPage() {
     );
     const profilesData = profileChunks.flatMap((c) => c.data ?? []);
     if (profileChunks.some((c) => c.error)) toast.error(t("finances.loadProfilesError"));
-    const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
+    const mapped: LessonRow[] = indivRaw.map((l: any) => ({
       id: l.id,
       subject: l.subject,
       starts_at: l.starts_at,
@@ -551,7 +620,7 @@ export default function FinancesPage() {
       kind: "individual" as const,
     }));
     // Flatten each group lesson into one row per participant (their own price/payment).
-    const groupRows: LessonRow[] = ((groupLessonsData ?? []) as any[]).flatMap((l) =>
+    const groupRows: LessonRow[] = groupRaw.flatMap((l: any) =>
       ((l.lesson_participants ?? []) as any[]).map((p) => ({
         id: `${l.id}::${p.id}`,
         subject: l.subject,
@@ -898,26 +967,66 @@ export default function FinancesPage() {
 
   // САМОЗВІРКА (замість ручних SQL-звірок власниці): раз на завантаження
   // питаємо канонічну SQL-функцію і порівнюємо з клієнтським підрахунком.
-  // Розбіжність > 1 ₴ → жовтий бейдж ⚠️ з обома числами.
-  const [parity, setParity] = useState<null | { ok: boolean; db: number; app: number }>(null);
+  //
+  // 13.10, скарга власниці — вона переслала рядок цього бейджа дослівно:
+  // «⚠️ Розбіжність із базою: у базі 850 ₴, у застосунку 500 ₴». Із цього рядка
+  // не видно НІЧОГО, з чим можна працювати, бо бейдж показував СУМУ двох
+  // половин, хоч `ok` рахувався по кожній окремо (аудит 05.09). Тобто перевірка
+  // знала, яка половина розійшлась, і сама цю відповідь викидала.
+  // І гірше: вона кричала там, де порівнювала непорівнюване —
+  //   • `manager_debts_summary()` НЕ приймає репетитора, а клієнтські суми
+  //     зважають на фільтр «Репетитор»: з вибраним репетитором клієнт — це
+  //     підмножина школи, і «розбіжність» була б просто неправдою;
+  //   • клієнт читає уроки за ОСТАННІЙ РІК зі стелею 500 рядків (M2), а функція
+  //     — усю історію: на обрізаному масиві клієнт законно менший.
+  // Тривога, яка кричить на справному стані, вчить ігнорувати тривогу — тому
+  // обидва випадки тепер або знімають бейдж, або кажуться словами.
+  type Parity = {
+    inDb: number; inApp: number; outDb: number; outApp: number;
+    inOk: boolean; outOk: boolean; partial: boolean;
+  };
+  const [parity, setParity] = useState<Parity | null>(null);
   useEffect(() => {
     if (!isManager || loading) return;
+    // Фільтр по одному репетиторові: порівнювати нема з чим — бейдж не показуємо.
+    if (tutorFilter !== "all") { setParity(null); return; }
+    let alive = true;
     (async () => {
       const { data, error } = await (supabase.rpc as any)("manager_debts_summary");
-      if (error || !data) return; // функція ще не застосована — бейдж просто не показуємо
+      if (!alive) return;
+      if (error || !data) { setParity(null); return; } // функція ще не застосована
       const row = Array.isArray(data) ? data[0] : data;
       // Аудит 05.09: звіряємо КОЖНУ половину окремо — «учні винні» і «школа
       // винна» — а не одну суму, яка маскує помилку в обох напрямках одразу.
-      const dbIn = Number(row?.students_debt ?? 0);
-      const dbOut = Number(row?.payouts_owed ?? 0);
+      const inDb = Number(row?.students_debt ?? 0);
+      const outDb = Number(row?.payouts_owed ?? 0);
       setParity({
-        ok: Math.abs(dbIn - pendingIncome) <= 1 && Math.abs(dbOut - pendingExpense) <= 1,
-        db: dbIn + dbOut,
-        app: totalDebt,
+        inDb, inApp: pendingIncome, outDb, outApp: pendingExpense,
+        inOk: Math.abs(inDb - pendingIncome) <= 1,
+        outOk: Math.abs(outDb - pendingExpense) <= 1,
+        partial: !!truncatedYear,
       });
     })();
+    return () => { alive = false; };
+  }, [isManager, loading, tutorFilter, truncatedYear, pendingIncome, pendingExpense]);
+
+  /** Рядки бейджа: або «звірено», або поіменно ТА половина, що розійшлась. */
+  const parityLines = useMemo(() => {
+    if (!parity) return null;
+    /* Хабові плитки зведення — одна валюта школи, як і сусідні суми вище.
+       Один хелпер замість чотирьох літералів: ворота currency рахують саме
+       зашиті "UAH" в аргументах, і множити їх через бейдж немає за що. */
+    const uah = (n: number) => formatPrice(n, "UAH");
+    const bad: string[] = [];
+    if (!parity.inOk) bad.push(t("finances.parityMismatchIn", { db: uah(parity.inDb), app: uah(parity.inApp) }));
+    if (!parity.outOk) bad.push(t("finances.parityMismatchOut", { db: uah(parity.outDb), app: uah(parity.outApp) }));
+    if (bad.length === 0) return { ok: true, lines: [t("finances.parityOk")] };
+    // Масив свідомо неповний — це не дефект грошей, і називати це розбіжністю
+    // означало б показувати ⚠️ на справному стані.
+    if (parity.partial) return { ok: true, lines: [t("finances.parityPartial")] };
+    return { ok: false, lines: bad };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isManager, loading, totalDebt]);
+  }, [parity, t]);
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
   const hubMarkup = useMemo(() => {
@@ -3184,13 +3293,14 @@ export default function FinancesPage() {
                       icon={DollarSign}
                       label={t("finances.studentsOweLabel")}
                       value={formatPrice(pendingIncome, "UAH")}
-                      tone={parity && !parity.ok ? "warning" : pendingIncome > 0 ? "warning" : "neutral"}
+                      /* Жовтим світиться САМЕ та половина, що розійшлась. */
+                      tone={parity && !parity.inOk ? "warning" : pendingIncome > 0 ? "warning" : "neutral"}
                     />
                     <SummaryStat
                       icon={ArrowUpRight}
                       label={t("finances.owedToTutorsLabel")}
                       value={duePayoutLabel}
-                      tone={parity && !parity.ok ? "warning" : "neutral"}
+                      tone={parity && !parity.outOk ? "warning" : "neutral"}
                     />
                   </>
                 )}
@@ -3213,13 +3323,14 @@ export default function FinancesPage() {
                   {t("finances.pastUnmarkedHint", { count: pastUnmarkedCount })}
                 </p>
               )}
-              {parity && (
-                <p className={`mt-1.5 text-[13px] ${parity.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}>
-                  {parity.ok
-                    ? t("finances.parityOk")
-                    : t("finances.parityMismatch", { db: formatPrice(parity.db, "UAH"), app: formatPrice(parity.app, "UAH")})}
+              {parityLines?.lines.map((line) => (
+                <p
+                  key={line}
+                  className={`mt-1.5 text-[13px] ${parityLines.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}
+                >
+                  {line}
                 </p>
-              )}
+              ))}
               {/* 05.09 (премортем п.1): продукт показує ГРОШІ, які він повернув, —
                   уроки, оплачені в 7 днів після нагадування. Північна зірка. */}
               {isIndependentTutor && <RemindersRecoveredCard />}
