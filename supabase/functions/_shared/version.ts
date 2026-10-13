@@ -1,7 +1,7 @@
 // ЗГЕНЕРОВАНО scripts/stamp-edge.mjs — не правити руками.
-// Хеш вмісту всіх edge-функцій (91 файлів, 53 функцій). Функція `version`
+// Хеш вмісту всіх edge-функцій (85 файлів, 53 функцій). Функція `version`
 // віддає його назовні; робот у CI звіряє з репо і каже, чи прод крутить свіже.
-export const EDGE_VERSION = "337fb5d0";
+export const EDGE_VERSION = "0ce13f8c";
 export const EDGE_FUNCTIONS = 53;
 
 // Штамп КОЖНОЇ функції окремо: спільний код + її власні файли. Lovable
@@ -10,7 +10,7 @@ export const EDGE_FUNCTIONS = 53;
 export const EDGE_FN_VERSION: Record<string, string> = {
   "admin-stats": "d76b59b2",
   "archive-old-chats": "f4aa15ff",
-  "auth-email-hook": "b947d9fb",
+  "auth-email-hook": "8a7f00b7",
   "ci-report": "aa06e221",
   "confirm-pending-signup": "739770cf",
   "db-backup": "68adeb16",
@@ -23,8 +23,8 @@ export const EDGE_FN_VERSION: Record<string, string> = {
   "google-calendar-auth": "978f2a0a",
   "google-calendar-callback": "d58ab9ce",
   "google-calendar-import": "86478c9c",
-  "handle-email-suppression": "61580a74",
-  "handle-email-unsubscribe": "18bacf6f",
+  "handle-email-suppression": "2570b6a7",
+  "handle-email-unsubscribe": "27f1c6a0",
   "import-sheet-fetch": "aa71c497",
   "landing-find-tutor-quiz": "147a1c42",
   "landing-spots-left": "80e862d7",
@@ -44,15 +44,15 @@ export const EDGE_FN_VERSION: Record<string, string> = {
   "pay-link": "a4262577",
   "payment-reminders": "5546bd27",
   "payout-reminders": "9710e9c1",
-  "preview-transactional-email": "0123c71c",
-  "process-email-queue": "8dba92c9",
+  "preview-transactional-email": "fcabaa21",
+  "process-email-queue": "c7c4d88a",
   "remind-payment": "7477c02c",
   "revenuecat-webhook": "6c0a4692",
   "scheduled-notifications": "fe02d28a",
   "send-marketing-campaign": "deebc3c7",
   "send-push": "2f0f53b4",
   "send-student-invite": "cac10fbe",
-  "send-transactional-email": "86624a4a",
+  "send-transactional-email": "89aa98e4",
   "sync-google-calendar": "f79670f5",
   "telegram-bot-info": "5d4fb978",
   "telegram-link": "af2bbc87",
