@@ -1898,6 +1898,9 @@ export const en: LocaleTranslations = {
     rejected: "Marked as not found — the student has been notified",
     failed: "Could not process the request",
     hint: "Confirming records the payment as usual — and closes unpaid lessons.",
+    referralTitle: "It worked! 🎉 Know a colleague who needs this too?",
+    referralDesc: "For every tutor who subscribes via your link — +1 month of Pro for you.",
+    referralBtn: "Share",
   },
   remind: {
     action: "Remind",
@@ -2081,6 +2084,30 @@ export const en: LocaleTranslations = {
     studentUpdated: "Student data updated",
   },
 
+  a2hs: {
+    title: "Add oTutorHub to your Home Screen",
+    steps: "Opens like an app, no address bar: tap “Share” (□↑) at the bottom of Safari → “Add to Home Screen”.",
+  },
+  tgNudge: {
+    title: "Connect Telegram — one tap",
+    intro: "{{count}} students imported. Want all of this to arrive in Telegram by itself?",
+    intro_one: "{{count}} student imported. Want all of this to arrive in Telegram by itself?",
+    intro_other: "{{count}} students imported. Want all of this to arrive in Telegram by itself?",
+    introDebt: "{{count}} students imported, {{sum}} unpaid. Want all of this to arrive in Telegram by itself?",
+    b1: "Every morning at 8:00 — your day: lessons, who owes, what to mark",
+    b2: "A “Remind” button right in the chat — the student gets your details and “I’ve paid”",
+    b3: "“Olya says she paid 700 ₴” — you confirm with one tap",
+    connect: "Connect Telegram",
+    later: "Later",
+  },
+  reminderStats: {
+    reminded: "{{count}} reminders sent for you",
+    reminded_one: "{{count}} reminder sent for you",
+    reminded_other: "{{count}} reminders sent for you",
+    recovered: "{{sum}} collected after reminders",
+    cardTail: "Reminders are automatic and from the “Remind” button. Collected = paid after a reminder.",
+    heroTail: "The app did this while you were teaching.",
+  },
   payLink: {
     sheetTitle: "Remind: {{name}}",
     summary_one: "{{count}} lesson · {{sum}}",

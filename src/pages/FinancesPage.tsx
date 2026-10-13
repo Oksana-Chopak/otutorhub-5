@@ -48,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ReminderStatsLine } from "@/components/ReminderStatsLine";
 import { EmptyState } from "@/components/EmptyState";
 const FinanceWeeklyChart = lazy(() => import("@/components/FinanceWeeklyChart").then((m) => ({ default: m.FinanceWeeklyChart })));
 import { FinancesSkeleton } from "@/components/PageSkeletons";
@@ -214,7 +215,7 @@ function TruncatedYearBanner({ n }: { n: { lessons: number; groups: number; tx: 
 export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
-  const { roles } = useAuth();
+  const { roles, user } = useAuth();
   const { isIndependent, loading: wsLoading, error: wsError, refresh: refreshWorkspace } = useWorkspaceSettings();
   const coreLock = useCoreLock();
   const isManager = roles.includes("manager");
@@ -2537,6 +2538,9 @@ export default function FinancesPage() {
                 </p>
               </button>
             </div>
+
+            {/* 13.10: «нагадано за вас · повернуто після нагадувань» — лише коли є що показати */}
+            <ReminderStatsLine tutorId={user?.id} />
 
             {/* 3 tabs */}
             <div ref={finTabsRef} style={{ scrollMarginTop: 64, borderRadius:18, background:F.surface, border:`1px solid ${F.border}`,

@@ -323,6 +323,19 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
           lines.push(`  • ${esc(studentName.get(sid))} — ${amt} ₴`);
         }
       }
+      // 13.10: «нагадано за вас · повернуто після нагадувань» — доказ обіцянки продукту
+      // цифрами людини. Єдине джерело — tutor_reminder_stats; 0 нагадувань = рядка немає.
+      if (independent) {
+        try {
+          const { data: rs } = await (sb.rpc as any)("tutor_reminder_stats", { _tutor_id: userId });
+          const times = Number(rs?.reminded_times ?? 0);
+          const recovered = Number(rs?.recovered_sum ?? 0);
+          if (times > 0) {
+            lines.push("");
+            lines.push(`🔔 Нагадано за вас: <b>${times}</b>${recovered > 0 ? ` · 💸 повернуто після нагадувань: <b>${Math.round(recovered)} ₴</b>` : ""}`);
+          }
+        } catch { /* SQL ще не вставлено — рядка просто немає */ }
+      }
       lines.push("");
       if (nLessons.length > 0) {
         lines.push(`📅 Наступний тиждень: <b>${nLessons.length} уроків</b> — вперед! 💪`);

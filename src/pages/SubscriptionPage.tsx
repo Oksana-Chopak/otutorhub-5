@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
 import { LiqPayPayButton } from "@/components/LiqPayPayButton";
+import { ReminderStatsLine } from "@/components/ReminderStatsLine";
 import { supportTelegramUrl } from "@/lib/support";
 
 import i18nInstance from "@/i18n";
@@ -474,12 +475,15 @@ export default function SubscriptionPage() {
                   <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: priceLabel("monthly") })}</div>
+                {/* 13.10: доказ цифрами людини — що застосунок уже зробив за неї */}
+                <ReminderStatsLine tutorId={user?.id} variant="hero" />
               </>
             ) : (
               <>
                 <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>{t("subscriptionPageExtra.heroFreeTitle")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: priceLabel("monthly") })}</div>
+                <ReminderStatsLine tutorId={user?.id} variant="hero" />
               </>
             )}
           </div>

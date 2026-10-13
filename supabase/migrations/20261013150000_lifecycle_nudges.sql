@@ -102,6 +102,43 @@ $$;
 REVOKE ALL ON FUNCTION public.tutor_reminder_stats(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.tutor_reminder_stats(uuid) TO authenticated, service_role;
 
+-- ── 2b. Знімок «де я зараз» для першого дайджесту одразу після підключення бота ──
+-- (13.10: людина підключила Telegram — і в ту ж мить бачить користь, а не «Готово!»)
+-- Ті самі предикати, що й у lifecycle_candidates і у Фінансах: борг = проведено й не
+-- оплачено (або штраф за скасування); «без відмітки» = минулий і досі scheduled.
+CREATE OR REPLACE FUNCTION public.tutor_snapshot(_tutor_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
+DECLARE _out jsonb;
+BEGIN
+  IF auth.uid() IS NOT NULL
+     AND auth.uid() <> _tutor_id
+     AND NOT public.is_hub_manager_of(_tutor_id)
+     AND NOT public.is_superadmin() THEN
+    RAISE EXCEPTION 'not allowed' USING ERRCODE = 'insufficient_privilege';
+  END IF;
+  SELECT jsonb_build_object(
+    'is_tutor', EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = _tutor_id AND r.role = 'tutor'::app_role),
+    'students', (SELECT count(*) FROM public.student_rates sr WHERE sr.tutor_id = _tutor_id),
+    'lessons_week', (SELECT count(*) FROM public.lessons l WHERE l.tutor_id = _tutor_id AND l.status = 'scheduled'
+                       AND l.starts_at >= now() AND l.starts_at < now() + interval '7 days' AND l.carried_over IS NOT TRUE),
+    'unmarked', (SELECT count(*) FROM public.lessons l WHERE l.tutor_id = _tutor_id AND l.status = 'scheduled'
+                   AND l.starts_at < now() - interval '2 hours' AND l.carried_over IS NOT TRUE),
+    'debt_lessons', (SELECT count(*) FROM public.lessons l JOIN public.lesson_details d ON d.lesson_id = l.id
+                       WHERE l.tutor_id = _tutor_id AND d.student_price > 0 AND d.student_payment_status <> 'paid'
+                         AND (l.status = 'completed' OR (l.status = 'cancelled' AND d.is_cancellation_fee IS TRUE))),
+    'debt_sum', (SELECT coalesce(sum(d.student_price), 0) FROM public.lessons l JOIN public.lesson_details d ON d.lesson_id = l.id
+                   WHERE l.tutor_id = _tutor_id AND d.student_price > 0 AND d.student_payment_status <> 'paid'
+                     AND (l.status = 'completed' OR (l.status = 'cancelled' AND d.is_cancellation_fee IS TRUE))),
+    'currency', coalesce((SELECT sr.currency FROM public.student_rates sr WHERE sr.tutor_id = _tutor_id ORDER BY sr.created_at LIMIT 1), 'UAH'),
+    'lang', coalesce((SELECT nullif(p.preferred_language, '') FROM public.profiles p WHERE p.id = _tutor_id), 'uk')
+  ) INTO _out;
+  RETURN _out;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.tutor_snapshot(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.tutor_snapshot(uuid) TO authenticated, service_role;
+
 -- ── 3. Кому що сказати сьогодні ─────────────────────────────────────────────
 -- Пріоритет (перший збіг виграє): привітання → тріал закінчився → 2 дні → 7 днів
 -- → нема учня (день 1+) → нема уроку (день 3+) → нема оплати (день 7+) →
@@ -336,6 +373,7 @@ BEGIN
   IF to_regprocedure('public.lifecycle_candidates(timestamptz, integer)') IS NULL THEN RAISE EXCEPTION 'lifecycle_candidates не створено'; END IF;
   IF to_regprocedure('public.lifecycle_record(uuid, text, text, text[], jsonb)') IS NULL THEN RAISE EXCEPTION 'lifecycle_record не створено'; END IF;
   IF to_regprocedure('public.tutor_reminder_stats(uuid)') IS NULL THEN RAISE EXCEPTION 'tutor_reminder_stats не створено'; END IF;
+  IF to_regprocedure('public.tutor_snapshot(uuid)') IS NULL THEN RAISE EXCEPTION 'tutor_snapshot не створено'; END IF;
   IF to_regprocedure('public.get_marketing_recipients(text)') IS NULL THEN RAISE EXCEPTION 'get_marketing_recipients не створено'; END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'marketing_campaigns' AND column_name = 'telegram_sent') THEN
     RAISE EXCEPTION 'marketing_campaigns.telegram_sent не додано';

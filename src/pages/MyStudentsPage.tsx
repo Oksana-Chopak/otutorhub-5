@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
 import { ImportStudentsSheet } from "@/components/ImportStudentsSheet";
+import { TelegramNudgeSheet, tgNudgeSnoozed } from "@/components/TelegramNudgeSheet";
 import { StudentMaterials } from "@/components/StudentMaterials";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { peekLandingHandoff, consumeLandingHandoff, claimHandoffShown } from "@/lib/landingFunnel";
@@ -664,6 +665,14 @@ export default function MyStudentsPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   // 05.09 (премортем п.2): масовий імпорт списку учнів текстом.
   const [importOpen, setImportOpen] = useState(false);
+  const [tgNudge, setTgNudge] = useState<{ students: number; debtTotal: number } | null>(null);
+  /** Після імпорту: якщо бота ще немає і людина не сказала «пізніше» — один аркуш, один дотик. */
+  const offerTelegram = async (students: number, debtTotal: number) => {
+    if (!user || students <= 0 || tgNudgeSnoozed()) return;
+    const { data } = await supabase.from("user_telegram_links").select("chat_id").eq("user_id", user.id).maybeSingle();
+    if (data?.chat_id) return;
+    setTgNudge({ students, debtTotal });
+  };
 
   // 11.09: /my-students?open=<id> відкриває аркуш учня одразу. Так будь-яке
   // імʼя учня в застосунку стає посиланням на його матеріали — без того, щоб
@@ -1324,8 +1333,15 @@ export default function MyStudentsPage() {
       <ImportStudentsSheet
         open={importOpen}
         onOpenChange={setImportOpen}
-        onImported={() => { consumeLandingHandoff(user); setLandingDraft(null); void load(); }}
+        onImported={(r) => { consumeLandingHandoff(user); setLandingDraft(null); void load(); void offerTelegram(r.students, r.debtTotal); }}
         initialText={landingDraft ?? undefined}
+      />
+      {/* 13.10: щойно учні перенесені — є що показати в дайджесті; пропонуємо бота одним дотиком */}
+      <TelegramNudgeSheet
+        open={!!tgNudge}
+        onOpenChange={(o) => { if (!o) setTgNudge(null); }}
+        students={tgNudge?.students ?? 0}
+        debtTotal={tgNudge?.debtTotal ?? 0}
       />
     </>
   );

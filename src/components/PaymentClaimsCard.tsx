@@ -8,6 +8,8 @@ import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
+import { logEvent } from "@/lib/analytics";
+import i18n from "@/i18n";
 
 type Claim = {
   id: string;
@@ -31,6 +33,34 @@ type Claim = {
  * Картка НЕ рендериться, коли заявок немає: привид «немає заявок 🎉» на
  * дашборді — це шум, а не інформація.
  */
+/**
+ * 13.10 (пре-мортем, важіль «реферал у момент радості»): перша ПІДТВЕРДЖЕНА заявка
+ * «Я оплатив(ла)» — мить, коли обіцянка продукту спрацювала на власних грошах.
+ * Саме тоді один раз пропонуємо поділитися з колегою (+1 місяць Pro за друга,
+ * який підпишеться). Раз і назавжди — localStorage; «перша» = у базі рівно одна
+ * підтверджена заявка цього репетитора (RLS віддає лише свої).
+ */
+const REFERRAL_KEY = "ot_referral_offered_after_claim";
+async function offerReferralOnce(tutorId: string) {
+  try {
+    if (localStorage.getItem(REFERRAL_KEY) === "1") return;
+  } catch { /* приватний режим — пропонуємо без памʼяті */ }
+  try {
+    const { data } = await (supabase.from("payment_claims" as any) as any)
+      .select("id").eq("tutor_id", tutorId).eq("status", "confirmed").limit(2);
+    if (!Array.isArray(data) || data.length !== 1) return;
+  } catch { return; }
+  try { localStorage.setItem(REFERRAL_KEY, "1"); } catch { /* ок */ }
+  logEvent("referral_prompt_after_claim");
+  setTimeout(() => {
+    toast(i18n.t("claims.referralTitle"), {
+      description: i18n.t("claims.referralDesc"),
+      duration: 12000,
+      action: { label: i18n.t("claims.referralBtn"), onClick: () => { window.location.assign("/my-referrals"); } },
+    });
+  }, 1800);
+}
+
 export function PaymentClaimsCard() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -88,6 +118,7 @@ export function PaymentClaimsCard() {
       toast.success(t("claims.confirmed", { amount: formatPrice(claim.amount, claim.currency) }), {
         description: names[claim.student_id],
       });
+      void offerReferralOnce(claim.tutor_id);
     } else {
       haptic.tap();
       toast.info(t("claims.rejected"), { description: names[claim.student_id] });

@@ -177,7 +177,12 @@ BEGIN
   END;
   RESET role; PERFORM set_config('request.jwt.claims', NULL, true);
   IF caught IS NULL THEN RAISE EXCEPTION 'ПРОВАЛ (7): чужий репетитор прочитав чужі цифри'; END IF;
-  RAISE NOTICE '✅ (7) нагадано за вас: 1 раз; повернуто після нагадувань: 400 ₴; чужому — ні';
+  -- знімок для першого дайджесту після підключення бота — ті самі предикати
+  st := public.tutor_snapshot(tutor);
+  IF NOT (st->>'is_tutor')::boolean OR (st->>'students')::int <> 1 OR (st->>'debt_lessons')::int <> 0 OR st->>'currency' <> 'UAH' THEN
+    RAISE EXCEPTION 'ПРОВАЛ (7): знімок після оплати: 1 учень, 0 боргів, а є %', st;
+  END IF;
+  RAISE NOTICE '✅ (7) нагадано за вас: 1 раз; повернуто після нагадувань: 400 ₴; чужому — ні; знімок збігається';
 
   -- ── (8) сегменти розсилки за справжніми статусами ───────────────────────────
   INSERT INTO public.user_telegram_links (user_id, chat_id) VALUES (tutor, 123456789);

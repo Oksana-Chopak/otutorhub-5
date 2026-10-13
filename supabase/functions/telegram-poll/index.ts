@@ -138,7 +138,9 @@ Deno.serve(withJob("telegram-poll", async (req) => {
                 link_code_expires_at: null,
               })
               .eq('user_id', link.user_id);
-            await sendTg(TG_BASE, chatId, '✅ Готово! Я надсилатиму вам сповіщення про нові повідомлення в чатах oTutorHub.');
+            // 13.10: у мить підключення — користь, а не «Готово!»: перший дайджест
+            // із цифрами людини (tutor_snapshot — ті самі предикати, що й у Фінансах).
+            await sendTg(TG_BASE, chatId, await linkedWelcome(supabase, link.user_id));
           }
         }
       } else if (text === '/stop' || text === '/unlink') {
@@ -159,6 +161,35 @@ Deno.serve(withJob("telegram-poll", async (req) => {
 
   return new Response(JSON.stringify({ ok: true, processed, finalOffset: currentOffset }));
 }));
+
+/** Перше повідомлення після підключення: репетитору — знімок його справ, учню — що сюди приходитиме. */
+async function linkedWelcome(supabase: any, userId: string): Promise<string> {
+  const fallback = '✅ Готово! Сюди приходитимуть нагадування про уроки й оплати, домашка та повідомлення від репетитора.';
+  try {
+    const { data: s } = await (supabase.rpc as any)('tutor_snapshot', { _tutor_id: userId });
+    if (!s || !s.is_tutor) return fallback;
+    const n = (v: unknown) => Number(v ?? 0);
+    const cur = String(s.currency ?? 'UAH');
+    const sym = cur === 'UAH' ? '₴' : cur;
+    const parts: string[] = [];
+    parts.push(`👥 Учнів: <b>${n(s.students)}</b>`);
+    parts.push(`📅 Уроків на 7 днів: <b>${n(s.lessons_week)}</b>`);
+    if (n(s.debt_lessons) > 0) parts.push(`💳 Чекають оплати: <b>${Math.round(n(s.debt_sum))} ${sym}</b> за ${n(s.debt_lessons)} ур.`);
+    else parts.push('✅ Боргів немає');
+    if (n(s.unmarked) > 0) parts.push(`✏️ Без відмітки «проведено»: <b>${n(s.unmarked)}</b>`);
+    return [
+      '✅ <b>Підключено!</b> Щоранку о 8:00 — твій день: уроки, борги й кнопка «Нагадати» одним дотиком. Ось де ти зараз:',
+      '',
+      ...parts,
+      '',
+      n(s.students) === 0
+        ? 'Додай першого учня — і завтра вранці тут буде справжній дайджест: https://otutorhub.com/my-students?new=1'
+        : 'Відкрити застосунок: https://otutorhub.com/',
+    ].join('\n');
+  } catch {
+    return fallback;
+  }
+}
 
 async function sendTg(base: string, chatId: number, text: string, extra: Record<string, unknown> = {}) {
   await fetch(`${base}/sendMessage`, {

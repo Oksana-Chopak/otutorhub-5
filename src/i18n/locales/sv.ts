@@ -1877,6 +1877,9 @@ export const sv: LocaleTranslations = {
     rejected: "Markerad som ej hittad — eleven är meddelad",
     failed: "Kunde inte hantera förfrågan",
     hint: "Bekräftelsen registrerar betalningen som vanligt — och stänger obetalda lektioner.",
+    referralTitle: "Det fungerade! 🎉 Känner du en kollega som också behöver detta?",
+    referralDesc: "För varje lärare som prenumererar via din länk — +1 månad Pro till dig.",
+    referralBtn: "Dela",
   },
   remind: {
     action: "Påminn",
@@ -2060,6 +2063,30 @@ export const sv: LocaleTranslations = {
     studentUpdated: "Elevdata uppdaterade",
   },
 
+  a2hs: {
+    title: "Lägg till oTutorHub på hemskärmen",
+    steps: "Öppnas som en app, utan adressfält: tryck «Dela» (□↑) längst ner i Safari → «Lägg till på hemskärmen».",
+  },
+  tgNudge: {
+    title: "Koppla Telegram — ett tryck",
+    intro: "{{count}} elever importerade. Vill du att allt detta kommer till Telegram av sig självt?",
+    intro_one: "{{count}} elev importerad. Vill du att allt detta kommer till Telegram av sig självt?",
+    intro_other: "{{count}} elever importerade. Vill du att allt detta kommer till Telegram av sig självt?",
+    introDebt: "{{count}} elever importerade, {{sum}} obetalt. Vill du att allt detta kommer till Telegram av sig självt?",
+    b1: "Varje morgon kl. 8:00 — din dag: lektioner, vem som är skyldig, vad som ska markeras",
+    b2: "En «Påminn»-knapp direkt i chatten — eleven får dina uppgifter och «Jag har betalat»",
+    b3: "«Olya säger att hon betalat 700 ₴» — du bekräftar med ett tryck",
+    connect: "Koppla Telegram",
+    later: "Senare",
+  },
+  reminderStats: {
+    reminded: "{{count}} påminnelser skickade åt dig",
+    reminded_one: "{{count}} påminnelse skickad åt dig",
+    reminded_other: "{{count}} påminnelser skickade åt dig",
+    recovered: "{{sum}} inbetalt efter påminnelser",
+    cardTail: "Påminnelser går automatiskt och från knappen «Påminn». Inbetalt = betalt efter en påminnelse.",
+    heroTail: "Det gjorde appen medan du undervisade.",
+  },
   payLink: {
     sheetTitle: "Påminn: {{name}}",
     summary_one: "{{count}} lektion · {{sum}}",

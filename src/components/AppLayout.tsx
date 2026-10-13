@@ -6,6 +6,7 @@ import { logAppOpen, logPageView } from "@/lib/productTelemetry";
 import { isNativeApp, isIosApp } from "@/lib/platform";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { AddToHomeScreenCard } from "@/components/AddToHomeScreenCard";
 import { PaywallProvider } from "@/hooks/useCoreLock";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
@@ -148,6 +149,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </header>
         )}
         <div className="mx-auto max-w-6xl px-4 pt-4 pb-6 lg:px-8 lg:pt-8 lg:py-8">
+          {/* 13.10: iPhone без App Store — підказка «на головний екран», лише на головній, лише в Safari */}
+          {isDashboard && <AddToHomeScreenCard />}
           {children}
         </div>
       </main>
