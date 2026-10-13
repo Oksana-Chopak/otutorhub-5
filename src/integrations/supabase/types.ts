@@ -1353,6 +1353,36 @@ export type Database = {
           },
         ]
       }
+      lifecycle_messages: {
+        Row: {
+          channels: string[]
+          cycle_key: string
+          id: number
+          kind: string
+          meta: Json
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          channels?: string[]
+          cycle_key?: string
+          id?: number
+          kind: string
+          meta?: Json
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          channels?: string[]
+          cycle_key?: string
+          id?: number
+          kind?: string
+          meta?: Json
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       liqpay_payments: {
         Row: {
           amount: number
@@ -1483,6 +1513,7 @@ export type Database = {
       }
       marketing_campaigns: {
         Row: {
+          channels: string[]
           completed_at: string | null
           created_at: string
           created_by: string
@@ -1497,9 +1528,13 @@ export type Database = {
           started_at: string | null
           status: string
           subject: string
+          telegram_failed: number
+          telegram_sent: number
+          telegram_text: string | null
           updated_at: string
         }
         Insert: {
+          channels?: string[]
           completed_at?: string | null
           created_at?: string
           created_by: string
@@ -1514,9 +1549,13 @@ export type Database = {
           started_at?: string | null
           status?: string
           subject: string
+          telegram_failed?: number
+          telegram_sent?: number
+          telegram_text?: string | null
           updated_at?: string
         }
         Update: {
+          channels?: string[]
           completed_at?: string | null
           created_at?: string
           created_by?: string
@@ -1531,6 +1570,9 @@ export type Database = {
           started_at?: string | null
           status?: string
           subject?: string
+          telegram_failed?: number
+          telegram_sent?: number
+          telegram_text?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1616,6 +1658,7 @@ export type Database = {
           status: string
           student_id: string
           tutor_id: string
+          via: string
         }
         Insert: {
           amount: number
@@ -1628,6 +1671,7 @@ export type Database = {
           status?: string
           student_id: string
           tutor_id: string
+          via?: string
         }
         Update: {
           amount?: number
@@ -1640,8 +1684,64 @@ export type Database = {
           status?: string
           student_id?: string
           tutor_id?: string
+          via?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payment_claims_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_links: {
+        Row: {
+          claims: number
+          created_at: string
+          expires_at: string
+          id: string
+          last_viewed_at: string | null
+          revoked_at: string | null
+          student_id: string
+          token: string
+          tutor_id: string
+          views: number
+        }
+        Insert: {
+          claims?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_viewed_at?: string | null
+          revoked_at?: string | null
+          student_id: string
+          token: string
+          tutor_id: string
+          views?: number
+        }
+        Update: {
+          claims?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_viewed_at?: string | null
+          revoked_at?: string | null
+          student_id?: string
+          token?: string
+          tutor_id?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_links_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       paywall_events: {
         Row: {
@@ -3123,6 +3223,8 @@ export type Database = {
           email: string
           first_name: string
           last_name: string
+          preferred_language: string
+          telegram_chat_id: number
           user_id: string
         }[]
       }
@@ -3240,6 +3342,10 @@ export type Database = {
         Args: { _email: string; _profile: string }
         Returns: string
       }
+      issue_payment_link: {
+        Args: { _student_id: string; _tutor_id?: string }
+        Returns: Json
+      }
       job_health: { Args: { _hours?: number }; Returns: Json }
       job_run_record: {
         Args: {
@@ -3253,6 +3359,21 @@ export type Database = {
         Returns: string
       }
       landing_bot_username: { Args: never; Returns: string }
+      lifecycle_candidates: {
+        Args: { _at?: string; _limit?: number }
+        Returns: Json
+      }
+      lifecycle_record: {
+        Args: {
+          _channels: string[]
+          _cycle_key: string
+          _kind: string
+          _meta?: Json
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      lifecycle_summary: { Args: { _days?: number }; Returns: Json }
       link_student_by_email:
         | {
             Args: { _email: string; _price: number; _subject: string }
@@ -3315,6 +3436,39 @@ export type Database = {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
         Returns: number
       }
+      pair_debt_lessons: {
+        Args: { _student_id: string; _tutor_id: string }
+        Returns: {
+          amount: number
+          currency: string
+          lesson_id: string
+          starts_at: string
+          subject: string
+        }[]
+      }
+      payment_claim_insert: {
+        Args: {
+          _amount: number
+          _note: string
+          _student_id: string
+          _tutor_id: string
+          _via: string
+        }
+        Returns: Json
+      }
+      payment_link_claim: {
+        Args: { _amount: number; _note?: string; _token: string }
+        Returns: Json
+      }
+      payment_link_for_pair: {
+        Args: { _student_id: string; _tutor_id: string }
+        Returns: string
+      }
+      payment_link_shared: {
+        Args: { _channel?: string; _student_id: string; _tutor_id?: string }
+        Returns: number
+      }
+      payment_link_view: { Args: { _token: string }; Returns: Json }
       pick_tutor_payout: {
         Args: { _subject: string; _tutor: string }
         Returns: number
@@ -3387,6 +3541,8 @@ export type Database = {
         Returns: string
       }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
+      tutor_reminder_stats: { Args: { _tutor_id: string }; Returns: Json }
+      tutor_snapshot: { Args: { _tutor_id: string }; Returns: Json }
       update_lesson_details_safe: {
         Args: { _lesson_id: string; _patch: Json }
         Returns: undefined
