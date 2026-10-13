@@ -19,9 +19,15 @@ describe("онбординг: цінність за 60 секунд (важіл�
   const flow = () => read("src/components/OnboardingFlowB.tsx");
   const dash = () => read("src/pages/DashboardPage.tsx");
 
-  it("шлях майстра — чотири екрани до цінності, не сім", () => {
-    expect(CORE.map((s) => s.action)).toEqual(["subject", "student", "lesson", "debt"]);
-    expect(CORE_TOTAL).toBe(4);
+  it("шлях майстра — три екрани до цінності, не сім (13.10: предмет — чипи у формі учня)", () => {
+    expect(CORE.map((s) => s.action)).toEqual(["student", "lesson", "debt"]);
+    expect(CORE_TOTAL).toBe(3);
+    // предмет лишається в ALL_STEPS (хабовому — крок), але у самостійного живе у формі учня
+    expect(ALL_STEPS.find((s) => s.action === "subject")?.group).toBe("essential");
+    const f = flow();
+    expect(f).toMatch(/s\.group === "essential" && \(!subjectInStudentForm \|\| s\.action !== "subject"\)/);
+    expect(f, "чипи предметів у формі учня — там, де є крок «учень»").toMatch(/<StudentAction user=\{user\} subjectChips=\{subjectInStudentForm\}/);
+    expect(f, "предмет першого учня лягає в профіль тим самим записом").toMatch(/if \(subjectChips\) await mergeProfileSubject\(user\.id, subject\.trim\(\)\);/);
     // Банер і бейдж «Новий!» рахують ТОЙ САМИЙ шлях — інакше прогрес бреше.
     expect(read("src/components/TutorWelcomeBanner.tsx")).toMatch(/CORE_TOTAL/);
     expect(read("src/components/AppSidebar.tsx")).toMatch(/CORE_TOTAL/);
@@ -31,7 +37,7 @@ describe("онбординг: цінність за 60 секунд (важіл�
     expect(LATER.map((s) => s.action)).toEqual(["proRules", "autoMark", "telegram"]);
     for (const s of LATER) expect(CORE).not.toContain(s);
     expect(flow(), "майстер бере зі шляху лише essential")
-      .toMatch(/visibleSteps\.filter\(\(s\) => s\.group === "essential"\)/);
+      .toMatch(/visibleSteps\.filter\(\(s\) => s\.group === "essential" && /);
   });
 
   it("кожне налаштування має СВІЙ момент потреби, а не зʼявляється одразу", () => {

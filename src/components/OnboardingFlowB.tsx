@@ -234,10 +234,24 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
 // ── Student inline action ─────────────────────────────────────────────────────
 type ImportSource = "text" | "sheet" | "file" | "calendar";
 
-function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
+/** 13.10: предмет першого учня → у профіль (злиття, без дублікатів; збій — не причина зупиняти крок). */
+async function mergeProfileSubject(userId: string, subject: string): Promise<void> {
+  const v = subject.trim();
+  if (!v) return;
+  try {
+    const { data } = await supabase.from("tutor_details").select("subjects").eq("user_id", userId).maybeSingle();
+    const cur: string[] = Array.isArray((data as any)?.subjects) ? (data as any).subjects : [];
+    if (cur.some((x) => x.toLowerCase() === v.toLowerCase())) return;
+    await supabase.from("tutor_details").upsert({ user_id: userId, subjects: [...cur, v] }, { onConflict: "user_id" });
+  } catch { /* профіль доповниться пізніше з налаштувань */ }
+}
+
+function StudentAction({ defaultSubject, onComplete, user, onImportAll, subjectChips }: {
   defaultSubject: string; onComplete: (id: string, name: string, subject: string) => void; user: any;
   /** 29.09: «Де зараз твої учні?» — Google Таблиця / Календар / список текстом → імпорт із цим джерелом. */
   onImportAll?: (source: ImportSource) => void;
+  /** 13.10: предмет обирається тут чипами (окремого кроку «предмет» у самостійного більше немає). */
+  subjectChips?: boolean;
 }) {
   const { t } = useTranslation();
   /* 29.09: перше питання — не «введи учня», а «де зараз твої учні?». Ручне
@@ -284,6 +298,8 @@ function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
         // Best-effort invite — the note under the form promises it only with an email.
         supabase.functions.invoke("send-student-invite", { body: { studentId: newId } }).catch(() => {});
       }
+      // 13.10: предмет першого учня — і предмет профілю (той самий запис, що робив крок «предмет»).
+      if (subjectChips) await mergeProfileSubject(user.id, subject.trim());
 
       setSaving(false);
       onComplete(newId, name.trim(), subject.trim());
@@ -324,6 +340,24 @@ function StudentAction({ defaultSubject, onComplete, user, onImportAll }: {
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentEmailLabel")}</Label>
         <Input aria-label={t("onboardingFlowB.studentEmailPlaceholder")} value={email} onChange={e => setEmail(e.target.value)} type="email" inputMode="email" placeholder={t("onboardingFlowB.studentEmailPlaceholder")} className="h-12 rounded-xl text-[15px]" />
       </div>
+      {subjectChips && (
+        <div className="flex flex-wrap gap-2" data-testid="subject-chips">
+          {SUBJECTS_LIST.slice(0, 8).map((sName) => {
+            const on = subject.trim().toLowerCase() === sName.toLowerCase();
+            return (
+              <button key={sName} type="button" onClick={() => setSubject(on ? "" : sName)} aria-pressed={on}
+                className="h-[42px] px-4 rounded-full text-sm font-semibold transition-all"
+                style={{
+                  border: on ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
+                  background: on ? T.tealL : "var(--ds-card,#fff)",
+                  color: on ? T.tealD : T.txt, fontFamily: T.body,
+                }}>
+                {sName}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="flex gap-3">
         <div style={{ flex: 1.3 }}>
           <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentSubjectLabel")}</Label>
@@ -1388,7 +1422,11 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const [searchParams] = useSearchParams();
   const singleAction = searchParams.get("step");
   const singleStep = singleAction ? (visibleSteps.find((s) => s.action === singleAction) ?? null) : null;
-  const CORE  = singleStep ? [singleStep] : visibleSteps.filter((s) => s.group === "essential");
+  // 13.10: «предмет» живе у формі учня (чипи), а не окремим екраном — три кроки до цінності:
+  // учень → перший урок → гроші. Там, де кроку «учень» немає (хабовий: HUB_SKIP), предмет
+  // лишається кроком — від предметів залежать ставки, які виставляє менеджер.
+  const subjectInStudentForm = visibleSteps.some((s) => s.action === "student");
+  const CORE  = singleStep ? [singleStep] : visibleSteps.filter((s) => s.group === "essential" && (!subjectInStudentForm || s.action !== "subject"));
   // A12: ключ «вже редіректили» ставиться ТУТ (прибуття = успішна навігація),
   // а не в Dashboard ДО navigate — інакше збій навігації спалював спробу.
   useEffect(() => {
@@ -1851,7 +1889,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               ) : (
                 <>
                   {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); void completeStep(step.id); }} />}
-                  {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onImportAll={(src) => { setImportSource(src); setHandoffOpen(true); }} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
+                  {step.action === "student"      && <StudentAction user={user} subjectChips={subjectInStudentForm} defaultSubject={pickedSubjects[0] ?? ""} onImportAll={(src) => { setImportSource(src); setHandoffOpen(true); }} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); void completeStep(step.id); reload(); }} />}
                   {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); void completeStep(step.id); }} />}
                   {step.action === "debt"         && <DebtAction    user={user} studentId={addedStudentId} studentName={addedStudentName} onSkip={() => { void completeStep(step.id); }} onComplete={() => { void completeStep(step.id); reload(); }} />}
                   {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { void completeStep(step.id); }} />}

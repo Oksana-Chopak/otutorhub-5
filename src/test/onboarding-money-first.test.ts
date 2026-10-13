@@ -34,7 +34,8 @@ describe("онбординг закінчується грошима", () => {
        Тому «до налаштувань» тепер означає «останнім у шляху»: гроші — рівно
        після уроку, і далі майстер закінчується числом, а не налаштуваннями. */
     const order = CORE.map((s) => s.action);
-    expect(order).toEqual(["subject", "student", "lesson", "debt"]);
+    // 13.10: предмет — чипи у формі учня, не окремий екран (три кроки до цінності)
+    expect(order).toEqual(["student", "lesson", "debt"]);
     expect(order.indexOf("debt")).toBe(order.indexOf("lesson") + 1);
     expect(LATER.map((s) => s.action), "налаштування живуть поза майстром")
       .toEqual(["proRules", "autoMark", "telegram"]);

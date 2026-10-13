@@ -64,6 +64,15 @@ export const ALL_STEPS: StepDef[] = [
  * людей, які не дійшли. Картка веде в ТОЙ САМИЙ майстер
  * (`/onboarding?step=<action>`), тож реалізація кожної дії лишається одна.
  */
-export const CORE  = ALL_STEPS.filter(s => s.group === "essential");
+/**
+ * 13.10 (пре-мортем, «онбординг у 3 кроки»): ПРЕДМЕТ — більше не окремий екран
+ * для самостійного репетитора. Його обирають разом із першим учнем (чипи у формі
+ * учня), і той самий запис кладе предмет у профіль (`tutor_details.subjects`) —
+ * тобто дані ті самі, екраном менше. Шлях: учень → перший урок → гроші.
+ * Для хабового репетитора «предмет» лишається кроком: від предметів залежать
+ * ставки, які виставляє менеджер (HUB_SKIP у майстрі ховає решту).
+ */
+export const SUBJECT_STEP = ALL_STEPS.find(s => s.action === "subject")!;
+export const CORE  = ALL_STEPS.filter(s => s.group === "essential" && s.action !== "subject");
 export const LATER = ALL_STEPS.filter(s => s.group === "setup");
 export const CORE_TOTAL = CORE.length;
