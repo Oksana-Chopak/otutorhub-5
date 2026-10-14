@@ -53,6 +53,7 @@ const SKIP_EXT = /^\s*CREATE\s+EXTENSION\s+(IF\s+NOT\s+EXISTS\s+)?"?(pg_cron|pg_
 // падають на чистому Postgres з відомої причини. Жоден із них не може стояти
 // ВИЩЕ водяного знаку Lovable — усе, що ще може поїхати в прод, прогоняється.
 const history = JSON.parse(readFileSync(join(HERE, "history.json"), "utf8"));
+const TYPES_TXT = readFileSync(join(ROOT, "src/integrations/supabase/types.ts"), "utf8");
 const isLovableHash = (f) => /^\d{14}_[0-9a-f]{8}-[0-9a-f]{4}-/.test(f);
 
 function psql(args, { input, db = DB, ignoreError = false } = {}) {
@@ -124,8 +125,24 @@ if (!ONLY_SCENARIOS) {
   };
 
   // Фаза A — те, що в проді ВЖЕ є: усе до водяного знаку Lovable включно.
-  const live = files.filter((f) => f.slice(0, 14) <= watermark);
-  const pending = files.filter((f) => f.slice(0, 14) > watermark);
+  // 14.10: Lovable застосував SQL 13.10, перегенерував types.ts, але хеш-файлу НЕ
+  // створив — водяний знак не зрушив, хоча обʼєкти в проді є. Тому файл вище знаку
+  // теж вважається живим, якщо КОЖЕН його LIVE-MARKER є в types.ts (живе дзеркало
+  // схеми, аксіома CLAUDE.md) і НЕ зустрічається в жодному файлі нижче знаку
+  // (тобто обʼєкт новий саме для цієї міграції — збіг не може бути випадковим).
+  const olderText = (f) => files.filter((g) => g.slice(0, 14) <= watermark && g !== f).map((g) => readFileSync(join(MIG, g), "utf8")).join("\n");
+  const provenByTypes = (f) => {
+    const t = readFileSync(join(MIG, f), "utf8");
+    const ms = [...t.matchAll(/--\s*LIVE-MARKER:\s*(.+)$/gm)].map((m) => m[1].trim());
+    if (!ms.length || /--\s*LIVE-MARKER-NONE:/.test(t)) return false;
+    const older = olderText(f);
+    return ms.every((m) => TYPES_TXT.includes(m) && !older.includes(m));
+  };
+  const above = files.filter((f) => f.slice(0, 14) > watermark);
+  const provenLive = above.filter(provenByTypes);
+  const live = files.filter((f) => f.slice(0, 14) <= watermark || provenLive.includes(f));
+  const pending = above.filter((f) => !provenLive.includes(f));
+  if (provenLive.length) console.log(`[db-replay] фаза A також: вище знаку, але доведені LIVE-MARKER у types.ts (Lovable застосував без хеш-файлу): ${provenLive.map((f) => f.slice(0, 14)).join(", ")}`);
   for (const f of live) applyOne(f);
   console.log(`[db-replay] фаза A (прод сьогодні): ${live.length} файлів; пропущено як «ніколи не в проді»: ${Object.keys(history.neverApplied).length}; відомих історичних провалів: ${results.expectedFailures.length}/${Object.keys(history.knownFailures).length}`);
 

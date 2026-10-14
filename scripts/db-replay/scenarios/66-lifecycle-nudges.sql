@@ -25,6 +25,7 @@ DECLARE
   tutor uuid := gen_random_uuid();
   quiet uuid := gen_random_uuid();   -- відписаний від розсилок
   admin uuid := gen_random_uuid();
+  alias_ uuid := gen_random_uuid();  -- тестовий акаунт власниці: пошта з «+» на базі пошти суперадміна
   stu uuid := gen_random_uuid();
   -- Базовий день: 10:00 Києва післязавтра. Журнал пише справжній now(), а
   -- правило «не частіше ніж раз на 20 годин» порівнює його з `_at` — тож усі
@@ -37,6 +38,7 @@ BEGIN
     (tutor, 't66@replay.local', '{"first_name":"Марта","last_name":"Нова","role":"tutor","independent_workspace":true}'),
     (quiet, 'q66@replay.local', '{"first_name":"Тихий","last_name":"Репетитор","role":"tutor","independent_workspace":true}'),
     (admin, 'admin66@replay.local', '{"first_name":"Супер","last_name":"Адмін","role":"tutor","independent_workspace":true}'),
+    (alias_, 'admin66+test@replay.local', '{"first_name":"Тест","last_name":"Власниці","role":"tutor","independent_workspace":true}'),
     (stu,   's66@replay.local', '{"first_name":"Учень","last_name":"Марти","role":"student"}');
   INSERT INTO public.platform_admins (user_id) VALUES (admin) ON CONFLICT DO NOTHING;
   DELETE FROM public.user_roles WHERE user_id = admin AND role <> 'manager'::app_role;
@@ -44,10 +46,10 @@ BEGIN
   PERFORM set_config('app.allow_independent_optin', '1', true);
   t0 := d0 - interval '1 hour';   -- реєстрація о 9:00 базового дня
   UPDATE public.tutor_workspace_settings SET independent_workspace = true, subscription_status = 'trial', trial_until = d0 + interval '30 days'
-   WHERE tutor_id IN (tutor, quiet, admin);
+   WHERE tutor_id IN (tutor, quiet, admin, alias_);
   PERFORM set_config('app.allow_independent_optin', NULL, true);
   UPDATE public.tutor_workspace_settings SET marketing_opt_in = false WHERE tutor_id = quiet;
-  UPDATE auth.users SET created_at = t0 WHERE id IN (tutor, quiet);
+  UPDATE auth.users SET created_at = t0 WHERE id IN (tutor, quiet, alias_);
 
   -- ── (1) привітання — раз ────────────────────────────────────────────────────
   res := public.lifecycle_candidates(d0, 200);
@@ -152,7 +154,12 @@ BEGIN
   IF EXISTS (SELECT 1 FROM jsonb_array_elements(res->'rows') x WHERE x->>'user_id' = quiet::text) THEN
     RAISE EXCEPTION 'ПРОВАЛ (6): відписаний отримав крок онбордингу: %', res;
   END IF;
-  RAISE NOTICE '✅ (6) відписаний від розсилок отримує лише привітання';
+  -- 14.10: тестовий акаунт власниці («+»-псевдонім пошти суперадміна) не отримує НІЧОГО — навіть привітання
+  res := public.lifecycle_candidates(d0, 200);
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(res->'rows') x WHERE x->>'user_id' = alias_::text) THEN
+    RAISE EXCEPTION 'ПРОВАЛ (6): тестовий акаунт власниці потрапив у ланцюжок: %', res;
+  END IF;
+  RAISE NOTICE '✅ (6) відписаний від розсилок отримує лише привітання; тестовий акаунт власниці — нічого';
 
   -- ── (7) рахунок «нагадано за вас · повернуто» ───────────────────────────────
   -- нагадували вчора (справжній час: тригер ставить student_paid_at = now() при оплаті)

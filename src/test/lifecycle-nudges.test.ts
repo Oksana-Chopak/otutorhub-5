@@ -50,13 +50,23 @@ describe("тексти ланцюжка — три мови, без вигада
     expect(text).toContain("3 учні");
     expect(text).toContain("12 уроків");
     expect(text).toContain("нагадано за тебе 5 разів");
-    expect(text).toContain("повернуто після нагадувань 1800 ₴");
-    const s = lifecycleMessage("inactive_7", "uk", "Марта", FULL, PRICE).lines.join("\n");
-    expect(s).toContain("4 уроки без відмітки");
-    expect(s).toContain("борг 900 ₴ за 2 уроки");
-    const e = lifecycleMessage("inactive_14", "en", "", FULL, PRICE).lines.join("\n");
-    expect(e).toContain("4 lessons not marked as done");
-    expect(e).toContain("900 ₴ unpaid for 2 lessons");
+    expect(text).toContain("повернуто після нагадувань 1 800 ₴");
+    // 14.10 (лист-«морок» власниці): у сплячих — спершу цифра і дія, не «назбиралось» і «тиша»
+    const s = lifecycleMessage("inactive_7", "uk", "Марта", FULL, PRICE);
+    expect(s.title).toBe("Марта, 2 уроки чекають на оплату — 900 ₴");
+    expect(s.lines.join("\n")).toContain("Познач проведені уроки (4)");
+    expect(s.lines.join("\n")).toContain("Одним дотиком нагадаємо кожному учню");
+    expect(s.cta.path).toBe("/finances?tab=debts");
+    const big = lifecycleMessage("inactive_14", "uk", "", { ...FULL, debt_lessons: 19, debt_sum: 10200 }, PRICE);
+    expect(big.title).toBe("19 уроків чекають на оплату — 10 200 ₴");
+    expect(big.title).not.toMatch(/Ми зберегли|тиші|Назбиралось/);
+    expect(big.lines.join("\n")).not.toMatch(/Два тижні тиші/);
+    const clean = lifecycleMessage("inactive_14", "uk", "Марта", ZERO, PRICE);
+    expect(clean.title).toBe("Марта, усе чисто — глянь розклад на тиждень");
+    expect(clean.cta.path).toBe("/");
+    const e = lifecycleMessage("inactive_14", "en", "", FULL, PRICE);
+    expect(e.title).toBe("2 lessons awaiting payment — 900 ₴");
+    expect(e.lines.join("\n")).toContain("Mark the lessons you taught (4)");
   });
 
   it("ціна Pro в листах = src/lib/pricing.ts (місячна й річна), і та сама константа в edge-функції", () => {
@@ -119,6 +129,14 @@ describe("дроти ланцюжка й розсилки", () => {
     expect(read("supabase/functions/tutor-daily-digest/index.ts")).toMatch(/"scheduled-notifications", "lifecycle-nudges",\s*\n\s*\];/);
     expect(read("supabase/functions/_shared/transactional-email-templates/registry.ts")).toMatch(/'lifecycle-nudge': lifecycleNudge/);
     expect(read("supabase/functions/_shared/transactional-email-templates/lifecycle-nudge.tsx")).toMatch(/unsubscribeUrl/);
+  });
+
+  it("14.10: ланцюжок не пише власниці й її тестовим акаунтам; лист про борги веде одразу на вкладку боргів", () => {
+    const m = read("supabase/migrations/20261014090000_lifecycle_skip_admins.sql");
+    expect(m).toMatch(/NOT EXISTS \(SELECT 1 FROM public\.platform_admins pa WHERE pa\.user_id = s\.tutor_id\)/);
+    expect(m).toMatch(/regexp_replace\(lower\(coalesce\(nullif\(trim\(pc\.email\), ''\), u\.email\)\), '\\\+\[\^@\]\*@', '@'\)/);
+    expect(read("scripts/db-replay/scenarios/66-lifecycle-nudges.sql")).toMatch(/admin66\+test@replay\.local/);
+    expect(read("src/pages/FinancesPage.tsx")).toMatch(/useState<"ops"\|"debts"\|"analytics">\(rawTab === "debts" \? "debts" : "ops"\)/);
   });
 
   it("міграція: журнал, кандидати, рахунок «нагадано за вас», сегменти за справжніми статусами, крон щогодини, сценарій 66", () => {

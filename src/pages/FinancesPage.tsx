@@ -2029,7 +2029,9 @@ export default function FinancesPage() {
 
 
   // ── Independent Tutor Cockpit computed values ─────────────────────────────
-  const [finTab, setFinTab] = useState<"ops"|"debts"|"analytics">("ops");
+  // 14.10: лист ланцюжка «N уроків чекають на оплату» веде на /finances?tab=debts — кокпіт
+  // самостійного відкривається одразу на боргах, а не на «ops» (як і стара вкладка вище).
+  const [finTab, setFinTab] = useState<"ops"|"debts"|"analytics">(rawTab === "debts" ? "debts" : "ops");
   const finTabsRef = useRef<HTMLDivElement | null>(null);
   const goTab = (id: "ops"|"debts"|"analytics") => {
     setFinTab(id);

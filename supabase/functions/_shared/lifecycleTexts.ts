@@ -44,7 +44,9 @@ export const KINDS: LifecycleKind[] = [
 
 const SYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", SEK: "kr", PLN: "zł", GBP: "£" };
 export const sym = (c?: string | null) => SYM[c ?? "UAH"] ?? (c ?? "₴");
-const money = (n: number, c: string) => `${Math.round(Number(n) || 0)} ${sym(c)}`;
+/** 10200 → «10 200» (звичайний пробіл: у листах і Telegram він не ламається). */
+const fmtNum = (n: number) => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+const money = (n: number, c: string) => `${fmtNum(n)} ${sym(c)}`;
 
 const ukLessons = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? "урок" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "уроки" : "уроків");
 const ukStudents = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? "учень" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "учні" : "учнів");
@@ -79,22 +81,52 @@ function doneLine(lang: Lang, n: LifecycleNumbers): string {
   return parts.length ? `Already in the app: ${parts.join(" · ")}.` : "";
 }
 
-/** Рядок «що назбиралось» для сплячих — лише з ненульових цифр. */
-function pendingLine(lang: Lang, n: LifecycleNumbers): string {
-  const parts: string[] = [];
+/**
+ * Сплячі (14.10, після листа, що прийшов власниці як «морок»): спочатку — що саме
+ * чекає на людину і що з цим зробити одним дотиком, а не «назбиралось» і «два
+ * тижні тиші». Заголовок = цифра, рядки = дія; без цифр — просте «усе чисто».
+ */
+function dormant(lang: Lang, name: string, n: LifecycleNumbers, longSilence: boolean): LifecycleMessage {
+  const hi = name ? `${name}, ` : "";
+  const hasDebt = n.debt_lessons > 0;
+  const hasUnmarked = n.unmarked > 0;
   if (lang === "uk") {
-    if (n.unmarked > 0) parts.push(`${n.unmarked} ${ukLessons(n.unmarked)} без відмітки «проведено»`);
-    if (n.debt_lessons > 0) parts.push(`борг ${money(n.debt_sum, n.currency)} за ${n.debt_lessons} ${ukLessons(n.debt_lessons)}`);
-    return parts.length ? `Назбиралось: ${parts.join(" · ")}.` : "Усе чисто — зайди глянути розклад на тиждень.";
+    const title = hasDebt
+      ? `${hi}${n.debt_lessons} ${ukLessons(n.debt_lessons)} чекають на оплату — ${money(n.debt_sum, n.currency)}`
+      : hasUnmarked
+        ? `${hi}${n.unmarked} ${ukLessons(n.unmarked)} без відмітки «проведено»`
+        : `${hi}усе чисто — глянь розклад на тиждень`;
+    const lines: string[] = [];
+    if (hasDebt) lines.push("Одним дотиком нагадаємо кожному учню — з реквізитами й кнопкою «Я оплатив(ла)». Ти лише підтверджуєш.");
+    if (hasUnmarked) lines.push(`Познач проведені уроки (${n.unmarked}) — і суми порахуються самі.`);
+    if (!hasDebt && !hasUnmarked) lines.push("Нових боргів немає, уроки позначені. Якщо з'явились нові учні чи розклад змінився — внеси, і нагадування працюватимуть далі самі.");
+    if (longSilence) lines.push("Усе, що ти вносив(ла), на місці. Якщо щось не зайшло чи незручно — відповідай на цей лист одним рядком: це справді допомагає зробити застосунок кращим.");
+    return { title, lines, cta: hasDebt ? { text: "Нагадати учням", path: "/finances?tab=debts" } : { text: "Відкрити застосунок", path: "/" } };
   }
   if (lang === "sv") {
-    if (n.unmarked > 0) parts.push(`${n.unmarked} lektion${n.unmarked === 1 ? "" : "er"} utan markering «genomförd»`);
-    if (n.debt_lessons > 0) parts.push(`${money(n.debt_sum, n.currency)} obetalt för ${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"}`);
-    return parts.length ? `Väntar på dig: ${parts.join(" · ")}.` : "Allt är i ordning — titta in och se veckans schema.";
+    const title = hasDebt
+      ? `${hi}${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"} väntar på betalning — ${money(n.debt_sum, n.currency)}`
+      : hasUnmarked
+        ? `${hi}${n.unmarked} lektion${n.unmarked === 1 ? "" : "er"} utan markering «genomförd»`
+        : `${hi}allt är i ordning — titta på veckans schema`;
+    const lines: string[] = [];
+    if (hasDebt) lines.push("Med ett tryck påminner vi varje elev — med dina bankuppgifter och knappen «Jag har betalat». Du bekräftar bara.");
+    if (hasUnmarked) lines.push(`Markera genomförda lektioner (${n.unmarked}) — så räknas beloppen av sig själva.`);
+    if (!hasDebt && !hasUnmarked) lines.push("Inga nya skulder, lektionerna är markerade. Om nya elever tillkommit eller schemat ändrats — lägg in det, så fortsätter påminnelserna av sig själva.");
+    if (longSilence) lines.push("Allt du lagt in finns kvar. Om något inte fungerade eller kändes krångligt — svara på det här mejlet med en rad: det hjälper verkligen.");
+    return { title, lines, cta: hasDebt ? { text: "Påminn eleverna", path: "/finances?tab=debts" } : { text: "Öppna appen", path: "/" } };
   }
-  if (n.unmarked > 0) parts.push(`${n.unmarked} lesson${n.unmarked === 1 ? "" : "s"} not marked as done`);
-  if (n.debt_lessons > 0) parts.push(`${money(n.debt_sum, n.currency)} unpaid for ${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"}`);
-  return parts.length ? `Waiting for you: ${parts.join(" · ")}.` : "All clear — drop in and check this week's schedule.";
+  const title = hasDebt
+    ? `${hi}${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"} awaiting payment — ${money(n.debt_sum, n.currency)}`
+    : hasUnmarked
+      ? `${hi}${n.unmarked} lesson${n.unmarked === 1 ? "" : "s"} not marked as done`
+      : `${hi}all clear — check this week's schedule`;
+  const lines: string[] = [];
+  if (hasDebt) lines.push("One tap reminds every student — with your bank details and an “I’ve paid” button. You only confirm.");
+  if (hasUnmarked) lines.push(`Mark the lessons you taught (${n.unmarked}) — the amounts add up by themselves.`);
+  if (!hasDebt && !hasUnmarked) lines.push("No new debts, lessons are marked. If new students joined or the timetable changed — enter it, and reminders keep working on their own.");
+  if (longSilence) lines.push("Everything you entered is still here. If something didn’t work or felt awkward — reply to this email with one line: it really helps.");
+  return { title, lines, cta: hasDebt ? { text: "Remind students", path: "/finances?tab=debts" } : { text: "Open the app", path: "/" } };
 }
 
 export function lifecycleMessage(
@@ -174,19 +206,8 @@ export function lifecycleMessage(
         ],
         cta: { text: "Увімкнути Pro", path: "/subscription" },
       };
-      case "inactive_7": return {
-        title: `${hi}за тиждень дещо назбиралось`,
-        lines: [pendingLine("uk", n)],
-        cta: { text: "Відкрити застосунок", path: "/" },
-      };
-      case "inactive_14": return {
-        title: "Ми зберегли все, як було",
-        lines: [
-          pendingLine("uk", n),
-          "Два тижні тиші — якщо щось не зайшло чи незручно, відповідай на цей лист одним рядком: це найкорисніше, що можна мені написати.",
-        ],
-        cta: { text: "Відкрити застосунок", path: "/" },
-      };
+      case "inactive_7": return dormant("uk", name, n, false);
+      case "inactive_14": return dormant("uk", name, n, true);
     }
   }
 
@@ -242,12 +263,8 @@ export function lifecycleMessage(
         ],
         cta: { text: "Aktivera Pro", path: "/subscription" },
       };
-      case "inactive_7": return { title: `${hi}en del har samlats på en vecka`, lines: [pendingLine("sv", n)], cta: { text: "Öppna appen", path: "/" } };
-      case "inactive_14": return {
-        title: "Vi har sparat allt som det var",
-        lines: [pendingLine("sv", n), "Två veckors tystnad — om något inte fungerade, svara på det här mejlet med en rad. Det är det mest värdefulla du kan skriva."],
-        cta: { text: "Öppna appen", path: "/" },
-      };
+      case "inactive_7": return dormant("sv", name, n, false);
+      case "inactive_14": return dormant("sv", name, n, true);
     }
   }
 
@@ -302,12 +319,8 @@ export function lifecycleMessage(
       ],
       cta: { text: "Turn on Pro", path: "/subscription" },
     };
-    case "inactive_7": return { title: `${hi}a few things piled up this week`, lines: [pendingLine("en", n)], cta: { text: "Open the app", path: "/" } };
-    case "inactive_14": return {
-      title: "We kept everything as it was",
-      lines: [pendingLine("en", n), "Two quiet weeks — if something didn’t work for you, reply to this email with one line. It’s the most useful thing you can send me."],
-      cta: { text: "Open the app", path: "/" },
-    };
+    case "inactive_7": return dormant("en", name, n, false);
+    case "inactive_14": return dormant("en", name, n, true);
   }
 }
 

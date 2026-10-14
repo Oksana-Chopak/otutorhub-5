@@ -126,15 +126,21 @@ const rowBlock = (name) => {
   }
   return TYPES.slice(i, j);
 };
-const pending = new Set(above);   // ще НЕ застосовані — збіг маркера нічого не доводить
+const pending = new Set(above);   // ще НЕ застосовані — збіг маркера нічого не доводить…
+// …окрім випадку 14.10: Lovable застосував SQL і перегенерував types.ts, але хеш-файлу не
+// створив. Якщо маркер є в types.ts і НЕ зустрічається в жодному файлі нижче знаку (обʼєкт
+// новий саме для цієї міграції), збіг не випадковий — міграція в проді.
+const olderTextOf = (f) => files.filter((g) => g.slice(0, 14) <= watermark && g !== f).map((g) => readFileSync(join(MIG, g), "utf8")).join("\n");
 for (const f of files) {
   const t = readFileSync(join(MIG, f), "utf8");
   for (const m of t.matchAll(/--\s*LIVE-MARKER-NONE:\s*(.+)$/gm)) {
     markers.push({ f, marker: m[1].trim(), state: "unprovable" });
   }
   for (const m of t.matchAll(/--\s*LIVE-MARKER:\s*(.+)$/gm)) {
-    const hit = TYPES.includes(m[1].trim());
-    markers.push({ f, marker: m[1].trim(), state: pending.has(f) ? "unprovable" : hit ? "live" : "no" });
+    const marker = m[1].trim();
+    const hit = TYPES.includes(marker);
+    const newHere = pending.has(f) && hit && !olderTextOf(f).includes(marker);
+    markers.push({ f, marker: newHere ? `${marker} (вище знаку; Lovable без хеш-файлу — доказ лише types.ts)` : marker, state: pending.has(f) ? (newHere ? "live" : "unprovable") : hit ? "live" : "no" });
   }
   for (const m of t.matchAll(/--\s*LIVE-MARKER-IN:\s*(\S+)\s*::\s*(.+)$/gm)) {
     const block = rowBlock(m[1].trim());
