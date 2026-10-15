@@ -248,4 +248,61 @@ BEGIN
   RAISE NOTICE '✅ (9) кандидати/журнал — лише службова роль; зведення — суперадмін';
 END $$;
 
+-- ── (10) ГРОШІ: борг по валютах, а не сумою ─────────────────────────────────
+-- 15.10, питання власниці: «упевнися, що в листи йдуть достовірні цифри».
+-- Дві перевірки в одній: (а) предикат боргу дослівно канонічний — майбутній
+-- запланований урок і минулий непозначений у борг НЕ входять; (б) дві валюти
+-- дають ДВА числа, а не їх суму (Фінанси інакше не роблять ніколи).
+DO $$
+DECLARE
+  tut uuid := gen_random_uuid();
+  s1 uuid := gen_random_uuid();
+  s2 uuid := gen_random_uuid();
+  l uuid; snap jsonb;
+BEGIN
+  INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES
+    (tut, 'cur-tutor@test.local', '{"first_name":"Курс","last_name":"Валют","role":"tutor","independent_workspace":true}'),
+    (s1,  'cur-s1@test.local',    '{"first_name":"Оля","last_name":"Гривня","role":"student"}'),
+    (s2,  'cur-s2@test.local',    '{"first_name":"Ева","last_name":"Євро","role":"student"}');
+  INSERT INTO public.student_rates (tutor_id, student_id, subject, price_per_lesson, currency, source)
+  VALUES (tut, s1, 'Математика', 350, 'UAH', 'independent'),
+         (tut, s2, 'Англійська', 100, 'EUR', 'independent');
+
+  -- БОРГ: проведений неоплачений 350 ₴
+  INSERT INTO public.lessons (tutor_id, student_id, subject, starts_at, duration_minutes, status, source, created_by)
+  VALUES (tut, s1, 'Математика', now() - interval '3 days', 60, 'completed', 'independent', tut) RETURNING id INTO l;
+  UPDATE public.lesson_details SET student_price = 350, student_payment_status = 'unpaid' WHERE lesson_id = l;
+  -- НЕ борг: майбутній запланований 5000 ₴ (очікуваний платіж)
+  INSERT INTO public.lessons (tutor_id, student_id, subject, starts_at, duration_minutes, status, source, created_by)
+  VALUES (tut, s1, 'Математика', now() + interval '5 days', 60, 'scheduled', 'independent', tut) RETURNING id INTO l;
+  UPDATE public.lesson_details SET student_price = 5000, student_payment_status = 'unpaid' WHERE lesson_id = l;
+  -- НЕ борг: минулий, але без відмітки «проведено», 4000 ₴
+  INSERT INTO public.lessons (tutor_id, student_id, subject, starts_at, duration_minutes, status, source, created_by)
+  VALUES (tut, s1, 'Математика', now() - interval '2 days', 60, 'scheduled', 'independent', tut) RETURNING id INTO l;
+  UPDATE public.lesson_details SET student_price = 4000, student_payment_status = 'unpaid' WHERE lesson_id = l;
+  -- БОРГ: перенесений штраф 850 ₴ (модель боргу 04.09: штраф = борг)
+  INSERT INTO public.lessons (tutor_id, student_id, subject, starts_at, duration_minutes, status, source, created_by, carried_over)
+  VALUES (tut, s1, 'Математика', now() - interval '40 days', 60, 'cancelled', 'independent', tut, true) RETURNING id INTO l;
+  UPDATE public.lesson_details SET student_price = 850, student_payment_status = 'unpaid', is_cancellation_fee = true WHERE lesson_id = l;
+  -- БОРГ в ІНШІЙ валюті: проведений неоплачений 100 €
+  INSERT INTO public.lessons (tutor_id, student_id, subject, starts_at, duration_minutes, status, source, created_by)
+  VALUES (tut, s2, 'Англійська', now() - interval '4 days', 60, 'completed', 'independent', tut) RETURNING id INTO l;
+  UPDATE public.lesson_details SET student_price = 100, student_payment_status = 'unpaid' WHERE lesson_id = l;
+
+  snap := public.tutor_snapshot(tut);
+  IF (snap->>'debt_lessons')::int <> 3 THEN
+    RAISE EXCEPTION 'ПРОВАЛ (10): боргових уроків % замість 3 — у борг заліз майбутній або непозначений урок', snap->>'debt_lessons';
+  END IF;
+  IF (snap->'debt_by_cur'->>'UAH')::numeric <> 1200 THEN
+    RAISE EXCEPTION 'ПРОВАЛ (10): борг у ₴ = % замість 1200 (350 + перенесені 850)', snap->'debt_by_cur'->>'UAH';
+  END IF;
+  IF (snap->'debt_by_cur'->>'EUR')::numeric <> 100 THEN
+    RAISE EXCEPTION 'ПРОВАЛ (10): борг у € = % замість 100', snap->'debt_by_cur'->>'EUR';
+  END IF;
+  IF jsonb_typeof(snap->'debt_by_cur') <> 'object' OR (SELECT count(*) FROM jsonb_object_keys(snap->'debt_by_cur')) <> 2 THEN
+    RAISE EXCEPTION 'ПРОВАЛ (10): валют у розбивці не дві: %', snap->'debt_by_cur';
+  END IF;
+  RAISE NOTICE '✅ (10) борг = 1200 ₴ + 100 € двома числами; майбутній 5000 і непозначений 4000 у борг не входять';
+END $$;
+
 ROLLBACK;

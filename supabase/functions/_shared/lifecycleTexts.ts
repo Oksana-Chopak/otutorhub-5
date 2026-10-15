@@ -21,7 +21,14 @@ export interface LifecycleNumbers {
   lessons: number;
   paid_lessons?: number;
   debt_lessons: number;
+  /** ЛЕГАСІ: сума ВСІХ боргових уроків одним числом. Для репетитора з двома
+   *  валютами це не гроші, а арифметика поверх різних одиниць — у текст воно
+   *  більше не йде (див. `debtMoney`). Лишається лише щоб стара edge-функція
+   *  на старій базі не отримала undefined. */
   debt_sum: number;
+  /** Борг ПО ВАЛЮТАХ: {"UAH": 1200, "EUR": 100}. Так само, як Фінанси
+   *  (`sumByCurrency` + `fmtCurList`): дві валюти — два числа, ніколи сума. */
+  debt_by_cur?: Record<string, number> | null;
   unmarked: number;
   trial_days_left: number | null;
   reminded_times: number;
@@ -47,6 +54,22 @@ export const sym = (c?: string | null) => SYM[c ?? "UAH"] ?? (c ?? "₴");
 /** 10200 → «10 200» (звичайний пробіл: у листах і Telegram він не ламається). */
 const fmtNum = (n: number) => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 const money = (n: number, c: string) => `${fmtNum(n)} ${sym(c)}`;
+/**
+ * Борг словами. НІКОЛИ не зливає валюти в одне число — це інваріант Фінансів
+ * («1 200 ₴ + 100 €», а не «1 300 ₴»), і для листа він важить навіть більше:
+ * у застосунку людина бачить розбивку поруч, а в листі — лише це число, і
+ * перевірити його нічим. 15.10, питання власниці: «це ж гроші, якщо застосунок
+ * рахує неправильно — це непоправний удар по довірі».
+ * Без розбивки з бази (стара база) лишається єдине, що є, — `debt_sum`.
+ */
+const debtMoney = (n: LifecycleNumbers): string => {
+  const pairs = Object.entries(n.debt_by_cur ?? {}).filter(([, v]) => Number(v) > 0);
+  if (pairs.length === 0) return money(n.debt_sum, n.currency);
+  return pairs
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+    .map(([c, v]) => money(Number(v), c))
+    .join(" + ");
+};
 
 const ukLessons = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? "урок" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "уроки" : "уроків");
 const ukStudents = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? "учень" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "учні" : "учнів");
@@ -92,7 +115,7 @@ function dormant(lang: Lang, name: string, n: LifecycleNumbers, longSilence: boo
   const hasUnmarked = n.unmarked > 0;
   if (lang === "uk") {
     const title = hasDebt
-      ? `${hi}${n.debt_lessons} ${ukLessons(n.debt_lessons)} чекають на оплату — ${money(n.debt_sum, n.currency)}`
+      ? `${hi}${n.debt_lessons} ${ukLessons(n.debt_lessons)} чекають на оплату — ${debtMoney(n)}`
       : hasUnmarked
         ? `${hi}${n.unmarked} ${ukLessons(n.unmarked)} без відмітки «проведено»`
         : `${hi}усе чисто — глянь розклад на тиждень`;
@@ -105,7 +128,7 @@ function dormant(lang: Lang, name: string, n: LifecycleNumbers, longSilence: boo
   }
   if (lang === "sv") {
     const title = hasDebt
-      ? `${hi}${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"} väntar på betalning — ${money(n.debt_sum, n.currency)}`
+      ? `${hi}${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"} väntar på betalning — ${debtMoney(n)}`
       : hasUnmarked
         ? `${hi}${n.unmarked} lektion${n.unmarked === 1 ? "" : "er"} utan markering «genomförd»`
         : `${hi}allt är i ordning — titta på veckans schema`;
@@ -117,7 +140,7 @@ function dormant(lang: Lang, name: string, n: LifecycleNumbers, longSilence: boo
     return { title, lines, cta: hasDebt ? { text: "Påminn eleverna", path: "/finances?tab=debts" } : { text: "Öppna appen", path: "/" } };
   }
   const title = hasDebt
-    ? `${hi}${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"} awaiting payment — ${money(n.debt_sum, n.currency)}`
+    ? `${hi}${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"} awaiting payment — ${debtMoney(n)}`
     : hasUnmarked
       ? `${hi}${n.unmarked} lesson${n.unmarked === 1 ? "" : "s"} not marked as done`
       : `${hi}all clear — check this week's schedule`;
@@ -177,7 +200,7 @@ export function lifecycleMessage(
         lines: [
           doneLine("uk", n),
           n.debt_lessons > 0
-            ? `Неоплачених: ${n.debt_lessons} ${ukLessons(n.debt_lessons)} на ${money(n.debt_sum, n.currency)}. Натисни «Нагадати» — учень отримає реквізити й кнопку «Я оплатив(ла)», а ти підтвердиш одним дотиком.`
+            ? `Неоплачених: ${n.debt_lessons} ${ukLessons(n.debt_lessons)} на ${debtMoney(n)}. Натисни «Нагадати» — учень отримає реквізити й кнопку «Я оплатив(ла)», а ти підтвердиш одним дотиком.`
             : "Коли урок проведено — познач оплату або натисни «Нагадати»: учень отримає реквізити й кнопку «Я оплатив(ла)».",
         ].filter(Boolean),
         cta: { text: "Відкрити фінанси", path: "/finances" },
@@ -240,7 +263,7 @@ export function lifecycleMessage(
         lines: [
           doneLine("sv", n),
           n.debt_lessons > 0
-            ? `Obetalt: ${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"}, ${money(n.debt_sum, n.currency)}. Tryck «Påminn» — eleven får bankuppgifter och knappen «Jag har betalat», du bekräftar med ett tryck.`
+            ? `Obetalt: ${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"}, ${debtMoney(n)}. Tryck «Påminn» — eleven får bankuppgifter och knappen «Jag har betalat», du bekräftar med ett tryck.`
             : "När lektionen är genomförd — markera betalningen eller tryck «Påminn».",
         ].filter(Boolean),
         cta: { text: "Öppna ekonomi", path: "/finances" },
@@ -296,7 +319,7 @@ export function lifecycleMessage(
       lines: [
         doneLine("en", n),
         n.debt_lessons > 0
-          ? `Unpaid: ${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"}, ${money(n.debt_sum, n.currency)}. Tap “Remind” — the student gets your bank details and an “I’ve paid” button, you confirm with one tap.`
+          ? `Unpaid: ${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"}, ${debtMoney(n)}. Tap “Remind” — the student gets your bank details and an “I’ve paid” button, you confirm with one tap.`
           : "Once a lesson is done — mark the payment or tap “Remind”.",
       ].filter(Boolean),
       cta: { text: "Open finances", path: "/finances" },

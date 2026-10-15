@@ -170,11 +170,23 @@ async function linkedWelcome(supabase: any, userId: string): Promise<string> {
     if (!s || !s.is_tutor) return fallback;
     const n = (v: unknown) => Number(v ?? 0);
     const cur = String(s.currency ?? 'UAH');
-    const sym = cur === 'UAH' ? '₴' : cur;
+    const symOf = (c: string) => (c === 'UAH' ? '₴' : c === 'EUR' ? '€' : c === 'USD' ? '$' : c);
+    const sym = symOf(cur);
+    /* Борг по валютах, як у Фінансах: дві валюти — два числа, ніколи сума
+       (15.10). Без розбивки з бази лишається єдине, що є, — debt_sum. */
+    const byCur = (s.debt_by_cur && typeof s.debt_by_cur === 'object') ? s.debt_by_cur as Record<string, unknown> : null;
+    const debtMoney = (): string => {
+      const pairs = Object.entries(byCur ?? {}).filter(([, v]) => Number(v ?? 0) > 0);
+      if (pairs.length === 0) return `${Math.round(n(s.debt_sum))} ${sym}`;
+      return pairs
+        .sort((a, b) => Number(b[1]) - Number(a[1]))
+        .map(([c, v]) => `${Math.round(Number(v))} ${symOf(c)}`)
+        .join(' + ');
+    };
     const parts: string[] = [];
     parts.push(`👥 Учнів: <b>${n(s.students)}</b>`);
     parts.push(`📅 Уроків на 7 днів: <b>${n(s.lessons_week)}</b>`);
-    if (n(s.debt_lessons) > 0) parts.push(`💳 Чекають оплати: <b>${Math.round(n(s.debt_sum))} ${sym}</b> за ${n(s.debt_lessons)} ур.`);
+    if (n(s.debt_lessons) > 0) parts.push(`💳 Чекають оплати: <b>${debtMoney()}</b> за ${n(s.debt_lessons)} ур.`);
     else parts.push('✅ Боргів немає');
     if (n(s.unmarked) > 0) parts.push(`✏️ Без відмітки «проведено»: <b>${n(s.unmarked)}</b>`);
     return [

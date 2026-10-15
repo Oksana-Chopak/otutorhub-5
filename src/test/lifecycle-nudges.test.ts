@@ -169,3 +169,91 @@ describe("дроти ланцюжка й розсилки", () => {
     expect(p).toMatch(/value: "has_telegram"/);
   });
 });
+
+/**
+ * 15.10, питання власниці: «упевнися, що в листи йдуть достовірні цифри — це ж
+ * гроші, і якщо застосунок рахує неправильно, це непоправний удар по довірі».
+ *
+ * Предикат боргу в базі перевірено на відтвореній схемі (сценарій 66): майбутній
+ * запланований урок і минулий непозначений у борг НЕ входять — дослівно
+ * `isStudentDebtLesson`. А ось `debt_sum` був сумою `student_price` по ВСІХ
+ * боргових уроках незалежно від валюти пари: репетитор з учнями в ₴ і в €
+ * бачив «1 300 ₴» замість «1 200 ₴ + 100 €». Самі Фінанси так не роблять
+ * ніколи (`sumByCurrency` + `fmtCurList`), а в листі це гірше — там немає
+ * розбивки поруч, тож перевірити число нічим.
+ */
+describe("гроші в листах: валюти не зливаються в одне число", () => {
+  const MIX: LifecycleNumbers = { ...FULL, debt_lessons: 3, debt_sum: 1300, debt_by_cur: { UAH: 1200, EUR: 100 } };
+
+  it("дві валюти — два числа, і суми 1300 у тексті немає", () => {
+    for (const kind of ["inactive_7", "inactive_14", "no_paid_d7", "trial_ended"] as const) {
+      for (const lang of ["uk", "en", "sv"] as Lang[]) {
+        const all = [lifecycleMessage(kind, lang, "Марта", MIX, PRICE)]
+          .flatMap((m) => [m.title, ...m.lines]).join(" | ");
+        if (!/1 200|1 300/.test(all)) continue; // цей крок про борг не пише — пропускаємо
+        expect(all, `${kind}/${lang}: валюти злиті в одне число`).not.toMatch(/1 300/);
+        expect(all, `${kind}/${lang}: нема суми у ₴`).toMatch(/1 200/);
+        expect(all, `${kind}/${lang}: нема суми у €`).toMatch(/100 €/);
+      }
+    }
+  });
+
+  it("одна валюта — рядок лишається таким самим, як був", () => {
+    const one: LifecycleNumbers = { ...FULL, debt_lessons: 2, debt_sum: 900, debt_by_cur: { UAH: 900 } };
+    const a = lifecycleMessage("inactive_14", "uk", "Марта", one, PRICE);
+    const b = lifecycleMessage("inactive_14", "uk", "Марта", { ...FULL, debt_lessons: 2, debt_sum: 900 }, PRICE);
+    expect(a.title).toBe(b.title);
+    expect(a.lines).toEqual(b.lines);
+  });
+
+  it("без розбивки з бази (стара база) — єдине, що є: debt_sum, і це не падає", () => {
+    const m = lifecycleMessage("inactive_14", "uk", "Марта", { ...FULL, debt_sum: 900, debt_by_cur: null }, PRICE);
+    expect(m.title).toMatch(/900/);
+    const z = lifecycleMessage("inactive_14", "uk", "Марта", { ...FULL, debt_sum: 900, debt_by_cur: {} }, PRICE);
+    expect(z.title).toMatch(/900/);
+  });
+
+  it("нульові валюти в розбивці не друкуються", () => {
+    const m = lifecycleMessage("inactive_14", "uk", "Марта",
+      { ...MIX, debt_by_cur: { UAH: 1200, EUR: 0, SEK: 0 } }, PRICE);
+    expect(m.title).toMatch(/1 200 ₴/);
+    expect(m.title).not.toMatch(/0 €|0 kr/);
+  });
+
+  it("жоден текст НЕ будує грошовий рядок із debt_sum напряму", () => {
+    const src = read("supabase/functions/_shared/lifecycleTexts.ts");
+    const body = src.slice(src.indexOf("export function lifecycleMessage"));
+    expect(body, "у текстах лишилось money(n.debt_sum …) — валюти знову зіллються")
+      .not.toMatch(/money\(n\.debt_sum/);
+    expect((src.match(/debtMoney\(n\)/g) ?? []).length, "усі шість місць із боргом").toBeGreaterThanOrEqual(6);
+    // Фолбек на debt_sum лишається РІВНО один — усередині хелпера.
+    expect((src.match(/money\(n\.debt_sum, n\.currency\)/g) ?? []).length).toBe(1);
+  });
+
+  it("Telegram-знімок «де я зараз» рахує так само", () => {
+    const poll = read("supabase/functions/telegram-poll/index.ts");
+    expect(poll).toMatch(/const debtMoney = \(\): string =>/);
+    expect(poll, "рядок боргу будується хелпером, а не Math.round(debt_sum)")
+      .toMatch(/Чекають оплати: <b>\$\{debtMoney\(\)\}<\/b>/);
+    // `debt_sum` лишається РІВНО один раз — як фолбек усередині хелпера, для
+    // випадку «edge уже нова, а міграцію ще не вставили». У рядок, що йде
+    // людині, він не потрапляє.
+    expect((poll.match(/Math\.round\(n\(s\.debt_sum\)\)/g) ?? []).length).toBe(1);
+    const pushLine = poll.split("\n").find((l) => l.includes("Чекають оплати"))!;
+    expect(pushLine, "рядок для людини не рахує debt_sum").not.toMatch(/debt_sum/);
+  });
+
+  it("міграція віддає борг по валютах, і валюта пари береться як у Фінансах", () => {
+    const mig = read("supabase/migrations/20261015100000_lifecycle_debt_by_currency.sql");
+    expect((mig.match(/AS debt_by_cur|'debt_by_cur'/g) ?? []).length,
+      "обидві функції: lifecycle_candidates і tutor_snapshot").toBeGreaterThanOrEqual(3);
+    // Та сама LATERAL-резолюція валюти, що в manager_debts_by_currency.
+    expect((mig.match(/ORDER BY sr2\.updated_at DESC NULLS LAST LIMIT 1/g) ?? []).length).toBe(2);
+    // Предикат боргу лишається канонічним у ОБОХ копіях.
+    expect((mig.match(/l\.status = 'completed' OR \(l\.status = 'cancelled' AND d\.is_cancellation_fee IS TRUE\)/g) ?? []).length,
+      "debt_lessons + debt_sum + debt_by_cur у двох функціях").toBeGreaterThanOrEqual(5);
+    // Винятки для власниці з 14.10 мусять ВИЖИТИ перевипуск функції.
+    expect(mig, "перевипуск без винятків повернув би листи на тестові акаунти")
+      .toMatch(/platform_admins/);
+  });
+});
