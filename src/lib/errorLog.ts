@@ -19,6 +19,11 @@ export async function logError(
     const noise = ["MetaMask", "chrome-extension://", "moz-extension://", "safari-extension://"];
     const hay = `${message} ${stack ?? ""}`;
     if (noise.some((n) => hay.includes(n))) return;
+    // 19.10, /finances: «Lock "lock:sb-…-auth-token" was released because another
+    // request stole it» — це supabase-js ділить замок сесії між двома вкладками
+    // (або вкладкою й нативною обгорткою). Сесія лишається цілою, запит
+    // повторюється сам; у /errors це читалось як збій платежів. Не наш баг.
+    if (/Lock "lock:sb-[^"]*" was released because another request stole it|NavigatorLockAcquireTimeoutError|Acquiring an exclusive Navigator LockManager lock/.test(hay)) return;
     const key = `${message}::${(stack ?? "").slice(0, 200)}`;
     const now = Date.now();
     const last = recent.get(key);

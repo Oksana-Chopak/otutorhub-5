@@ -243,6 +243,7 @@ Deno.serve(withJob("process-email-queue", async (req) => {
             to: payload.to,
             from: payload.from,
             sender_domain: payload.sender_domain,
+            reply_to: payload.reply_to,
             subject: payload.subject,
             html: payload.html,
             text: payload.text,

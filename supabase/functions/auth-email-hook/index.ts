@@ -17,13 +17,15 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-lovable-signature, x-lovable-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
+// 19.10: тіло листів українське (шаблони _shared/email-templates), а теми були
+// англійські — один лист, одна мова. Локалізація en/sv — разом із шаблонами.
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Підтвердіть email — oTutorHub',
+  invite: 'Вас запросили в oTutorHub',
+  magiclink: 'Ваше посилання для входу — oTutorHub',
+  recovery: 'Скидання пароля — oTutorHub',
+  email_change: 'Підтвердіть нову адресу — oTutorHub',
+  reauthentication: 'Ваш код підтвердження — oTutorHub',
 }
 
 // Template mapping
@@ -41,6 +43,10 @@ const SITE_NAME = "otutorhub"
 const SENDER_DOMAIN = "notify.otutorhub.com"
 const ROOT_DOMAIN = "otutorhub.com"
 const FROM_DOMAIN = "otutorhub.com" // Domain shown in From address (may be root or sender subdomain)
+// 19.10: Reply-To на скриньку власниці (hello@ пересилається їй) і брендове імʼя
+// відправника — ті самі правила, що в send-transactional-email.
+const FROM_NAME = "oTutorHub"
+const REPLY_TO = Deno.env.get("EMAIL_REPLY_TO") ?? "hello@otutorhub.com"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
@@ -221,7 +227,7 @@ async function handleWebhook(req: Request): Promise<Response> {
 
   // Build template props from payload.data (HookData structure)
   const templateProps = {
-    siteName: SITE_NAME,
+    siteName: FROM_NAME, // у тексті листа — бренд «oTutorHub», не slug «otutorhub»
     siteUrl: `https://${ROOT_DOMAIN}`,
     recipient: payload.data.email,
     confirmationUrl: payload.data.url,
@@ -259,8 +265,9 @@ async function handleWebhook(req: Request): Promise<Response> {
       run_id,
       message_id: messageId,
       to: payload.data.email,
-      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+      from: `${FROM_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
+      reply_to: REPLY_TO,
       subject: EMAIL_SUBJECTS[emailType] || 'Notification',
       html,
       text,

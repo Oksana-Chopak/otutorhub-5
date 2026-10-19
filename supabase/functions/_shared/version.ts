@@ -1,7 +1,7 @@
 // ЗГЕНЕРОВАНО scripts/stamp-edge.mjs — не правити руками.
 // Хеш вмісту всіх edge-функцій (85 файлів, 53 функцій). Функція `version`
 // віддає його назовні; робот у CI звіряє з репо і каже, чи прод крутить свіже.
-export const EDGE_VERSION = "58d1c6b2";
+export const EDGE_VERSION = "36aec641";
 export const EDGE_FUNCTIONS = 53;
 
 // Штамп КОЖНОЇ функції окремо: спільний код + її власні файли. Lovable
@@ -10,7 +10,7 @@ export const EDGE_FUNCTIONS = 53;
 export const EDGE_FN_VERSION: Record<string, string> = {
   "admin-stats": "adb9292b",
   "archive-old-chats": "27064487",
-  "auth-email-hook": "7c8a3b48",
+  "auth-email-hook": "3a6a6db8",
   "ci-report": "1a810bfc",
   "confirm-pending-signup": "e3efd970",
   "db-backup": "b15687a7",
@@ -45,19 +45,19 @@ export const EDGE_FN_VERSION: Record<string, string> = {
   "payment-reminders": "3352d159",
   "payout-reminders": "7e9ec72b",
   "preview-transactional-email": "d859738e",
-  "process-email-queue": "a31124a1",
+  "process-email-queue": "3a359752",
   "remind-payment": "05e2f24d",
   "revenuecat-webhook": "a2dc79a7",
   "scheduled-notifications": "6af719b3",
   "send-marketing-campaign": "bba9b679",
   "send-push": "ec33c7e3",
   "send-student-invite": "bea0aaa9",
-  "send-transactional-email": "f5a0c261",
+  "send-transactional-email": "95df711d",
   "sync-google-calendar": "561bb4ab",
   "telegram-bot-info": "6dbe381e",
   "telegram-link": "ddc47efa",
   "telegram-poll": "041b207a",
-  "tutor-daily-digest": "1d629b70",
+  "tutor-daily-digest": "f0299b2d",
   "tutor-evening-summary": "34977600",
   "tutor-weekly-digest": "6aa10fa3",
   "version": "c412fe5b",
