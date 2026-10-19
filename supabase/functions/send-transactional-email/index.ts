@@ -9,6 +9,11 @@ import { withErrorLog } from '../_shared/errorLog.ts'
 const SITE_NAME = "otutorhub"
 const SENDER_DOMAIN = "notify.otutorhub.com"
 const FROM_DOMAIN = "otutorhub.com"
+// 19.10: листи кажуть «просто відповідай на цей лист» (ланцюжок, welcome), а йшли
+// з noreply@ без Reply-To — відповідь губилась. Тепер Reply-To = hello@otutorhub.com
+// (пересилання у скриньку власниці), імʼя відправника — як бренд, не slug домену.
+const FROM_NAME = "oTutorHub"
+const REPLY_TO = Deno.env.get("EMAIL_REPLY_TO") ?? "hello@otutorhub.com"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -325,8 +330,9 @@ Deno.serve(withErrorLog("send-transactional-email", async (req) => {
     payload: {
       message_id: messageId,
       to: effectiveRecipient,
-      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+      from: `${FROM_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
+      reply_to: REPLY_TO,
       subject: resolvedSubject,
       html,
       text: plainText,

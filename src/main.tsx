@@ -3,6 +3,10 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
 import { isNativeApp } from "@/lib/platform";
+import { installStaleBuildReload } from "@/lib/staleBuild";
+
+// Вкладка зі старою збіркою після Publish: один reload замість ErrorBoundary (19.10).
+installStaleBuildReload();
 
 // BUG-7 (2026-07-25), native only: cap the viewport scale so iOS WKWebView
 // doesn't auto-zoom on inputs < 16px (the app's DS uses 15px inputs). Web is

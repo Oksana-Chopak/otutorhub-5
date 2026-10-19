@@ -35,6 +35,25 @@ const DT = {
     errNew: "НОВА",
     jobFailed: (n: number) => `збоїв: ${n}`,
     jobsUnknown: `🛡 Нічні процеси: зведення прочитати не вдалося (SQL 20260927170000 ще не вставлено?)`,
+    // 19.10: лічильники — за ДОБУ й зі словом, що саме порахували. «25×» без слова
+    // власниця прочитала як 25 нагадувань — а то були 25 запусків щогодинного крону.
+    jobSent: (n: number) => `надіслано ${n}`,
+    jobProcessed: (n: number) => `оброблено ${n}`,
+    jobTables: (n: number) => `${n} таблиць`,
+    jobRuns: (n: number) => `${n} ${n === 1 ? "запуск" : n >= 2 && n <= 4 ? "запуски" : "запусків"}`,
+    remindersDay: (total: number, students: number, tutors: number, tg: number, push: number, bell: number) =>
+      total === 0
+        ? "💳 Нагадувань учням про оплату за добу не було."
+        : `💳 Нагадувань учням про оплату за добу: <b>${total}</b> — ${students} ${students === 1 ? "учню" : "учням"} від ${tutors} ${tutors === 1 ? "репетитора" : "репетиторів"} (Telegram ${tg} · пуш ${push} · лише дзвіночок ${bell})`,
+    mailDay: (sent: number, failed: number, blocked: number, pending: number) =>
+      `📬 Пошта за добу: надіслано <b>${sent}</b>${failed > 0 ? ` · <b>не дійшло ${failed}</b>` : ""}${blocked > 0 ? ` · заблоковано (відписка/скарга) ${blocked}` : ""}${pending > 0 ? ` · у черзі ${pending}` : ""}`,
+    chainDay: (parts: string) => `✉️ Ланцюжок за добу: ${parts}`,
+    chainNone: "✉️ Ланцюжок за добу: нікому не було що сказати (усі кроки вже надіслані або час ще не настав).",
+    chainKind: (k: string) => ({
+      welcome: "вітання", no_student_d1: "додай учня", no_lesson_d3: "постав урок", no_paid_d7: "познач оплату",
+      trial_7_left: "тріал −7 днів", trial_2_left: "тріал −2 дні", trial_ended: "тріал закінчився",
+      inactive_7: "сплячі 7 днів", inactive_14: "сплячі 14 днів",
+    } as Record<string, string>)[k] ?? k,
     importLoop: (lists: number, rows: number, top: string) => `👀 Імпорт за 7 днів: <b>${lists}</b> списків із невпізнаними рядками (${rows} рядків). Найчастіше: ${top}`,
     tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Сьогодні <b>${n} ${w}</b>:`,
@@ -80,6 +99,23 @@ const DT = {
     errNew: "NEW",
     jobFailed: (n: number) => `failed: ${n}`,
     jobsUnknown: `🛡 Background jobs: could not read the summary (SQL 20260927170000 not applied yet?)`,
+    jobSent: (n: number) => `sent ${n}`,
+    jobProcessed: (n: number) => `processed ${n}`,
+    jobTables: (n: number) => `${n} tables`,
+    jobRuns: (n: number) => `${n} ${n === 1 ? "run" : "runs"}`,
+    remindersDay: (total: number, students: number, tutors: number, tg: number, push: number, bell: number) =>
+      total === 0
+        ? "💳 No payment reminders went to students in the last 24 h."
+        : `💳 Payment reminders to students in 24 h: <b>${total}</b> — ${students} student${students === 1 ? "" : "s"} from ${tutors} tutor${tutors === 1 ? "" : "s"} (Telegram ${tg} · push ${push} · bell only ${bell})`,
+    mailDay: (sent: number, failed: number, blocked: number, pending: number) =>
+      `📬 Email in 24 h: sent <b>${sent}</b>${failed > 0 ? ` · <b>not delivered ${failed}</b>` : ""}${blocked > 0 ? ` · blocked (unsubscribe/complaint) ${blocked}` : ""}${pending > 0 ? ` · queued ${pending}` : ""}`,
+    chainDay: (parts: string) => `✉️ Lifecycle chain in 24 h: ${parts}`,
+    chainNone: "✉️ Lifecycle chain in 24 h: nobody was due (every step already sent or not yet time).",
+    chainKind: (k: string) => ({
+      welcome: "welcome", no_student_d1: "add a student", no_lesson_d3: "add a lesson", no_paid_d7: "mark a payment",
+      trial_7_left: "trial −7 days", trial_2_left: "trial −2 days", trial_ended: "trial ended",
+      inactive_7: "dormant 7 days", inactive_14: "dormant 14 days",
+    } as Record<string, string>)[k] ?? k,
     importLoop: (lists: number, rows: number, top: string) => `👀 Imports in 7 days: <b>${lists}</b> lists with unrecognised lines (${rows} lines). Most common: ${top}`,
     tutNone: "\nA free day today — recharge! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Today: <b>${n} ${w}</b>:`,
@@ -125,6 +161,23 @@ const DT = {
     errNew: "NY",
     jobFailed: (n: number) => `misslyckade: ${n}`,
     jobsUnknown: `🛡 Bakgrundsjobb: kunde inte läsa sammanfattningen (SQL 20260927170000 inte inlagd än?)`,
+    jobSent: (n: number) => `skickade ${n}`,
+    jobProcessed: (n: number) => `behandlade ${n}`,
+    jobTables: (n: number) => `${n} tabeller`,
+    jobRuns: (n: number) => `${n} ${n === 1 ? "körning" : "körningar"}`,
+    remindersDay: (total: number, students: number, tutors: number, tg: number, push: number, bell: number) =>
+      total === 0
+        ? "💳 Inga betalningspåminnelser gick till elever senaste dygnet."
+        : `💳 Betalningspåminnelser till elever senaste dygnet: <b>${total}</b> — ${students} elev${students === 1 ? "" : "er"} från ${tutors} lärare (Telegram ${tg} · push ${push} · bara klocka ${bell})`,
+    mailDay: (sent: number, failed: number, blocked: number, pending: number) =>
+      `📬 E-post senaste dygnet: skickade <b>${sent}</b>${failed > 0 ? ` · <b>kom inte fram ${failed}</b>` : ""}${blocked > 0 ? ` · blockerade (avprenumeration/klagomål) ${blocked}` : ""}${pending > 0 ? ` · i kö ${pending}` : ""}`,
+    chainDay: (parts: string) => `✉️ Utskickskedjan senaste dygnet: ${parts}`,
+    chainNone: "✉️ Utskickskedjan senaste dygnet: ingen stod på tur (alla steg redan skickade eller inte dags än).",
+    chainKind: (k: string) => ({
+      welcome: "välkommen", no_student_d1: "lägg till elev", no_lesson_d3: "lägg in lektion", no_paid_d7: "markera betalning",
+      trial_7_left: "prov −7 dagar", trial_2_left: "prov −2 dagar", trial_ended: "provperioden slut",
+      inactive_7: "vilande 7 dagar", inactive_14: "vilande 14 dagar",
+    } as Record<string, string>)[k] ?? k,
     importLoop: (lists: number, rows: number, top: string) => `👀 Importer på 7 dagar: <b>${lists}</b> listor med oigenkända rader (${rows} rader). Vanligast: ${top}`,
     tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
     tutToday: (n: number, w: string) => `\n📅 Idag: <b>${n} ${w}</b>:`,
@@ -390,6 +443,95 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       jobHealth = null;
     }
   }
+  // 19.10: лічильники за ДОБУ, а не «останній запуск». job_health віддає
+  // last_counts лише останнього успішного запуску — о 9:00 для щогодинного
+  // крону це «нічний» запуск без лічильників, і рядок показував «25×», тобто
+  // 25 ЗАПУСКІВ. Власниця прочитала це як 25 нагадувань. Тепер: сума
+  // лічильників усіх успішних запусків за 26 годин — «надіслано 0 · 25 запусків».
+  const SUM_KEYS = ["sent", "processed", "started", "archived", "created", "delivered"];
+  const LAST_KEYS = ["tables"];
+  const daySums = new Map<string, { runs: number; sum: Record<string, number>; last: Record<string, number> }>();
+  if (superadmins.size && jobHealth !== null) {
+    try {
+      const { data: runRows, error: runErr } = await sb
+        .from("job_runs")
+        .select("job, ok, counts")
+        .gte("started_at", new Date(Date.now() - 26 * 3600 * 1000).toISOString());
+      if (runErr) throw runErr;
+      for (const r of (runRows ?? []) as any[]) {
+        if (!r.ok) continue;
+        const agg = daySums.get(String(r.job)) ?? { runs: 0, sum: {}, last: {} };
+        agg.runs += 1;
+        const c = r.counts && typeof r.counts === "object" ? r.counts : {};
+        for (const k of SUM_KEYS) if (typeof c[k] === "number") agg.sum[k] = (agg.sum[k] ?? 0) + c[k];
+        for (const k of LAST_KEYS) if (typeof c[k] === "number") agg.last[k] = c[k];
+        daySums.set(String(r.job), agg);
+      }
+    } catch (e) {
+      console.error("job_runs day sums unavailable:", (e as any)?.message ?? e);
+    }
+  }
+  // Кому пішли нагадування про оплату (питання власниці 19.10 «куди пішли і кому?»):
+  // один рядок із журналу lesson_payment_reminders — скільки, скільком учням,
+  // від скількох репетиторів, якими каналами.
+  let remindersDay: { total: number; students: number; tutors: number; tg: number; push: number; bell: number } | null = null;
+  let mailDay: { sent: number; failed: number; blocked: number; pending: number } | null = null;
+  let chainDay: Map<string, number> | null = null;
+  if (superadmins.size) {
+    const since24 = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    try {
+      const { data: rem, error: remErr } = await sb
+        .from("lesson_payment_reminders")
+        .select("student_id, tutor_id, channel")
+        .gte("sent_at", since24);
+      if (remErr) throw remErr;
+      const rows = (rem ?? []) as any[];
+      remindersDay = {
+        total: rows.length,
+        students: new Set(rows.map((r) => String(r.student_id))).size,
+        tutors: new Set(rows.map((r) => String(r.tutor_id))).size,
+        tg: rows.filter((r) => r.channel === "telegram").length,
+        push: rows.filter((r) => r.channel === "webpush").length,
+        bell: rows.filter((r) => r.channel === "inapp").length,
+      };
+    } catch (e) {
+      console.error("reminders day summary failed:", (e as any)?.message ?? e);
+    }
+    try {
+      // Пошта: email_send_log пише і хук авторизації, і транзакційні листи.
+      // «Не дійшло» = failed + dlq; «заблоковано» = suppressed (відписка/скарга).
+      // Один лист = кілька рядків журналу (pending → sent/failed), тому рахуємо
+      // ОСТАННІЙ статус кожного message_id, інакше «у черзі» дорівнювало б «надіслано».
+      const { data: ml, error: mlErr } = await sb
+        .from("email_send_log")
+        .select("message_id, status, created_at")
+        .gte("created_at", since24)
+        .order("created_at", { ascending: true });
+      if (mlErr) throw mlErr;
+      const finalByMsg = new Map<string, string>();
+      for (const r of (ml ?? []) as any[]) finalByMsg.set(String(r.message_id ?? r.created_at), String(r.status));
+      const st = [...finalByMsg.values()];
+      mailDay = {
+        sent: st.filter((s) => s === "sent").length,
+        failed: st.filter((s) => s === "failed" || s === "dlq").length,
+        blocked: st.filter((s) => s === "suppressed").length,
+        pending: st.filter((s) => s === "pending" || s === "rate_limited").length,
+      };
+    } catch (e) {
+      console.error("mail day summary failed:", (e as any)?.message ?? e);
+    }
+    try {
+      const { data: lm, error: lmErr } = await sb
+        .from("lifecycle_messages")
+        .select("kind")
+        .gte("sent_at", since24);
+      if (lmErr) throw lmErr;
+      chainDay = new Map<string, number>();
+      for (const r of (lm ?? []) as any[]) chainDay.set(String(r.kind), (chainDay.get(String(r.kind)) ?? 0) + 1);
+    } catch (e) {
+      console.error("lifecycle day summary failed:", (e as any)?.message ?? e);
+    }
+  }
   // Цикл «вчимося з продакшену» (13.09): імпорт пише в app_events, які рядки не
   // впізнав — форму, не зміст. Раніше ці записи ніхто не читав. Тепер суперадмін
   // бачить раз на день: скільки списків спіткнулось і на чому — це і є дані для
@@ -462,8 +604,24 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       if (!j) { out.push(`⛔ ${esc(D.jobName(name))} — ${D.jobMissing}`); return; }
       const failures = Number(j.failures ?? 0);
       const runs = Number(j.runs ?? 0);
-      const n = primaryCount(j.last_counts);
-      const tail = n !== null ? ` — ${n}` : runs > 1 ? ` — ${runs}×` : "";
+      // Число за добу зі словом (надіслано/оброблено/таблиць); без лічильника —
+      // чесне «N запусків», а не голе «N×» (19.10).
+      const agg = daySums.get(name);
+      const sumKey = agg ? SUM_KEYS.find((k) => typeof agg.sum[k] === "number") : undefined;
+      const lastKey = agg ? LAST_KEYS.find((k) => typeof agg.last[k] === "number") : undefined;
+      const okRuns = agg?.runs ?? 0;
+      let tail = "";
+      if (sumKey && agg) {
+        const label = sumKey === "processed" ? D.jobProcessed(agg.sum[sumKey]) : D.jobSent(agg.sum[sumKey]);
+        // Кількість запусків — лише для щогодинних/щоденних процесів; щохвилинний
+        // телеграм-бот мав би «1440 запусків» у кожному рядку — це шум.
+        tail = ` — ${label}${okRuns > 1 && okRuns <= 200 ? ` · ${D.jobRuns(okRuns)}` : ""}`;
+      } else if (lastKey && agg) {
+        tail = ` — ${D.jobTables(agg.last[lastKey])}`;
+      } else {
+        const n = primaryCount(j.last_counts);
+        tail = n !== null ? ` — ${n}` : runs > 1 ? ` — ${D.jobRuns(runs)}` : "";
+      }
       if (failures > 0) {
         out.push(`⚠ ${esc(D.jobName(name))}${tail} · ${D.jobFailed(failures)}: ${esc(String(j.last_error ?? "").slice(0, 100) || "?")}`);
       } else {
@@ -637,6 +795,13 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));
       if (superadmins.has(userId)) {
         lines.push(...jobLines(D));
+        // Кому що пішло за добу — нагадування учням, пошта, ланцюжок (19.10).
+        if (remindersDay) lines.push(D.remindersDay(remindersDay.total, remindersDay.students, remindersDay.tutors, remindersDay.tg, remindersDay.push, remindersDay.bell));
+        if (mailDay) lines.push(D.mailDay(mailDay.sent, mailDay.failed, mailDay.blocked, mailDay.pending));
+        if (chainDay) {
+          const parts = [...chainDay.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${esc(D.chainKind(k))} ${n}`).join(" · ");
+          lines.push(parts ? D.chainDay(parts) : D.chainNone);
+        }
         lines.push(...errLines(D));
         if (importLoop) lines.push(D.importLoop(importLoop.lists, importLoop.rows, importLoop.top));
       }
