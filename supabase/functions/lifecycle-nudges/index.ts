@@ -5,7 +5,7 @@
 // «два тижні тиші — усе на місці». Воронка 13.10: 15 закінчених тріалів без
 // оплати, 0 підписок.
 //
-// Як працює: pg_cron кличе щогодини. База (`lifecycle_candidates`) сама вирішує,
+// Як працює: pg_cron кличе кожні 2 години вдень (19.10; до того щогодини). База (`lifecycle_candidates`) сама вирішує,
 // кому що сказати (одне повідомлення на людину на день, кожен крок — раз, сплячі —
 // раз на цикл сну, тихі години 20:00–09:00 Києва) і віддає цифри людини. Тут —
 // слова (`_shared/lifecycleTexts.ts`) і канали: Telegram, якщо є бот; інакше
@@ -16,7 +16,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { versionProbe } from "../_shared/build.ts";
 import { withJob } from "../_shared/jobRun.ts";
-import { lifecycleMessage, telegramText, normLang, type LifecycleKind, type LifecycleNumbers } from "../_shared/lifecycleTexts.ts";
+import { lifecycleMessage, telegramText, normLang, KINDS, type LifecycleKind, type LifecycleNumbers } from "../_shared/lifecycleTexts.ts";
 
 /** Ціни = src/lib/pricing.ts (PRICE_PER_MONTH.monthly / .yearly) — стереже lifecycle-nudges.test.ts. */
 const PRICE_MONTHLY = 299;
@@ -77,12 +77,41 @@ Deno.serve(withJob("lifecycle-nudges", async (req) => {
   const rows = (Array.isArray(data?.rows) ? data.rows : []) as Candidate[];
   if (quiet) return new Response(JSON.stringify({ ok: true, sent: 0, quiet: true }), { headers: { "Content-Type": "application/json" } });
 
-  let sent = 0, telegram = 0, email = 0, inapp = 0, failed = 0;
+  let sent = 0, telegram = 0, email = 0, inapp = 0, failed = 0, confirmResent = 0;
   const byKind: Record<string, number> = {};
   for (const c of rows) {
     const lang = normLang(c.lang);
-    const msg = lifecycleMessage(c.kind, lang, c.first_name ?? "", c.numbers, { monthly: PRICE_MONTHLY, yearly: PRICE_YEARLY });
+    // База може знати крок, якого ця збірка ще не вміє (міграція вставлена до
+    // передеплою). Пропускаємо з записом в лог — не падаємо всім запуском.
+    if (!KINDS.includes(c.kind)) {
+      console.error("[lifecycle-nudges] невідомий крок — пропущено:", c.kind, c.user_id);
+      failed++;
+      continue;
+    }
     if (dryRun) { byKind[c.kind] = (byKind[c.kind] ?? 0) + 1; continue; }
+    // 19.10: пошту не підтверджено — повторний лист підтвердження через auth
+    // («resend signup»: той самий лист, що при реєстрації, з ключем доступу до
+    // скриньки). Жодного дзвіночка — у застосунок людина ще не заходить.
+    if (c.kind === "unconfirmed_d1") {
+      if (!c.email) { failed++; continue; }
+      const redirect = `${APP_URL}/auth?confirmed=1&email=${encodeURIComponent(c.email)}&lng=${lang}`;
+      const { error: resendErr } = await admin.auth.resend({ type: "signup", email: c.email, options: { emailRedirectTo: redirect } });
+      if (resendErr) {
+        console.error("[lifecycle-nudges] повторний лист підтвердження не пішов:", c.user_id, resendErr.message);
+        failed++;
+        continue;
+      }
+      const { error: recErr } = await (admin.rpc as any)("lifecycle_record", {
+        _user_id: c.user_id, _kind: c.kind, _cycle_key: c.cycle_key ?? "", _channels: ["email_confirm"],
+        _meta: { lang, numbers: c.numbers, title: "resend signup" },
+      });
+      if (recErr) console.error("[lifecycle-nudges] журнал не записався:", recErr.message);
+      sent++; confirmResent++;
+      byKind[c.kind] = (byKind[c.kind] ?? 0) + 1;
+      await new Promise((r) => setTimeout(r, 60));
+      continue;
+    }
+    const msg = lifecycleMessage(c.kind, lang, c.first_name ?? "", c.numbers, { monthly: PRICE_MONTHLY, yearly: PRICE_YEARLY });
     const channels: string[] = [];
     try {
       // 1) Telegram — якщо є бот
@@ -130,7 +159,7 @@ Deno.serve(withJob("lifecycle-nudges", async (req) => {
     await new Promise((r) => setTimeout(r, 60));
   }
 
-  return new Response(JSON.stringify({ ok: true, sent, telegram, email, inapp, failed, candidates: rows.length, dryRun, ...byKind }), {
+  return new Response(JSON.stringify({ ok: true, sent, telegram, email, inapp, confirmResent, failed, candidates: rows.length, dryRun, ...byKind }), {
     headers: { "Content-Type": "application/json" },
   });
 }));

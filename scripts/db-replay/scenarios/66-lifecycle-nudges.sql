@@ -50,6 +50,9 @@ BEGIN
   PERFORM set_config('app.allow_independent_optin', NULL, true);
   UPDATE public.tutor_workspace_settings SET marketing_opt_in = false WHERE tutor_id = quiet;
   UPDATE auth.users SET created_at = t0 WHERE id IN (tutor, quiet, alias_);
+  -- 19.10: пошту підтверджено (інакше з 20261019180000 замість welcome — повторний
+  -- лист підтвердження; непідтверджених перевіряє сценарій 67).
+  UPDATE auth.users SET email_confirmed_at = t0 WHERE id IN (tutor, quiet, admin, alias_);
 
   -- ── (1) привітання — раз ────────────────────────────────────────────────────
   res := public.lifecycle_candidates(d0, 200);
@@ -118,6 +121,11 @@ BEGIN
 
   -- ── (4) сплячі: цикл сну ────────────────────────────────────────────────────
   -- остання активність = справжній now() (урок, ставка й деталі записані «зараз»)
+  -- 19.10: сплячі — лише для тих, у кого ядро відкрите (Pro/тріал). Тріал цього
+  -- репетитора минув на 31-й день; після кінця тріалу йому йде «повернення»
+  -- (сценарій 67), а не «нагадай учням одним дотиком», що без Pro не працює.
+  -- Тож для перевірки циклу сну робимо його платним.
+  UPDATE public.tutor_workspace_settings SET subscription_status = 'active', subscription_until = d0 + interval '400 days' WHERE tutor_id = tutor;
   res := public.lifecycle_candidates(d0 + interval '45 days', 200);
   SELECT x INTO row_ FROM jsonb_array_elements(res->'rows') x WHERE x->>'user_id' = tutor::text;
   IF row_ IS NULL OR row_->>'kind' <> 'inactive_14' THEN RAISE EXCEPTION 'ПРОВАЛ (4): 14+ днів тиші → inactive_14, а є %', res; END IF;
