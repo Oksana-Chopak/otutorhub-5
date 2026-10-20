@@ -4,6 +4,8 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { withErrorLog } from '../_shared/errorLog.ts'
+import { rateLimit } from '../_shared/rateLimit.ts'
+import { cleanPersonName, cleanLabels } from '../_shared/textSafety.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +14,11 @@ const corsHeaders = {
 }
 
 const RATE_LIMIT_HOURS = 24
+// Red team 20.10: ліміт був лише «один лист на скриньку на добу» — а скриньок
+// у відправника скільки завгодно (кожен «учень» із вигаданою поштою = новий
+// лист від нашого домену з його текстом у темі). Стеля НА ВІДПРАВНИКА, у базі.
+const PER_CALLER_HOUR = 40
+const PER_CALLER_DAY = 150
 
 Deno.serve(withErrorLog("send-student-invite", async (req) => {
   if (req.method === 'OPTIONS') {
@@ -50,6 +57,18 @@ Deno.serve(withErrorLog("send-student-invite", async (req) => {
 
   // Service role for safe lookups
   const admin = createClient(supabaseUrl, supabaseServiceKey)
+
+  // 0. Стеля на відправника (година + доба). Послідовно: добовий лічильник
+  //    чіпаємо лише коли годинний пройшов.
+  for (const [scope, max, win] of [
+    ['invite_caller_hour', PER_CALLER_HOUR, 3600],
+    ['invite_caller_day', PER_CALLER_DAY, 86400],
+  ] as [string, number, number][]) {
+    if ((await rateLimit(admin, scope, user.id, max, win)) === 'limit') {
+      console.error('[send-student-invite] caller rate-limited', { scope, user: user.id })
+      return json({ success: false, reason: 'rate_limited', message: 'Too many invites — try later' }, 200)
+    }
+  }
 
   // 1. Verify the student exists and is a pending ghost
   const { data: student, error: studentErr } = await admin
@@ -145,11 +164,13 @@ Deno.serve(withErrorLog("send-student-invite", async (req) => {
     .select('first_name, last_name')
     .eq('id', user.id)
     .maybeSingle()
+  // Імена й предмети пише сам відправник, а вони йдуть у ТЕМУ листа —
+  // без посилань/доменів і не довші за людське імʼя (_shared/textSafety.ts).
   const inviterName = inviter
-    ? [inviter.first_name, inviter.last_name].filter(Boolean).join(' ').trim() || undefined
+    ? cleanPersonName([inviter.first_name, inviter.last_name].filter(Boolean).join(' '))
     : undefined
-  const studentName =
-    [student.first_name, student.last_name].filter(Boolean).join(' ').trim() || undefined
+  const studentName = cleanPersonName([student.first_name, student.last_name].filter(Boolean).join(' '))
+  subjects = cleanLabels(subjects)
 
   // 6. Build invite URL — use server-side constant to prevent phishing via
   // attacker-controlled Origin header.

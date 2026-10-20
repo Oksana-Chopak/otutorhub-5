@@ -3,6 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { onSessionExpired, reportSessionExpired, resetSessionExpiry, isTransientAuthError, RESTORE_DELAYS_MS } from "@/integrations/supabase/sessionExpiry";
 import { toast } from "sonner";
+import { purgeLocalCaches } from "@/lib/localCaches";
 import i18n from "@/i18n";
 
 export type AppRole = "manager" | "tutor" | "student";
@@ -265,7 +266,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
         explicitSignOutRef.current = true;
         lastTokensRef.current = null;
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } finally {
+          // Red team 20.10: «Вийти» = чистий пристрій — кеш react-query (учні, уроки,
+          // гроші) не лишається в localStorage для наступної людини за цим компʼютером.
+          purgeLocalCaches();
+        }
   };
 
   const refreshRoles = async () => {

@@ -91,11 +91,14 @@ describe("щоденна рутина: Telegram-рядок і PR від Claude C
     expect(w).toMatch(/cron: "15 6 \* \* \*"/);
     expect(w).toMatch(/node scripts\/errors-daily\.mjs/);
     expect(w).toMatch(/uses: anthropics\/claude-code-action@v1/);
-    expect(w).toMatch(/if: \$\{\{ env\.HAS_CLAUDE_KEY == 'true' && steps\.report\.outputs\.new != '0'/);
-    // без дозволених інструментів Claude в режимі автоматизації нічого не виправить
-    expect(w).toMatch(/--allowedTools "Read,Edit,Write,Glob,Grep,Bash\(npm:\*\),Bash\(npx:\*\),Bash\(node:\*\),Bash\(git:\*\),Bash\(gh:\*\)"/);
+    expect(w).toMatch(/if: \$\{\{ needs\.report\.outputs\.has_key == 'true' && needs\.report\.outputs\.new != '0'/);
+    // без дозволених інструментів Claude в режимі автоматизації нічого не виправить —
+    // але з 20.10 (red team) у нього лише файли й ворота: гілку, коміт і PR робить воркфлоу
+    // (git/gh/node агентові не видаються — тексти помилок пише будь-який браузер).
+    expect(w).toMatch(/--allowedTools "Read,Edit,Write,Glob,Grep,Bash\(npm run gates:fast\),Bash\(npm run typecheck\),Bash\(npm run test\),Bash\(npx vitest run:\*\),Bash\(npx eslint:\*\)"/);
     expect(w).toMatch(/claude_code_oauth_token: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
-    expect(w).toMatch(/Заборонено: пушити в main/);
+    expect(w).toMatch(/Заборонено: змінювати supabase\/migrations/);
+    expect(w).toMatch(/gh pr create --base main/);
     const s = noComments(read("supabase/functions/errors-report/index.ts"));
     // 06.10: GitHub надсилає env CRON_SECRET (як для ci-report), а не vault-секрет pg_cron —
     // перша версія порівнювала лише з vault і відповідала власним 403. Тепер env перший,

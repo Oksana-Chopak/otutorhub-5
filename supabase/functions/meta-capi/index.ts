@@ -13,7 +13,10 @@
  * ЛИШЕ після згоди на куки. Імен, телефонів, пошт і самого списку учнів тут
  * немає й бути не може: тіло розбирається по білому списку полів.
  */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
+import { APP_ORIGINS } from "../_shared/appOrigins.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -26,6 +29,13 @@ const json = (status: number, body: unknown) =>
 const ALLOWED = new Set(["PageView", "Lead", "CompleteRegistration"]);
 const API_VERSION = "v21.0";
 
+// Red team 20.10: публічні двері без стелі — будь-хто міг нескінченно слати
+// вигадані «Lead»/«CompleteRegistration» у піксель власниці (отруєння
+// оптимізації реклами) і ганяти нашу функцію в бік Meta. Ліміт у базі
+// (_shared/rateLimit.ts): адреса + вся платформа; Origin лише з нашого сайту.
+const PER_IP_HOUR = 120;
+const PLATFORM_HOUR = 5000;
+
 Deno.serve(withErrorLog("meta-capi", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
@@ -33,6 +43,28 @@ Deno.serve(withErrorLog("meta-capi", async (req) => {
   const pixelId = Deno.env.get("META_PIXEL_ID");
   const token = Deno.env.get("META_CAPI_TOKEN");
   if (!pixelId || !token) return json(200, { skipped: "not_configured" });
+
+  // Origin — лише наш сайт або нативна обгортка (Capacitor: capacitor://localhost,
+  // https://localhost). Підробити заголовок із curl можна, тож справжня стеля — ліміт нижче.
+  const origin = req.headers.get("origin");
+  if (origin && !APP_ORIGINS.has(origin) && !/^(capacitor|https?):\/\/localhost$/.test(origin)) {
+    return json(200, { skipped: "origin" });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (supabaseUrl && serviceKey) {
+    const admin = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const ip = clientIp(req);
+    for (const [scope, key, max] of [
+      ["meta_capi_ip", ip, PER_IP_HOUR],
+      ["meta_capi_all", "platform", PLATFORM_HOUR],
+    ] as [string, string, number][]) {
+      if ((await rateLimit(admin, scope, key, max, 3600)) === "limit") {
+        return json(200, { skipped: "rate_limited" });
+      }
+    }
+  }
 
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json(400, { error: "bad_json" }); }

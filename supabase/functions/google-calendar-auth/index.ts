@@ -12,9 +12,20 @@
 //      user_id server-side, then signs OAuth state and redirects to Google.
 //
 // The session JWT only ever travels in an Authorization header, never in a URL.
+//
+// Red team 20.10 (login-CSRF на OAuth): підписаний state доводив лише, ХТО
+// почав потік, а не що завершує його ТОЙ САМИЙ браузер. Репетитор міг узяти
+// свою адресу згоди Google (state зі своїм user_id, 15 хв) і надіслати її
+// жертві: жертва погоджується — її календар записувався під акаунтом
+// нападника. Тепер крок 2 кладе в браузер одноразовий nonce (cookie
+// `oth_oauth`, лише для шляху callback, SameSite=Lax) і той самий nonce у
+// state; callback приймає токени лише коли cookie і state збігаються. Чужий
+// браузер cookie не має → потік падає з `session_mismatch`, нічого не пишеться.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { safeAppUrl } from "../_shared/appOrigins.ts";
+import { oauthCookieHeader } from "../_shared/oauthNonce.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,18 +44,10 @@ const SCOPE = [
 const DEFAULT_RETURN_TO = "https://otutorhub.com/profile";
 const CODE_TTL_SECONDS = 60;
 
+// Закритий список хостів (_shared/appOrigins.ts): раніше тут проходив будь-який
+// `*.lovable.app`, тобто й чужий проєкт на Lovable міг бути адресою повернення.
 function safeReturnTo(value: string | null) {
-  if (!value) return DEFAULT_RETURN_TO;
-  try {
-    const url = new URL(value);
-    const isAllowedHost =
-      url.hostname === "otutorhub.com" ||
-      url.hostname === "www.otutorhub.com" ||
-      url.hostname.endsWith(".lovable.app");
-    return url.protocol === "https:" && isAllowedHost ? url.toString() : DEFAULT_RETURN_TO;
-  } catch (_) {
-    return DEFAULT_RETURN_TO;
-  }
+  return safeAppUrl(value) ?? DEFAULT_RETURN_TO;
 }
 
 function b64urlEncode(bytes: Uint8Array) {
@@ -163,8 +166,10 @@ Deno.serve(withErrorLog("google-calendar-auth", async (req) => {
       return jsonResponse({ error: "invalid or expired code" }, 401);
     }
 
+    // nonce — у state (підписано) і в cookie цього браузера (лише для callback).
+    const nonce = randomCode();
     const state = await buildSignedState(
-      { user_id: redeemed.user_id, return_to: safeReturnTo(redeemed.return_to) },
+      { user_id: redeemed.user_id, return_to: safeReturnTo(redeemed.return_to), nonce },
       stateSecret,
     );
 
@@ -179,10 +184,15 @@ Deno.serve(withErrorLog("google-calendar-auth", async (req) => {
       include_granted_scopes: "true",
     });
 
-    return Response.redirect(
-      `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
-      302,
-    );
+    // Response.redirect() має незмінні заголовки — Set-Cookie потребує власного Response.
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+        "Set-Cookie": oauthCookieHeader(nonce),
+        "Cache-Control": "no-store",
+      },
+    });
   }
 
   return jsonResponse({ error: "method not allowed" }, 405);

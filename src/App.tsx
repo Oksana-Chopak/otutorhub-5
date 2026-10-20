@@ -4,6 +4,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { BUILD_TAG } from "@/lib/buildInfo";
+import { RQ_PERSIST_KEY, registerQueryClient } from "@/lib/localCaches";
 import { initOfflineQueue } from "@/lib/offlineQueue";
 import { BrowserRouter, Route, Routes, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -82,12 +83,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+registerQueryClient(queryClient);
 
 // D (офлайн): кеш react-query переживає перезавантаження (localStorage);
 // BUILD_TAG як buster — новий реліз не читає старий формат кеша.
+// Ключ один на застосунок (src/lib/localCaches.ts): «Вийти» стирає саме його.
 const persister = createSyncStoragePersister({
   storage: typeof window !== "undefined" ? window.localStorage : undefined,
-  key: "otutorhub.rq-cache.v1",
+  key: RQ_PERSIST_KEY,
   throttleTime: 2000,
 });
 
@@ -180,9 +183,11 @@ function AppRoutes() {
                 відкривали сторінку й бачили замок. Витоку не було (тримає RLS), але
                 маршрут має збігатися з тим, що показує сайдбар. */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["manager"]} superadmin><AdminStatsPage /></ProtectedRoute>} />
-            <Route path="/errors" element={<ProtectedRoute allowedRoles={["manager"]}><ErrorLogPage /></ProtectedRoute>} />
-            <Route path="/feedback-inbox" element={<ProtectedRoute allowedRoles={["manager"]}><FeedbackInboxPage /></ProtectedRoute>} />
-            <Route path="/marketing" element={<ProtectedRoute allowedRoles={["manager"]}><MarketingPage /></ProtectedRoute>} />
+            {/* Red team 20.10: ці дані в базі платформні (RLS/RPC — is_superadmin()), тож і
+                маршрут, і пункт у сайдбарі — лише для суперадміна, не для кожного менеджера. */}
+            <Route path="/errors" element={<ProtectedRoute allowedRoles={["manager"]} superadmin><ErrorLogPage /></ProtectedRoute>} />
+            <Route path="/feedback-inbox" element={<ProtectedRoute allowedRoles={["manager"]} superadmin><FeedbackInboxPage /></ProtectedRoute>} />
+            <Route path="/marketing" element={<ProtectedRoute allowedRoles={["manager"]} superadmin><MarketingPage /></ProtectedRoute>} />
             <Route path="/my-students" element={<ProtectedRoute allowedRoles={["tutor"]}><MyStudentsPage /></ProtectedRoute>} />
             <Route path="/groups" element={<ProtectedRoute allowedRoles={["tutor", "manager"]}><GroupsPage /></ProtectedRoute>} />
             <Route path="/referrals" element={<ProtectedRoute allowedRoles={["manager"]}><ReferralsPage /></ProtectedRoute>} />
@@ -190,8 +195,8 @@ function AppRoutes() {
             <Route path="/achievements" element={<ProtectedRoute allowedRoles={["tutor", "student"]}><AchievementsPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute allowedRoles={["tutor", "manager"]}><ProfilePage /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute allowedRoles={["tutor"]}><SubscriptionPage /></ProtectedRoute>} />
-            <Route path="/subscription-requests" element={<ProtectedRoute allowedRoles={["manager"]}><SubscriptionRequestsPage /></ProtectedRoute>} />
-            <Route path="/paywall-metrics" element={<ProtectedRoute allowedRoles={["manager"]}><PaywallMetricsPage /></ProtectedRoute>} />
+            <Route path="/subscription-requests" element={<ProtectedRoute allowedRoles={["manager"]} superadmin><SubscriptionRequestsPage /></ProtectedRoute>} />
+            <Route path="/paywall-metrics" element={<ProtectedRoute allowedRoles={["manager"]} superadmin><PaywallMetricsPage /></ProtectedRoute>} />
             <Route path="/wallets" element={<ProtectedRoute allowedRoles={["manager", "tutor"]}><WalletsPage /></ProtectedRoute>} />
             <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboardPage /></ProtectedRoute>} />
             <Route path="/student/schedule" element={<ProtectedRoute allowedRoles={["student"]}><StudentSchedulePage /></ProtectedRoute>} />

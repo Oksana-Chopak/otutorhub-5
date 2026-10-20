@@ -99,11 +99,24 @@ BEGIN
   END IF;
   RAISE NOTICE '✅ (3) чужа реєстрація з телефоном запрошеного нічого не забрала — запрошення живе';
 
-  -- ── (4) сам учень приходить зі своєї пошти → перенесено ──────────────────
+  -- ── (4) сам учень приходить зі своєї пошти → перенесено ПІСЛЯ підтвердження ──
+  -- 20.10 (red team): реєстрація без підтвердженої пошти нічого не переносить —
+  -- «знаю пошту запрошеного» більше не доказ. Злиття робить підтвердження
+  -- (лист Supabase або confirm-pending-signup з ключем із листа).
   INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES
     (victim, 'maria96@test.local', '{"first_name":"Марія","last_name":"Справжня"}');
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = ghostA AND is_pending = true) THEN
+    RAISE EXCEPTION '(4) ДІРКА: запрошений профіль злився з НЕПІДТВЕРДЖЕНИМ акаунтом';
+  END IF;
+  SELECT count(*) INTO n FROM public.lessons WHERE student_id = victim;
+  IF n <> 0 THEN RAISE EXCEPTION '(4) ДІРКА: урок перейшов на непідтверджений акаунт'; END IF;
+  IF NOT public.is_pending_email('maria96@test.local') THEN
+    RAISE EXCEPTION '(4) до підтвердження пошта має лишатись «запрошеною» (інакше fast path confirm-pending-signup зачинений)';
+  END IF;
+  RAISE NOTICE '✅ (4a) реєстрація без підтвердження пошти нічого не переносить';
+  UPDATE auth.users SET email_confirmed_at = now() WHERE id = victim;
   IF EXISTS (SELECT 1 FROM public.profiles WHERE id = ghostA) THEN
-    RAISE EXCEPTION '(4) запрошений профіль не злився з реальним акаунтом';
+    RAISE EXCEPTION '(4) запрошений профіль не злився з реальним акаунтом після підтвердження';
   END IF;
   SELECT count(*) INTO n FROM public.student_rates WHERE student_id = victim AND tutor_id = tutor;
   IF n <> 1 THEN RAISE EXCEPTION '(4) ставка не перейшла на реальний акаунт (%)', n; END IF;
@@ -115,11 +128,11 @@ BEGIN
   IF public.is_pending_email('maria96@test.local') THEN
     RAISE EXCEPTION '(4) пошта й далі «запрошена» — репетитор бачив би учня як не зареєстрованого';
   END IF;
-  RAISE NOTICE '✅ (4) свій акаунт зі своєї пошти отримав уроки, ставку й контакти запрошення (раніше злиття з уроками падало: student_id is immutable)';
+  RAISE NOTICE '✅ (4) свій акаунт зі своєї пошти отримав уроки, ставку й контакти запрошення (злиття — у момент підтвердження пошти; раніше злиття з уроками падало: student_id is immutable)';
 
   -- ── (5) запрошений лише з телефоном → реєстрація з телефоном переносить ──
-  INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES
-    (phoneOnly, 'taras96@test.local', '{"first_name":"Тарас","last_name":"Справжній","phone":"+380509998877"}');
+  INSERT INTO auth.users (id, email, email_confirmed_at, raw_user_meta_data) VALUES
+    (phoneOnly, 'taras96@test.local', now(), '{"first_name":"Тарас","last_name":"Справжній","phone":"+380509998877"}');
   IF EXISTS (SELECT 1 FROM public.profiles WHERE id = ghostB) THEN
     RAISE EXCEPTION '(5) запрошений ЛИШЕ з телефоном не злився — шлях без пошти зламано';
   END IF;

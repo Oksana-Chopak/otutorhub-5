@@ -91,8 +91,9 @@ const allNavItems: NavItem[] = [
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["manager"] },
   { to: "/wallets", labelKey: "walletsPage.title", icon: Wallet, roles: ["manager"] },
-  { to: "/marketing", labelKey: "nav.marketing", icon: Mail, roles: ["manager"] },
-  { to: "/errors", labelKey: "nav.errors", icon: AlertTriangle, roles: ["manager"] },
+  // Red team 20.10: платформні екрани (дані гейтить is_superadmin()) — лише суперадміну
+  { to: "/marketing", labelKey: "nav.marketing", icon: Mail, roles: ["manager"], superadminOnly: true },
+  { to: "/errors", labelKey: "nav.errors", icon: AlertTriangle, roles: ["manager"], superadminOnly: true },
   { to: "/admin", labelKey: "nav.admin", icon: BarChart3, roles: ["manager"], superadminOnly: true },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["manager"] },
   // Student — mirrors STUDENT_NAV_DEFS so the student rides the SAME AppSidebar as
