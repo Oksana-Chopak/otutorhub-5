@@ -2,6 +2,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { tutorAiAllowed } from "../_shared/aiGate.ts";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { firefliesTitleFor } from "../_shared/firefliesTitle.ts";
 
 Deno.serve(withErrorLog("fireflies-start-recording", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -31,7 +32,10 @@ Deno.serve(withErrorLog("fireflies-start-recording", async (req) => {
     }
     const userId = claimsData.claims.sub as string;
 
-    let body: { lessonId?: string; meetingUrl?: string; title?: string };
+    // Red team 20.10 (H1): клієнтського `title` більше немає — назву зустрічі
+    // будує лише сервер (див. _shared/firefliesTitle.ts). Довільна назва з
+    // `[<uuid чужого уроку>]` клала чужий транскрипт у чужий урок.
+    let body: { lessonId?: string; meetingUrl?: string };
     try {
       body = await req.json();
     } catch {
@@ -41,7 +45,7 @@ Deno.serve(withErrorLog("fireflies-start-recording", async (req) => {
       });
     }
 
-    const { lessonId, meetingUrl, title } = body;
+    const { lessonId, meetingUrl } = body;
     if (!lessonId || typeof lessonId !== "string") {
       return new Response(JSON.stringify({ error: "lessonId is required" }), {
         status: 400,
@@ -92,7 +96,16 @@ Deno.serve(withErrorLog("fireflies-start-recording", async (req) => {
       });
     }
 
-    const meetingTitle = (title && title.trim()) || `Tutoring: ${lesson.subject ?? "session"} [${lessonId}]`;
+    // Назва без предмета: предмет — вільний текст репетитора, і «x [<чужий uuid>]»
+    // у ньому обходив би будь-яку регулярку вебхука. Тег HMAC — єдиний доказ.
+    const titleSecret = Deno.env.get("FIREFLIES_WEBHOOK_SECRET");
+    if (!titleSecret) {
+      return new Response(JSON.stringify({ error: "FIREFLIES_WEBHOOK_SECRET is not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const meetingTitle = await firefliesTitleFor(lesson.id, titleSecret);
 
     const mutation = `
       mutation AddBot($meeting_link: String!, $title: String!) {

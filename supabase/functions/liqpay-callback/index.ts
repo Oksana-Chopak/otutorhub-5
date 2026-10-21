@@ -115,9 +115,12 @@ Deno.serve(withErrorLog("liqpay-callback", async (req) => {
         subscription_until: periodEnd!.toISOString(),
         current_plan: paymentRow.plan,
       };
+      // Red team 20.10: токен картки живе ЛИШЕ в liqpay_payments.card_token (колонка
+      // схована від браузера колонковим GRANT, міграція 20261020100000). У
+      // tutor_workspace_settings його більше не дублюємо — той рядок репетитор читає
+      // цілком (`select *`), і токен рекурентного списання їхав у браузер.
       if (paymentRow.is_recurring) {
         update.liqpay_recurring_active = true;
-        if (cardToken) update.liqpay_card_token = cardToken;
       }
       // 18.09: тут не перевірявся error, а функція нижче безумовно віддавала
       // LiqPay «OK». Тобто при будь-якому збої бази репетитор ПЛАТИВ карткою,

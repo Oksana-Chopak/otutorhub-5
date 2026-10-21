@@ -56,13 +56,18 @@ describe("публічні функції обмежують частоту в �
 describe("анкета підбору не переписує чужі дані", () => {
   const s = () => noComments(read("supabase/functions/landing-find-tutor-quiz/index.ts"));
 
-  it("телефон у profile_contacts — лише для щойно створеного акаунта", () => {
+  it("анкета не створює акаунтів і не пише в profile_contacts взагалі (red team 20.10)", () => {
+    /* До 20.10 анонім міг завести auth-користувача на будь-яку пошту (випадковий
+       пароль, лист не йшов): справжній власник бачив «пошта зайнята», а запрошений
+       учень із цією поштою зливався в акаунт, яким ніхто не володіє. Тепер заявка
+       живе своїми полями (lead_*), акаунт — лише пошук за user_id_by_email. */
     const src = s();
-    expect(src).toMatch(/let isNewAccount = false;/);
-    expect(src).toMatch(/isNewAccount = true;/);
-    const guard = /if \(isNewAccount && userId && phone\) \{[\s\S]*?profile_contacts/;
-    expect(src, "upsert телефону мусить стояти під умовою isNewAccount").toMatch(guard);
-    expect((src.match(/from\("profile_contacts"\)/g) ?? []).length, "один-єдиний запис у контакти").toBe(1);
+    expect(src).not.toMatch(/auth\.admin\.createUser\(/);
+    expect(src).not.toMatch(/generateLink\(/);
+    expect(src).not.toMatch(/from\("profile_contacts"\)/);
+    expect(src).toMatch(/lead_email: email/);
+    expect(src).toMatch(/lead_phone: phone/);
+    expect(src, "імʼя з анкети чиститься від посилань (воно йде менеджеру в заявку)").toMatch(/cleanPersonName\(body\.name/);
   });
 
   it("ліміт на пошту — щоб чужу скриньку не завалити листами підтвердження", () => {

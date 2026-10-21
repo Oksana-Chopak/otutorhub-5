@@ -1,12 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Best-effort client error logger → public.error_log (managers read it on /errors).
+// Best-effort client error logger → public.error_log (superadmin reads it on /errors).
 // Deduped within a short window so a render loop can't spam the table, and never
-// throws (logging must not break the app). The table is added by migration
-// 20260627000000; until that is applied the insert just fails silently.
+// throws (logging must not break the app).
+//
+// Red team 20.10: запис іде через RPC `log_client_error` (міграція 20261020100000),
+// не прямим INSERT: user_id бере сервер із JWT, стеля 60/год на людину чи адресу,
+// адреса без query і без токенів у шляху. До вставки SQL виклик тихо падає — як і
+// раніше падав би insert без таблиці.
 
 const recent = new Map<string, number>();
 const DEDUPE_MS = 30_000;
+
+/** Адреса для журналу: без query (?invite=, ?email=, ?confirmed=) і без токенів у шляху. */
+export function scrubUrlForLog(pathname: string): string {
+  const path = pathname.split("?")[0].split("#")[0];
+  return path.replace(/^(\/(pay|join)\/)[^/]+/, "$1…").slice(0, 300);
+}
 
 export async function logError(
   message: string,
@@ -30,18 +40,14 @@ export async function logError(
     if (last && now - last < DEDUPE_MS) return;
     recent.set(key, now);
 
-    const { data: auth } = await supabase.auth.getUser();
-    await (supabase as any).from("error_log").insert({
-      user_id: auth?.user?.id ?? null,
-      message: String(message).slice(0, 2000),
-      stack: stack ? String(stack).slice(0, 6000) : null,
-      url:
-        typeof window !== "undefined"
-          ? window.location.pathname + window.location.search
-          : null,
-      user_agent:
-        typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 400) : null,
-      context: context ?? null,
+    // RPC з міграції 20261020100000 — до перегенерації types.ts через (rpc as any),
+    // як і решта свіжих RPC у репо.
+    await (supabase.rpc as any)("log_client_error", {
+      _message: String(message).slice(0, 2000),
+      _stack: stack ? String(stack).slice(0, 6000) : null,
+      _url: typeof window !== "undefined" ? scrubUrlForLog(window.location.pathname) : null,
+      _user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 400) : null,
+      _context: context ?? null,
     });
   } catch {
     // Never let logging throw.

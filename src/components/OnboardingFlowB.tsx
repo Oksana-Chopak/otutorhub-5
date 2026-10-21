@@ -1512,7 +1512,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
         .then((r: any) => patch({ hasReferral: (r.data?.length ?? 0) > 0 }));
       safe(supabase.from("chat_threads").select("id").eq("tutor_id", user.id).limit(1), {data:[]} as any)
         .then((r: any) => patch({ hasChat: (r.data?.length ?? 0) > 0 }));
-      safe(supabase.from("google_calendar_tokens" as any).select("id").eq("user_id", user.id).limit(1), {data:[]} as any)
+      /* 20.10: у таблиці немає колонки `id` (types.ts) — select("id") давав 400, який `safe`
+         ковтав, і бонус «календар підключено» в онбордингу не зараховувався ніколи. */
+      safe(supabase.from("google_calendar_tokens" as any).select("user_id").eq("user_id", user.id).limit(1), {data:[]} as any)
         .then((r: any) => patch({ hasGoogleCalendar: (r.data?.length ?? 0) > 0 }));
     })();
     return () => { cancelled = true; };

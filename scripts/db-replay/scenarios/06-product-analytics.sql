@@ -93,8 +93,9 @@ BEGIN
   RAISE NOTICE '✅ (2) прапорці: вимкнений — усім false; 0 %% + поіменно — лише дозволеному; анонім — лише 100 %% і не пише';
 
   -- ── (3) групи помилок ─────────────────────────────────────────────────────
+  -- 20.10: анонім пише лише через log_client_error (прямий INSERT відкликано — сценарій 68)
   PERFORM set_config('role', 'anon', true);
-  INSERT INTO public.error_log (message, url) VALUES ('Cannot read lesson 11111111-1111-4111-8111-111111111111 (code 500)', '/auth');
+  PERFORM public.log_client_error('Cannot read lesson 11111111-1111-4111-8111-111111111111 (code 500)', NULL, '/auth', NULL, NULL);
   PERFORM set_config('role', 'postgres', true);
   INSERT INTO public.error_log (user_id, message, url) VALUES
     (t1, 'Cannot read lesson 22222222-2222-4222-8222-222222222222 (code 503)', '/schedule'),

@@ -1,6 +1,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { lessonIdFromTitle, legacyLessonIdFromTitle } from "../_shared/firefliesTitle.ts";
 
 // Public webhook: Fireflies POSTs here when a transcript is ready.
 // Configure the URL in Fireflies dashboard:
@@ -137,10 +138,19 @@ Deno.serve(withErrorLog("fireflies-webhook", async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Find lesson by stored meeting id (set when bot was added) OR by clientReferenceId
-    // Title fallback: we wrote `[lessonId]` into the title — Fireflies may echo it back.
-    // We match by fireflies_meeting_id first; if not yet set, we try to parse [lessonId] from title.
+    // Який урок? (red team 20.10, H1)
+    //   1) збережений fireflies_meeting_id (повторний вебхук тієї ж зустрічі);
+    //   2) назва зустрічі `oTutorHub [<lessonId>.<HMAC-тег>]` — лише зі справжнім
+    //      тегом (_shared/firefliesTitle.ts); підробити його без секрету не можна;
+    //   3) старий формат `[<uuid>]` без тегу або clientReferenceId — ЛИШЕ для уроку,
+    //      де бот справді був замовлений нами (lesson_details.fireflies_status =
+    //      'requested'): записи, запущені до цього деплою, мають долетіти, а чужий
+    //      uuid у назві зустрічі більше не є «адресою».
+    // Було: будь-який `[uuid]` у назві → транскрипт лягав у той урок, тож репетитор
+    // міг записати СВОЮ зустріч з назвою `x [<чужий урок>]` і підкласти чужому
+    // репетитору «готовий конспект» зі своїм текстом.
     let lessonId: string | null = null;
+    let resolvedBy: "meeting_id" | "bound_title" | "legacy_requested" | null = null;
 
     // 1) Look up by stored fireflies_meeting_id
     const { data: byMeeting } = await admin
@@ -151,19 +161,41 @@ Deno.serve(withErrorLog("fireflies-webhook", async (req) => {
 
     if (byMeeting?.lesson_id) {
       lessonId = byMeeting.lesson_id;
-    } else if (typeof t.title === "string") {
-      // 2) Parse [lessonId] from title
-      const m = t.title.match(/\[([0-9a-f-]{36})\]/i);
-      if (m) lessonId = m[1];
+      resolvedBy = "meeting_id";
+    } else {
+      // 2) HMAC-bound title
+      const bound = await lessonIdFromTitle(t.title, expectedSecret);
+      if (bound) {
+        lessonId = bound;
+        resolvedBy = "bound_title";
+      }
     }
 
-    // 3) Or fall back to clientReferenceId from webhook
-    if (!lessonId && typeof payload.clientReferenceId === "string") {
-      lessonId = payload.clientReferenceId;
+    // 3) Legacy bare id / clientReferenceId — only if WE requested a bot for it.
+    if (!lessonId) {
+      const candidates = [
+        legacyLessonIdFromTitle(t.title),
+        typeof payload.clientReferenceId === "string" && /^[0-9a-f-]{36}$/i.test(payload.clientReferenceId)
+          ? payload.clientReferenceId.toLowerCase()
+          : null,
+      ].filter((c): c is string => !!c);
+      for (const cand of candidates) {
+        const { data: requested } = await admin
+          .from("lesson_details")
+          .select("lesson_id, fireflies_status")
+          .eq("lesson_id", cand)
+          .eq("fireflies_status", "requested")
+          .maybeSingle();
+        if (requested?.lesson_id) {
+          lessonId = requested.lesson_id;
+          resolvedBy = "legacy_requested";
+          break;
+        }
+      }
     }
 
     if (!lessonId) {
-      console.log("Webhook: could not resolve lessonId for meeting", meetingId);
+      console.log("Webhook: could not resolve lessonId for meeting", meetingId, "title:", typeof t.title === "string" ? t.title.slice(0, 80) : null);
       return new Response(JSON.stringify({ ok: true, resolved: false }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -236,7 +268,7 @@ Deno.serve(withErrorLog("fireflies-webhook", async (req) => {
       }
     }
 
-    console.log("Fireflies webhook stored transcript for lesson", lessonId, "event:", eventType);
+    console.log("Fireflies webhook stored transcript for lesson", lessonId, "event:", eventType, "resolved by:", resolvedBy);
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

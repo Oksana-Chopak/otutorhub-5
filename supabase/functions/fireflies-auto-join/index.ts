@@ -6,6 +6,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { tutorAiAllowed } from "../_shared/aiGate.ts";
 import { withJob } from "../_shared/jobRun.ts";
+import { firefliesTitleFor } from "../_shared/firefliesTitle.ts";
 
 const MIN_MS = 60 * 1000;
 
@@ -51,6 +52,12 @@ Deno.serve(withJob("fireflies-auto-join", async (req) => {
   }
   if (!apiKey) {
     return new Response(JSON.stringify({ error: "FIREFLIES_API_KEY not configured" }), { status: 500 });
+  }
+  // Red team 20.10 (H1): назва зустрічі несе HMAC-тег уроку (_shared/firefliesTitle.ts),
+  // інакше вебхук її не привʼяже. Секрет той самий, що перевіряє вебхук.
+  const titleSecret = Deno.env.get("FIREFLIES_WEBHOOK_SECRET");
+  if (!titleSecret) {
+    return new Response(JSON.stringify({ error: "FIREFLIES_WEBHOOK_SECRET not configured" }), { status: 500 });
   }
 
   const now = Date.now();
@@ -111,7 +118,7 @@ Deno.serve(withJob("fireflies-auto-join", async (req) => {
     }
     if (!meetingUrl || !/^https?:\/\//i.test(meetingUrl)) { skipped++; continue; }
 
-    const title = `Tutoring: ${lesson.subject ?? "session"} [${lesson.id}]`;
+    const title = await firefliesTitleFor(String(lesson.id), titleSecret);
     const ok = await dispatchBot(apiKey, meetingUrl, title);
     if (!ok) { skipped++; continue; }
 

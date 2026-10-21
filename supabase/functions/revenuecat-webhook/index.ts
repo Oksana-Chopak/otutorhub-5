@@ -29,6 +29,20 @@ Deno.serve(withErrorLog("revenuecat-webhook", async (req) => {
     if (!appUserId) {
       return new Response(JSON.stringify({ error: 'No app_user_id' }), { status: 400 });
     }
+    // Red team 20.10: RevenueCat шле і SANDBOX-події (TestFlight, тестові
+    // Apple ID). Без цієї перевірки тестова «покупка» вмикала справжній Pro.
+    // Для перевірки на стенді: секрет REVENUECAT_ALLOW_SANDBOX=1.
+    const environment: string = String(event.environment ?? 'PRODUCTION').toUpperCase();
+    if (environment !== 'PRODUCTION' && Deno.env.get('REVENUECAT_ALLOW_SANDBOX') !== '1') {
+      console.warn('RC webhook: non-production event ignored', { appUserId, type, environment });
+      return new Response(JSON.stringify({ ok: true, ignored: environment }), { status: 200 });
+    }
+    // app_user_id у нас — Supabase user.id; анонімні id RevenueCat ($RCAnonymousID:…)
+    // до жодного репетитора не ведуть, а в .eq('tutor_id') дали б 22P02 → 500 → повтори.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appUserId)) {
+      console.warn('RC webhook: app_user_id is not a user uuid', { appUserId, type });
+      return new Response(JSON.stringify({ ok: true, ignored: 'anonymous_app_user_id' }), { status: 200 });
+    }
 
     // Маппінг подій RevenueCat → наш статус.
     const ACTIVE = ['INITIAL_PURCHASE', 'RENEWAL', 'UNCANCELLATION', 'PRODUCT_CHANGE'];

@@ -397,6 +397,48 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
    значення (anon key публічний за задумом).
 Правило: знахідка без сценарію не вважається закритою.
 
+**Прохід 20.10 (жовтень; 4 незалежні перевірки + звірка на репліці) — закрито міграцією
+`20261020100000_redteam_october`, сценарієм `68-redteam-october.sql` (+ оновлений 96) і
+`src/test/redteam-october.test.ts`. Інваріанти, які він додав:**
+- **Fireflies = HMAC-тег у назві зустрічі.** Назву будує лише сервер:
+  `oTutorHub [<lessonId>.<тег>]` (`_shared/firefliesTitle.ts`, секрет `FIREFLIES_WEBHOOK_SECRET`);
+  вебхук приймає lessonId з назви ЛИШЕ зі справжнім тегом, старий `[uuid]` — лише для уроку з
+  `fireflies_status='requested'`. Клієнтського `title` немає; предмет у назву не йде (вільний
+  текст = обхід будь-якої регулярки). Було: `x [<чужий uuid>]` клав чужий транскрипт у чужий урок.
+- **OAuth Google привʼязаний до браузера.** `google-calendar-auth` кладе одноразовий nonce у
+  підписаний state І в cookie `oth_oauth` (лише шлях callback, HttpOnly, SameSite=Lax, 15 хв);
+  callback пише токени лише за збігу (`session_mismatch` інакше). Адреси повернення — закритий
+  список `_shared/appOrigins.ts`, НЕ `*.lovable.app`. Було: адресу згоди можна було переслати
+  жертві, і її календар записувався під акаунтом нападника.
+- **Злиття запрошеного профілю — лише з підтвердженою поштою** (`handle_new_user` при INSERT
+  тільки якщо `email_confirmed_at` є; тригер `on_auth_user_email_confirmed` для решти).
+  Побічно це полагодило fast path `confirm-pending-signup` (він перевіряє `is_pending_email`
+  ПІСЛЯ signUp). `merge_pending_profile` — EXECUTE лише у тригерів, ніколи у клієнта.
+- **Анкета лендінгу акаунтів не створює** (`landing-find-tutor-quiz`): заявка живе `lead_*`,
+  акаунт — лише пошук `user_id_by_email`. Імена з анкети/запрошень — через
+  `_shared/textSafety.ts` (без посилань і доменів: вони йдуть у ТЕМУ листа).
+- **Стелі в базі:** `create_notification` (сторонній → адміну 10/год, чужим 300/год),
+  `is_pending_email` (60/год з адреси, понад → false), `log_client_error` (єдиний шлях запису
+  клієнтських помилок: 60/год на людину, адреса без query і `/pay|/join` токенів),
+  `send-student-invite` (40/год, 150/добу на відправника), `meta-capi` (120/год з адреси).
+- **Секрети не їдуть у браузер:** `liqpay_payments.card_token/raw_callback` і
+  `google_calendar_tokens.access_token/refresh_token` — табличний REVOKE SELECT + колонковий
+  GRANT (сценарій 68 стежить, щоб КОЖНА інша колонка мала SELECT — інакше клієнтський select
+  упаде «порожнім екраном»); `tutor_workspace_settings.liqpay_card_token` більше не пишеться.
+  Нова колонка в цих двох таблицях = рядок у GRANT тієї ж міграції.
+- **Платформні екрани** (`/errors`, `/marketing`, `/feedback-inbox`, `/subscription-requests`,
+  `/paywall-metrics`) — `superadmin` у маршруті й `superadminOnly` у сайдбарі;
+  `approve_/reject_subscription_request` — лише `is_superadmin()`.
+- **«Вийти» = чистий пристрій:** `purgeLocalCaches()` (кеш react-query у памʼяті й на диску,
+  sessionStorage). Ключ персистера один — `RQ_PERSIST_KEY` у `src/lib/localCaches.ts`.
+- **Агент щоденних помилок без права запису** (`errors-daily.yml`): 4 кроки — report →
+  triage (Claude Code, `contents: read`, без git/gh/node, бачить лише нормалізовані підписи з
+  `scripts/errors-agent-input.mjs`) → verify (ворота на патчі, теж read) → open_pr (write, але
+  жодного коду з патча не виконує). Патч детерміновано без `.github/`, міграцій,
+  `config.toml`, `package*.json`. `seed-demo.yml` — лише з `main`.
+- **RevenueCat:** події з `environment != PRODUCTION` і анонімні `app_user_id` ігноруються
+  (стенд: `REVENUECAT_ALLOW_SANDBOX=1`).
+
 ### PUBLIC DOORS — публічні edge-функції (27.09) — INVIOLABLE
 - Ліміт частоти для функції з `verify_jwt = false`, що створює акаунти, шле листи
   чи пише в базу від імені аноніма, живе ЛИШЕ в базі: `rateLimit(admin, scope, key,

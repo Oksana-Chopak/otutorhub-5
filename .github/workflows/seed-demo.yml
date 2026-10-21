@@ -1,6 +1,9 @@
 name: 🌱 Seed reviewer demo
 on:
   push:
+    # Red team 20.10: лише main — інакше будь-яка гілка (у т.ч. автоматичний PR)
+    # із цим файлом запускала сідер із секретами E2E_*/SUPA_* на проді.
+    branches: [main]
     paths: ["scripts/seed-demo.version"]
   workflow_dispatch:
 

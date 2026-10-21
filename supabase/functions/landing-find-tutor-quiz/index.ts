@@ -2,6 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { cleanPersonName } from "../_shared/textSafety.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,10 +50,10 @@ Deno.serve(withErrorLog("landing-find-tutor-quiz", async (req) => {
     return json(400, { error: "invalid_json" });
   }
 
-  const name = (body.name ?? "").trim();
+  const name = cleanPersonName(body.name, 80) ?? "";
   const email = (body.email ?? "").trim().toLowerCase();
-  const phone = (body.phone ?? "").trim() || null;
-  if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const phone = (body.phone ?? "").trim().slice(0, 40) || null;
+  if (!name || !email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return json(400, { error: "invalid_input" });
   }
 
@@ -78,57 +79,16 @@ Deno.serve(withErrorLog("landing-find-tutor-quiz", async (req) => {
     }
   }
 
+  // Red team 20.10: анкета БІЛЬШЕ НЕ СТВОРЮЄ акаунтів. Раніше анонім міг завести
+  // auth-користувача на БУДЬ-ЯКУ пошту (випадковий пароль, лист не йшов): справжній
+  // власник скриньки потім бачив «пошта вже зайнята», а запрошений учень із такою
+  // поштою «зливався» у акаунт, яким ніхто не володіє. Заявка живе своїми полями
+  // (lead_name / lead_email / lead_phone); якщо пошта вже зареєстрована —
+  // привʼязуємо до акаунта за `user_id_by_email`, інакше student_id = NULL.
   let userId: string | null = null;
-
-  // Try to create the user; if it already exists, look it up.
-  const password = crypto.randomUUID() + crypto.randomUUID();
-  const ALLOWED_ORIGINS = new Set([
-    "https://otutorhub.com",
-    "https://www.otutorhub.com",
-    "https://otutorhub.lovable.app",
-    "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovable.app",
-  ]);
-  const rawOrigin = req.headers.get("origin") ?? undefined;
-  const origin = rawOrigin && ALLOWED_ORIGINS.has(rawOrigin) ? rawOrigin : undefined;
-  const { data: created, error: createErr } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: false,
-    user_metadata: { first_name: name, role: "student" },
-  });
-
-  let isNewAccount = false;
-  if (createErr) {
-    // Пошта вже зареєстрована — шукаємо акаунт у базі, а не через
-    // listUsers({perPage: 200}), який після 200-го користувача мовчки «не знаходив».
-    const { data: existingId, error: lookupErr } = await (admin.rpc as any)("user_id_by_email", { _email: email });
-    if (lookupErr) console.error("[landing-find-tutor-quiz] user_id_by_email failed", lookupErr.message);
-    if (typeof existingId === "string" && existingId) userId = existingId;
-  } else {
-    isNewAccount = true;
-    userId = created.user?.id ?? null;
-    // Send a magic-link / password reset so the user can sign in (since password is random).
-    try {
-      await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: { redirectTo: origin },
-      });
-    } catch (_) {
-      // ignore — Supabase will already send the signup confirmation.
-    }
-  }
-
-  // Телефон у профіль — ЛИШЕ для щойно створеного акаунта. Для вже
-  // зареєстрованої пошти анонім із лендінгу міг перезаписати чужий номер без
-  // жодного підтвердження (27.09) — тепер його номер лишається тільки в самій
-  // заявці (lead_phone), а профіль людини не чіпаємо.
-  if (isNewAccount && userId && phone) {
-    await admin.from("profile_contacts").upsert(
-      { user_id: userId, phone },
-      { onConflict: "user_id" },
-    );
-  }
+  const { data: existingId, error: lookupErr } = await (admin.rpc as any)("user_id_by_email", { _email: email });
+  if (lookupErr) console.error("[landing-find-tutor-quiz] user_id_by_email failed", lookupErr.message);
+  if (typeof existingId === "string" && existingId) userId = existingId;
 
   // Build a referral request entry.
   const quiz = body.quiz ?? { subjects: [], level: null, schedule: [], goal: null };
