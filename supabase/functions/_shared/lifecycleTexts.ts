@@ -12,7 +12,12 @@
 export type LifecycleKind =
   | "welcome" | "no_student_d1" | "no_lesson_d3" | "no_paid_d7"
   | "trial_7_left" | "trial_2_left" | "trial_ended"
-  | "inactive_7" | "inactive_14";
+  | "inactive_7" | "inactive_14"
+  /** 19.10: повернення після тріалу (вікна 10–30 · 30–60 · 60–90 · 90–120 днів). */
+  | "win_back"
+  /** 19.10: пошту не підтверджено — лист шле auth («resend signup»), не цей словник;
+   *  тут лише запис у дзвіночок не потрібен, тож текст — для журналу/дайджесту. */
+  | "unconfirmed_d1";
 
 export type Lang = "uk" | "en" | "sv";
 
@@ -47,6 +52,7 @@ export interface LifecycleMessage {
 export const KINDS: LifecycleKind[] = [
   "welcome", "no_student_d1", "no_lesson_d3", "no_paid_d7",
   "trial_7_left", "trial_2_left", "trial_ended", "inactive_7", "inactive_14",
+  "win_back", "unconfirmed_d1",
 ];
 
 const SYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", SEK: "kr", PLN: "zł", GBP: "£" };
@@ -152,6 +158,60 @@ function dormant(lang: Lang, name: string, n: LifecycleNumbers, longSilence: boo
   return { title, lines, cta: hasDebt ? { text: "Remind students", path: "/finances?tab=debts" } : { text: "Open the app", path: "/" } };
 }
 
+/**
+ * Повернення після тріалу (19.10). Тріал минув, учні є, Pro не купили: що саме
+ * лишилось у застосунку (справжні цифри), що чекає (борг/непозначені), і Pro за
+ * публічною ціною — Light лише в потоці скасування (рішення 05.09). Без докорів
+ * і без «ми за тобою сумуємо»: цифра → дія.
+ */
+function winBack(lang: Lang, name: string, n: LifecycleNumbers, pro: string): LifecycleMessage {
+  const hi = name ? `${name}, ` : "";
+  const hasDebt = n.debt_lessons > 0;
+  if (lang === "uk") {
+    const kept = n.students > 0 && n.lessons > 0
+      ? `твої ${n.students} ${ukStudents(n.students)} і ${n.lessons} ${ukLessons(n.lessons)} досі тут`
+      : n.students > 0 ? `твої ${n.students} ${ukStudents(n.students)} досі тут` : "усе, що ти вносив(ла), досі тут";
+    return {
+      title: `${hi}${kept}`,
+      lines: [
+        "Нічого не зникло: учні, уроки, історія оплат — усе на місці, як ти залишив(ла).",
+        hasDebt ? `Неоплачених: ${n.debt_lessons} ${ukLessons(n.debt_lessons)} на ${debtMoney(n)}. Щойно повернешся — нагадаємо кожному учню одним дотиком, з реквізитами й кнопкою «Я оплатив(ла)».` : "",
+        pro,
+        "Якщо тоді щось не зайшло чи було незручно — відповідай на цей лист одним рядком: читаю кожен.",
+      ].filter(Boolean),
+      cta: { text: "Повернутись з Pro", path: "/subscription" },
+    };
+  }
+  if (lang === "sv") {
+    const kept = n.students > 0 && n.lessons > 0
+      ? `dina ${n.students} elev${n.students === 1 ? "" : "er"} och ${n.lessons} lektion${n.lessons === 1 ? "" : "er"} finns kvar`
+      : n.students > 0 ? `dina ${n.students} elev${n.students === 1 ? "" : "er"} finns kvar` : "allt du lagt in finns kvar";
+    return {
+      title: `${hi}${kept}`,
+      lines: [
+        "Inget har försvunnit: elever, lektioner och betalningshistorik ligger kvar precis som du lämnade dem.",
+        hasDebt ? `Obetalt: ${n.debt_lessons} lektion${n.debt_lessons === 1 ? "" : "er"}, ${debtMoney(n)}. När du är tillbaka påminner vi varje elev med ett tryck — med bankuppgifter och knappen «Jag har betalat».` : "",
+        pro,
+        "Om något inte fungerade eller kändes krångligt — svara på det här mejlet med en rad.",
+      ].filter(Boolean),
+      cta: { text: "Kom tillbaka med Pro", path: "/subscription" },
+    };
+  }
+  const kept = n.students > 0 && n.lessons > 0
+    ? `your ${n.students} student${n.students === 1 ? "" : "s"} and ${n.lessons} lesson${n.lessons === 1 ? "" : "s"} are still here`
+    : n.students > 0 ? `your ${n.students} student${n.students === 1 ? "" : "s"} are still here` : "everything you entered is still here";
+  return {
+    title: `${hi}${kept}`,
+    lines: [
+      "Nothing is gone: students, lessons and payment history are exactly where you left them.",
+      hasDebt ? `Unpaid: ${n.debt_lessons} lesson${n.debt_lessons === 1 ? "" : "s"}, ${debtMoney(n)}. Once you’re back, one tap reminds every student — with your bank details and an “I’ve paid” button.` : "",
+      pro,
+      "If something didn’t work or felt awkward back then — reply to this email with one line.",
+    ].filter(Boolean),
+    cta: { text: "Come back with Pro", path: "/subscription" },
+  };
+}
+
 export function lifecycleMessage(
   kind: LifecycleKind,
   lang: Lang,
@@ -231,6 +291,12 @@ export function lifecycleMessage(
       };
       case "inactive_7": return dormant("uk", name, n, false);
       case "inactive_14": return dormant("uk", name, n, true);
+      case "win_back": return winBack("uk", name, n, proUk);
+      case "unconfirmed_d1": return {
+        title: `${hi}підтверди пошту — і oTutorHub відкриється`,
+        lines: ["Ти зареєструвався(лась), але пошту ще не підтверджено, тому вхід закритий. Ми надіслали лист підтвердження ще раз — одна кнопка в ньому.", "Якщо листа немає — перевір «Спам»."],
+        cta: { text: "Відкрити застосунок", path: "/" },
+      };
     }
   }
 
@@ -288,6 +354,12 @@ export function lifecycleMessage(
       };
       case "inactive_7": return dormant("sv", name, n, false);
       case "inactive_14": return dormant("sv", name, n, true);
+      case "win_back": return winBack("sv", name, n, proSv);
+      case "unconfirmed_d1": return {
+        title: `${hi}bekräfta din e-post — så öppnas oTutorHub`,
+        lines: ["Du registrerade dig, men e-posten är inte bekräftad än, så inloggningen är stängd. Vi har skickat bekräftelsemejlet igen — en knapp i det.", "Hittar du det inte — kolla skräpposten."],
+        cta: { text: "Öppna appen", path: "/" },
+      };
     }
   }
 
@@ -344,6 +416,12 @@ export function lifecycleMessage(
     };
     case "inactive_7": return dormant("en", name, n, false);
     case "inactive_14": return dormant("en", name, n, true);
+    case "win_back": return winBack("en", name, n, proEn);
+    case "unconfirmed_d1": return {
+      title: `${hi}confirm your email — and oTutorHub opens`,
+      lines: ["You signed up, but the email isn’t confirmed yet, so sign-in is closed. We’ve sent the confirmation email again — one button inside.", "Can’t find it — check spam."],
+      cta: { text: "Open the app", path: "/" },
+    };
   }
 }
 

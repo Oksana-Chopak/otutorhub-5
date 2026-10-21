@@ -52,7 +52,7 @@ const DT = {
     chainKind: (k: string) => ({
       welcome: "вітання", no_student_d1: "додай учня", no_lesson_d3: "постав урок", no_paid_d7: "познач оплату",
       trial_7_left: "тріал −7 днів", trial_2_left: "тріал −2 дні", trial_ended: "тріал закінчився",
-      inactive_7: "сплячі 7 днів", inactive_14: "сплячі 14 днів",
+      inactive_7: "сплячі 7 днів", inactive_14: "сплячі 14 днів", win_back: "повернення після тріалу", unconfirmed_d1: "підтверди пошту",
     } as Record<string, string>)[k] ?? k,
     importLoop: (lists: number, rows: number, top: string) => `👀 Імпорт за 7 днів: <b>${lists}</b> списків із невпізнаними рядками (${rows} рядків). Найчастіше: ${top}`,
     tutNone: "\nСьогодні вільний день — балдій, заряджайся! 🌴",
@@ -114,7 +114,7 @@ const DT = {
     chainKind: (k: string) => ({
       welcome: "welcome", no_student_d1: "add a student", no_lesson_d3: "add a lesson", no_paid_d7: "mark a payment",
       trial_7_left: "trial −7 days", trial_2_left: "trial −2 days", trial_ended: "trial ended",
-      inactive_7: "dormant 7 days", inactive_14: "dormant 14 days",
+      inactive_7: "dormant 7 days", inactive_14: "dormant 14 days", win_back: "win-back after trial", unconfirmed_d1: "confirm your email",
     } as Record<string, string>)[k] ?? k,
     importLoop: (lists: number, rows: number, top: string) => `👀 Imports in 7 days: <b>${lists}</b> lists with unrecognised lines (${rows} lines). Most common: ${top}`,
     tutNone: "\nA free day today — recharge! 🌴",
@@ -176,7 +176,7 @@ const DT = {
     chainKind: (k: string) => ({
       welcome: "välkommen", no_student_d1: "lägg till elev", no_lesson_d3: "lägg in lektion", no_paid_d7: "markera betalning",
       trial_7_left: "prov −7 dagar", trial_2_left: "prov −2 dagar", trial_ended: "provperioden slut",
-      inactive_7: "vilande 7 dagar", inactive_14: "vilande 14 dagar",
+      inactive_7: "vilande 7 dagar", inactive_14: "vilande 14 dagar", win_back: "återkomst efter prov", unconfirmed_d1: "bekräfta e-post",
     } as Record<string, string>)[k] ?? k,
     importLoop: (lists: number, rows: number, top: string) => `👀 Importer på 7 dagar: <b>${lists}</b> listor med oigenkända rader (${rows} rader). Vanligast: ${top}`,
     tutNone: "\nLedig dag idag — ladda batterierna! 🌴",
