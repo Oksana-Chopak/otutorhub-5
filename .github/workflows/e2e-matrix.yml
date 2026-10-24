@@ -15,7 +15,9 @@ permissions:
 jobs:
   e2e:
     name: 🎭 tests/e2e проти проду
-    runs-on: ubuntu-latest
+    # 24.10: та сама причина, що в ci.yml → prod-smoke: Playwright із lockfile не знає
+    # Ubuntu 26.04, на який GitHub переводить ubuntu-latest.
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       CI: "1"
