@@ -586,7 +586,12 @@ export default function DashboardPage() {
     const [trCountRes, srCountRes, fbCountRes, myRatesRes, gPartsRes, schedRes, myCountRes, hubTdRes, hubCountRes] =
       await Promise.all([
         isManager
-          ? supabase.from("tutor_referral_requests").select("id", { count: "exact", head: true }).in("status", ["open", "in_progress"])
+          /* 24.10: дашборд рахував open + in_progress («5 запитів»), а сторінка
+             «Запити на репетиторів» у заголовку — лише open («4 нових запити»).
+             Два екрани про те саме з різними числами. Текст задачі обіцяє
+             «учні залишили заявку — підберіть фахівця», тобто саме ті, що ЩЕ
+             чекають підбору: беремо open, і числа збігаються. */
+          ? supabase.from("tutor_referral_requests").select("id", { count: "exact", head: true }).eq("status", "open")
           : noop,
         isManager
           ? supabase.from("subscription_requests").select("id", { count: "exact", head: true }).in("status", ["new", "in_progress"])
@@ -2675,10 +2680,21 @@ export default function DashboardPage() {
                         </>
                       ) : (
                         <>
+                          {/* 24.10, живий прод: у шапці «2 уроки сьогодні», у плитці
+                              «УРОКІВ СЬОГОДНІ 2», а тут — «Сьогодні вільний день».
+                              Обидва уроки вже проведені, і для менеджера/хабового
+                              список «найближчих» свідомо показує лише ті, що ще не
+                              закінчились (рішення 04.09: урок об 11:00 не «найближчий»
+                              о 19:00). Список мав рацію — брехав ПІДПИС. Людина,
+                              яка щойно провела два уроки, читає «вільний день» як
+                              «застосунок їх втратив». Нічого не вигадуємо: коли
+                              сьогодні уроки БУЛИ, кажемо саме це. */}
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>
-                            {t("dashboard.noUpcoming")}
+                            {todayLessons.length > 0 ? t("dashboardExtra.todayNoMore") : t("dashboard.noUpcoming")}
                           </p>
-                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardExtra.todayFreeDay")}</p>
+                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>
+                            {todayLessons.length > 0 ? t("dashboardExtra.todayAllDone") : t("dashboardExtra.todayFreeDay")}
+                          </p>
                           {isTutor && !isManager && (
                             <Button
                               size="sm"

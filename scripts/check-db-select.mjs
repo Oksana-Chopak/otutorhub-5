@@ -22,6 +22,23 @@ import { join, relative } from "node:path";
 const root = process.cwd();
 const types = readFileSync(join(root, "src/integrations/supabase/types.ts"), "utf8");
 
+/* Міграції вище водяного знаку Lovable = ще не в базі. Збираємо, які функції
+   вони створюють, щоб відрізнити «чекає вставки» від «немає ніде». */
+const pendingFns = new Map();
+const pending = [];
+{
+  const MIG = join(root, "supabase/migrations");
+  const all = readdirSync(MIG).filter((f) => f.endsWith(".sql")).sort();
+  const hashes = all.filter((f) => /^\d{14}_[0-9a-f]{8}-[0-9a-f]{4}-/.test(f));
+  const watermark = hashes.length ? hashes[hashes.length - 1].slice(0, 14) : "00000000000000";
+  for (const f of all.filter((x) => x.slice(0, 14) > watermark)) {
+    const src = readFileSync(join(MIG, f), "utf8");
+    for (const mm of src.matchAll(/CREATE (?:OR REPLACE )?FUNCTION public\.([a-z0-9_]+)\s*\(/g)) {
+      if (!pendingFns.has(mm[1])) pendingFns.set(mm[1], f.slice(0, 14));
+    }
+  }
+}
+
 function section(name) {
   const i = types.indexOf(`    ${name}: {`);
   if (i < 0) return "";
@@ -120,16 +137,43 @@ for (const f of files) {
     if (sel[1] === "`" && sel[2].includes("${")) { skipped.push(`${rel}:${line} — select із шаблоном — пропущено`); continue; }
     checkCols(table, sel[2], rel, line);
   }
-  const rpcRe = /\.rpc\(\s*["']([a-z0-9_]+)["']/g;
-  while ((m = rpcRe.exec(src))) {
-    const line = src.slice(0, m.index).split("\n").length;
-    if (!functions.has(m[1])) problems.push(`${rel}:${line} — RPC «${m[1]}» немає в живій схемі`);
-    checked++;
+  /* 24.10 — СЛІПА ПЛЯМА, через яку журнал помилок помер непомітно.
+     Було рівно одне правило: `.rpc("x"`. Але половина застосунку кличе RPC як
+     `(supabase.rpc as any)("x", …)` — каст ставить `)` між `.rpc` і `(`, і та
+     регулярка такий виклик НЕ бачила. З 80 різних RPC ворота бачили 49.
+     Саме в сліпій половині й сидів `log_client_error`: код поїхав у прод 21.10,
+     функції в базі немає, тож жодна помилка з браузера не писалась — а ворота
+     звітували «усі select/rpc відповідають живій схемі». Тепер усі форми. */
+  const RPC_SHAPES = [
+    /\.rpc\s*\(\s*["'`]([a-z0-9_]+)["'`]/g,                  // .rpc("x")
+    /\.rpc\s+as\s+any\s*\)\s*\(\s*["'`]([a-z0-9_]+)["'`]/g, // (supabase.rpc as any)("x")
+    /\.rpc\s*<[^>]*>\s*\(\s*["'`]([a-z0-9_]+)["'`]/g,        // .rpc<T>("x")
+  ];
+  for (const re of RPC_SHAPES) {
+    re.lastIndex = 0;
+    while ((m = re.exec(src))) {
+      const line = src.slice(0, m.index).split("\n").length;
+      const fn = m[1];
+      if (!functions.has(fn)) {
+        /* Функція, яку створює міграція ВИЩЕ водяного знаку, — це не помилка
+           коду, а відома черга «чекає вставки» (журнал docs/PROD-DB-SYNC.md).
+           Називаємо її словами й жовтим, але воріт не валимо: червоне на
+           справному стані вчить ігнорувати червоне. Якщо ж функції немає НІДЕ
+           — це справжній дефект, і ворота падають. */
+        if (pendingFns.has(fn)) pending.push(`${rel}:${line} — RPC «${fn}» створює міграція ${pendingFns.get(fn)}, яка ще не вставлена в базу`);
+        else problems.push(`${rel}:${line} — RPC «${fn}» немає в живій схемі`);
+      }
+      checked++;
+    }
   }
 }
 
 const verbose = process.argv.includes("--verbose");
 console.log(`═ Звірка запитів зі схемою: ${checked} колонок/RPC перевірено, ${skipped.length} пропущено ═`);
+if (pending.length) {
+  console.log(`⏳ ${pending.length} звернень до функцій із НЕВСТАВЛЕНИХ міграцій (стан — у docs/PROD-DB-SYNC.md):`);
+  for (const p of pending) console.log("   " + p);
+}
 if (verbose) for (const s of skipped) console.log("  · " + s);
 if (problems.length) {
   console.log(`❌ ${problems.length} звернень до неіснуючих колонок/таблиць/RPC:`);

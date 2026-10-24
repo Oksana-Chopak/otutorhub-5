@@ -132,3 +132,48 @@ describe("живі пари «наша міграція → хеш-файл Lova
     });
   }
 });
+
+/**
+ * 24.10 — СЛІПА ПЛЯМА ВОРІТ СХЕМИ, через яку журнал помилок помер непомітно.
+ *
+ * `check-db-select` мав рівно одне правило на RPC: `.rpc("x"`. Але половина
+ * застосунку кличе їх як `(supabase.rpc as any)("x", …)` — каст ставить `)` між
+ * `.rpc` і `(`, і регулярка такий виклик НЕ бачила: з 80 різних RPC ворота
+ * бачили 49. Саме в сліпій половині сидів `log_client_error`: код поїхав у прод
+ * 21.10, функції в базі немає (міграція 20261020100000 не вставлена), тож
+ * ЖОДНА помилка з браузера не писалась у журнал — а ворота звітували «усі
+ * select/rpc відповідають живій схемі». Доказ на живому проді: у /errors
+ * останній запис 19.10, при тому що збірка 21.10.
+ */
+describe("ворота схеми бачать усі форми виклику RPC", () => {
+  const gate = readFileSync(join(ROOT, "scripts/check-db-select.mjs"), "utf8");
+  const shapes = gate.slice(gate.indexOf("RPC_SHAPES"), gate.indexOf("RPC_SHAPES") + 700);
+
+  it("форм більше однієї, і серед них — та, що з кастом", () => {
+    expect(gate).toContain("RPC_SHAPES");
+    expect((shapes.match(/\.rpc/g) ?? []).length, "три форми виклику").toBeGreaterThanOrEqual(3);
+    expect(shapes, "форма «(supabase.rpc as any)(…)» — та, що ховала log_client_error").toContain("any");
+    expect(gate, "старого одинокого правила більше немає").not.toContain("const rpcRe =");
+  });
+
+  it("каст справді вживається в застосунку — інакше перевірка вакуумна", () => {
+    const walk = (d: string): string[] =>
+      readdirSync(d, { withFileTypes: true }).flatMap((e) => {
+        const p2 = join(d, e.name);
+        return e.isDirectory() ? walk(p2) : /\.tsx?$/.test(e.name) ? [p2] : [];
+      });
+    const users = walk(join(ROOT, "src"))
+      .filter((f) => !/[\\/]test[\\/]|\.test\./.test(f))
+      .filter((f) => /\.rpc as any\)\s*\(/.test(readFileSync(f, "utf8")));
+    expect(users.length, "каст є в бойовому коді, тож форму мусить бачити гейт").toBeGreaterThan(0);
+  });
+
+  it("«чекає вставки» і «немає ніде» — різні вердикти", () => {
+    // Червоне на справному стані вчить ігнорувати червоне: функція з
+    // невставленої міграції — жовтий рядок із назвою міграції, не падіння.
+    expect(gate).toContain("if (pendingFns.has(fn)) pending.push(");
+    expect(gate).toContain("else problems.push(");
+    expect(gate, "черга визначається водяним знаком, а не списком руками")
+      .toContain("x.slice(0, 14) > watermark");
+  });
+});

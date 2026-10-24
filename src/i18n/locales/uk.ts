@@ -2852,6 +2852,8 @@ export const uk = {
     todayHeading_one: "🗓️ Сьогодні · {{count}} урок",
     todayHeading_few: "🗓️ Сьогодні · {{count}} уроки",
     todayHeading_many: "🗓️ Сьогодні · {{count}} уроків",
+    todayNoMore: "Сьогодні більше уроків немає",
+    todayAllDone: "Усе, що було сьогодні, вже проведено",
     todayFreeDay: "Сьогодні вільний день",
     allSetTitle: "Кабінет налаштовано на 100% 🎉",
     allSetDesc: "Всі підсилювачі підключені. Чудова робота!",

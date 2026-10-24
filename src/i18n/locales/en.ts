@@ -2812,6 +2812,8 @@ export const en: LocaleTranslations = {
     todayHeading_one: "🗓️ Today · {{count}} lesson",
     todayHeading_few: "🗓️ Today · {{count}} lessons",
     todayHeading_other: "🗓️ Today · {{count}} lessons",
+    todayNoMore: "No more lessons today",
+    todayAllDone: "Everything scheduled for today is already done",
     todayFreeDay: "A free day today",
     allSetTitle: "Workspace 100% set up 🎉",
     allSetDesc: "All boosters connected. Great job!",

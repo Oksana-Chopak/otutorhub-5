@@ -2791,6 +2791,8 @@ export const sv: LocaleTranslations = {
     todayHeading_one: "🗓️ Idag · {{count}} lektion",
     todayHeading_few: "🗓️ Idag · {{count}} lektioner",
     todayHeading_other: "🗓️ Idag · {{count}} lektioner",
+    todayNoMore: "Inga fler lektioner idag",
+    todayAllDone: "Allt som var inbokat idag är redan genomfört",
     todayFreeDay: "En ledig dag idag",
     allSetTitle: "Arbetsytan är 100 % klar 🎉",
     allSetDesc: "Alla boosters anslutna. Bra jobbat!",
