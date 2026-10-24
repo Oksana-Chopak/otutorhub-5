@@ -90,7 +90,12 @@ jobs:
       always() &&
       (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.gates.result == 'success'))
-    runs-on: ubuntu-latest
+    # 24.10: НЕ ubuntu-latest. З 19.10 GitHub переводить цю мітку на Ubuntu 26.04, а
+    # Playwright 1.59 з lockfile не має збірки Chromium для «ubuntu26.04-x64» —
+    # `npx playwright install` падав на кроці Install за 7 с, і робот не доходив до
+    # жодної перевірки (усі ранкові прогони з 20.10 червоні через це, не через прод).
+    # Ворота браузера не ставлять, тому їм ubuntu-latest не шкодить.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       CI: "1"
