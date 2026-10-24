@@ -168,6 +168,47 @@ describe("ворота схеми бачать усі форми виклику 
     expect(users.length, "каст є в бойовому коді, тож форму мусить бачити гейт").toBeGreaterThan(0);
   });
 
+  it("три категорії, не дві: ✅ у журналі ≠ «чекає вставки»", () => {
+    // 24.10. Власниця вставила SQL через SQL editor — Lovable не створив ні
+    // хеш-файла, ні нового types.ts. Обидва автоматичні джерела про міграцію не
+    // знають, і ворота писали «ще не вставлена в базу» про `log_client_error`,
+    // яка в ту мить уже відповідала на проді 204. Третє джерело — журнал.
+    expect(gate, "окрема категорія «доведено журналом»").toContain("ledgerFns");
+    expect(gate, "✅ читається з четвертої клітинки — те саме правило, що в check-db-sync")
+      .toContain('(cells[4] ?? "").startsWith("✅")');
+    expect(gate, "помилковий ✅ у журналі має бути ВИДНО, а не приховано").toContain("доводить ЛИШЕ журнал");
+    // Порядок гілок читаємо в САМОМУ вердикті, а не по всьому файлу:
+    // `problems.push` є й у перевірці колонок вище, тож indexOf по файлу бреше.
+    const at = gate.indexOf("if (ledgerFns.has(fn))");
+    expect(at, "гілка журналу стоїть першою у вердикті").toBeGreaterThan(0);
+    const verdict = gate.slice(at, at + 900);
+    expect(verdict, "далі — черга").toContain("else if (pendingFns.has(fn))");
+    expect(verdict, "і лише потім падіння").toContain("else problems.push");
+  });
+
+  it("категорія не вакуумна: у журналі справді є ✅ вище водяного знаку", () => {
+    // Без цього попередній тест стерегтиме мертвий код: гілка є, а вести по ній
+    // нічого. Саме так 24.10 ратчет позиції кнопки виявився вакуумним.
+    const MIG = join(ROOT, "supabase/migrations");
+    const all = readdirSync(MIG).filter((f) => f.endsWith(".sql")).sort();
+    const hashes = all.filter((f) => /^\d{14}_[0-9a-f]{8}-[0-9a-f]{4}-/.test(f));
+    const watermark = hashes.length ? hashes[hashes.length - 1].slice(0, 14) : "00000000000000";
+    const live = new Set<string>();
+    for (const line of readFileSync(join(ROOT, "docs/PROD-DB-SYNC.md"), "utf8").split("\n")) {
+      if (!line.startsWith("|")) continue;
+      const cells = line.replace(/`[^`]*`/g, (x) => x.replace(/\|/g, "¦")).split("|").map((c) => c.trim());
+      if (!(cells[4] ?? "").startsWith("✅")) continue;
+      const stem = (cells[1] ?? "").match(/(\d{14})/)?.[1];
+      if (stem && stem > watermark) live.add(stem);
+    }
+    expect(live.size, "є хоч один файл вище знаку, позначений ✅ (вставка через SQL editor)").toBeGreaterThan(0);
+    const fns = new Set<string>();
+    for (const f of all.filter((x) => live.has(x.slice(0, 14)))) {
+      for (const mm of readFileSync(join(MIG, f), "utf8").matchAll(/CREATE (?:OR REPLACE )?FUNCTION public\.([a-z0-9_]+)\s*\(/g)) fns.add(mm[1]);
+    }
+    expect(fns.size, "такий файл справді створює функції").toBeGreaterThan(0);
+  });
+
   it("«чекає вставки» і «немає ніде» — різні вердикти", () => {
     // Червоне на справному стані вчить ігнорувати червоне: функція з
     // невставленої міграції — жовтий рядок із назвою міграції, не падіння.

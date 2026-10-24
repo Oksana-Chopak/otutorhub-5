@@ -23,18 +23,44 @@ const root = process.cwd();
 const types = readFileSync(join(root, "src/integrations/supabase/types.ts"), "utf8");
 
 /* Міграції вище водяного знаку Lovable = ще не в базі. Збираємо, які функції
-   вони створюють, щоб відрізнити «чекає вставки» від «немає ніде». */
+   вони створюють, щоб відрізнити «чекає вставки» від «немає ніде».
+
+   24.10 — третя категорія. Коли власниця вставляє SQL через SQL editor, Lovable
+   НЕ створює хеш-файла і НЕ перегенеровує types.ts. Тоді міграція в базі є, а
+   обидва автоматичні джерела про неї не знають — і ворота писали «ще не
+   вставлена в базу» про функцію, яка вже працює в проді (так було з
+   `log_client_error` за годину після вставки). Єдине джерело стану для таких
+   файлів — журнал docs/PROD-DB-SYNC.md: рядок, чия четверта клітинка
+   починається з ✅, означає «в базі є». Такі міграції йдуть у ledgerFns і не
+   валять воріт, але й не вдають чергу: окремий рядок ℹ️ називає їх поіменно,
+   щоб помилковий ✅ у журналі було видно, а не приховано. */
 const pendingFns = new Map();
+const ledgerFns = new Map();
 const pending = [];
+const byLedger = [];
 {
   const MIG = join(root, "supabase/migrations");
   const all = readdirSync(MIG).filter((f) => f.endsWith(".sql")).sort();
   const hashes = all.filter((f) => /^\d{14}_[0-9a-f]{8}-[0-9a-f]{4}-/.test(f));
   const watermark = hashes.length ? hashes[hashes.length - 1].slice(0, 14) : "00000000000000";
+  // ✅ у журналі — те саме правило, що в check-db-sync.mjs (четверта клітинка).
+  const ledgerLive = new Set();
+  try {
+    const ledger = readFileSync(join(root, "docs/PROD-DB-SYNC.md"), "utf8");
+    for (const line of ledger.split("\n")) {
+      if (!line.startsWith("|")) continue;
+      const cells = line.replace(/`[^`]*`/g, (x) => x.replace(/\|/g, "¦")).split("|").map((c) => c.trim());
+      if (!(cells[4] ?? "").startsWith("✅")) continue;
+      const stem = (cells[1] ?? "").match(/(\d{14})/)?.[1];
+      if (stem) ledgerLive.add(stem);
+    }
+  } catch { /* журналу немає — працюємо як раніше */ }
   for (const f of all.filter((x) => x.slice(0, 14) > watermark)) {
     const src = readFileSync(join(MIG, f), "utf8");
+    const stem = f.slice(0, 14);
+    const sink = ledgerLive.has(stem) ? ledgerFns : pendingFns;
     for (const mm of src.matchAll(/CREATE (?:OR REPLACE )?FUNCTION public\.([a-z0-9_]+)\s*\(/g)) {
-      if (!pendingFns.has(mm[1])) pendingFns.set(mm[1], f.slice(0, 14));
+      if (!pendingFns.has(mm[1]) && !ledgerFns.has(mm[1])) sink.set(mm[1], stem);
     }
   }
 }
@@ -160,7 +186,8 @@ for (const f of files) {
            Називаємо її словами й жовтим, але воріт не валимо: червоне на
            справному стані вчить ігнорувати червоне. Якщо ж функції немає НІДЕ
            — це справжній дефект, і ворота падають. */
-        if (pendingFns.has(fn)) pending.push(`${rel}:${line} — RPC «${fn}» створює міграція ${pendingFns.get(fn)}, яка ще не вставлена в базу`);
+        if (ledgerFns.has(fn)) byLedger.push(`${rel}:${line} — RPC «${fn}»: міграція ${ledgerFns.get(fn)} позначена ✅ live у журналі (types.ts Lovable ще не перегенерував)`);
+        else if (pendingFns.has(fn)) pending.push(`${rel}:${line} — RPC «${fn}» створює міграція ${pendingFns.get(fn)}, яка ще не вставлена в базу`);
         else problems.push(`${rel}:${line} — RPC «${fn}» немає в живій схемі`);
       }
       checked++;
@@ -173,6 +200,10 @@ console.log(`═ Звірка запитів зі схемою: ${checked} ко�
 if (pending.length) {
   console.log(`⏳ ${pending.length} звернень до функцій із НЕВСТАВЛЕНИХ міграцій (стан — у docs/PROD-DB-SYNC.md):`);
   for (const p of pending) console.log("   " + p);
+}
+if (byLedger.length) {
+  console.log(`ℹ️ ${byLedger.length} звернень до функцій, чий стан доводить ЛИШЕ журнал (вставка через SQL editor):`);
+  for (const p of byLedger) console.log("   " + p);
 }
 if (verbose) for (const s of skipped) console.log("  · " + s);
 if (problems.length) {
