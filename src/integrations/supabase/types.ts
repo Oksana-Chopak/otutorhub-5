@@ -3388,6 +3388,16 @@ export type Database = {
             }
             Returns: string
           }
+      log_client_error: {
+        Args: {
+          _context?: Json
+          _message: string
+          _stack?: string
+          _url?: string
+          _user_agent?: string
+        }
+        Returns: undefined
+      }
       log_landing_event: {
         Args: {
           _monthly?: number
