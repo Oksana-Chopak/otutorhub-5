@@ -16,7 +16,7 @@ const noComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\
 const CRON_FUNCTIONS = [
   "payment-reminders", "payout-reminders", "lesson-reminders", "tutor-daily-digest",
   "tutor-evening-summary", "tutor-weekly-digest", "scheduled-notifications", "db-backup",
-  "telegram-poll", "fireflies-auto-join", "archive-old-chats", "process-email-queue",
+  "fireflies-auto-join", "archive-old-chats", "process-email-queue",
   "lifecycle-nudges",
 ];
 
@@ -29,6 +29,24 @@ describe("кожна cron-функція лишає слід у job_runs", () =>
       expect(s).toMatch(/^\}\)\);?$/m);
     });
   }
+
+  /* telegram-poll — єдиний виняток за ФОРМОЮ, не за суттю (25.10). Відколи
+     Telegram стукає вебхуком, у функції два входи. Крон так само обгорнутий
+     withJob і так само лишає рядок у job_runs — зведення «🛡 Нічні процеси»
+     бачить його, як бачило. А доставка вебхука НЕ запис: інакше кожне
+     повідомлення в боті ставало б «запуском нічного процесу» і втопило б
+     справжні процеси, тобто зламало б саме те, для чого мертвий вимикач є. */
+  it("telegram-poll: крон обгорнутий withJob, доставка вебхука — ні", () => {
+    const s = noComments(read("supabase/functions/telegram-poll/index.ts"));
+    expect(s).toMatch(/from ['"]\.\.\/_shared\/jobRun\.ts['"]/);
+    expect(s, "крон усе ще під withJob").toMatch(/withJob\("telegram-poll", cronRun\)\(req\)/);
+    expect(s, "вебхук має власну гілку").toMatch(/return await webhookRun\(req\);/);
+    const disp = s.slice(s.indexOf("Deno.serve(async (req)"));
+    expect(
+      disp.indexOf("webhookRun(req)") < disp.indexOf('withJob("telegram-poll"'),
+      "гілка вебхука стоїть ДО withJob, інакше доставки писались би як запуски",
+    ).toBe(true);
+  });
 });
 
 describe("обгортка withJob", () => {

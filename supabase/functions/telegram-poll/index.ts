@@ -16,9 +16,37 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
-Deno.serve(withJob("telegram-poll", async (req) => {
+/* 25.10 — ВЕБХУК замість опитування щохвилини.
+ *
+ * Було: крон стріляв у цю функцію раз на хвилину, і вона тримала довгий
+ * getUpdates до 55 с. Наслідки, усі три справжні: кнопки в боті («Нагадати»,
+ * «Оплачено») могли чекати до хвилини; два запуски накладались і Telegram
+ * віддавав 409 Conflict (той самий збій, що з 30.09 світився в ранковому
+ * дайджесті); і кожна хвилина лишала рядок у job_runs.
+ *
+ * Тепер Telegram стукає САМ, щойно є повідомлення. Крон лишається, але його
+ * робота інша: він стежить, що вебхук стоїть і живий, і піднімає його назад,
+ * якщо Telegram почав відмовляти (getWebhookInfo показує last_error_message).
+ * Опитування лишилось цілим як запасний шлях: якщо setWebhook не вдався, крон
+ * того ж запуску опитує по-старому — бот не замовкає ніколи.
+ *
+ * ВІДКАТ: USE_WEBHOOK = false → наступний запуск крону зніме вебхук
+ * (deleteWebhook) і повернеться до опитування. Без SQL і без секретів.
+ */
+const USE_WEBHOOK = true;
+
+Deno.serve(async (req) => {
   const probe = versionProbe(req, "telegram-poll");
   if (probe) return probe;
+  /* Цей заголовок Telegram додає до КОЖНОЇ доставки вебхука (значення — те, що
+     ми дали в setWebhook). Є заголовок — прийшов Telegram, а не крон: окрема
+     гілка й БЕЗ withJob, інакше кожне повідомлення в боті ставало б рядком
+     «запуск процесу» в job_runs і топило б зведення «🛡 Нічні процеси». */
+  if (req.headers.get("x-telegram-bot-api-secret-token") !== null) return await webhookRun(req);
+  return await withJob("telegram-poll", cronRun)(req);
+});
+
+async function cronRun(req: Request): Promise<Response> {
   const startTime = Date.now();
   const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -42,6 +70,18 @@ Deno.serve(withJob("telegram-poll", async (req) => {
   // запуски накладаються, і Telegram відповідає 409 Conflict (перший такий збій
   // побачив дайджест 30.09). Одна оренда на 45 с у базі: другий запуск за цей час
   // чесно каже «зайнято» і виходить успішно — це не збій.
+  /* Вебхук — головний шлях. Якщо він стоїть і Telegram на нього не скаржиться,
+     опитування цього запуску не потрібне взагалі: виходимо одразу, не чіпаючи
+     Telegram getUpdates (він однаково віддав би 409 при живому вебхуку). */
+  if (USE_WEBHOOK) {
+    const w = await ensureWebhook(TG_BASE, supabaseUrl, String(expected));
+    if (w.active) return new Response(JSON.stringify({ ok: true, mode: "webhook", ...w }));
+    console.warn("webhook не піднявся, падаю на опитування", w);
+  } else {
+    // ВІДКАТ: прибрати вебхук і повернутись до опитування.
+    try { await fetch(`${TG_BASE}/deleteWebhook`, { method: "POST" }); } catch (e) { console.warn("deleteWebhook failed", e); }
+  }
+
   if ((await rateLimit(supabase, 'telegram_poll_lease', 'bot', 1, 45)) === 'limit') {
     return new Response(JSON.stringify({ ok: true, skipped: 'busy', processed: 0 }));
   }
@@ -93,62 +133,8 @@ Deno.serve(withJob("telegram-poll", async (req) => {
     if (updates.length === 0) continue;
 
     for (const u of updates) {
-      // ── Кнопки з дайджесту: «Нагадати» / «Оплачено» ──────────────────────
-      if (u.callback_query) {
-        await handleDigestCallback(TG_BASE, supabase, u.callback_query,
-          { supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN });
-        processed++;
-        continue;
-      }
-      const msg = u.message;
-      if (!msg) continue;
-      const text: string = msg.text ?? '';
-      const chatId: number = msg.chat.id;
-      const fromName = escapeHtml(msg.from?.first_name ?? 'друже');
-
-      const startMatch = text.match(/^\/start(?:\s+(\S+))?/);
-      if (startMatch) {
-        const code = startMatch[1];
-        if (!code) {
-          await sendTg(TG_BASE, chatId, `Привіт, ${fromName}! 👋\n\nЩоб отримувати сповіщення з oTutorHub, відкрийте розділ <b>Налаштування → Telegram</b> в апці й натисніть "Підключити Telegram". Скопіюйте отриманий код і надішліть мені:\n\n<code>/start ВАШ_КОД</code>`);
-        } else if (/^lh_[0-9a-f]{32}$/i.test(code)) {
-          // Дайджест ДО реєстрації (10.09): токен з лендінгу → той самий
-          // дайджест сюди + запрошення створити акаунт цим же токеном
-          // (тригер attach_landing_handoff прив'яже цей chat_id при реєстрації).
-          await handleLandingHandoff(TG_BASE, supabase, code.toLowerCase(), chatId, msg.from?.first_name ?? null);
-        } else {
-          const codeUp = code.trim().toUpperCase();
-          const { data: link } = await supabase
-            .from('user_telegram_links')
-            .select('user_id, link_code_expires_at')
-            .eq('link_code', codeUp)
-            .maybeSingle();
-
-          if (!link) {
-            await sendTg(TG_BASE, chatId, '❌ Код не знайдено. Згенеруйте новий у застосунку.');
-          } else if (link.link_code_expires_at && new Date(link.link_code_expires_at) < new Date()) {
-            await sendTg(TG_BASE, chatId, '⌛ Код прострочений. Згенеруйте новий у застосунку.');
-          } else {
-            await supabase
-              .from('user_telegram_links')
-              .update({
-                chat_id: chatId,
-                linked_at: new Date().toISOString(),
-                link_code: null,
-                link_code_expires_at: null,
-              })
-              .eq('user_id', link.user_id);
-            // 13.10: у мить підключення — користь, а не «Готово!»: перший дайджест
-            // із цифрами людини (tutor_snapshot — ті самі предикати, що й у Фінансах).
-            await sendTg(TG_BASE, chatId, await linkedWelcome(supabase, link.user_id));
-          }
-        }
-      } else if (text === '/stop' || text === '/unlink') {
-        await supabase.from('user_telegram_links').delete().eq('chat_id', chatId);
-        await sendTg(TG_BASE, chatId, 'Сповіщення вимкнено. Щоб увімкнути знову — згенеруйте новий код у застосунку.');
-      }
-
-      processed++;
+      if (await processUpdate(TG_BASE, supabase, u,
+        { supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN })) processed++;
     }
 
     const newOffset = Math.max(...updates.map((u: any) => u.update_id)) + 1;
@@ -160,7 +146,165 @@ Deno.serve(withJob("telegram-poll", async (req) => {
   }
 
   return new Response(JSON.stringify({ ok: true, processed, finalOffset: currentOffset }));
-}));
+}
+
+/** Адреса, на яку Telegram стукатиме. Беремо з env, щоб не вшивати проєкт у код. */
+function webhookUrl(supabaseUrl: string): string {
+  return `${supabaseUrl.replace(/\/+$/, "")}/functions/v1/telegram-poll`;
+}
+
+/* Піднімає вебхук і стежить, що він живий.
+ *
+ * Перевстановлюємо лише у двох випадках, щоб не ходити до Telegram даремно:
+ *   • адреса не наша (вебхука немає, або лишився чужий/старий);
+ *   • Telegram скаржиться, що наша функція відмовляє (401/403 у
+ *     last_error_message). Так само самолікується розбіжність секрету після
+ *     ротації `cron_shared_secret`: Telegram ще шле старий токен, ми віддаємо
+ *     401, він це запам'ятовує — і наступний запуск крону ставить вебхук з
+ *     новим токеном. Доставки, відбиті тим часом, Telegram повторює сам.
+ */
+async function ensureWebhook(TG_BASE: string, supabaseUrl: string, secret: string): Promise<{ active: boolean; action: string; error?: string }> {
+  const want = webhookUrl(supabaseUrl);
+  try {
+    const info = await fetch(`${TG_BASE}/getWebhookInfo`).then((r) => r.json());
+    const cur = String(info?.result?.url ?? "");
+    const lastErr = String(info?.result?.last_error_message ?? "");
+    const rejected = /\b(401|403)\b/.test(lastErr);
+    if (cur === want && !rejected) return { active: true, action: "already" };
+    const set = await fetch(`${TG_BASE}/setWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: want,
+        secret_token: secret,
+        allowed_updates: ["message", "callback_query"],
+        // false: усе, що Telegram накопичив за час опитування, доїде вебхуком.
+        drop_pending_updates: false,
+      }),
+    }).then((r) => r.json());
+    if (set?.ok) return { active: true, action: rejected ? "reset-after-reject" : "set" };
+    return { active: false, action: "set-failed", error: String(set?.description ?? "") };
+  } catch (e) {
+    return { active: false, action: "info-failed", error: String(e) };
+  }
+}
+
+/* Доставка від Telegram: один апдейт у тілі запиту.
+ *
+ * Функція публічна (verify_jwt = false), тож єдині двері — секретний заголовок.
+ * Невідповідність = 401, а НЕ 200: Telegram повторює невдалу доставку, тож
+ * натиснута кнопка не губиться, поки крон не перевстановить вебхук з чинним
+ * токеном. Відповідати треба швидко — Telegram чекає, і на таймаут повторює.
+ */
+async function webhookRun(req: Request): Promise<Response> {
+  const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !supabaseServiceKey) {
+    return new Response(JSON.stringify({ error: "Missing env" }), { status: 500 });
+  }
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const { data: expected } = await supabase.rpc("get_cron_shared_secret");
+  const provided = req.headers.get("x-telegram-bot-api-secret-token");
+  if (!expected || !provided || provided !== String(expected)) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 401 });
+  }
+
+  let u: any;
+  try { u = await req.json(); } catch { return new Response(JSON.stringify({ ok: true, skipped: "bad-json" })); }
+  const id = Number(u?.update_id);
+  if (!Number.isFinite(id)) return new Response(JSON.stringify({ ok: true, skipped: "no-update-id" }));
+
+  /* Та сама доставка може прийти двічі: Telegram повторює, якщо не дочекався
+     відповіді, навіть коли робота вже зроблена. Без цього «Оплачено» могло б
+     закрити борг двічі. Ключ — update_id, стеля 1 на годину; механізм той
+     самий, що в публічних дверях (`rate_limit_check`). */
+  if ((await rateLimit(supabase, "telegram_update", String(id), 1, 3600)) === "limit") {
+    return new Response(JSON.stringify({ ok: true, skipped: "duplicate", update_id: id }));
+  }
+
+  const TG_BASE = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+  try {
+    const did = await processUpdate(TG_BASE, supabase, u, { supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN });
+    return new Response(JSON.stringify({ ok: true, via: "webhook", processed: did ? 1 : 0, update_id: id }));
+  } catch (e) {
+    /* 200 попри виняток: інакше Telegram повторює той самий апдейт по колу, а
+       причина однаково не в ньому. Слід лишаємо в логах і в error_log через
+       withErrorLog вище за стеком. */
+    console.error("webhook update failed", id, e);
+    return new Response(JSON.stringify({ ok: false, via: "webhook", update_id: id, error: String(e) }), { status: 200 });
+  }
+}
+
+/** Один апдейт Telegram. ОДНЕ місце обробки для обох шляхів — крону й вебхука,
+ *  інакше дві гілки розійдуться, і кнопка, що працює з опитування, тихо
+ *  перестане працювати з вебхука. Повертає true, якщо щось справді зробила. */
+async function processUpdate(
+  TG_BASE: string,
+  supabase: any,
+  u: any,
+  env: { supabaseUrl: string; serviceKey: string; botToken: string },
+): Promise<boolean> {
+  const supabaseUrl = env.supabaseUrl;
+  const supabaseServiceKey = env.serviceKey;
+  const TELEGRAM_BOT_TOKEN = env.botToken;
+  // ── Кнопки з дайджесту: «Нагадати» / «Оплачено» ──────────────────────
+  if (u.callback_query) {
+    await handleDigestCallback(TG_BASE, supabase, u.callback_query,
+      { supabaseUrl, serviceKey: supabaseServiceKey, botToken: TELEGRAM_BOT_TOKEN });
+    return true;
+  }
+  const msg = u.message;
+  if (!msg) return false;
+  const text: string = msg.text ?? '';
+  const chatId: number = msg.chat.id;
+  const fromName = escapeHtml(msg.from?.first_name ?? 'друже');
+
+  const startMatch = text.match(/^\/start(?:\s+(\S+))?/);
+  if (startMatch) {
+    const code = startMatch[1];
+    if (!code) {
+      await sendTg(TG_BASE, chatId, `Привіт, ${fromName}! 👋\n\nЩоб отримувати сповіщення з oTutorHub, відкрийте розділ <b>Налаштування → Telegram</b> в апці й натисніть "Підключити Telegram". Скопіюйте отриманий код і надішліть мені:\n\n<code>/start ВАШ_КОД</code>`);
+    } else if (/^lh_[0-9a-f]{32}$/i.test(code)) {
+      // Дайджест ДО реєстрації (10.09): токен з лендінгу → той самий
+      // дайджест сюди + запрошення створити акаунт цим же токеном
+      // (тригер attach_landing_handoff прив'яже цей chat_id при реєстрації).
+      await handleLandingHandoff(TG_BASE, supabase, code.toLowerCase(), chatId, msg.from?.first_name ?? null);
+    } else {
+      const codeUp = code.trim().toUpperCase();
+      const { data: link } = await supabase
+        .from('user_telegram_links')
+        .select('user_id, link_code_expires_at')
+        .eq('link_code', codeUp)
+        .maybeSingle();
+
+      if (!link) {
+        await sendTg(TG_BASE, chatId, '❌ Код не знайдено. Згенеруйте новий у застосунку.');
+      } else if (link.link_code_expires_at && new Date(link.link_code_expires_at) < new Date()) {
+        await sendTg(TG_BASE, chatId, '⌛ Код прострочений. Згенеруйте новий у застосунку.');
+      } else {
+        await supabase
+          .from('user_telegram_links')
+          .update({
+            chat_id: chatId,
+            linked_at: new Date().toISOString(),
+            link_code: null,
+            link_code_expires_at: null,
+          })
+          .eq('user_id', link.user_id);
+        // 13.10: у мить підключення — користь, а не «Готово!»: перший дайджест
+        // із цифрами людини (tutor_snapshot — ті самі предикати, що й у Фінансах).
+        await sendTg(TG_BASE, chatId, await linkedWelcome(supabase, link.user_id));
+      }
+    }
+  } else if (text === '/stop' || text === '/unlink') {
+    await supabase.from('user_telegram_links').delete().eq('chat_id', chatId);
+    await sendTg(TG_BASE, chatId, 'Сповіщення вимкнено. Щоб увімкнути знову — згенеруйте новий код у застосунку.');
+  }
+
+  return true;
+  return false;
+}
 
 /** Перше повідомлення після підключення: репетитору — знімок його справ, учню — що сюди приходитиме. */
 async function linkedWelcome(supabase: any, userId: string): Promise<string> {
