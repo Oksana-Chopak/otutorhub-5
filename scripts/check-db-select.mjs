@@ -16,7 +16,7 @@
  *
  * Запуск: node scripts/check-db-select.mjs   (exit 1 при порушеннях)
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const root = process.cwd();
@@ -117,6 +117,7 @@ function splitTop(s) {
 
 const problems = [];
 const skipped = [];
+const tuples = [];   // (rel, col) для перевірки ПРАВ — див. --emit-json нижче
 let checked = 0;
 
 function checkCols(rel, colsStr, file, line) {
@@ -138,6 +139,7 @@ function checkCols(rel, colsStr, file, line) {
     // alias:col, col::cast, col->json
     let col = item.replace(/^[a-z0-9_]+:/, "").replace(/::.*$/, "").replace(/->.*$/, "").replace(/\.(sum|avg|count|min|max)\(\)$/, "");
     if (!cols.has(col)) problems.push(`${file}:${line} — ${rel}.${col} немає в живій схемі`);
+    else tuples.push({ rel, col, file, line });
     checked++;
   }
 }
@@ -193,6 +195,21 @@ for (const f of files) {
       checked++;
     }
   }
+}
+
+/* 27.10 — ці самі пари (таблиця, колонка) потрібні ДРУГІЙ перевірці: чи є на них
+   ПРАВО. Клас «існує, але не дозволено» коштував нам картки учня: колонка
+   `lesson_details.student_price` у types.ts є, а SELECT на неї в `authenticated`
+   відкликаний міграцією 20260715000000 — Postgres відмовляв у всьому запиті, і
+   картка віддавала «Не вдалося завантажити» КОЖНІЙ ролі пів місяця. Права видно
+   лише на живій схемі, тож перевіряє їх `scripts/db-replay/check-grants.mjs`
+   після прогону міграцій — а парсер лишається ОДИН, цей. */
+if (process.argv.includes("--emit-json")) {
+  /* writeFileSync(1), а не process.stdout.write: другий асинхронний, і
+     process.exit обрізав JSON ровно на 64 КіБ — перевірка прав отримувала
+     половину пар і мовчки нічого не ловила. */
+  writeFileSync(1, JSON.stringify(tuples.map((t) => [t.rel, t.col, t.file, t.line])));
+  process.exit(0);
 }
 
 const verbose = process.argv.includes("--verbose");

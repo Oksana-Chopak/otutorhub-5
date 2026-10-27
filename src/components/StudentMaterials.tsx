@@ -117,15 +117,30 @@ export function StudentMaterials({
         const ids = les.map((l) => l.id);
         if (ids.length === 0) { if (alive) setAll([]); return; }
 
-        // 13.09: у lesson_details НЕМАЄ колонки currency (types.ts — живе дзеркало
-        // схеми). Запит із нею падав на 400 цілком, і в картці учня зникали
-        // конспекти, домашки й суми — «матеріали порожні» одразу після релізу
-        // вкладок. Валюта пари живе в student_rates; за замовчуванням — валюта
-        // імпорту (гривня). Помилку деталей більше не ковтаємо мовчки.
+        /* 13.09: у lesson_details НЕМАЄ колонки currency (types.ts — живе дзеркало
+           схеми). Запит із нею падав на 400 цілком, і в картці учня зникали
+           конспекти, домашки й суми. Валюта пари живе в student_rates; за
+           замовчуванням — валюта імпорту (гривня). Помилку деталей більше не
+           ковтаємо мовчки.
+
+           27.10 — ДРУГИЙ РАЗ ТА САМА КАРТКА, інша причина: читали гроші учня
+           напряму з `lesson_details`, а міграція 20260715000000 відкликала
+           табличний SELECT і повернула назад ВСІ колонки, КРІМ трьох грошових
+           (`student_price`, `student_payment_status`, `student_paid_at`).
+           Postgres відмовляє у ВСЬОМУ запиті (42501), тож картка учня віддавала
+           «Не вдалося завантажити матеріали» КОЖНІЙ ролі — і репетиторці, і
+           менеджеру, і суперадміну. Ворота цього не бачили: `check-db-select`
+           звіряє, що колонка ІСНУЄ в types.ts, і нічого не знає про права.
+
+           Правильне джерело грошей учня — вʼю `lessons_visible`: вона сама
+           вирішує, кому їх видно (менеджер школи · сам учень · незалежна
+           репетиторка на своєму уроці), і хабовій репетиторці віддає NULL.
+           Тобто правило грошей лишається в ОДНОМУ місці, у базі, а не
+           дублюється в клієнті. */
         const [det, notes, atts, rate] = await Promise.all([
-          supabase.from("lesson_details")
-            .select("lesson_id, summary, homework, student_price, student_payment_status")
-            .in("lesson_id", ids),
+          supabase.from("lessons_visible")
+            .select("id, summary, homework, student_price, student_payment_status")
+            .in("id", ids),
           (supabase as any).from("lesson_tutor_notes").select("lesson_id, notes").in("lesson_id", ids),
           supabase.from("lesson_attachments").select("id, lesson_id, file_name, storage_path").in("lesson_id", ids),
           supabase.from("student_rates").select("currency").eq("tutor_id", tutorId).eq("student_id", studentId).limit(1).maybeSingle(),
@@ -134,7 +149,7 @@ export function StudentMaterials({
         const pairCurrency = (rate.data as { currency?: string } | null)?.currency || IMPORT_CURRENCY;
 
         const dMap: Record<string, any> = {};
-        ((det.data as any[]) ?? []).forEach((d) => { dMap[d.lesson_id] = d; });
+        ((det.data as any[]) ?? []).forEach((d) => { dMap[d.id] = d; });
         const nMap: Record<string, string> = {};
         ((notes?.data as any[]) ?? []).forEach((n) => { if ((n.notes ?? "").trim()) nMap[n.lesson_id] = n.notes; });
         const fMap: Record<string, MaterialItem["files"]> = {};

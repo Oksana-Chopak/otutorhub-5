@@ -156,6 +156,20 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   `lessons.location`, `tutor_workspace_settings.user_id`, `lesson_participants.status`):
   PostgREST відповідає 400 на ВЕСЬ запит, екран мовчки порожніє. Колонка, яку
   ти «памʼятаєш», не існує, поки її нема в `types.ts`.
+- GRANT GATE (27.10): колонка, яка ІСНУЄ в `types.ts`, ще не означає, що її
+  МОЖНА прочитати. `StudentMaterials.tsx` читав `lesson_details.student_price`,
+  а міграція `20260715000000` відкликала табличний SELECT і повернула назад усі
+  колонки, КРІМ трьох грошових — Postgres відмовляє у ВСЬОМУ запиті (42501), і
+  картка учня пів місяця віддавала «Не вдалося завантажити матеріали» КОЖНІЙ
+  ролі, не лише учню. `types.ts` прав не показує, тож із файлів цей клас не
+  перевіряється взагалі: права звіряються на ПРОГНАНІЙ базі —
+  `scripts/db-replay/check-grants.mjs` питає `has_column_privilege` для тієї
+  ролі, під якою код справді побіжить (`src/**` → `authenticated`,
+  `supabase/functions/**` → `service_role`). Парсер при цьому один:
+  `check-db-select.mjs --emit-json` віддає ті самі пари.
+  **Гроші учня в клієнті беруться ЛИШЕ з `lessons_visible`** — вʼю сама вирішує,
+  кому їх видно (менеджер школи · сам учень · незалежна репетиторка на своєму
+  уроці), а хабовій віддає NULL. Правило грошей живе в базі, не в клієнті.
 - EDGE READS PAGE (22.09): PostgREST віддає не більше max_rows (~1000) рядків
   БЕЗ помилки. Будь-який запит edge-функції «по всій платформі» (дайджести,
   нагадування, звіти) — лише через `_shared/fetchAll.ts` → `fetchAllRows` з

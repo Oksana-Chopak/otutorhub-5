@@ -159,6 +159,11 @@ if (!ONLY_SCENARIOS) {
   if (pending.length) console.log(`[db-replay] фаза B (очікують SQL у Lovable, вище знаку ${watermark}): ${pending.map((f) => f.slice(0, 14)).join(", ")}`);
   if (!sub("check-onconflict.mjs")) results.failed.push({ f: "check-onconflict (після SQL)", msg: "див. вище" });
   if (!sub("check-edge-rpc-grants.mjs")) results.failed.push({ f: "check-edge-rpc-grants", msg: "див. вище" });
+  /* 27.10 — клас «існує, але не дозволено». Після фази B схема повна, тож саме
+     тут видно ПРАВА: кожну пару (таблиця, колонка) з коду звіряємо з
+     has_column_privilege тієї ролі, під якою код побіжить. Картка учня пів
+     місяця віддавала «не вдалося завантажити» КОЖНІЙ ролі саме через це. */
+  if (!sub("check-grants.mjs")) results.failed.push({ f: "check-grants", msg: "див. вище" });
 }
 
 if (existsSync(SCEN)) {

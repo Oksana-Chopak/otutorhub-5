@@ -25,12 +25,25 @@ const rowOf = (table: string) => {
 };
 
 describe("регресії скану 13.09", () => {
-  it("1. матеріали учня не питають колонок, яких немає в живій схемі", () => {
+  it("1. матеріали учня не питають того, чого не можуть отримати", () => {
+    /* 13.09 картка учня порожніла, бо просила `lesson_details.currency` —
+       колонки, якої немає: PostgREST відповідає 400 на ВЕСЬ запит.
+       27.10 та сама картка порожніла знову, інша причина: просила
+       `lesson_details.student_price`, яку `authenticated` читати НЕ МОЖЕ
+       (міграція 20260715000000 відкликала табличний SELECT і повернула назад
+       усе, крім трьох грошових колонок) — 42501 на весь запит, і «Не вдалося
+       завантажити» бачила КОЖНА роль. Тому тест стереже не форму запиту, а
+       обидва правила: колонки існують І гроші беруться зі `lessons_visible`,
+       де право вирішує сама база. Клас «не існує» ловить `check-db-select`,
+       клас «не дозволено» — `scripts/db-replay/check-grants.mjs`. */
     const sm = src("src/components/StudentMaterials.tsx");
-    const sel = sm.match(/from\("lesson_details"\)\s*\.select\("([^"]+)"\)/)?.[1] ?? "";
-    expect(sel).toBeTruthy();
-    const live = rowOf("lesson_details");
-    for (const col of sel.split(",").map((c) => c.trim())) expect(live, `lesson_details.${col}`).toContain(`${col}:`);
+    const sel = sm.match(/from\("lessons_visible"\)\s*\.select\("(id, summary[^"]*)"\)/)?.[1] ?? "";
+    expect(sel, "матеріали читаються зі lessons_visible").toBeTruthy();
+    const live = rowOf("lessons_visible");
+    for (const col of sel.split(",").map((c) => c.trim())) expect(live, `lessons_visible.${col}`).toContain(`${col}:`);
+    expect(sel, "гроші учня — у цьому ж запиті, а не з lesson_details").toContain("student_price");
+    expect(sm, "напряму з lesson_details гроші більше не беруться")
+      .not.toMatch(/from\("lesson_details"\)[\s\S]{0,200}student_price/);
     expect(sm).toMatch(/if \(det\.error\) throw det\.error/); // помилка більше не ковтається мовчки
     expect(sm).toMatch(/from\("student_rates"\)\.select\("currency"\)/);
   });
