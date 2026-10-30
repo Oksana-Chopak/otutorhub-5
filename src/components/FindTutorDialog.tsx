@@ -6,7 +6,7 @@ import { Dialog, DialogContent,
   DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HandHeart, Loader2, X, Plus, Send } from "lucide-react";
 import { toast } from "sonner";
-import { notifyManagers } from "@/lib/notifications";
+import { notifyManagers, newRequestId, requestNotificationType } from "@/lib/notifications";
 import { useTranslation } from "react-i18next";
 import { useSubjects } from "@/hooks/useSubjects";
 
@@ -92,7 +92,9 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
     }
     setSubmitting(true);
     try {
+      const requestId = newRequestId();
       const { error } = await supabase.from("tutor_referral_requests").insert({
+        id: requestId,
         student_id: user.id,
         subject: subject.trim(),
         preferred_level: level.trim() || null,
@@ -110,9 +112,11 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
       }
       toast.success(t("findTutor.requestSent"));
       const studentName = user.email?.split("@")[0] || t("shared.student");
+      // Запасний шлях: основне сповіщення створює тригер бази з тим самим типом.
       void notifyManagers({
-        type: "tutor_request",
+        type: requestNotificationType("tutor_request", requestId),
         title: t("notifications.tutorRequestTitle", { name: studentName, subject: subject.trim() }),
+        body: [level.trim(), times.length ? times.join(", ") : "", message.trim()].filter(Boolean).join(" · ") || undefined,
         link: "/referrals",
       });
       setOpen(false);

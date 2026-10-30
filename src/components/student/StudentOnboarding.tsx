@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyManagers } from "@/lib/notifications";
+import { notifyManagers, newRequestId, requestNotificationType } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { SUBJECT_OPTIONS, subjectEmoji } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
@@ -99,7 +99,9 @@ export function StudentOnboarding({ onComplete }: Props) {
     // Best-effort: never block onboarding completion if this fails.
     try {
       const subjectSummary = subjects.join(", ");
+      const requestId = newRequestId();
       await supabase.from("tutor_referral_requests").insert({
+        id: requestId,
         student_id: user.id,
         subject: subjectSummary || null,
         preferred_level: level || null,
@@ -109,9 +111,11 @@ export function StudentOnboarding({ onComplete }: Props) {
         source: "onboarding",
       });
       const studentName = user.email?.split("@")[0] || t("shared.student");
+      // Запасний шлях: основне сповіщення створює тригер бази з тим самим типом.
       void notifyManagers({
-        type: "tutor_request",
+        type: requestNotificationType("tutor_request", requestId),
         title: t("notifications.tutorRequestTitle", { name: studentName, subject: subjectSummary || "—" }),
+        body: [level, schedule.join(", ")].filter(Boolean).join(" · ") || undefined,
         link: "/referrals",
       });
     } catch (e) {
