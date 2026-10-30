@@ -56,3 +56,21 @@ export async function notifyManagers({ type, title, body, link }: NotifyManagers
     console.error("[notifications] notify_managers failed:", error);
   }
 }
+
+/**
+ * 26.10: тип сповіщення про заявку несе id самої заявки — `tutor_request_<id>`,
+ * `pro_request_<id>`. Раніше тип був сталим, а `create_notification` дедуплікує за
+ * (user, type) на 24 год, тож ДРУГА заявка за добу ковталась мовчки. Той самий тип
+ * ставить тригер у базі (міграція 20261026120000) — клієнтський виклик лишається
+ * запасним і дедуплікується з ним. Id народжується тут, щоб і рядок заявки, і тип
+ * сповіщення несли один ключ без зайвого читання після вставки.
+ */
+export function newRequestId(): string {
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  } catch { /* старі WebView без randomUUID */ }
+  const hex = () => Math.floor(Math.random() * 0x10000).toString(16).padStart(4, "0");
+  return `${hex()}${hex()}-${hex()}-4${hex().slice(1)}-a${hex().slice(1)}-${hex()}${hex()}${hex()}`;
+}
+
+export const requestNotificationType = (kind: "tutor_request" | "pro_request", id: string) => `${kind}_${id}`;

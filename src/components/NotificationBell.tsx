@@ -33,6 +33,18 @@ const TYPE_ICON: Record<string, string> = {
   inactive: "👋",
 };
 
+/* 26.10: типи заявок несуть id (`tutor_request_<uuid>`), щоб кожна заявка була
+   окремим сповіщенням — іконку беремо за основою типу. */
+export function iconForType(type: string): string {
+  if (TYPE_ICON[type]) return TYPE_ICON[type];
+  const base = type.replace(/_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "");
+  if (TYPE_ICON[base]) return TYPE_ICON[base];
+  if (base.startsWith("feedback_new")) return "💬";
+  if (base.startsWith("tutor_request")) return TYPE_ICON.tutor_request;
+  if (base.startsWith("pro_request")) return TYPE_ICON.pro_request;
+  return "🔔";
+}
+
 interface Props {
   className?: string;
 }
@@ -124,7 +136,7 @@ export function NotificationBell({ className }: Props) {
                     )}
                   >
                     <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-base">
-                      {TYPE_ICON[n.type] ?? "🔔"}
+                      {iconForType(n.type)}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className={cn("text-sm leading-snug text-foreground", !n.read && "font-medium")}>

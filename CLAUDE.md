@@ -976,6 +976,26 @@ cards (student_id is NULL).
   through that RPC, not a client-side `user_roles` query (which silently returns nothing for
   non-managers). Call it best-effort via `notifyManagers()` in `src/lib/notifications.ts`.
 
+### Власниці / менеджеру в Telegram: заявки (26.10) — do not regress
+- Запит на репетитора, заявка на Pro і відгук народжують сповіщення **в базі**
+  (тригери `trg_notify_on_*`, міграція `20261026120000_owner_alerts`), не в клієнті:
+  тип = `<kind>_<id заявки>` (`tutor_request_…`, `pro_request_…`, `feedback_new_…`),
+  одержувачі — менеджери школи автора, інакше `platform_admins` (відгук і Pro — лише
+  адміни, не автор). Далі наявний `trg_send_push_on_notification` → `send-push`, який
+  **лише ці типи** дублює в Telegram (`_shared/ownerAlerts.ts`, `isOwnerAlertType` —
+  суворий збіг «префікс_uuid»; голий `tutor_request` зі старої збірки чи
+  `tutor_request_cancelled` у Telegram не йдуть).
+- Клієнт (`FindTutorDialog`, `StudentOnboarding`, `SubscriptionRequestDialog`) народжує
+  `requestId = newRequestId()` ДО вставки, кладе його і в рядок заявки, і в
+  `notify_managers(requestNotificationType(kind, requestId))` — це запасний шлях, що
+  дедуплікується з тригером. **Сталий тип (`"tutor_request"`) повертати не можна:**
+  `create_notification` дедуплікує за (user, type) на 24 год, і другий запит за день
+  ковтався мовчки — саме так було до 26.10. Іконку дзвіночка дає `iconForType` за основою.
+- Стеля в базі (`owner_alert_allowed`): 5/год на автора, 60/год на платформу; понад —
+  заявка є, сповіщення нема. Тригери загорнуті в EXCEPTION → WARNING: сповіщення ніколи
+  не ламає вставку заявки. Нічного режиму для заявок немає свідомо.
+- Стережуть `src/test/owner-alerts.test.ts` і сценарій `72-owner-alerts.sql`.
+
 ### Role-aware dashboard FAB & onboarding (do not regress)
 - The Dashboard `AddFab` is role-aware: managers route to the canonical `/schedule?create=1`,
   `/people?add=student`, `/finances`. Never point a manager at QuickLessonDialog/

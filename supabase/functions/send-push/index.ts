@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { versionProbe } from "../_shared/build.ts";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { mirrorOwnerAlertToTelegram } from "../_shared/ownerAlerts.ts";
 
 // 13.09: публічний ключ — той самий, що в src/lib/pushConfig.ts (він публічний
 // за задумом), тож секрет VAPID_PUBLIC_KEY не обовʼязковий. Без ПРИВАТНОГО
@@ -348,7 +349,13 @@ Deno.serve(withErrorLog("send-push", async (req) => {
   }
   const sentNative = await fcmSendNative(db, userId, { title, body: msgBody, link, tag });
 
-  return new Response(JSON.stringify({ ok: true, sent, sentNative, web: WEB_PUSH_READY ? "ok" : "not_configured" }), {
+  // 26.10: заявки власниці/менеджерам (tutor_request_* · pro_request_* · feedback_new_*)
+  // дублюються в Telegram тому, у кого він привʼязаний. Best-effort: push уже пішов.
+  const telegram = await mirrorOwnerAlertToTelegram(db, Deno.env.get("TELEGRAM_BOT_TOKEN"), {
+    userId, title, body: msgBody, link, tag,
+  });
+
+  return new Response(JSON.stringify({ ok: true, sent, sentNative, telegram, web: WEB_PUSH_READY ? "ok" : "not_configured" }), {
     headers: { "Content-Type": "application/json" },
   });
 }));
