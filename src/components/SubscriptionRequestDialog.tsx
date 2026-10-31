@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, CheckCircle2, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { notifyManagers } from "@/lib/notifications";
+import { notifyManagers, newRequestId, requestNotificationType } from "@/lib/notifications";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -84,7 +84,9 @@ export function SubscriptionRequestDialog({
       const fullMessage = message.trim()
         ? `${billingNote}\n\n${message.trim()}`
         : billingNote;
+      const requestId = newRequestId();
       const { error } = await supabase.from("subscription_requests").insert({
+        id: requestId,
         tutor_id: user.id,
         plan: planLabel,
         price,
@@ -103,9 +105,11 @@ export function SubscriptionRequestDialog({
       // порожній і сповіщення ніколи не йшло. notify_managers (DEFINER) сам знає,
       // кому: незалежний → суперадмін платформи; хабовий → менеджери його школи.
       const tutorName = user?.email?.split("@")[0] ?? t("shared.tutor");
+      // Запасний шлях: основне сповіщення створює тригер бази з тим самим типом.
       void notifyManagers({
-        type: "pro_request",
+        type: requestNotificationType("pro_request", requestId),
         title: t("notifications.proRequestTitle", { name: tutorName }),
+        body: billingNote,
         link: "/subscription-requests",
       });
       setMessage("");
