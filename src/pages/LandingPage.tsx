@@ -1,6 +1,5 @@
 import "@/styles/landing-fonts.css";
 import { priceLabel, totalLabel } from "@/lib/pricing";
-import { formatPrice } from "@/lib/currency";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { isNativeApp } from "@/lib/platform";
 import { useEffect, useMemo } from "react";
@@ -50,10 +49,8 @@ export type PersonaVars = {
   sessionsGen: string;
 };
 
-/* Адреси, де тариф Founding оголошено, і де школа домовляється про співпрацю.
-   Живуть у коді, а не в i18n: це не переклад — вони однакові всіма мовами. */
-const COURSE_BOT_URL = "https://t.me/Ai5days_bot";
-const INSTAGRAM_URL = "https://instagram.com/oksana_in_sweden";
+/* Адреса, де школа домовляється про співпрацю. Живе в коді, а не в i18n: це не
+   переклад — вона однакова всіма мовами. */
 const CALENDLY_URL = "https://calendly.com/oksana-chopak/30min";
 
 function capFirst(s: string): string {
@@ -247,7 +244,7 @@ const landingStyles = `
   .landing-root .hero-grid { grid-template-columns: 1.12fr 0.88fr; gap: 56px; align-items: start; }
   .landing-root .hero-result { position: sticky; top: 92px; }
   .landing-root .l-section { padding: 96px 32px; }
-  .landing-root .price-grid { grid-template-columns: 1fr 1fr; gap: 20px; max-width: 820px; margin-left: auto; margin-right: auto; }
+  .landing-root .price-grid { grid-template-columns: 1fr; gap: 20px; max-width: 460px; margin-left: auto; margin-right: auto; }
   .landing-root .cta-section { padding: 96px 32px; }
 }
 `;
@@ -255,11 +252,7 @@ const landingStyles = `
 export default function LandingPage() {
   const { t } = useTranslation();
   const native = isNativeApp(); // Play забороняє чужі прайси цифрових підписок
-  const FOUNDING_PER_MONTH = 199;
-  const FOUNDING_YEAR_TOTAL = 1990;
   const PRICES = {
-    founding: formatPrice(FOUNDING_PER_MONTH, "UAH"),
-    foundingY: formatPrice(FOUNDING_YEAR_TOTAL, "UAH"),
     regular: priceLabel("monthly"),
     regularY: totalLabel("yearly"),
   };
@@ -324,25 +317,8 @@ export default function LandingPage() {
                   </ul>
                   <div className="price-note">{t("landing.pricing.proNote")}</div>
                 </div>
-                <div className="price-card">
-                  <div className="price-plan">{t("landing.pricing.foundingPlan")}</div>
-                  <div className="price-badge">🎓 {t("landing.pricing.foundingBadge")}</div>
-                  <div className="price-amount">{PRICES.founding}</div>
-                  <div className="price-period">{t("landing.pricing.perMonth")}</div>
-                  <div className="price-annual">{t("landing.pricing.annualLine", { y: PRICES.foundingY })}</div>
-                  <ul className="price-features">
-                    <li>✓ {t("landing.pricing.includesRegular")}</li>
-                  </ul>
-                  <div className="price-note">{t("landing.pricing.foundingNote")}</div>
-                  <div className="price-links">
-                    <a className="price-link" href={COURSE_BOT_URL} target="_blank" rel="noopener noreferrer">
-                      ✈️ {t("landing.pricing.foundingBot")}
-                    </a>
-                    <a className="price-link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
-                      📷 {t("landing.pricing.foundingInstagram")}
-                    </a>
-                  </div>
-                </div>
+                {/* 01.11 (Рада 26.10, п. 5): картку «Founding 199» прибрано — один тариф,
+                    одна ціна; жодних «місць» і спецтарифів для підписників. */}
               </div>
               <p className="price-schools">
                 {t("landing.pricing.schoolsLine")}

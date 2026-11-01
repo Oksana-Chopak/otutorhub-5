@@ -267,6 +267,13 @@ export function QuickLessonDialog({
 
   const lock = useCoreLock();
   const { workspaceUnknown } = useWorkspaceSettings();
+  // 01.11 (Рада 26.10, п. 4): замок — ДО форми, не після «Створити урок».
+  // Людина заповнювала весь урок і лише тоді бачила пейвол — це дратує більше
+  // за сам пейвол. Тепер форма з замкненим ядром не відкривається: одразу шит.
+  useEffect(() => {
+    if (open && lock.locked) { onOpenChange(false); lock.openPaywall(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, lock.locked]);
   const submit = async () => {
     /* 01.10 (В4): персона НЕ визначена — не пишемо. `variant` сюди передає
        сторінка як `isManager ? … : isHubTutor ? "hub" : "independent"`, а

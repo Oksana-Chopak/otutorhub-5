@@ -55,50 +55,84 @@ function escapeHtml(value: unknown): string {
     .replace(/>/g, "&gt;");
 }
 
+
+// ── ПРАВИЛО ДОСТАВКИ (01.11, Рада 26.10 п. 1) ─────────────────────────────────
+// «Надіслано» = комусь прийшло: Telegram, push або (для того, хто має акаунт)
+// дзвіночок. Учню без акаунта (pending-профіль) дзвіночок не ставимо — він його
+// не відкриє ніколи; натомість репетиторці йде чесне «не доставлено» з готовим
+// текстом для пересилання (один раз на пару на добу), а в лог лягає рядок
+// «undelivered», щоб дедуп тримав, а лічильник «нагадано за вас» його не рахував.
+type Deliver = {
+  tutorId: string; studentId: string; lessonId: string; reminderKind: string;
+  lang: RtLang; tgText: string; title: string; body: string; link: string; tag: string;
+  actions?: Array<{ action: string; title: string; link: string }>;
+  shareText: string; studentName: string;
+};
+const UNDELIVERED_TXT = {
+  uk: {
+    title: (n: string) => `Нагадування для ${n} не доставлено`,
+    body: "Немає Telegram чи пошти. Перешли сама — текст уже готовий, один дотик.",
+    tg: (n: string) => `⚠️ <b>${n}</b> ще не підключив(ла) Telegram чи пошту — нагадування не дійде саме.\nПерешли це повідомлення у Viber або Telegram (один дотик «Переслати»):`,
+  },
+  en: {
+    title: (n: string) => `Reminder for ${n} was not delivered`,
+    body: "No Telegram or email. Forward it yourself — the text is ready, one tap.",
+    tg: (n: string) => `⚠️ <b>${n}</b> hasn’t connected Telegram or email yet — the reminder can’t reach them by itself.\nForward this message in Viber or Telegram:`,
+  },
+  sv: {
+    title: (n: string) => `Påminnelsen till ${n} levererades inte`,
+    body: "Ingen Telegram eller e-post. Vidarebefordra själv — texten är klar, ett tryck.",
+    tg: (n: string) => `⚠️ <b>${n}</b> har inte kopplat Telegram eller e-post ännu — påminnelsen når inte fram av sig själv.\nVidarebefordra detta meddelande i Viber eller Telegram:`,
+  },
+} as const;
+
 // ── i18n сповіщень: мова одержувача з profiles.preferred_language ──
 const RLOC: Record<string, string> = { uk: "uk-UA", en: "en-GB", sv: "sv-SE" };
 const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "£", SEK: "kr", PLN: "zł" };
 const rsym = (c?: string | null) => RSYM[c ?? "UAH"] ?? (c ?? "₴");
 const RT = {
   uk: {
-    header: "💳 Нагадування про оплату", tutor: "репетитор", sum: "Сума", subj: "Предмет", iPaid: "Я оплатив",
-    prepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній урок (${d}) з ${t}.`,
-    before: (d: string, t: string, n: number) => `Нагадуємо про оплату уроку ${d} з ${t}. До початку залишилось ~${n} ${n === 1 ? "день" : "днів"}.`,
-    after: (d: string, t: string) => `Дякуємо за урок ${d} з ${t}! Час оплатити заняття.`,
-    gPrepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній груповий урок (${d}) з ${t}.`,
-    gPay: (d: string, t: string) => `Груповий урок ${d} з ${t} — час оплатити заняття.`,
-    debtHeader: "💳 Є неоплачені уроки",
+    header: (t: string) => `💳 Повідомлення від ${t}`, tutor: "репетитор", sum: "Сума", subj: "Предмет", iPaid: "Я оплатив",
+    prepaid: (d: string, _t: string) => `Нагадую про передоплату за майбутній урок (${d}).`,
+    prepaidOut: (d: string, _t: string) => `Передоплата закінчилась — нагадую про оплату наступного уроку (${d}).`,
+    before: (d: string, _t: string, n: number) => `Нагадую про оплату уроку ${d}. До початку залишилось ~${n} ${n === 1 ? "день" : "днів"}.`,
+    after: (d: string, _t: string) => `Дякую за урок ${d}! Нагадую про оплату.`,
+    gPrepaid: (d: string, _t: string) => `Нагадую про передоплату за майбутній груповий урок (${d}).`,
+    gPay: (d: string, _t: string) => `Груповий урок ${d} — нагадую про оплату.`,
+    debtHeader: (t: string) => `💳 Повідомлення від ${t}`,
     payLink: "Реквізити й кнопка «Я оплатив(ла)»:",
-    debt: (n: number, t: string) =>
+    debt: (n: number, _t: string) =>
       n === 1
-        ? `Залишився один неоплачений урок з ${t}.`
-        : `Залишилось ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "неоплачені уроки" : "неоплачених уроків"} з ${t}.`,
+        ? `Нагадую: залишився один неоплачений урок.`
+        : `Нагадую: залишилось ${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "неоплачені уроки" : "неоплачених уроків"}.`,
     debtTotal: "Разом",
   },
   en: {
-    header: "💳 Payment reminder", tutor: "your tutor", sum: "Amount", subj: "Subject", iPaid: "I paid",
-    prepaid: (d: string, t: string) => `A prepayment reminder for the upcoming lesson (${d}) with ${t}.`,
-    before: (d: string, t: string, n: number) => `Payment reminder for the lesson ${d} with ${t}. ~${n} ${n === 1 ? "day" : "days"} to go.`,
-    after: (d: string, t: string) => `Thanks for the lesson ${d} with ${t}! Time to pay for it.`,
-    gPrepaid: (d: string, t: string) => `A prepayment reminder for the upcoming group lesson (${d}) with ${t}.`,
-    gPay: (d: string, t: string) => `Group lesson ${d} with ${t} — time to pay.`,
-    debtHeader: "💳 Unpaid lessons",
+    header: (t: string) => `💳 Message from ${t}`, tutor: "your tutor", sum: "Amount", subj: "Subject", iPaid: "I paid",
+    prepaid: (d: string, _t: string) => `A prepayment reminder for the upcoming lesson (${d}).`,
+    prepaidOut: (d: string, _t: string) => `Your prepayment has run out — a reminder to pay for the next lesson (${d}).`,
+    before: (d: string, _t: string, n: number) => `Payment reminder for the lesson ${d}. ~${n} ${n === 1 ? "day" : "days"} to go.`,
+    after: (d: string, _t: string) => `Thanks for the lesson ${d}! A payment reminder.`,
+    gPrepaid: (d: string, _t: string) => `A prepayment reminder for the upcoming group lesson (${d}).`,
+    gPay: (d: string, _t: string) => `Group lesson ${d} — a payment reminder.`,
+    debtHeader: (t: string) => `💳 Message from ${t}`,
     payLink: "Payment details and the «I’ve paid» button:",
-    debt: (n: number, t: string) =>
-      n === 1 ? `One lesson with ${t} is still unpaid.` : `${n} lessons with ${t} are still unpaid.`,
+    debt: (n: number, _t: string) =>
+      n === 1 ? `A reminder: one lesson is still unpaid.` : `A reminder: ${n} lessons are still unpaid.`,
     debtTotal: "Total",
   },
   sv: {
-    header: "💳 Betalningspåminnelse", tutor: "din lärare", sum: "Belopp", subj: "Ämne", iPaid: "Jag har betalat",
-    prepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande lektion (${d}) med ${t}.`,
-    before: (d: string, t: string, n: number) => `Betalningspåminnelse för lektionen ${d} med ${t}. ~${n} ${n === 1 ? "dag" : "dagar"} kvar.`,
-    after: (d: string, t: string) => `Tack för lektionen ${d} med ${t}! Dags att betala.`,
-    gPrepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande grupplektion (${d}) med ${t}.`,
-    gPay: (d: string, t: string) => `Grupplektion ${d} med ${t} — dags att betala.`,
-    debtHeader: "💳 Obetalda lektioner",
+    header: (t: string) => `💳 Meddelande från ${t}`, tutor: "din lärare", sum: "Belopp", subj: "Ämne", iPaid: "Jag har betalat",
+    prepaid: (d: string, _t: string) => `Påminnelse om förskottsbetalning för kommande lektion (${d}).`,
+    prepaidOut: (d: string, _t: string) => `Förskottsbetalningen är slut — påminnelse om betalning för nästa lektion (${d}).`,
+    before: (d: string, _t: string, n: number) => `Betalningspåminnelse för lektionen ${d}. ~${n} ${n === 1 ? "dag" : "dagar"} kvar.`,
+    after: (d: string, _t: string) => `Tack för lektionen ${d}! En betalningspåminnelse.`,
+    gPrepaid: (d: string, _t: string) => `Påminnelse om förskottsbetalning för kommande grupplektion (${d}).`,
+    gPay: (d: string, _t: string) => `Grupplektion ${d} — en betalningspåminnelse.`,
+    debtHeader: (t: string) => `💳 Meddelande från ${t}`,
     payLink: "Betalningsuppgifter och knappen «Jag har betalat»:",
-    debt: (n: number, t: string) =>
-      n === 1 ? `En lektion med ${t} är fortfarande obetald.` : `${n} lektioner med ${t} är fortfarande obetalda.`,
+    debt: (n: number, _t: string) =>
+      n === 1 ? `Påminnelse: en lektion är fortfarande obetald.` : `Påminnelse: ${n} lektioner är fortfarande obetalda.`,
     debtTotal: "Totalt",
   },
 } as const;
@@ -214,6 +248,95 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     for (const x of need) if (!langByUser.has(x)) langByUser.set(x, "uk");
   };
   const rlang = (id: string): RtLang => langByUser.get(id) ?? "uk";
+  // 01.11: хто з учнів БЕЗ акаунта (pending) — тим дзвіночок не доставка.
+  const pendingByUser = new Map<string, boolean>();
+  const nameByUser = new Map<string, string>();
+  const ensurePending = async (ids: (string | null | undefined)[]) => {
+    const need = [...new Set(ids.filter(Boolean) as string[])].filter((x) => !pendingByUser.has(x));
+    if (!need.length) return;
+    const { data } = await supabase.from("profiles").select("id, is_pending, first_name, last_name, preferred_language").in("id", need);
+    for (const r of (data ?? []) as any[]) {
+      pendingByUser.set(r.id, !!r.is_pending);
+      nameByUser.set(r.id, `${(r.first_name ?? "").trim()} ${(r.last_name ?? "").trim()}`.trim() || "учень");
+      if (!langByUser.has(r.id)) langByUser.set(r.id, r.preferred_language === "en" ? "en" : r.preferred_language === "sv" ? "sv" : "uk");
+    }
+    for (const x of need) if (!pendingByUser.has(x)) pendingByUser.set(x, false);
+  };
+  const tutorChat = new Map<string, number | null>();
+  const tutorChatOf = async (id: string): Promise<number | null> => {
+    if (tutorChat.has(id)) return tutorChat.get(id) ?? null;
+    const { data } = await supabase.from("user_telegram_links").select("chat_id").eq("user_id", id).not("chat_id", "is", null).maybeSingle();
+    const c = data?.chat_id ? Number(data.chat_id) : null;
+    tutorChat.set(id, c);
+    return c;
+  };
+  const undeliveredToldAt = new Map<string, number>();
+  const payUrlOf = async (tutorId: string, studentId: string): Promise<string> => {
+    try {
+      const { data: code } = await (supabase.rpc as any)("payment_link_for_pair", { _tutor_id: tutorId, _student_id: studentId });
+      if (typeof code === "string" && /^[a-z0-9]{8}$/.test(code)) return `${APP_URL}/p/${code}`;
+      if (typeof code === "string" && /^[0-9a-f]{64}$/.test(code)) return `${APP_URL}/pay/${code}`;
+    } catch { /* нагадування йде і без посилання */ }
+    return "";
+  };
+  /** Доставка одного нагадування за правилом доставки. Повертає канал для логу. */
+  const deliver = async (d: Deliver): Promise<string> => {
+    await ensurePending([d.studentId, d.tutorId]);
+    const studentName = nameByUser.get(d.studentId) ?? d.studentName;
+    const isPending = pendingByUser.get(d.studentId) === true;
+    const chatId = chatByUser.get(d.studentId);
+    const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, d.tgText) : false;
+    const pushOk = !isPending && await sendWebPush(supabaseUrl, serviceKey, {
+      userId: d.studentId, title: d.title, body: d.body, link: d.link, tag: d.tag, actions: d.actions,
+    });
+    if (!isPending) {
+      await supabase.from("notifications").insert({
+        user_id: d.studentId, type: "payment_reminder", title: d.title, body: d.body, link: "/student/payments",
+      });
+    }
+    const channel = tgOk ? "telegram" : pushOk ? "webpush" : !isPending ? "inapp" : "undelivered";
+    const { error: logErr } = await supabase.from("lesson_payment_reminders").insert({
+      lesson_id: d.lessonId, tutor_id: d.tutorId, student_id: d.studentId, reminder_kind: d.reminderKind, channel,
+    });
+    // Лог не косметика: на ньому тримається дедуп. Не записався — гучно.
+    if (logErr) console.error("payment-reminders: лог не записався", d.reminderKind, logErr.message);
+    if (channel !== "undelivered") return channel;
+
+    // Репетиторці — один раз на пару на добу: дзвіночок + її Telegram з готовим
+    // текстом (один дотик «Переслати» у Viber/Telegram).
+    const key = `${d.tutorId}:${d.studentId}`;
+    const nowMs = Date.now();
+    if (nowMs - (undeliveredToldAt.get(key) ?? 0) < DAY_MS) return channel;
+    const { data: told } = await supabase.from("lesson_payment_reminders").select("sent_at")
+      .eq("tutor_id", d.tutorId).eq("student_id", d.studentId).eq("channel", "undelivered")
+      .gte("sent_at", new Date(nowMs - DAY_MS).toISOString()).order("sent_at", { ascending: false }).limit(2);
+    if ((told ?? []).length > 1) { undeliveredToldAt.set(key, nowMs); return channel; } // перший — щойно наш
+    undeliveredToldAt.set(key, nowMs);
+    const tl = UNDELIVERED_TXT[rlang(d.tutorId)] ?? UNDELIVERED_TXT.uk;
+    await supabase.from("notifications").insert({
+      user_id: d.tutorId, type: "reminder_undelivered",
+      title: tl.title(studentName), body: tl.body, link: `/finances?tab=debts&remind=${d.studentId}`,
+    });
+    const tchat = await tutorChatOf(d.tutorId);
+    if (tchat) {
+      await sendTg(TELEGRAM_BOT_TOKEN, tchat, tl.tg(escapeHtml(studentName)));
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: tchat, text: d.shareText, disable_web_page_preview: true }),
+      }).catch(() => {});
+    }
+    return channel;
+  };
+  // 01.11 (власниця): передоплата й післяплата — різні сценарії. Пара, яка хоч
+  // раз вносила передоплату, живе «наперед»: коли кредит вичерпано, нагадуємо
+  // ПЕРЕД наступним уроком («передоплата закінчилась»), а не після нього.
+  const prepaidPairs = new Set<string>();
+  const ensurePrepaidPairs = async (ids: (string | null | undefined)[]) => {
+    const need = [...new Set(ids.filter(Boolean) as string[])];
+    if (!need.length) return;
+    const { data } = await supabase.from("student_wallet_transactions").select("tutor_id, student_id").eq("kind", "topup").in("student_id", need);
+    for (const r of (data ?? []) as any[]) prepaidPairs.add(`${r.tutor_id}:${r.student_id}`);
+  };
   // Валюта пари — зі student_rates (у lessons такої колонки немає).
   const curByPair = new Map<string, string>();
   const ensureCurrencies = async (ids: (string | null | undefined)[]) => {
@@ -292,6 +415,8 @@ Deno.serve(withJob("payment-reminders", async (req) => {
 
   let sent = 0;
   let skipped = 0;
+  let undelivered = 0;
+  await ensurePrepaidPairs((lessons ?? []).map((l: { student_id?: string | null }) => l.student_id));
 
   for (const lesson of lessons) {
     const settings = settingsByTutor.get(lesson.tutor_id);
@@ -308,11 +433,12 @@ Deno.serve(withJob("payment-reminders", async (req) => {
       continue;
     }
 
-    const chatId = chatByUser.get(lesson.student_id);
-
     const lessonStart = new Date(lesson.starts_at).getTime();
     const days = Math.max(0, Math.min(30, settings.payment_due_days ?? 1));
-    const mode = settings.payment_due_mode;
+    // Пара на передоплаті: кредит вичерпано → нагадуємо до уроку, не після.
+    const pairPrepaid = prepaidPairs.has(`${lesson.tutor_id}:${lesson.student_id}`);
+    const mode: WorkspaceSettings["payment_due_mode"] =
+      pairPrepaid && settings.payment_due_mode === "after_lesson" ? "before_lesson" : settings.payment_due_mode;
 
     let reminderKind: string | null = null;
     let triggerTimeMs = 0;
@@ -378,50 +504,28 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     });
     const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
     const price = Number(lesson.student_price ?? 0);
-    const header = T.header;
+    const header = T.header(tname);
     let body = "";
     if (mode === "prepaid") body = T.prepaid(dateStr, tname);
-    else if (mode === "before_lesson") body = T.before(dateStr, tname, days);
+    else if (mode === "before_lesson") body = pairPrepaid ? T.prepaidOut(dateStr, tname) : T.before(dateStr, tname, days);
     else body = T.after(dateStr, tname);
     const priceLine = price > 0 ? `\n\n${T.sum}: <b>${price} ${cur}</b>` : "";
-    const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\n${T.subj}: ${escapeHtml(lesson.subject)}`;
-
-    const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
-    const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
-      userId: lesson.student_id,
-      title: header,
-      body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
-      link: "/student/payments",
-      tag: `payrem-${lesson.id}`,
+    // 13.10/01.11: у КОЖНОМУ нагадуванні — посилання на сторінку «реквізити ·
+    // Я оплатив(ла)», щоб відповісти одним дотиком без входу.
+    const payUrl = await payUrlOf(lesson.tutor_id, lesson.student_id);
+    const text = `<b>${escapeHtml(header)}</b>\n\n${escapeHtml(body)}${priceLine}\n\n${T.subj}: ${escapeHtml(lesson.subject)}${payUrl ? `\n\n${T.payLink}\n${payUrl}` : ""}`;
+    const shortBody = `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`;
+    const channel = await deliver({
+      tutorId: lesson.tutor_id, studentId: lesson.student_id, lessonId: lesson.id, reminderKind, lang,
+      tgText: text, title: header, body: shortBody, link: payUrl || "/student/payments", tag: `payrem-${lesson.id}`,
       /* Важіль 3в: кнопка просто в сповіщенні. Вона НЕ пише гроші (у service
          worker немає сесії) — відкриває сторінку оплат із уже наведеною дією
          «Я оплатив» для цього репетитора, де лишається один дотик. */
       actions: [{ action: "ipaid", title: T.iPaid, link: `/student/payments?paid=${lesson.tutor_id}` }],
+      shareText: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}${payUrl ? `\n${T.payLink}\n${payUrl}` : ""}\n— ${tname}`,
+      studentName: nameByUser.get(lesson.student_id) ?? "учень",
     });
-    // In-app 🔔 bell — the universal channel every student sees in the app, whether or
-    // not they linked Telegram or granted web-push. The dedup guard above means this
-    // fires at most once per (lesson, reminderKind), so no hourly spam. (Previously we
-    // skipped entirely when tg+push both failed — students without either got nothing.)
-    await supabase.from("notifications").insert({
-      user_id: lesson.student_id,
-      type: "payment_reminder",
-      title: header,
-      body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
-      link: "/student/payments",
-    });
-
-    // Record the send for idempotency (bell always delivered; note best push channel).
-    // 15.09: помилку цієї вставки НЕ ковтаємо. Саме мовчазний провал тут
-    // ламав дедуп і перетворював нагадування на щогодинний спам.
-    const { error: logErr } = await supabase.from("lesson_payment_reminders").insert({
-      lesson_id: lesson.id,
-      tutor_id: lesson.tutor_id,
-      student_id: lesson.student_id,
-      reminder_kind: reminderKind,
-      channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
-    });
-    if (logErr) console.error("payment-reminders: лог не записався — дедуп зламано", reminderKind, logErr.message);
-    sent++;
+    if (channel === "undelivered") undelivered++; else sent++;
   }
 
   // ===== GROUP LESSONS: per-participant reminders (lesson_participants) =====
@@ -502,38 +606,20 @@ Deno.serve(withJob("payment-reminders", async (req) => {
       const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], { timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
       const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
       const price = Number(p.student_price ?? 0);
-      const header = T.header;
+      const header = T.header(tname);
       const body = mode === "prepaid" ? T.gPrepaid(dateStr, tname) : T.gPay(dateStr, tname);
       const priceLine = price > 0 ? `\n\n${T.sum}: <b>${price} ${cur}</b>` : "";
-      const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\n${T.subj}: ${escapeHtml(lesson.subject)}`;
-
-      const chatId = chatByUser.get(p.student_id);
-      const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
-      const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
-        userId: p.student_id,
-        title: header,
-        body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
-        link: "/student/payments",
-        tag: `payrem-${lesson.id}-${p.student_id}`,
+      const payUrl = await payUrlOf(lesson.tutor_id, p.student_id);
+      const text = `<b>${escapeHtml(header)}</b>\n\n${escapeHtml(body)}${priceLine}\n\n${T.subj}: ${escapeHtml(lesson.subject)}${payUrl ? `\n\n${T.payLink}\n${payUrl}` : ""}`;
+      const shortBody = `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`;
+      const channel = await deliver({
+        tutorId: lesson.tutor_id, studentId: p.student_id, lessonId: lesson.id, reminderKind, lang,
+        tgText: text, title: header, body: shortBody, link: payUrl || "/student/payments", tag: `payrem-${lesson.id}-${p.student_id}`,
         actions: [{ action: "ipaid", title: T.iPaid, link: `/student/payments?paid=${lesson.tutor_id}` }],
+        shareText: `${shortBody}${payUrl ? `\n${T.payLink}\n${payUrl}` : ""}\n— ${tname}`,
+        studentName: nameByUser.get(p.student_id) ?? "учень",
       });
-      // In-app 🔔 — universal channel (same as individual path).
-      await supabase.from("notifications").insert({
-        user_id: p.student_id,
-        type: "payment_reminder",
-        title: header,
-        body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
-        link: "/student/payments",
-      });
-      const { error: gLogErr } = await supabase.from("lesson_payment_reminders").insert({
-        lesson_id: lesson.id,
-        tutor_id: lesson.tutor_id,
-        student_id: p.student_id,
-        reminder_kind: reminderKind,
-        channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
-      });
-      if (gLogErr) console.error("payment-reminders (група): лог не записався", reminderKind, gLogErr.message);
-      sent++;
+      if (channel === "undelivered") undelivered++; else sent++;
     }
   }
 
@@ -688,41 +774,20 @@ Deno.serve(withJob("payment-reminders", async (req) => {
         const tname = tutorName.get(pair.tutor_id) ?? T.tutor;
         const body = T.debt(pair.count, tname);
         const sumLine = `${T.debtTotal}: ${pair.total} ${cur}`;
-        // 13.10: у кожному автоматичному нагадуванні — магічне посилання на сторінку
-        // «борг · реквізити · Я оплатив(ла)», щоб відповісти одним дотиком без входу.
-        let payUrl = "";
-        try {
-          const { data: tok } = await (supabase.rpc as any)("payment_link_for_pair", { _tutor_id: pair.tutor_id, _student_id: pair.student_id });
-          if (typeof tok === "string" && /^[0-9a-f]{64}$/.test(tok)) payUrl = `${APP_URL}/pay/${tok}`;
-        } catch { /* нагадування йде і без посилання */ }
-        const text = `${T.debtHeader}\n\n${escapeHtml(body)}\n\n<b>${escapeHtml(sumLine)}</b>${payUrl ? `\n\n${T.payLink}\n${payUrl}` : ""}`;
-
-        const chatId = chatByUser.get(pair.student_id);
-        const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
-        const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
-          userId: pair.student_id,
-          title: T.debtHeader,
-          body: `${body} ${sumLine}.`,
-          link: payUrl || "/student/payments",
+        const header = T.debtHeader(tname);
+        // 13.10/01.11: у кожному автоматичному нагадуванні — коротке посилання на
+        // сторінку «борг · реквізити · Я оплатив(ла)», щоб відповісти одним дотиком.
+        const payUrl = await payUrlOf(pair.tutor_id, pair.student_id);
+        const text = `<b>${escapeHtml(header)}</b>\n\n${escapeHtml(body)}\n\n<b>${escapeHtml(sumLine)}</b>${payUrl ? `\n\n${T.payLink}\n${payUrl}` : ""}`;
+        const channel = await deliver({
+          tutorId: pair.tutor_id, studentId: pair.student_id, lessonId: pair.oldestLesson, reminderKind: decision.kind, lang,
+          tgText: text, title: header, body: `${body} ${sumLine}.`, link: payUrl || "/student/payments",
           tag: `debt-${pair.tutor_id}-${pair.student_id}`,
+          actions: [{ action: "ipaid", title: T.iPaid, link: `/student/payments?paid=${pair.tutor_id}` }],
+          shareText: `${body} ${sumLine}.${payUrl ? `\n${T.payLink}\n${payUrl}` : ""}\n— ${tname}`,
+          studentName: nameByUser.get(pair.student_id) ?? "учень",
         });
-        await supabase.from("notifications").insert({
-          user_id: pair.student_id,
-          type: "payment_reminder",
-          title: T.debtHeader,
-          body: `${body} ${sumLine}.`,
-          link: "/student/payments",
-        });
-        const { error: dLogErr } = await supabase.from("lesson_payment_reminders").insert({
-          lesson_id: pair.oldestLesson,
-          tutor_id: pair.tutor_id,
-          student_id: pair.student_id,
-          reminder_kind: decision.kind,
-          channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
-        });
-        // Лог тут не косметика: на ньому тримається «раз на 3 дні». Якщо він
-        // не записався — краще гучно, ніж щогодинна розсилка.
-        if (dLogErr) console.error("payment-reminders (борг): лог не записався", decision.kind, dLogErr.message);
+        if (channel === "undelivered") { undelivered++; continue; }
         debtSent++;
         sent++;
       }
@@ -733,7 +798,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, scanned: lessons.length, groupParticipants: parts.length, sent, debtSent, skipped }),
+    JSON.stringify({ ok: true, scanned: lessons.length, groupParticipants: parts.length, sent, debtSent, undelivered, skipped }),
     { headers: { "Content-Type": "application/json" } },
   );
 }));

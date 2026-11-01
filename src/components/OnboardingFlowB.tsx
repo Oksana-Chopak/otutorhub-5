@@ -294,10 +294,8 @@ function StudentAction({ defaultSubject, onComplete, user, onImportAll, subjectC
         return;
       }
       const newId = (res as any).student_id as string;
-      if (email.trim() && (res as any).action !== "linked") {
-        // Best-effort invite — the note under the form promises it only with an email.
-        supabase.functions.invoke("send-student-invite", { body: { studentId: newId } }).catch(() => {});
-      }
+      // 01.11 (Рада 26.10, п. 5): автолист мамі при додаванні першого учня прибрано.
+      // Пошта збережена; запрошення репетиторка надсилає сама з картки учня, побачивши текст.
       // 13.10: предмет першого учня — і предмет профілю (той самий запис, що робив крок «предмет»).
       if (subjectChips) await mergeProfileSubject(user.id, subject.trim());
 

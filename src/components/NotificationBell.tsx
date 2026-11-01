@@ -31,6 +31,11 @@ const TYPE_ICON: Record<string, string> = {
   weekly_summary: "📈",
   streak_at_risk: "🔥",
   inactive: "👋",
+  payment_claim: "💸",
+  payment_reminder: "💳",
+  payment_confirmed: "✅",
+  payment_claim_rejected: "❓",
+  reminder_undelivered: "⚠️",
 };
 
 /* 26.10: типи заявок несуть id (`tutor_request_<uuid>`), щоб кожна заявка була

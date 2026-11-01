@@ -183,11 +183,12 @@ describe("нагадування про борг (15.09)", () => {
 
     it("помилку запису в лог не ковтаємо — на ньому тримається дедуп", () => {
       const src = read("supabase/functions/payment-reminders/index.ts");
+      // 01.11: три шляхи (індивідуальний, груповий, борг) пишуть лог через ОДИН
+      // `deliver()` — правило доставки одне на всіх, і помилка логу — у ньому.
       const inserts = src.match(/from\("lesson_payment_reminders"\)\.insert\(/g) ?? [];
-      expect(inserts.length).toBeGreaterThanOrEqual(3);
+      expect(inserts.length).toBeGreaterThanOrEqual(1);
       expect(src).toMatch(/if \(logErr\) console\.error/);
-      expect(src).toMatch(/if \(gLogErr\) console\.error/);
-      expect(src).toMatch(/if \(dLogErr\) console\.error/);
+      expect((src.match(/await deliver\(\{/g) ?? []).length, "індивідуальний, груповий і борговий шлях ідуть через deliver()").toBe(3);
     });
   });
 

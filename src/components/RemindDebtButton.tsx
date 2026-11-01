@@ -32,6 +32,8 @@ export function RemindDebtButton({
   lastRemindedAt,
   onSent,
   full,
+  autoOpen,
+  compact,
 }: {
   studentId: string;
   /** Чужий репетитор — лише для менеджера школи; порожньо = я сам. */
@@ -42,13 +44,17 @@ export function RemindDebtButton({
   onSent?: () => void;
   /** Розтягнути на всю ширину (у смузі боргу), інакше — компактний чип. */
   full?: boolean;
+  /** 01.11: відкрити аркуш одразу (прихід за посиланням «не доставлено — перешли сама»). */
+  autoOpen?: boolean;
+  /** Компактний варіант у рядку уроку (вужчі поля; висота лишається 44 — ціль дотику). */
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   const haptic = useHaptic();
   const key = remindKey(studentId, tutorId);
   const [queued, setQueued] = useState(isRemindPending(key));
   const [busy, setBusy] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(!!autoOpen);
 
   const send = async () => {
     setQueued(false);
@@ -132,7 +138,7 @@ export function RemindDebtButton({
       disabled={busy}
       aria-label={t("remind.action")}
       style={{
-        height: 44, padding: "0 16px", borderRadius: 12, cursor: busy ? "wait" : "pointer",
+        height: 44, padding: compact ? "0 12px" : "0 16px", borderRadius: compact ? 10 : 12, cursor: busy ? "wait" : "pointer",
         border: "1px solid rgba(245,158,11,.4)",
         background: valid && !queued ? "var(--ds-surface,#fff)" : "rgba(245,158,11,.2)",
         color: "var(--warning-text,#B45309)",

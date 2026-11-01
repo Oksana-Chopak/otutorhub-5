@@ -6,6 +6,7 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Crown } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ValueNumbers, hasValue, useTutorValueStats } from "@/components/ValueNumbers";
 
 /**
  * Always-visible trial countdown for independent tutors on Pro trial.
@@ -17,6 +18,9 @@ export function TrialCountdownBanner() {
   const { isIndependent, isTrial, trialDaysLeft, trialUntil, isPro, settings, roleReady } =
     useWorkspaceSettings();
 
+  // 01.11 (Рада 26.10, п. 4): банер після тріалу показує ЇЇ цифри, не лише ціну.
+  const trialExpired = !!trialUntil && trialUntil.getTime() < Date.now() && !(isPro && !isTrial);
+  const { stats } = useTutorValueStats(roleReady && !!settings && trialExpired);
   // Tick every minute so the countdown updates without reload
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -42,9 +46,14 @@ export function TrialCountdownBanner() {
   if (expired) {
     return (
       <div className="mb-4 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
+        {hasValue(stats) && (
+          <div className="mb-3">
+            <ValueNumbers stats={stats} />
+          </div>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-medium text-foreground">
-            {t("trial.expiredBanner")}
+            {hasValue(stats) ? t("trial.expiredBannerValue") : t("trial.expiredBanner")}
           </span>
           <Button size="sm" asChild className="rounded-full">
             <Link to="/subscription">

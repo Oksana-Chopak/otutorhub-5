@@ -116,6 +116,8 @@ interface LessonRow {
   /** Скасований урок зі штрафом = борг (модель 04.09) — без цього поля
    *  предикат isStudentDebtLesson «не бачить» штрафів. */
   is_cancellation_fee?: boolean;
+  /** Перенесений з іншого обліку борг (імпорт 07.09): у гроші входить, у списки уроків — ні. */
+  carried_over?: boolean;
 }
 
 interface ProfileRow {
@@ -253,6 +255,11 @@ export default function DashboardPage() {
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
 
+  // 01.11 (Рада 26.10, п. 5; рішення власниці): серії днів, «рятівники», рівні й
+  // афірмації на головному екрані репетиторки ВИМКНЕНО — людина з 19
+  // неоплаченими уроками не хоче бачити «0 рятівники». Нарахування лишається в
+  // базі (бейджі/серії дають дні Pro), з екрана прибрано лише показ.
+  const SHOW_GAMIFICATION = false;
   // Gamification: badge unlock toasts + streak card + referral nudge counters
   const gamification = useTutorGamification();
   const { badges, loading: gamificationLoading, streak, level } = gamification;
@@ -297,6 +304,7 @@ export default function DashboardPage() {
 
   // "Сьогодні день X твоєї серії" — once per day greeting
   useEffect(() => {
+    if (!SHOW_GAMIFICATION) return;
     if (!streak || !user || !isTutor || gamificationLoading) return;
     if ((streak.current_streak ?? 0) <= 0) return;
     const todayKey = `streak_greeted_${user.id}_${new Date().toDateString()}`;
@@ -482,6 +490,7 @@ export default function DashboardPage() {
       { data: defaultsData },
       { data: ratesCurrencyData },
       { data: moneyLessonsData },
+      { data: oldDebtsData },
     ] = await Promise.all([
       (async () => {
         // Перенесені борги (carried_over, 07.09) — залишки старого обліку, не
@@ -530,6 +539,21 @@ export default function DashboardPage() {
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: false });
       })(),
+      (() => {
+        // 01.11 (Рада 26.10, п. 3 — «три правди про борг»): «Мій день» дивився лише
+        // на −30/+14 днів і при 10 200 ₴ боргу казав «Усі уроки оплачені 🎉».
+        // Борг не має періоду (модель 04.09): дочитуємо ВСІ неоплачені проведені
+        // (і штрафи, і перенесені) старші за вікно — та сама правда, що у «Фінансах».
+        let q = supabase
+          .from("lessons_visible")
+          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee, carried_over")
+          .lt("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .in("status", ["completed", "cancelled"])
+          .neq("student_payment_status", "paid")
+          .limit(500);
+        if (isManager) q = (q as any).neq("source", "independent");
+        return q.order("starts_at", { ascending: false });
+      })(),
     ]);
 
     if (lessonsError) {
@@ -573,8 +597,8 @@ export default function DashboardPage() {
 
     setProfiles(profileMap);
     const uniqueLessons = Array.from(
-      new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
-    );
+      new Map([...((lessonsData ?? []) as LessonRow[]), ...((oldDebtsData ?? []) as LessonRow[])].map((l) => [l.id, l])).values()
+    ).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
     setLessons(uniqueLessons);
     setMoneyLessons(((moneyLessonsData ?? []) as any[]) as LessonRow[]);
     const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
@@ -1144,6 +1168,8 @@ export default function DashboardPage() {
           if (l.status === "cancelled" || l.status === "pending") return false;
           return groupUnpaidLessonIds.has(l.id);
         }
+        // Перенесений борг — не урок: у картках його немає, у боржниках (нижче) є.
+        if (l.carried_over) return false;
         return isStudentDebtLesson(l) || isPayoutDueLesson(l, nowMs);
       }),
     [lessons, nowMs, groupUnpaidLessonIds]
@@ -1174,6 +1200,17 @@ export default function DashboardPage() {
     }
     return [...byPair.values()].sort((a, b) => b.sum - a.sum);
   }, [lessons]);
+
+  // Перенесені борги (імпорт): у гроші входять, у картки — ні (01.11).
+  const carriedDebt = useMemo(() => {
+    let count = 0, sum = 0; let currency = "UAH";
+    for (const l of lessons) {
+      if (!l.carried_over || !l.student_id || !isStudentDebtLesson(l)) continue;
+      count += 1; sum += Number(l.student_price ?? 0);
+      currency = pairCurrency[`${l.tutor_id}:${l.student_id}`] ?? currency;
+    }
+    return { count, sum, currency };
+  }, [lessons, pairCurrency]);
 
   // Інваріант живе у financials.ts разом із рештою грошових предикатів:
   // прапор самостійності — обовʼязковий аргумент, забути його неможливо.
@@ -1413,7 +1450,7 @@ export default function DashboardPage() {
     // ── Гілка репетитора (незалежний або хабовий) ──
     if (isTutor && !isManager) {
       // Проведені та не оплачені (незалежний бачить свої, хабовий — нічого, менеджер нижче)
-      if (isIndependentTutor && pendingPayments.length > 0) {
+      if (isIndependentTutor && debtors.length > 0) {
         // Поіменно — трьох найбільших боржників, із кнопкою «Нагадати» просто тут.
         debtors.slice(0, 3).forEach((d) => {
           tasks.push({
@@ -1982,7 +2019,7 @@ export default function DashboardPage() {
                 <Link to="/finances" className="col-span-2 block overflow-hidden rounded-[18px] px-4 py-2.5 relative hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
                   <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
-                    💰 {t("dashboard.cardProfit")}
+                    💰 {t("dashboard.cardReceived")}
                   </p>
                   <p className="mt-1 font-extrabold leading-none"
                     style={{ fontSize: profitByCur.length > 1 ? 18 : 23, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
@@ -2024,13 +2061,13 @@ export default function DashboardPage() {
                   картки з рамкою — на головному екрані вони читаються як «щось
                   не завантажилось». Інваріант «відсутнє рендериться як
                   відсутнє»: замість заглушки сітка просто стає вужчою. */}
-              <div className={`hidden lg:grid lg:gap-3 ${level && streak ? "lg:grid-cols-4" : level || streak ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+              <div className={`hidden lg:grid lg:gap-3 ${SHOW_GAMIFICATION && level && streak ? "lg:grid-cols-4" : SHOW_GAMIFICATION && (level || streak) ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
                 {/* 1. Profit */}
                 <Link to="/finances" className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 56 }}>
                   <div className="min-w-0">
                     <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
-                      💰 {t("dashboard.cardProfit")}
+                      💰 {t("dashboard.cardReceived")}
                     </p>
                     <p className="font-black leading-none mt-0.5"
                       style={{ fontSize: profitByCur.length > 1 ? 20 : 30, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
@@ -2064,7 +2101,7 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* 3. Level */}
-                {level ? (
+                {SHOW_GAMIFICATION && level ? (
                   <Link to="/achievements" aria-label={t("nav.achievements")}
                     className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }}>
@@ -2080,7 +2117,7 @@ export default function DashboardPage() {
                 ) : null}
 
                 {/* 4. Streak */}
-                {streak ? (
+                {SHOW_GAMIFICATION && streak ? (
                   <Link to="/achievements" aria-label={t("nav.achievements")}
                     className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56,
@@ -2555,8 +2592,8 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {pendingPayments.length === 0 ? (
-                /* Empty state — all paid */
+              {pendingPayments.length === 0 && debtors.length === 0 ? (
+                /* Empty state — all paid (01.11: лише коли й перенесених боргів немає) */
                 <div
                   className="flex flex-col items-center gap-2 rounded-[16px] bg-card px-5 py-5 text-center"
                   style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}
@@ -2622,6 +2659,17 @@ export default function DashboardPage() {
                       </div>
                     );
                   })}
+                  {/* 01.11: перенесені з іншого обліку борги — не уроки, тому не картками,
+                      а одним рядком із сумою; рахуються у «Фінансах» так само. */}
+                  {carriedDebt.count > 0 && (
+                    <button
+                      className="w-full rounded-[14px] py-2.5 text-[14px] font-medium transition-colors"
+                      style={{ background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", minHeight: 44 }}
+                      onClick={() => navigate("/finances?tab=debts")}
+                    >
+                      {t("dashboard.carriedDebt", { count: carriedDebt.count, sum: formatPrice(carriedDebt.sum, carriedDebt.currency) })} →
+                    </button>
+                  )}
                   {pendingPayments.length > 5 && (
                     <button
                       className="w-full rounded-[14px] py-2.5 text-[14px] font-medium transition-colors"
@@ -2961,7 +3009,7 @@ export default function DashboardPage() {
                 <MonthlySummaryCard />
               </div>
               {/* Streak — after lessons+tasks on mobile, hidden on desktop (shows in right col) */}
-              {streak && (
+              {SHOW_GAMIFICATION && streak && (
                 <div className="lg:hidden">
                   <StreakCard streak={streak} />
                 </div>
@@ -2975,7 +3023,7 @@ export default function DashboardPage() {
 
           {/* Hub tutor: streak parity — the streak is computed for hub tutors too, so
               show the same momentum card the independent tutor gets (mobile). */}
-          {isHubTutor && streak && (
+          {SHOW_GAMIFICATION && isHubTutor && streak && (
             <div className="lg:hidden">
               <StreakCard streak={streak} />
             </div>
@@ -2985,7 +3033,7 @@ export default function DashboardPage() {
               Була в рамці посеред екрана й читалась як ще одне поле для
               заповнення. Це не елемент керування, а підпис під днем: тонка
               риска, курсив, по центру — його помічають, коли дочитали. */}
-          {phraseOfDay && (
+          {SHOW_GAMIFICATION && phraseOfDay && (
             /* Фраза лишається в САМОМУ низу (так просила власниця), але на
                десктопі живе на осі лівої колонки — тієї самої, що картка
                місяця й список уроків. calc(50% - 12px) — це рівно ширина

@@ -45,7 +45,8 @@ describe("кнопки в сповіщенні (важіль 3в)", () => {
 
   it("нагадування про оплату несе кнопку «Я оплатив» у трьох мовах", () => {
     const fn = read("supabase/functions/payment-reminders/index.ts");
-    expect((fn.match(/action: "ipaid"/g) ?? []).length, "індивідуальний і груповий шлях").toBe(2);
+    // 01.11: кнопку «Я оплатив» несе і прохід про борг — три шляхи.
+    expect((fn.match(/action: "ipaid"/g) ?? []).length, "індивідуальний, груповий і борговий шлях").toBe(3);
     expect(fn).toMatch(/iPaid: "Я оплатив"/);
     expect(fn).toMatch(/iPaid: "I paid"/);
     expect(fn).toMatch(/iPaid: "Jag har betalat"/);

@@ -26,8 +26,9 @@ describe("payLink: адреса, текст, месенджери", () => {
     };
     return m[k] ?? k;
   };
-  it("адреса сторінки — /pay/<token>, без подвійних слешів", () => {
+  it("адреса сторінки — /pay/<token>, без подвійних слешів; короткий код → /p/<код>", () => {
     expect(payLinkUrl("https://otutorhub.com/", TOKEN)).toBe(`https://otutorhub.com/pay/${TOKEN}`);
+    expect(payLinkUrl("https://otutorhub.com/", "k7m2p9xw")).toBe("https://otutorhub.com/p/k7m2p9xw");
   });
   it("текст: привітання, уроки з сумою, від кого, посилання останнім рядком", () => {
     const text = buildShareText({ studentFirstName: "Оля", tutorName: "Ірина", lessons: 2, total: 1200, currencySymbol: "₴", url: `https://otutorhub.com/pay/${TOKEN}`, t });
@@ -102,7 +103,7 @@ describe("публічна сторінка /pay/<token>", () => {
     expect(amount.value).toBe("1000");
     fireEvent.change(screen.getByRole("textbox", { name: "Коментар" }), { target: { value: "з картки мами" } });
     fireEvent.click(screen.getByRole("button", { name: "Я оплатив(ла)" }));
-    expect(await screen.findByText(/Дякуємо! Ірина Репетитор отримає повідомлення/)).toBeInTheDocument();
+    expect(await screen.findByText(/Дякуємо! Ірина Репетитор отримує повідомлення просто зараз/)).toBeInTheDocument();
     const post = calls.find((c) => c.init?.method === "POST")!;
     expect(JSON.parse(String(post.init!.body))).toEqual({ token: TOKEN, amount: 1000, note: "з картки мами" });
   });
@@ -112,7 +113,7 @@ describe("публічна сторінка /pay/<token>", () => {
     renderPage();
     await screen.findByText("Привіт, Оля!");
     expect(screen.queryByRole("button", { name: "Я оплатив(ла)" })).toBeNull();
-    expect(screen.getByText(/Ви вже повідомили про оплату/)).toBeInTheDocument();
+    expect(screen.getByText(/отримує повідомлення просто зараз/)).toBeInTheDocument();
   });
 
   it("мертве посилання — чесний текст, без форми", async () => {
@@ -220,7 +221,7 @@ describe("розтяжки: публічні двері й автоматичн�
     expect(read("src/App.tsx")).toMatch(/<Route path="\/pay\/:token" element=\{<PayLinkPage \/>\} \/>/);
   });
   it("на публічній сторінці оплати немає банера про куки (він заступав «Я оплатив(ла)»)", () => {
-    expect(read("src/App.tsx")).toMatch(/!location\.pathname\.startsWith\("\/pay\/"\) && <CookieConsent \/>/);
+    expect(read("src/App.tsx")).toMatch(/!location\.pathname\.startsWith\("\/pay\/"\) && !location\.pathname\.startsWith\("\/p\/"\) && <CookieConsent \/>/);
     // довгий токен у тексті для пересилання переноситься, а не вилазить за край аркуша
     expect(read("src/components/RemindSheet.tsx")).toMatch(/overflowWrap: "anywhere"/);
   });

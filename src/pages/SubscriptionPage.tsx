@@ -135,7 +135,9 @@ export default function SubscriptionPage() {
   const [requestError, setRequestError] = useState(false);
 
 
-  const [billing, setBilling] = useState<"monthly" | "halfyear" | "yearly">("yearly");
+  // 01.11 (Рада 26.10, п. 5): за замовчуванням — МІСЯЧНИЙ план (анкор 299), а не
+  // річний 2 988 ₴ одразу; «ще N місць» прибрано — штучна терміновість.
+  const [billing, setBilling] = useState<"monthly" | "halfyear" | "yearly">("monthly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
 
@@ -380,10 +382,9 @@ export default function SubscriptionPage() {
 
   const proPrice = priceLabel(billing);
 
-  const earlyBirdLeft =
-    earlyBirdAudience && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT
-      ? EARLY_BIRD_LIMIT - earlyBirdCount
-      : null;
+  // 01.11: бейдж «🔥 ще N місць» вимкнено (штучна терміновість, яку всі впізнають).
+  const earlyBirdLeft: number | null = null;
+  void earlyBirdAudience; void earlyBirdCount; void EARLY_BIRD_LIMIT;
 
 
   /* Стан заявки невідомий (збій читання) трактуємо як «можливо, вже подана»:

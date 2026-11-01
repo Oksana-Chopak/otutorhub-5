@@ -114,7 +114,7 @@ BEGIN
   claim := (res->>'id')::uuid;
   SELECT count(*) INTO n FROM public.payment_claims WHERE student_id = stu AND tutor_id = tutor AND via = 'link' AND status = 'pending';
   IF n <> 1 THEN RAISE EXCEPTION 'ПРОВАЛ (5): заявок pending-учня %, має бути 1', n; END IF;
-  SELECT count(*) INTO n FROM public.notifications WHERE user_id = tutor AND type = 'payment_claim' AND title LIKE '%за посиланням%';
+  SELECT count(*) INTO n FROM public.notifications WHERE user_id = tutor AND type LIKE 'payment_claim_%' AND body LIKE '%посилання на оплату%';
   IF n <> 1 THEN RAISE EXCEPTION 'ПРОВАЛ (5): репетитор не отримав сповіщення «за посиланням» (%)', n; END IF;
   res2 := public.payment_link_claim(tok, 750, NULL);
   IF res2->>'reason' <> 'already_pending' OR (res2->>'id')::uuid <> claim THEN

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { rememberReturnTo } from "@/lib/returnTo";
+import { ValueEmpty, ValueNumbers, hasValue, useTutorValueStats } from "@/components/ValueNumbers";
 
 /**
  * ЗАМОК ПІСЛЯ ТРІАЛУ (рішення власниці 05.09).
@@ -59,6 +60,8 @@ function PaywallSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  // 01.11 (Рада 26.10, п. 4): пейвол = чотири ЇЇ цифри, не гола ціна; без цифр — активація.
+  const { stats, loading: statsLoading } = useTutorValueStats(open);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -75,6 +78,12 @@ function PaywallSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
             {t("paywallSheet.title")}
           </p>
           <p className="mt-1 text-[15px] text-muted-foreground">{t("paywallSheet.subtitle")}</p>
+
+          {!statsLoading && (
+            <div className="mt-4">
+              {hasValue(stats) ? <ValueNumbers stats={stats} /> : <ValueEmpty onClose={() => onOpenChange(false)} />}
+            </div>
+          )}
 
           <div className="mt-4 space-y-2">
             {(["keep1", "keep2"] as const).map((k) => (

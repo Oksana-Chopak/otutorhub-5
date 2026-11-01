@@ -65,7 +65,7 @@ BEGIN
   RESET role; PERFORM set_config('request.jwt.claims', NULL, true);
   IF res->>'ok' <> 'true' THEN RAISE EXCEPTION 'ПРОВАЛ (1): заявка не створилась: %', res; END IF;
   claim := (res->>'id')::uuid;
-  SELECT count(*) INTO n FROM public.notifications WHERE user_id = ind AND type = 'payment_claim';
+  SELECT count(*) INTO n FROM public.notifications WHERE user_id = ind AND type LIKE 'payment_claim_%';
   IF n <> 1 THEN RAISE EXCEPTION 'ПРОВАЛ (1): репетитор не отримав сповіщення (%)', n; END IF;
   RAISE NOTICE '✅ (1) заявка створена, репетитор отримав сповіщення';
 
@@ -146,7 +146,7 @@ BEGIN
   res := public.create_payment_claim(hub, 500, NULL);
   RESET role; PERFORM set_config('request.jwt.claims', NULL, true);
   claim := (res->>'id')::uuid;
-  SELECT count(*) INTO n FROM public.notifications WHERE user_id = mgr AND type = 'payment_claim';
+  SELECT count(*) INTO n FROM public.notifications WHERE user_id = mgr AND type LIKE 'payment_claim_%';
   IF n <> 1 THEN RAISE EXCEPTION 'ПРОВАЛ (7): менеджер школи не отримав заявку (%)', n; END IF;
   -- хабовий репетитор грошей не записує — підтвердити не може
   PERFORM set_config('request.jwt.claims', json_build_object('sub', hub, 'role', 'authenticated')::text, true);

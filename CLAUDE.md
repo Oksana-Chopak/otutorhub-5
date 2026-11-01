@@ -976,6 +976,43 @@ cards (student_id is NULL).
   through that RPC, not a client-side `user_roles` query (which silently returns nothing for
   non-managers). Call it best-effort via `notifyManagers()` in `src/lib/notifications.ts`.
 
+### ПРАВИЛО ДОСТАВКИ нагадувань і «Я оплатив(ла)» → Telegram (01.11, пакет «Правда») — INVIOLABLE
+- Нагадування про оплату «надіслане» лише коли комусь прийшло: `telegram`, `email`,
+  `webpush` або (для того, хто МАЄ акаунт) дзвіночок. Учню без акаунта (pending-профіль)
+  дзвіночок не ставиться взагалі; нікому не прийшло → у лог `lesson_payment_reminders`
+  лягає рядок `channel='undelivered'` (дедуп тримає), а РЕПЕТИТОРЦІ йде сповіщення
+  `reminder_undelivered` (→ `/finances?tab=debts&remind=<учень>` відкриває аркуш
+  «Нагадати») і, якщо підключений, її Telegram із готовим текстом від її імені й коротким
+  посиланням — один дотик «Переслати» у Viber/Telegram. Одне ядро для всіх шляхів:
+  `_shared/paymentReminder.ts` (кнопка, бот) і `deliver()` у `payment-reminders` (крон).
+  `tutor_reminder_stats` рахує лише `telegram/email/webpush/share:*`. Лічильник, що рахує
+  дзвіночок, — регресія.
+- Текст нагадування — від ПЕРШОЇ особи репетиторки, заголовок «💳 Повідомлення від {імʼя}»,
+  один список уроків, одна сума, коротке посилання `/p/<код>`.
+- Передоплата ≠ післяплата: пара, що хоч раз вносила передоплату (`student_wallet_transactions`
+  kind='topup'), при вичерпаному кредиті отримує нагадування ДО наступного уроку
+  («передоплата закінчилась»), а не після нього — навіть якщо репетитор у налаштуваннях
+  тримає «після уроку».
+- «Я оплатив(ла)» → `payment_claim_insert` створює сповіщення типу `payment_claim_<id>`
+  (НЕ сталий `payment_claim`: дедуп (user, type) ковтав другу заявку за день);
+  `send-push` дзеркалить його в Telegram з кнопками `pc:ok:<id>` / `pc:no:<id>`; бот кличе
+  `resolve_payment_claim_as(_id,_confirm,_actor)` (service_role; ставить JWT-претензії
+  актора локально й викликає ту саму `resolve_payment_claim` — права й гроші перевіряє вона).
+  Сторінка дитини (`payment_link_view`) віддає `last_claim` і сама перепитує кожні 20 с,
+  поки заявка в очікуванні.
+- Коротке посилання: `payment_links.short_code` (8 знаків, абетка без 0/o/1/l/i), одне на
+  пару, термін подовжується на 180 днів при кожному видаванні/перегляді. `payment_link_for_pair`
+  повертає КОД; `payment_link_lookup` приймає і код, і старий 64-hex токен; маршрути `/p/:token`
+  і `/pay/:token` — одна `PayLinkPage`. Клієнт будує адресу через `payLinkUrl(origin, short_code || token)`.
+- Пейвол = цифри людини (`tutor_value_stats` → `ValueNumbers`), без цифр — `ValueEmpty`
+  (в онбординг), замок — ДО відкриття форми уроку (`QuickLessonDialog`), місячний план за
+  замовчуванням. Гейміфікація на дашборді репетиторки вимкнена (`SHOW_GAMIFICATION = false`
+  у `DashboardPage`; нарахування в базі лишається). Автолист мамі при додаванні учня
+  (`QuickAddStudentDialog`, `OnboardingFlowB`) НЕ йде — запрошення надсилається з діалогу,
+  де видно текст.
+- Стережуть: сценарій `73-pravda.sql` (короткий код, тип заявки, кнопка бота, лічильник,
+  цифри), `pay-link.test.tsx`, `remind-everywhere.test.ts`.
+
 ### Власниці / менеджеру в Telegram: заявки (26.10) — do not regress
 - Запит на репетитора, заявка на Pro і відгук народжують сповіщення **в базі**
   (тригери `trg_notify_on_*`, міграція `20261026120000_owner_alerts`), не в клієнті:

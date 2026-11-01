@@ -137,7 +137,7 @@ function AppRoutes() {
           її відкривають батьки з месенджера без акаунта, щоб побачити борг і натиснути
           «Я оплатив(ла)»; питання про аналітику там лише заступало кнопку (робот показав),
           а Clarity без згоди і так не вантажиться. */}
-      {!location.pathname.startsWith("/pay/") && <CookieConsent />}
+      {!location.pathname.startsWith("/pay/") && !location.pathname.startsWith("/p/") && <CookieConsent />}
       <Suspense fallback={<RouteFallback />}>
         {/* A5: остання межа БЕЗ key={pathname} — раніше key перемонтовував усе
             дерево на кожен перехід. Тепер межа скидається лише після краху
@@ -156,6 +156,7 @@ function AppRoutes() {
           <Route path="/join/:code" element={<JoinPage />} />
           {/* 13.10: публічна сторінка оплати за магічним посиланням — без входу і без лейауту */}
           <Route path="/pay/:token" element={<PayLinkPage />} />
+          <Route path="/p/:token" element={<PayLinkPage />} />
           <Route path="/" element={<Index />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/for-students" element={<ForStudentsPage />} />

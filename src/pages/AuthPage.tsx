@@ -919,7 +919,9 @@ export default function AuthPage() {
             flex-елементом у РЯДКУ — тому й висів збоку по центру висоти і
             забирав у картки ширину, через що вона стискалась. Місце йому під
             карткою, всередині тієї самої колонки. */}
-        <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#62677E)", opacity: .6 }}>{BUILD_TAG} · {BUILD_STAMP}</p>
+        {/* 01.11: штамп збірки на сторінці входу прибрано з екрана (Рада 26.10, п. 5);
+            він лишається в атрибуті для робота проду (tests/prod читає data-build). */}
+        <span data-build={`${BUILD_TAG}·${BUILD_STAMP}`} className="sr-only">{BUILD_TAG} · {BUILD_STAMP}</span>
       </div>
     </div>
     </>
