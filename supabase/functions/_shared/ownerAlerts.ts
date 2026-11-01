@@ -8,7 +8,27 @@
 // канали й сюди не потрапляють.
 // deno-lint-ignore-file no-explicit-any
 
-export const OWNER_ALERT_PREFIXES = ["tutor_request", "pro_request", "feedback_new"] as const;
+// 01.11 (Рада 26.10, п. 2): «Я оплатив(ла)» — репетиторці/менеджеру в Telegram
+// тієї ж хвилини, з кнопками «✅ Підтвердити · ❌ Не бачу» (callback pc:ok|no:<id>).
+export const OWNER_ALERT_PREFIXES = ["tutor_request", "pro_request", "feedback_new", "payment_claim"] as const;
+
+const CLAIM_RE = /^payment_claim_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+export function paymentClaimIdOf(tag: unknown): string | null {
+  const m = typeof tag === "string" ? tag.match(CLAIM_RE) : null;
+  return m ? m[1].toLowerCase() : null;
+}
+/** Кнопки під сповіщенням про заявку «Я оплатив(ла)». */
+export function claimKeyboard(claimId: string, lang: "uk" | "en" | "sv" = "uk") {
+  const L = {
+    uk: { ok: "✅ Підтвердити", no: "❌ Не бачу оплати" },
+    en: { ok: "✅ Confirm", no: "❌ Don’t see it" },
+    sv: { ok: "✅ Bekräfta", no: "❌ Ser den inte" },
+  }[lang];
+  return { inline_keyboard: [[
+    { text: L.ok, callback_data: `pc:ok:${claimId}` },
+    { text: L.no, callback_data: `pc:no:${claimId}` },
+  ]] };
+}
 
 // Лише типи, які ставить ТРИГЕР бази (з id заявки). Голий `tutor_request` зі
 // старої збірки клієнта чи `tutor_request_cancelled` сюди не входять — у них
@@ -65,6 +85,7 @@ export async function mirrorOwnerAlertToTelegram(
       .maybeSingle();
     if (error) return `failed:link:${String(error.message).slice(0, 80)}`;
     if (!link?.chat_id) return "skipped:no_telegram";
+    const claimId = paymentClaimIdOf(msg.tag);
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,6 +94,7 @@ export async function mirrorOwnerAlertToTelegram(
         text: ownerAlertTelegramText(msg),
         parse_mode: "HTML",
         disable_web_page_preview: true,
+        ...(claimId ? { reply_markup: claimKeyboard(claimId) } : {}),
       }),
     });
     if (!res.ok) {

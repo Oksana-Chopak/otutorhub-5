@@ -421,6 +421,10 @@ const CB = {
     paid: (n: number) => `✅ Позначено оплаченими: ${n} ур. Застосунок уже знає.`,
     remDone: (ch: string[]) => `🔔 Надіслано: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "застосунок" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Сьогодні вже нагадували — учень отримав. Наступне — через 24 год.",
+    remUndelivered: "⚠️ В учня нема Telegram чи пошти. Готовий текст надіслано вам сюди — перешліть у Viber/Telegram.",
+    claimConfirmed: "✅ Оплату записано. Учень бачить «підтверджено ✓».",
+    claimRejected: "❌ Позначено «не бачу оплати». Учень отримав прохання перевірити переказ.",
+    claimAlready: "Цю заявку вже вирішено раніше.",
     nopayout: "Цьому репетитору зараз нічого не винні ✅",
     payoutDone: (n: number, s: number) => `✅ Виплату позначено: ${n} ур., ${s} ₴. Застосунок уже знає.`,
   },
@@ -431,6 +435,10 @@ const CB = {
     paid: (n: number) => `✅ Marked as paid: ${n} lessons. The app already knows.`,
     remDone: (ch: string[]) => `🔔 Sent via: ${ch.map((c) => ({ telegram: "Telegram", email: "email", inapp: "app" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Already reminded today — the student got it. Next one in 24 h.",
+    remUndelivered: "⚠️ The student has no Telegram or email. The ready text was sent to you here — forward it in Viber/Telegram.",
+    claimConfirmed: "✅ Payment recorded. The student sees «confirmed ✓».",
+    claimRejected: "❌ Marked as «don’t see it». The student was asked to check the transfer.",
+    claimAlready: "This claim was already resolved.",
     nopayout: "Nothing is owed to this tutor right now ✅",
     payoutDone: (n: number, s: number) => `✅ Payout recorded: ${n} lessons, ${s} ₴. The app already knows.`,
   },
@@ -441,6 +449,10 @@ const CB = {
     paid: (n: number) => `✅ Markerat som betalt: ${n} lektioner. Appen vet redan.`,
     remDone: (ch: string[]) => `🔔 Skickat via: ${ch.map((c) => ({ telegram: "Telegram", email: "e-post", inapp: "appen" } as Record<string, string>)[c] ?? c).join(", ")}`,
     remSkip: "Redan påmint idag — eleven fick den. Nästa om 24 h.",
+    remUndelivered: "⚠️ Eleven har ingen Telegram eller e-post. Den färdiga texten skickades hit — vidarebefordra i Viber/Telegram.",
+    claimConfirmed: "✅ Betalningen registrerad. Eleven ser «bekräftad ✓».",
+    claimRejected: "❌ Markerad «ser den inte». Eleven ombads kontrollera överföringen.",
+    claimAlready: "Denna begäran är redan avgjord.",
     nopayout: "Inget att betala den här läraren just nu ✅",
     payoutDone: (n: number, s: number) => `✅ Utbetalning noterad: ${n} lektioner, ${s} ₴. Appen vet redan.`,
   },
@@ -468,8 +480,8 @@ async function handleDigestCallback(base: string, db: any, cq: any,
   const data: string = cq.data ?? '';
   const chatId: number | undefined = cq.message?.chat?.id;
   const m = data.match(/^(rem|paid|hpaid|tpaid):([0-9a-f-]{36})$/);
-  if (!m || !chatId) { await answerCb(base, cqId, CB.uk.bad); return; }
-  const action = m[1]; const studentId = m[2];
+  const mc = data.match(/^pc:(ok|no):([0-9a-f-]{36})$/);
+  if ((!m && !mc) || !chatId) { await answerCb(base, cqId, CB.uk.bad); return; }
 
   const { data: link } = await db
     .from('user_telegram_links').select('user_id').eq('chat_id', chatId).maybeSingle();
@@ -477,6 +489,29 @@ async function handleDigestCallback(base: string, db: any, cq: any,
   if (!tutorId) { await answerCb(base, cqId, CB.uk.nolink); return; }
   const { data: tutorProf } = await db.from('profiles').select('preferred_language').eq('id', tutorId).maybeSingle();
   const L = CB[normLang(tutorProf?.preferred_language)];
+
+  // 01.11: «✅ Підтвердити / ❌ Не бачу» під заявкою «Я оплатив(ла)». Актор —
+  // власник chat_id; право (сам репетитор чи менеджер школи) перевіряє база в
+  // resolve_payment_claim; гроші йдуть тим самим канонічним шляхом (гаманець
+  // пари → автозакриття боргу), жодної другої грошової логіки.
+  if (mc) {
+    const confirm = mc[1] === 'ok'; const claimId = mc[2];
+    const { data: res, error } = await (db.rpc as any)('resolve_payment_claim_as', { _id: claimId, _confirm: confirm, _actor: tutorId });
+    if (error) { console.error('telegram-poll resolve claim', error.message); await answerCb(base, cqId, L.writeFailed); return; }
+    const reason = String(res?.reason ?? '');
+    if (res?.ok) {
+      await answerCb(base, cqId, confirm ? L.claimConfirmed : L.claimRejected);
+      // Кнопки прибираємо — другий дотик нічого не змінює.
+      await fetch(`${base}/editMessageReplyMarkup`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, message_id: cq.message?.message_id, reply_markup: { inline_keyboard: [] } }),
+      }).catch(() => {});
+      return;
+    }
+    await answerCb(base, cqId, reason.startsWith('already_') ? L.claimAlready : L.writeFailed);
+    return;
+  }
+  const action = m![1]; const studentId = m![2];
 
   // 07.09: «✅ оплатив(ла)» у дайджесті МЕНЕДЖЕРА — закриває ХАБОВІ борги учня
   // (source ≠ independent) по всіх репетиторах школи. Право: власник chat_id
@@ -693,5 +728,6 @@ async function handleDigestCallback(base: string, db: any, cq: any,
     // Групові уроки нагадуємо через parent-урок: беремо ті, де є борг цього учня.
     lessons: [...indivRows, ...grpLessonsForStudent],
   });
+  if (res.undelivered) { await answerCb(base, cqId, L.remUndelivered); return; }
   await answerCb(base, cqId, res.sent === 0 ? L.remSkip : L.remDone(res.channels));
 }

@@ -112,9 +112,13 @@ Deno.serve(withErrorLog("remind-payment", async (req) => {
     if (pairResult.sent === 0 && pairResult.skipped > 0) {
       return json({ success: false, reason: "already_reminded_today", lastSentAt: pairResult.lastSentAt ?? null }, 200);
     }
-    if (pairResult.channels.length === 0) return json({ success: false, reason: "no_channels" }, 200);
+    // 01.11 (правило доставки): нікому не прийшло → чесне «не доставлено» з
+    // готовим текстом і посиланням, щоб репетиторка переслала сама.
+    if (pairResult.undelivered || pairResult.channels.length === 0) {
+      return json({ success: false, reason: "no_channels", shareText: pairResult.shareText ?? null, payUrl: pairResult.payUrl ?? null }, 200);
+    }
     return json({
-      success: true, channels: pairResult.channels, lessons: pairResult.sent,
+      success: true, channels: pairResult.channels, lessons: pairResult.sent, shareText: pairResult.shareText ?? null, payUrl: pairResult.payUrl ?? null,
       total: debts.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0),
     });
   }
