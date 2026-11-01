@@ -158,13 +158,10 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       }
 
       toast.success(t("quickAddStudent.studentAdded"));
-      let inviteSent = false;
-      if (email) {
-        const { data: resp } = await supabase.functions.invoke("send-student-invite", {
-          body: { studentId: newId },
-        });
-        if ((resp as any)?.success) inviteSent = true;
-      }
+      // 01.11 (Рада 26.10, п. 5): лист учню/мамі БІЛЬШЕ НЕ йде сам у момент додавання —
+      // репетиторка бачить текст у діалозі запрошення нижче й надсилає одним дотиком.
+      // Лист незнайомій мамі від імені сервісу без її відома — ризик для стосунків із клієнтом.
+      const inviteSent = false;
       reset();
       onOpenChange(false);
       // №13: без контактів запрошувати нема куди — не відкриваємо діалог

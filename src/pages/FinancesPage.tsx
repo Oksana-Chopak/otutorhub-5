@@ -5,6 +5,8 @@ import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { getLocale } from "@/lib/locale";
 import { Link, useSearchParams } from "react-router-dom";
+import { RemindDebtButton } from "@/components/RemindDebtButton";
+import { useLastReminders } from "@/hooks/useLastReminders";
 import { useTranslation } from "react-i18next";
 
 import { PageFAB } from "@/components/PageFAB";
@@ -1205,52 +1207,13 @@ export default function FinancesPage() {
         })
       : updateLessonDetailsSafe(lesson.id, { student_payment_status: status });
 
-  const [remindingId, setRemindingId] = useState<string | null>(null);
   const [remindingAll, setRemindingAll] = useState(false); // B5: анти-дубль масової розсилки
-  // Send a REAL payment reminder (email / Telegram) via the remind-payment edge
-  // function — the same notify path the payment reminders use, so the student actually gets it.
-  const remindLesson = async (lessonId: string, studentId: string) => {
-    setRemindingId(lessonId);
-    const { data, error } = await supabase.functions.invoke("remind-payment", { body: { lessonId } });
-    setRemindingId(null);
-    if (error) {
-      // A non-2xx (404 lesson-not-found, 409 already-paid, transport, …) — NOT a
-      // missing-contact case, so don't blame the student's contact details.
-      toast.error(t("pendingPaymentsExtra.reminderGeneric"));
-      return;
-    }
-    if ((data as any)?.success) {
-      /* 15.09, скарга живого користувача: підтвердження писало «Reminder sent:
-         email + email». Причина: канал «inapp» (дзвіночок у застосунку, який
-         функція додає ЗАВЖДИ) мапився тим самим `: "email"`, бо в тернарці все,
-         що не telegram, вважалось поштою. Тобто список каналів не просто
-         дублювався — він БРЕХАВ про те, куди саме пішло нагадування.
-         Тепер кожен канал має свою назву, дублі прибираються, а коли
-         спрацював ЛИШЕ дзвіночок, повідомлення інше: людині не пішло нічого,
-         вона побачить нагадування тільки коли сама відкриє застосунок. */
-      const channels = [...new Set(((data as any).channels ?? []) as string[])];
-      const outside = channels.filter((c) => c !== "inapp");
-      const labelOf = (c: string) =>
-        c === "telegram" ? "Telegram" : c === "email" ? "email" : t("pendingPaymentsExtra.channelInApp");
-      if (outside.length === 0) {
-        toast.success(t("pendingPaymentsExtra.reminderInAppOnly"), { description: nameOf(studentId) });
-      } else {
-        toast.success(t("pendingPayments.reminderSent", { labels: outside.map(labelOf).join(" + ") }), { description: nameOf(studentId) });
-      }
-    } else if ((data as any)?.reason === "no_channels") {
-      // The function explicitly reported the student has neither Telegram nor email.
-      toast.error(t("pendingPaymentsExtra.noContact"), { description: nameOf(studentId) });
-    } else if ((data as any)?.reason === "already_reminded_today") {
-      // 13.09: не помилка, а пояснення — нагадування вже пішло, кажемо коли.
-      const at = (data as any)?.lastSentAt ? new Date(String((data as any).lastSentAt)) : null;
-      const when = at && !Number.isNaN(at.getTime())
-        ? at.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
-        : "";
-      toast.info(t("pendingPaymentsExtra.alreadyReminded", { when }), { description: nameOf(studentId) });
-    } else {
-      toast.error(t("pendingPaymentsExtra.reminderGeneric"));
-    }
-  };
+  // 01.11 (Рада 26.10, п. 3): «Нагадати» = ОДИН аркуш усюди (канон RemindDebtButton):
+  // тут раніше кнопка мовчки слала лист по одному уроку — одне слово, дві поведінки.
+  const { lastRemindedAt, markReminded } = useLastReminders();
+  // Прихід з «нагадування не доставлено — перешли сама»: /finances?tab=debts&remind=<учень>
+  const remindParam = searchParams.get("remind");
+  const remindParamSeen = useRef<string | null>(null);
 
   const togglePayment = async (
     lesson: LessonRow,
@@ -2808,11 +2771,14 @@ export default function FinancesPage() {
                       </div>
                       {/* Per-lesson debt cards */}
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {/* 01.11 (Рада 26.10, п. 3): на 375px імʼя учня зникало — дата налазила
+                            на суму, бо дві кнопки й сума забирали весь рядок. Тепер рядок
+                            переноситься: імʼя + сума зверху, дії — знизу, коли тісно. */}
                         {debtList.map(l => (
-                          <div key={l.id} style={{ display:"flex", alignItems:"center", gap:12,
+                          <div key={l.id} style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
                             padding:"11px 13px", borderRadius:14,
                             background:F.surface, border:`1px solid ${F.border}` }}>
-                            <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ flex:"1 1 150px", minWidth:0 }}>
                               <p style={{ fontFamily:F.display, fontWeight:700, fontSize:15, color:F.txt,
                                 whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                                 {nameOf(l.student_id)}
@@ -2822,9 +2788,10 @@ export default function FinancesPage() {
                               </p>
                             </div>
                             <p style={{ fontFamily:F.display, fontWeight:800, fontSize:16,
-                              color:F.warnD, flexShrink:0 }}>
+                              color:F.warnD, flexShrink:0, marginLeft:"auto" }}>
                               {formatPrice(Number(l.student_price), rowCurrency(l))}
                             </p>
+                            <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0, marginLeft:"auto" }}>
                             {l.kind === "group" ? (
                               // The remind-payment edge fn is individual-only (404s on a
                               // group lesson's synthetic id), so offer a chat link instead.
@@ -2838,18 +2805,15 @@ export default function FinancesPage() {
                                 💬 {t("finances.groupChatHint")}
                               </Link>
                             ) : (
-                              <button
-                                type="button"
-                                onClick={() => remindLesson(l.id, l.student_id)}
-                                disabled={remindingId === l.id}
-                                style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
-                                  background:"rgba(245,158,11,.18)", color:F.warnD,
-                                  fontFamily:F.display, fontWeight:700, fontSize: 14,
-                                  cursor: remindingId === l.id ? "default" : "pointer",
-                                  flexShrink:0, display:"inline-flex", alignItems:"center", gap:6 }}>
-                                {remindingId === l.id && <Loader2 className="h-3 w-3 animate-spin" />}
-                                {t("finances.remindBtn")}
-                              </button>
+                              <RemindDebtButton
+                                studentId={l.student_id}
+                                tutorId={isManager ? l.tutor_id : undefined}
+                                studentName={nameOf(l.student_id)}
+                                lastRemindedAt={lastRemindedAt(l.student_id)}
+                                onSent={() => markReminded(l.student_id)}
+                                autoOpen={remindParam === l.student_id && remindParamSeen.current !== l.student_id && (remindParamSeen.current = l.student_id, true)}
+                                compact
+                              />
                             )}
                             {/* 15.09, скарга власниці: «Мені не подобається кнопка ✅ —
                                 вона блимає і незрозуміло інтуїтивно навіть мені, що
@@ -2869,12 +2833,13 @@ export default function FinancesPage() {
                                 легше зачепити пальцем. */}
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
-                              style={{ height:40, marginLeft:6, padding:"0 12px", borderRadius:10, border:"1.5px solid rgba(43,191,170,.4)",
+                              style={{ height:40, padding:"0 12px", borderRadius:10, border:"1.5px solid rgba(43,191,170,.4)",
                                 background:"#f0fdf9", color:"var(--teal-text,#1a7a6c)", cursor:"pointer", flexShrink:0,
                                 display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                                 fontFamily:F.display, fontWeight:700, fontSize:14, whiteSpace:"nowrap" }}>
                               <Check size={15} strokeWidth={3} /> {t("finances.markPaidBtn")}
                             </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -3415,22 +3380,16 @@ export default function FinancesPage() {
                   if (remindingAll) return;
                   setRemindingAll(true);
                   try {
-                  // One REAL reminder (email / Telegram) per student — anchor on their first debt lesson.
-                  // Group debts are skipped: remind-payment is individual-only and 404s on a
-                  // group row's synthetic id (write to those students in chat instead).
-                  // NB: derived from periodBillable, NOT the tab-scoped debtList — on the
-                  // Income tab that list is empty and the button used to fake-fail.
+                  // Одне справжнє нагадування на ЛЮДИНУ (режим пари). Групові борги — повз
+                  // (у них борг на учасниках; пишуть у чат). Джерело — periodBillable, не
+                  // tab-scoped debtList (на вкладці доходу той порожній і кнопка хибно падала).
                   const seen = new Set<string>();
                   const reps = periodStudentDebts.filter((l) => {
                     if (!l.id || l.kind === "group" || seen.has(l.student_id)) return false;
                     seen.add(l.student_id);
                     return true;
                   });
-                  /* Аудит 03.09: один тап слав СПРАВЖНІ листи й повідомлення
-                     всім боржникам одразу — незворотно, за межі застосунку, і
-                     скільки саме людей отримає, ніде не було видно до
-                     відправки. Масова email-розсилка на /marketing давно має
-                     підтвердження; тут його не було. */
+                  // Аудит 03.09: масова розсилка — лише після підтвердження з кількістю.
                   if (reps.length > 0) {
                     const ok = await confirmDialog({
                       title: t("finances.remindAllConfirmTitle", { count: reps.length }),
@@ -3446,12 +3405,21 @@ export default function FinancesPage() {
                     return;
                   }
                   const results = await Promise.all(
-                    reps.map((l) => supabase.functions.invoke("remind-payment", { body: { lessonId: l.id } })),
+                    reps.map((l) => supabase.functions.invoke("remind-payment", {
+                      body: isManager ? { studentId: l.student_id, tutorId: l.tutor_id } : { studentId: l.student_id },
+                    })),
                   );
                   const sent = results.filter((r) => (r.data as any)?.success).length;
                   const dedup = results.filter((r) => (r.data as any)?.reason === "already_reminded_today").length;
-                  if (sent > 0) {
+                  // 01.11: кому не дійшло (немає Telegram/пошти) — чесно, з переходом на «Борги».
+                  const undelivered = results.filter((r) => (r.data as any)?.reason === "no_channels").length;
+                  reps.forEach((l, i) => { if ((results[i].data as any)?.success) markReminded(l.student_id); });
+                  if (sent > 0 && undelivered === 0) {
                     toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
+                  } else if (sent > 0) {
+                    toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentPartial", { count: sent, undelivered }) });
+                  } else if (undelivered > 0) {
+                    toast.warning(t("finances.remindUndeliveredAll", { count: undelivered }));
                   } else if (dedup === results.length) {
                     toast.info(t("pendingPaymentsExtra.alreadyRemindedAll"));
                   } else {

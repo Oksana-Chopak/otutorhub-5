@@ -105,6 +105,9 @@ export function MonthlySummaryCard() {
     // Тихий місяць показуємо лише коли є КОГО повернути — інакше картка
     // була б докором без дії (у новачка порожнечу веде онбординг, не вона).
     if (!reconnect || reconnect.length === 0) return null;
+    // 01.11 (Рада 26.10): підсумок МИНУЛОГО місяця наприкінці поточного читався як
+    // «вересень: тихий» 26 жовтня. Підсумок доречний лише на початку місяця.
+    if (new Date().getDate() > 10) return null;
     const monthLabelQuiet = MONTH_NAMES[month - 1];
     return (
       <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] p-4 shadow-none">

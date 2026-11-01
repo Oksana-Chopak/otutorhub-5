@@ -455,12 +455,11 @@ describe("матеріали учня · хронологія, розгорну�
   describe("лендінг веде туди, де про це домовляються", () => {
     const lp = () => read("src/pages/LandingPage.tsx");
 
-    it("Founding Members: бот курсу та Instagram", () => {
+    it("01.11: тарифу Founding на лендінгу більше немає — один тариф, одна ціна", () => {
       const src = lp();
-      expect(src).toMatch(/const COURSE_BOT_URL = "https:\/\/t\.me\/Ai5days_bot"/);
-      expect(src).toMatch(/const INSTAGRAM_URL = "https:\/\/instagram\.com\/oksana_in_sweden"/);
-      expect(src).toMatch(/t\("landing\.pricing\.foundingBot"\)/);
-      expect(src).toMatch(/t\("landing\.pricing\.foundingInstagram"\)/);
+      expect(src, "картку «Founding 199» прибрано (Рада 26.10, п. 5)").not.toMatch(/landing\.pricing\.foundingPlan/);
+      expect(src).not.toMatch(/COURSE_BOT_URL|INSTAGRAM_URL/);
+      expect(src, "ціна — лише з єдиного джерела pricing.ts").toMatch(/regular: priceLabel\("monthly"\)/);
     });
 
     it("школа має дві дороги: написати або забронювати розмову", () => {
@@ -475,7 +474,7 @@ describe("матеріали учня · хронологія, розгорну�
 
     it("усі зовнішні відкриваються безпечно, підписи — в трьох мовах", () => {
       const links = lp().match(/<a className="price-link"[^>]*>/g) ?? [];
-      expect(links.length, "чотири адреси: бот, Instagram, пошта, Calendly").toBe(4);
+      expect(links.length, "дві адреси для школи: пошта, Calendly (01.11: бот/Instagram пішли разом із Founding)").toBe(2);
       for (const l of links) {
         if (l.includes("mailto:")) continue;          // пошта відкривається поштовим клієнтом
         expect(l, "нова вкладка").toMatch(/target="_blank"/);
@@ -483,7 +482,7 @@ describe("матеріали учня · хронологія, розгорну�
       }
       for (const loc of ["uk", "en", "sv"]) {
         const f = read(`src/i18n/locales/${loc}.ts`);
-        for (const k of ["foundingBot", "foundingInstagram", "schoolsCall"]) {
+        for (const k of ["schoolsCall"]) {
           expect(f, `${loc}: ${k}`).toMatch(new RegExp(`${k}:`));
         }
       }
@@ -610,8 +609,9 @@ describe("матеріали учня · хронологія, розгорну�
       const dp = read("src/pages/DashboardPage.tsx");
       expect(dp, "рамка без вмісту читається як «щось не завантажилось»")
         .not.toMatch(/<div className="rounded-\[14px\] border bg-card" style=\{\{ borderColor: "var\(--border,var\(--ds-border,#eceef3\)\)", minHeight: 56 \}\} \/>/);
-      expect(dp, "сітка звужується під кількість карток")
-        .toMatch(/level && streak \? "lg:grid-cols-4" : level \|\| streak \? "lg:grid-cols-3" : "lg:grid-cols-2"/);
+      expect(dp, "сітка звужується під кількість карток (01.11: гейміфікація за вимикачем)")
+        .toMatch(/SHOW_GAMIFICATION && level && streak \? "lg:grid-cols-4" : SHOW_GAMIFICATION && \(level \|\| streak\) \? "lg:grid-cols-3" : "lg:grid-cols-2"/);
+      expect(dp, "01.11: серії/рівні/афірмації на дашборді вимкнено рішенням власниці").toMatch(/const SHOW_GAMIFICATION = false/);
     });
 
     it("підсумок місяця — картка на осі лівої колонки, а не банер на всю ширину", () => {
@@ -756,12 +756,16 @@ describe("матеріали учня · хронологія, розгорну�
     });
 
     it("нагадування не пише «email + email»", () => {
+      // 01.11: «Нагадати» у Фінансах — той самий канон RemindDebtButton, що й усюди
+      // (Рада 26.10, п. 3: одне слово — одна поведінка). Логіка каналів живе в ньому.
       const fp = read("src/pages/FinancesPage.tsx");
-      // Канал «inapp» мапився в «email», бо все, що не telegram, вважалось поштою.
       expect(fp).not.toMatch(/c === "telegram" \? "Telegram" : "email"/);
-      expect(fp, "дублі каналів прибираються").toMatch(/\[\.\.\.new Set\(\(\(data as any\)\.channels/);
-      expect(fp, "лише дзвіночок — окреме повідомлення, бо назовні не пішло нічого")
-        .toMatch(/t\("pendingPaymentsExtra\.reminderInAppOnly"\)/);
+      expect(fp, "по уроку більше ніхто не шле — лише режим пари").not.toMatch(/body: \{ lessonId/);
+      expect(fp, "канон у рядку боргу").toMatch(/<RemindDebtButton/);
+      const btn = read("src/components/RemindDebtButton.tsx");
+      expect(btn, "дублі каналів прибираються").toMatch(/\[\.\.\.new Set\(\(data\.channels/);
+      expect(btn, "лише дзвіночок — окреме повідомлення, бо назовні не пішло нічого")
+        .toMatch(/t\("remind\.sentInAppOnly"\)/);
     });
 
     it("нагороди пояснені: кому вони і звідки", () => {
@@ -824,8 +828,14 @@ describe("матеріали учня · хронологія, розгорну�
         .toMatch(/<QuickAddStudentDialog\s*\n\s*open=\{quickAdd\}/);
       expect(ms, "другої реалізації створення тут бути не може")
         .not.toMatch(/add_or_link_independent_student/);
-      expect(read("src/components/QuickAddStudentDialog.tsx"), "канон запрошує при створенні")
-        .toMatch(/functions\.invoke\("send-student-invite"/);
+      /* 01.11 (Рада 26.10, п. 5; рішення власниці): автолист при СТВОРЕННІ учня
+         НЕ йде — канон відкриває InviteLinkDialog, де репетиторка бачить текст і
+         надсилає сама. Стережемо, що автовідправки в каноні немає, а діалог є. */
+      const qa = read("src/components/QuickAddStudentDialog.tsx");
+      expect(qa, "канон НЕ шле лист сам при створенні").not.toMatch(/functions\.invoke\("send-student-invite"/);
+      expect(qa, "канон відкриває діалог запрошення з текстом").toMatch(/<InviteLinkDialog/);
+      expect(read("src/components/OnboardingFlowB.tsx"), "онбординг теж не шле лист сам")
+        .not.toMatch(/functions\.invoke\("send-student-invite"/);
       expect(ms, "тиха невдача тут найгірша — репетитор думає, що лист пішов")
         .toMatch(/t\("myStudents\.inviteFailedAddLater"\)/);
     });

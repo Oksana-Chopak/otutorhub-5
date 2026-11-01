@@ -55,7 +55,7 @@ export function RemindSheet({
   }, [open, studentId, tutorId]);
 
   const sym = currencySymbol(issue?.currency ?? "UAH");
-  const url = useMemo(() => (issue ? payLinkUrl(window.location.origin, issue.token) : ""), [issue]);
+  const url = useMemo(() => (issue ? payLinkUrl(window.location.origin, issue.short_code || issue.token) : ""), [issue]);
   const text = useMemo(() => issue ? buildShareText({
     studentFirstName: issue.student_first_name || studentName?.split(" ")[0] || "",
     tutorName: issue.tutor_name,

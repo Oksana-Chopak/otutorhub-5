@@ -13,6 +13,10 @@
 
 export interface PayLinkIssue {
   token: string;
+  /** 01.11: короткий стабільний код сторінки дитини (/p/<код>). */
+  short_code?: string | null;
+  /** Учень без акаунта — автоматичних каналів у нього немає, лише пересилання. */
+  student_pending?: boolean;
   lessons: number;
   total: number;
   currency: string;
@@ -25,9 +29,11 @@ export interface PayLinkIssue {
 
 export type ShareTarget = "telegram" | "viber" | "whatsapp" | "sms";
 
-/** Публічна адреса сторінки оплати. `origin` — без слешу в кінці. */
+/** Публічна адреса сторінки оплати. `origin` — без слешу в кінці.
+ *  8 знаків — короткий код (/p/…), інакше — старий 64-символьний токен (/pay/…). */
 export function payLinkUrl(origin: string, token: string): string {
-  return `${origin.replace(/\/+$/, "")}/pay/${token}`;
+  const base = origin.replace(/\/+$/, "");
+  return /^[a-z0-9]{8}$/.test(token) ? `${base}/p/${token}` : `${base}/pay/${token}`;
 }
 
 /** Текст для пересилання — коротко, по-людськи, з посиланням останнім рядком. */

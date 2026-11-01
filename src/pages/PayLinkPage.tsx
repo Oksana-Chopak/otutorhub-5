@@ -6,7 +6,13 @@ import { currencySymbol } from "@/lib/currency";
 import { Loader2, Copy, Check } from "lucide-react";
 
 /**
- * Публічна сторінка оплати за магічним посиланням — /pay/:token (13.10).
+ * Публічна сторінка оплати за магічним посиланням — /p/:code і /pay/:token (13.10, 01.11).
+ *
+ * 01.11 (Рада 26.10, п. 2 і 6): коротке стабільне посилання /p/<8 знаків> —
+ * одна сторінка дитини, яку мама зберігає раз; показує наступний урок, борг,
+ * реквізити, і СТАН заявки «Я оплатив(ла)»: поки репетиторка не відповіла —
+ * «чекаємо підтвердження» (сторінка сама перепитує кожні 20 с), далі —
+ * «підтверджено ✓» або «репетитор ще не бачить оплату — перевірте переказ».
  *
  * Хто тут: учень або його батьки, БЕЗ входу, з посилання, яке переслав
  * репетитор (або яке лежало в автоматичному нагадуванні). Що бачать: хто
@@ -32,7 +38,10 @@ interface PayView {
   currency?: string;
   requisites?: string | null;
   pending_claim?: boolean;
+  last_claim?: { status: "pending" | "confirmed" | "rejected"; amount: number; currency: string; created_at: string; resolved_at: string | null } | null;
+  next_lesson?: { date: string; subject: string | null } | null;
   can_register?: boolean;
+  short_code?: string | null;
   lang?: string;
 }
 
@@ -82,6 +91,20 @@ export default function PayLinkPage() {
     })();
     return () => { alive = false; };
   }, [token]);
+
+  // Поки заявка «в очікуванні» — перепитуємо, щоб «підтверджено ✓» зʼявилось без
+  // перезавантаження (репетиторка відповідає з Telegram за хвилину).
+  const pendingNow = !!view?.ok && (view.pending_claim || done === "ok" || done === "already") && view.last_claim?.status !== "confirmed" && view.last_claim?.status !== "rejected";
+  useEffect(() => {
+    if (!pendingNow) return;
+    const id = setInterval(async () => {
+      try {
+        const v = await fetchView(token);
+        if (v.ok) setView(v);
+      } catch { /* наступна спроба за 20 с */ }
+    }, 20_000);
+    return () => clearInterval(id);
+  }, [pendingNow, token]);
 
   const t = useMemo(() => (tReady ? i18n.getFixedT(lang) : i18n.getFixedT("uk")), [lang, tReady]);
   const sym = currencySymbol(view?.currency ?? "UAH");
@@ -140,9 +163,17 @@ export default function PayLinkPage() {
           {view.tutor_name ? t("payLink.pageIntro", { tutor: view.tutor_name }) : t("payLink.pageIntroNoTutor")}
         </p>
 
+        {view.next_lesson && (
+          <p className="mt-3 text-[14px] text-foreground">
+            📅 {t("payLink.nextLesson", { when: new Date(view.next_lesson.date).toLocaleString(locale, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }), subject: view.next_lesson.subject ?? "" })}
+          </p>
+        )}
+
         {lessons.length === 0 ? (
           <div className="mt-4 rounded-[14px] px-4 py-3 text-[15px] font-semibold" style={{ background: "rgba(34,197,94,.12)", color: "var(--success-text,#11803a)" }}>
-            🎉 {t("payLink.allPaid")}
+            {view.last_claim?.status === "confirmed" && view.last_claim.resolved_at && Date.now() - new Date(view.last_claim.resolved_at).getTime() < 14 * 86400000
+              ? <>✅ {t("payLink.claimConfirmed", { sum: `${Math.round(Number(view.last_claim.amount))} ${currencySymbol(view.last_claim.currency)}` })}</>
+              : <>🎉 {t("payLink.allPaid")}</>}
           </div>
         ) : (
           <>
@@ -181,9 +212,14 @@ export default function PayLinkPage() {
 
         {lessons.length > 0 && (
           <div className="mt-5">
+            {view.last_claim?.status === "rejected" && !done && !view.pending_claim && (
+              <div className="mb-3 rounded-[14px] px-4 py-3 text-[14px]" style={{ background: "rgba(245,158,11,.14)", color: "var(--warning-text,#8a5a00)" }}>
+                {t("payLink.claimRejected", { tutor: view.tutor_name ?? "" })}
+              </div>
+            )}
             {done === "ok" || done === "already" || view.pending_claim ? (
               <div className="rounded-[14px] px-4 py-3 text-[15px] font-semibold" style={{ background: "rgba(34,197,94,.12)", color: "var(--success-text,#11803a)" }}>
-                ✅ {done === "already" || (view.pending_claim && !done) ? t("payLink.claimAlready") : t("payLink.claimThanks", { tutor: view.tutor_name ?? "" })}
+                ⏳ {t("payLink.claimWaiting", { tutor: view.tutor_name ?? "" })}
               </div>
             ) : done === "too_many" ? (
               <div className="rounded-[14px] bg-secondary px-4 py-3 text-[15px] text-muted-foreground">{t("payLink.claimTooMany")}</div>
