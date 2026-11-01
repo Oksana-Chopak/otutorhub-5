@@ -1704,6 +1704,7 @@ export type Database = {
           id: string
           last_viewed_at: string | null
           revoked_at: string | null
+          short_code: string | null
           student_id: string
           token: string
           tutor_id: string
@@ -1716,6 +1717,7 @@ export type Database = {
           id?: string
           last_viewed_at?: string | null
           revoked_at?: string | null
+          short_code?: string | null
           student_id: string
           token: string
           tutor_id: string
@@ -1728,6 +1730,7 @@ export type Database = {
           id?: string
           last_viewed_at?: string | null
           revoked_at?: string | null
+          short_code?: string | null
           student_id?: string
           token?: string
           tutor_id?: string
@@ -3210,6 +3213,7 @@ export type Database = {
         Args: { _from: string; _tutor?: string }
         Returns: Json
       }
+      gen_short_code: { Args: never; Returns: string }
       generate_referral_code: { Args: { _tutor_id: string }; Returns: string }
       generate_telegram_link_code: {
         Args: { _user_id: string }
@@ -3446,6 +3450,20 @@ export type Database = {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
         Returns: number
       }
+      owner_alert: {
+        Args: {
+          _body: string
+          _link: string
+          _title: string
+          _type: string
+          _user: string
+        }
+        Returns: boolean
+      }
+      owner_alert_allowed: { Args: { _author: string }; Returns: boolean }
+      owner_alert_contact: { Args: { _user: string }; Returns: string }
+      owner_alert_person: { Args: { _user: string }; Returns: string }
+      owner_alert_recipients: { Args: { _about: string }; Returns: string[] }
       pair_debt_lessons: {
         Args: { _student_id: string; _tutor_id: string }
         Returns: {
@@ -3473,6 +3491,50 @@ export type Database = {
       payment_link_for_pair: {
         Args: { _student_id: string; _tutor_id: string }
         Returns: string
+      }
+      payment_link_lookup: {
+        Args: { _key: string }
+        Returns: {
+          claims: number
+          created_at: string
+          expires_at: string
+          id: string
+          last_viewed_at: string | null
+          revoked_at: string | null
+          short_code: string | null
+          student_id: string
+          token: string
+          tutor_id: string
+          views: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_links"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      payment_link_row_for_pair: {
+        Args: { _student_id: string; _tutor_id: string }
+        Returns: {
+          claims: number
+          created_at: string
+          expires_at: string
+          id: string
+          last_viewed_at: string | null
+          revoked_at: string | null
+          short_code: string | null
+          student_id: string
+          token: string
+          tutor_id: string
+          views: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_links"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       payment_link_shared: {
         Args: { _channel?: string; _student_id: string; _tutor_id?: string }
@@ -3509,6 +3571,10 @@ export type Database = {
       rename_hub: { Args: { _hub: string; _name: string }; Returns: undefined }
       resolve_payment_claim: {
         Args: { _confirm: boolean; _id: string }
+        Returns: Json
+      }
+      resolve_payment_claim_as: {
+        Args: { _actor: string; _confirm: boolean; _id: string }
         Returns: Json
       }
       resolve_referral_code: {
@@ -3553,6 +3619,7 @@ export type Database = {
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
       tutor_reminder_stats: { Args: { _tutor_id: string }; Returns: Json }
       tutor_snapshot: { Args: { _tutor_id: string }; Returns: Json }
+      tutor_value_stats: { Args: { _tutor_id?: string }; Returns: Json }
       update_lesson_details_safe: {
         Args: { _lesson_id: string; _patch: Json }
         Returns: undefined
