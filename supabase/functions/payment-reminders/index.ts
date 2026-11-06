@@ -1,6 +1,7 @@
 // Sends Telegram payment reminders to students based on each tutor's Pro rules.
 // Should be invoked on a schedule (cron). Idempotent via lesson_payment_reminders log.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { payUrlFor } from "../_shared/payLink.ts";
 import { sendWebPush } from "../_shared/push.ts";
 import { decideDebtReminder, DEBT_INTERVAL_DAYS, buildDebtPairs, splitOtherHistory, type DebtRow } from "../_shared/debtCadence.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
@@ -274,8 +275,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
   const payUrlOf = async (tutorId: string, studentId: string): Promise<string> => {
     try {
       const { data: code } = await (supabase.rpc as any)("payment_link_for_pair", { _tutor_id: tutorId, _student_id: studentId });
-      if (typeof code === "string" && /^[a-z0-9]{8}$/.test(code)) return `${APP_URL}/p/${code}`;
-      if (typeof code === "string" && /^[0-9a-f]{64}$/.test(code)) return `${APP_URL}/pay/${code}`;
+      return payUrlFor(code, APP_URL);
     } catch { /* нагадування йде і без посилання */ }
     return "";
   };

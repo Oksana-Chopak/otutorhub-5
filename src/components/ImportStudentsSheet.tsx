@@ -362,6 +362,10 @@ export function ImportStudentsSheet({
     let debtTotal = 0;
     let scheduled = 0;
     const failedNames: string[] = [];
+    // 06.11: «борг N уроків» без ціни — учень створюється, але борг лишається
+    // словами в нотатці. Досі ми казали лише ЧИСЛО таких учнів; репетиторка не
+    // знала, кому дописати ціну. Тепер — поіменно, як і з тими, хто не додався.
+    const noDebtNames: string[] = [];
     const notes: Array<{ student_id: string; note: string }> = [];
     const importedIds: string[] = [];
     // Послідовно, не Promise.all: RPC створює профілі й уроки, і паралельний
@@ -377,7 +381,7 @@ export function ImportStudentsSheet({
       const debtLessonsNoPrice = net.debtLessons > 0 && !(r.price && r.price > 0);
       const rowNote = [r.note, debtLessonsNoPrice ? t("importStudents.noteDebtLessons", { count: net.debtLessons }) : null, ...subjectNotesOf(r)]
         .filter(Boolean).join(" · ");
-      if (debtLessonsNoPrice) noDebt++;
+      if (debtLessonsNoPrice) { noDebt++; noDebtNames.push(r.firstName); }
       try {
         // cast: import_student_bundle потрапляє у згенеровані типи після міграції
         const { data, error } = await (supabase as any).rpc("import_student_bundle", {
@@ -454,6 +458,7 @@ export function ImportStudentsSheet({
       // Хто саме не додався — по імені, а не «N не вдалося»: людина мусить
       // знати, кого дописати вручну.
       if (failed > 0) toast.error(t("importStudents.failedNames", { names: failedNames.join(", ") }));
+      if (noDebtNames.length) toast.warning(t("importStudents.noDebtNames", { names: noDebtNames.join(", ") }));
       setText("");
       onOpenChange(false);
       onImported?.({ students: added + linked, debtTotal, scheduled, failed });

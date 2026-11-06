@@ -3281,6 +3281,7 @@ export const sv: LocaleTranslations = {
     doneNoDebt_one: "{{count}} elev utan skuld (inget pris — skulden i anteckningen)",
     doneNoDebt_other: "{{count}} elever utan skuld (inget pris — skulden i anteckningen)",
     failedNames: "Kunde inte lägga till: {{names}}",
+    noDebtNames: "Skulden räknades inte — inget pris: {{names}}. Lägg till pris och skulden blir en summa.",
     warn_prepay_covers_debt: "Skuld och förskott samtidigt — kvittas: förskottet täcker skulden",
     warn_schedule_without_price: "Inget pris — lektionerna skapas utan belopp",
     day1: "mån",

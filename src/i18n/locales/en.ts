@@ -3302,6 +3302,7 @@ export const en: LocaleTranslations = {
     doneNoDebt_one: "{{count}} student without debt (no price — debt kept in the note)",
     doneNoDebt_other: "{{count}} students without debt (no price — debt kept in the note)",
     failedNames: "Couldn’t add: {{names}}",
+    noDebtNames: "Debt not counted — no price yet: {{names}}. Add a price and the debt becomes a sum.",
     warn_prepay_covers_debt: "Debt and prepayment together — netted: the prepayment covers the debt",
     warn_schedule_without_price: "No price — lessons will be created without an amount",
     day1: "Mon",

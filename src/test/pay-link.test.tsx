@@ -197,7 +197,15 @@ describe("розтяжки: публічні двері й автоматичн�
     expect(s).toMatch(/withErrorLog\("pay-link"/);
     expect(s).toMatch(/"payment_link_view"/);
     expect(s).toMatch(/"payment_link_claim"/);
-    expect(s).toMatch(/\[0-9a-f\]\{64\}/);
+    // Ключ перевіряється до звернення до бази — але ФОРМУ тримає спільний
+    // модуль, а не копія тут. Раніше на цьому рядку стояла сама форма
+    // «лише 64 hex»: коли 01.11 з'явилися короткі посилання /p/, ці ворота
+    // лишилися зеленими, а кожне коротке посилання відповідало «не знайдено».
+    // Тепер ворота пильнують намір: ключ іде через спільне визначення.
+    expect(s).toMatch(/from "\.\.\/_shared\/payLink\.ts"/);
+    expect(s).toMatch(/payKey\(raw\)/);
+    expect(s).not.toMatch(/\[0-9a-f\]\{64\}/);
+    expect((s.match(/parseToken\(/g) ?? []).length, "перевірка стоїть і на GET, і на POST").toBeGreaterThanOrEqual(3);
   });
   it("міграція: посилання, заявка з посилання, FK на profiles, штраф гаситься гаманцем; сценарій 65 на місці", () => {
     const m = read("supabase/migrations/20261013120000_payment_links.sql");

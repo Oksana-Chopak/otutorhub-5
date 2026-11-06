@@ -16,6 +16,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { versionProbe } from "../_shared/build.ts";
 import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { payKey } from "../_shared/payLink.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,15 +26,15 @@ const corsHeaders = {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const TOKEN_RE = /^[0-9a-f]{64}$/;
 const VIEWS_PER_IP_HOUR = 60;
 const CLAIMS_PER_IP_HOUR = 10;
 const NOTE_MAX = 200;
 
-/** Токен з рядка запиту або тіла — лише 64 hex, інакше null. */
+/* 06.11: тут стояло «лише 64 hex», і кожне КОРОТКЕ посилання /p/<8 знаків>
+   відповідало «not found» ще до звернення до бази — хоч база його розуміє.
+   Форми ключа тепер в одному місці: `_shared/payLink.ts`. */
 export function parseToken(raw: unknown): string | null {
-  const t = String(raw ?? "").trim().toLowerCase();
-  return TOKEN_RE.test(t) ? t : null;
+  return payKey(raw);
 }
 
 /** Сума заявки: число 1…1 000 000 з крапкою чи комою; інакше null. */

@@ -25,6 +25,7 @@
 
 // deno-lint-ignore-file no-explicit-any
 import { sendWebPush } from "./push.ts";
+import { payUrlFor } from "./payLink.ts";
 
 const RLOC: Record<string, string> = { uk: "uk-UA", en: "en-GB", sv: "sv-SE" };
 const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "£", SEK: "kr", PLN: "zł" };
@@ -207,8 +208,7 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
   let payUrl = "";
   try {
     const { data: code } = await (admin.rpc as any)("payment_link_for_pair", { _tutor_id: tutorId, _student_id: studentId });
-    if (typeof code === "string" && /^[a-z0-9]{8}$/.test(code)) payUrl = `${appUrl}/p/${code}`;
-    else if (typeof code === "string" && /^[0-9a-f]{64}$/.test(code)) payUrl = `${appUrl}/pay/${code}`;
+    payUrl = payUrlFor(code, appUrl);
   } catch { /* без посилання нагадування все одно піде */ }
 
   // 13.10 (рішення власниці): учню без акаунта — нагадати, що він може його створити.
