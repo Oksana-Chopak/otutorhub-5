@@ -56,7 +56,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
-import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency, countLessonsMissingPrice } from "@/lib/financials";
+import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency, countLessonsMissingPrice, moneyReadIsPartial, DASHBOARD_MONEY_CAP, DASHBOARD_OLD_DEBT_CAP } from "@/lib/financials";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -254,6 +254,13 @@ export default function DashboardPage() {
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
+  /* 06.11 — «не прочитав» ≠ «нічого немає» (правило 22.09), тепер і на «Мій
+     день». Обидва грошові запити мають стелю; якщо в неї впертися, борг на
+     екрані МЕНШИЙ за справжній, і дашборд розходиться з «Фінансами» — власниця
+     вже ловила це на живому: «у базі 850 ₴, у застосунку 500 ₴». Мовчки
+     показувати менше — не можна; «Усі оплачені ☀️» при неповному читанні —
+     тим паче. */
+  const [debtPartial, setDebtPartial] = useState(false);
 
   // 01.11 (Рада 26.10, п. 5; рішення власниці): серії днів, «рятівники», рівні й
   // афірмації на головному екрані репетиторки ВИМКНЕНО — людина з 19
@@ -535,7 +542,7 @@ export default function DashboardPage() {
           .select("id, tutor_id, student_id, starts_at, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, source, is_cancellation_fee")
           .gte("starts_at", mStart.toISOString())
           .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())
-          .limit(2000);
+          .limit(DASHBOARD_MONEY_CAP);
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: false });
       })(),
@@ -550,7 +557,7 @@ export default function DashboardPage() {
           .lt("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .in("status", ["completed", "cancelled"])
           .neq("student_payment_status", "paid")
-          .limit(500);
+          .limit(DASHBOARD_OLD_DEBT_CAP);
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: false });
       })(),
@@ -601,6 +608,7 @@ export default function DashboardPage() {
     ).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
     setLessons(uniqueLessons);
     setMoneyLessons(((moneyLessonsData ?? []) as any[]) as LessonRow[]);
+    setDebtPartial(moneyReadIsPartial({ money: (moneyLessonsData ?? []).length, oldDebts: (oldDebtsData ?? []).length }));
     const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
 
     // ONE follow-up round-trip: these role-gated queries are mutually independent —
@@ -2592,7 +2600,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {pendingPayments.length === 0 && debtors.length === 0 ? (
+              {pendingPayments.length === 0 && debtors.length === 0 && !debtPartial ? (
                 /* Empty state — all paid (01.11: лише коли й перенесених боргів немає) */
                 <div
                   className="flex flex-col items-center gap-2 rounded-[16px] bg-card px-5 py-5 text-center"
@@ -2611,6 +2619,15 @@ export default function DashboardPage() {
               ) : (
                 /* Lesson cards — same style as schedule list */
                 <div className="space-y-2.5">
+                  {debtPartial && (
+                    <button
+                      className="w-full rounded-[14px] px-3 py-2.5 text-left text-[14px] font-medium transition-colors"
+                      style={{ background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", minHeight: 44 }}
+                      onClick={() => navigate("/finances?tab=debts")}
+                    >
+                      {t("dashboard.debtPartial")} →
+                    </button>
+                  )}
                   {[
                     ...pendingPayments.slice(0, 5),
                     ...Object.values(exitingPay).filter((l: any) => !pendingPayments.some((p) => p.id === l.id)),

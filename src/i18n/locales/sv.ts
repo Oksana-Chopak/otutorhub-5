@@ -535,6 +535,7 @@ export const sv: LocaleTranslations = {
     allPaidTitle: "Fortsätt så!",
     allPaidDesc: "Alla lektioner är betalda — allt är under kontroll 🎉",
     carriedDebt: "{{count}} överförda skulder till, {{sum}} — i Ekonomi",
+    debtPartial: "Inte hela skulden — fler lektioner än skärmen rymmer. Hela summan finns i Ekonomi",
     upcomingLessons: "Kommande lektioner",
     noUpcoming: "Fri tid — njut av det!",
     noLessons: "Inga inplanerade lektioner",

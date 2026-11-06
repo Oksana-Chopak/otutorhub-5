@@ -203,3 +203,22 @@ export function countLessonsMissingPrice(
         (l.source !== "independent" && Number(l.tutor_payout) === 0)),
   ).length;
 }
+
+/**
+ * СТЕЛІ ГРОШОВИХ ЧИТАНЬ «МОГО ДНЯ» — і чесність про них (06.11).
+ *
+ * Дашборд читає гроші двома запитами зі стелею (PostgREST однаково не віддасть
+ * більше ~1000 за раз, тож стеля явна). Якщо в неї впертися, борг на екрані
+ * МЕНШИЙ за справжній — а екран про це мовчав. Власниця вже ловила це на
+ * живому: «у базі 850 ₴, у застосунку 500 ₴». Правило 22.09 — «не прочитав» ≠
+ * «нічого немає» — тут діє так: при неповному читанні ми кажемо це словами, і
+ * «Усі оплачені ☀️» не показуємо НІКОЛИ.
+ *
+ * Числа живуть поруч із предикатом, щоб у запиті й у перевірці стояло те саме.
+ */
+export const DASHBOARD_MONEY_CAP = 2000;
+export const DASHBOARD_OLD_DEBT_CAP = 500;
+
+export function moneyReadIsPartial(counts: { money: number; oldDebts: number }): boolean {
+  return counts.money >= DASHBOARD_MONEY_CAP || counts.oldDebts >= DASHBOARD_OLD_DEBT_CAP;
+}

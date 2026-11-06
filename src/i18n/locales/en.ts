@@ -1032,6 +1032,7 @@ export const en: LocaleTranslations = {
     allPaidTitle: "Keep it up!",
     allPaidDesc: "All lessons are paid — everything is under control 🎉",
     carriedDebt: "{{count}} more carried-over debts, {{sum}} — in Finances",
+    debtPartial: "Not the whole debt — there are more lessons than this screen holds. Full amount is in Finances",
     upcomingLessons: "Upcoming lessons",
     noUpcoming: "Free time — enjoy it!",
     noLessons: "All quiet. Time to schedule a lesson 📅",

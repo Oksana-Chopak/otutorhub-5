@@ -3,6 +3,15 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 const OK = new Set(["src/lib/currency.ts", "src/components/CurrencyComboBox.tsx", "src/lib/importStudents.ts"]); // канон + пікер-визначення + парсер імпорту (₴/грн у regex РОЗПІЗНАВАННЯ, не в рендері)
+
+// 06.11: ворота тричі червоніли на ПРОЗІ про помилку, а не на помилці —
+// пояснення в блоковому коментарі згадувало «850 ₴». Перевірка дивилась лише
+// на ПОЧАТОК рядка, а продовження /* … */ не зобовʼязане починатися з «*».
+// Тому коментарі зрізаємо по-справжньому, зберігаючи номери рядків.
+function stripComments(src) {
+  const noBlocks = src.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "));
+  return noBlocks.split("\n").map((l) => l.replace(/(^|[^:"'`\\])\/\/.*$/, "$1")).join("\n");
+}
 const hits = [];
 function walk(dir) {
   for (const f of readdirSync(dir)) {
@@ -10,10 +19,10 @@ function walk(dir) {
     const st = statSync(p);
     if (st.isDirectory()) { if (!/node_modules|test/.test(p)) walk(p); continue; }
     if (!/\.(tsx|ts)$/.test(p) || OK.has(p) || /\.test\./.test(p)) continue;
-    const src = readFileSync(p, "utf8");
+    const src = stripComments(readFileSync(p, "utf8"));
     src.split("\n").forEach((line, i) => {
       const tl = line.trim();
-      if (tl.startsWith("//") || tl.startsWith("*") || tl.startsWith("/*")) return;   // коментарі
+      if (!tl) return;
       if (/SYMBOL|from "@\/lib\/currency"/.test(line)) return; // Р: лише визначення канону, НЕ виклики — гейт не вірить собі на слово
       if (/[₴€£]|(?<=[\d}]\s?)kr\b|\bkr(?=\s?[\d{])|(?<=[\d}]\s?)zł\b|\bzł(?=\s?[\d{])/.test(line)) hits.push(`${p}:${i + 1}: ${tl.slice(0, 100)}`);
     });
@@ -55,10 +64,10 @@ function walkUah(dir) {
     const st = statSync(p);
     if (st.isDirectory()) { if (!/node_modules|test/.test(p)) walkUah(p); continue; }
     if (!/\.(tsx|ts)$/.test(p) || /\.test\./.test(p)) continue;
-    const src = readFileSync(p, "utf8");
+    const src = stripComments(readFileSync(p, "utf8"));
     src.split("\n").forEach((line, i) => {
       const tl = line.trim();
-      if (tl.startsWith("//") || tl.startsWith("*") || tl.startsWith("/*")) return;
+      if (!tl) return;
       if (/formatPrice\([^)]*,\s*["']UAH["']/.test(line)) uahArgHits.push(`${p}:${i + 1}: ${tl.slice(0, 100)}`);
     });
   }
@@ -68,6 +77,14 @@ console.log(`═ formatPrice(..., "UAH") літералом: ${uahArgHits.length
 if (uahArgHits.length > MAX_UAH_ARGS) {
   console.error(`⛔ Нові зашиті "UAH" в аргументах (${uahArgHits.length} > ${MAX_UAH_ARGS}):`);
   uahArgHits.forEach((h) => console.error("   " + h));
+}
+
+// НЕПОРОЖНІСТЬ: зрізання коментарів не сміє перетворити ворота на зелену
+// заглушку. Якщо канон раптом не видно — це поломка сканера, не чистий код.
+const canon = stripComments(readFileSync("src/lib/currency.ts", "utf8"));
+if (!/[₴€£]/.test(canon)) {
+  console.error("⛔ Сканер зламаний: у src/lib/currency.ts не видно жодного символу валюти — зрізання коментарів зʼїло код.");
+  process.exit(1);
 }
 
 process.exit(hits.length || uahArgHits.length > MAX_UAH_ARGS ? 1 : 0); // ГЕЙТ: нуль літеральних валют + UAH-ratchet лише вниз
