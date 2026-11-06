@@ -89,6 +89,18 @@ export function QuickLessonDialog({
 }: Props) {
   const isHubVariant = variant === "hub";
   const isManager = variant === "manager";
+  /* 06.11 — ОДНЕ джерело правди про «самостійний урок».
+     Власниця як МЕНЕДЖЕР не могла створити індивідуальний урок: база відбивала
+     «new row violates row-level security policy for table "lessons"», урок не
+     створювався, і вся робота — учень, репетитор, час — йшла нанівець.
+     Причина: цей файл виводив `source` ДВІЧІ й по-різному. Груповий урок писав
+     `variant === "independent" ? "independent" : "hub"` (правильно: менеджер →
+     hub), а індивідуальний — `isHubVariant ? "hub" : "independent"`, тобто
+     менеджер потрапляв у «independent». А політика вставки менеджера вимагає
+     `source = 'hub' OR source IS NULL`. Груповий шлях колись полагодили,
+     індивідуальний — ні, і сам коментар нижче про це попереджав.
+     Тепер значення одне й виводиться один раз. */
+  const lessonSource: "independent" | "hub" = variant === "independent" ? "independent" : "hub";
   const [tutorOptions, setTutorOptions] = useState<{ id: string; name: string }[]>([]);
   const [selTutorId, setSelTutorId] = useState<string>("");
   const { user } = useAuth();
@@ -320,7 +332,7 @@ export function QuickLessonDialog({
           subject: selectedGroup.subject || t("shared.lesson"),
           startsAt: effStartsAt.toISOString(),
           durationMinutes: parseInt(duration) || 60,
-          source: variant === "independent" ? "independent" : "hub",
+          source: lessonSource,
           createdBy: user.id,
         });
         setSubmitting(false);
@@ -358,7 +370,7 @@ export function QuickLessonDialog({
         duration_minutes: parseInt(duration) || 60,
         status: "scheduled" as const,
         created_by: user.id,
-        source: isHubVariant ? "hub" : "independent",
+        source: lessonSource,
         meeting_url: selected.default_meeting_url || null,
       };
       const payloads = Array.from({ length: seriesCount }, (_, i) => ({
@@ -370,10 +382,14 @@ export function QuickLessonDialog({
         .insert(payloads)
         .select("id");
       const created = createdRows?.[0] ?? null;
-      if (!error && createdRows?.length && !isHubVariant) {
-        // Independent: pin the displayed price onto the lesson. HUB lessons get their
-        // price + payout from the server-side autofill trigger (rates snapshot); a hub
-        // tutor's student_price write is RPC-gated anyway (MON-2) — skip the round-trip.
+      if (!error && createdRows?.length && lessonSource === "independent") {
+        /* Ціну з форми прикріплюємо лише САМОСТІЙНОМУ уроку. Хабовий (і той, що
+           створює менеджер) бере ціну й виплату з серверного тригера за
+           знімком ставок — інакше менеджер записував би ціну клієнтом поверх
+           того, що база порахує сама. До 06.11 тут стояло `!isHubVariant`, тож
+           менеджер лічився «самостійним» — та сама плутанина, що й у `source`.
+           Умова читається з того САМОГО `lessonSource`, тож розійтись їм більше
+           нічим (і сирого прапора ролі в компоненті не додалось — ратчет P8). */
         await Promise.all(
           createdRows.map((r) =>
             updateLessonDetailsSafe(r.id, { student_price: selected.price || 0 })
