@@ -1083,7 +1083,7 @@ export const sv: LocaleTranslations = {
     trialUntil: "Provperiod · till {{date}}",
     subscriptionActive: "Aktiv",
     subscriptionFree: "Gratisplan",
-    referralBonusVal: "+1 månad prenumeration per vän",
+    referralBonusVal: "+1 månad per vän som prenumererar",
     themeFruits: "Frukter",
     themeSports: "Sport",
     themeAnimals: "Djur",
@@ -5289,7 +5289,7 @@ export const sv: LocaleTranslations = {
       },
       referral: {
         title: "Bjud in en kollega",
-        desc: "Din vän får en månads provperiod, och du får en gratis prenumerationsmånad.",
+        desc: "Din vän får en månads provperiod, och du får en prenumerationsmånad när vännen börjar prenumerera.",
         cta: "Bjud in en kollega",
         hint: "Inbjudan skapad ✓",
       },

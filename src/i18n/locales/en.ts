@@ -1592,7 +1592,7 @@ export const en: LocaleTranslations = {
     trialUntil: "Trial · until {{date}}",
     subscriptionActive: "Active",
     subscriptionFree: "Free plan",
-    referralBonusVal: "+1 month of subscription per friend",
+    referralBonusVal: "+1 month per friend who subscribes",
     themeFruits: "Fruits",
     themeSports: "Sports",
     themeAnimals: "Animals",
@@ -5310,7 +5310,7 @@ export const en: LocaleTranslations = {
       },
       referral: {
         title: "Invite a colleague",
-        desc: "Your friend gets a month of trial, and you get a free month of subscription.",
+        desc: "Your friend gets a month of trial, and you get a month of subscription once they subscribe.",
         cta: "Invite a colleague",
         hint: "Invitation created ✓",
       },
