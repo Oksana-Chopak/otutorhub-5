@@ -72,18 +72,20 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(/CREATE TRIGGER trg_wallet_charge_on_manual_paid[\s\S]*ON public\.lesson_details/.test(all)).toBe(true);
   });
 
-  // РОЗТЯЖКА №8 (весь src): сирі date/time-інпути заборонені всюди, крім
-  // родини DateTimeField (лендінг-демо прибрано 12.09 — дублювало калькулятор).
-  it("жодних сирих date/time-інпутів поза DateTimeField", () => {
-    const allow = new Set(["DateTimeField.tsx"]);
+  // РОЗТЯЖКА №8 (весь src): сирі date/time-інпути заборонені всюди — з 06.11
+  // і в самому DateTimeField: нативне поле бере формат з ОПЕРАЦІЙНОЇ СИСТЕМИ
+  // (у власниці — AM/PM), тож винятку більше немає. Тести й коментарі не
+  // скануємо: двічі в жовтні ворота червоніли на ПРОЗІ про помилку, а не на
+  // помилці. Поведінку самого поля тримає datetime-24h.test.tsx.
+  it("жодних сирих date/time-інпутів у коді", () => {
+    const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
     const bad: string[] = [];
     const walk = (dir: string) => {
       for (const f of readdirSync(dir)) {
         const fp = join(dir, f);
         if (statSync(fp).isDirectory()) { walk(fp); continue; }
-        if (!f.endsWith(".tsx") || allow.has(f)) continue;
-        const src = readFileSync(fp, "utf8");
-        if (/type="date"|type="time"|datetime-local/.test(src)) bad.push(f);
+        if (!f.endsWith(".tsx") || f.includes(".test.")) continue;
+        if (/type="date"|type="time"|datetime-local/.test(strip(readFileSync(fp, "utf8")))) bad.push(f);
       }
     };
     walk(join(__dirname, "../../src"));
