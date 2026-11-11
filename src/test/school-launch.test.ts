@@ -166,3 +166,46 @@ describe("інтерфейс: шлях власниці школи без глу
     expect(code(read("src/components/AppLayout.tsx"))).toMatch(/<AdminLensBanner \/>/);
   });
 });
+
+describe("діри після першого проходу (11.11, другий пакет)", () => {
+  it("накладка уроків: єдина форма уроку попереджає, але не блокує", () => {
+    const q = read("src/components/QuickLessonDialog.tsx");
+    expect(q).toMatch(/const \[overlap, setOverlap\]/);
+    expect(q).toMatch(/\.neq\("status", "cancelled"\)/);
+    expect(q).toMatch(/t\("quickLessonDialog\.overlapWarning"/);
+    expect(q, "збій читання не лякає накладкою, якої може не бути").toMatch(/if \(error\) \{ setOverlap\(null\); return; \}/);
+  });
+
+  it("підказки предметів — предмети своєї школи, а не вшитий список школи власниці платформи", () => {
+    const ms = read("src/components/SubjectMultiSelect.tsx");
+    expect(ms).toMatch(/useSchoolSubjects\(\)/);
+    expect(ms).not.toMatch(/\bSUBJECT_OPTIONS\b/);
+    expect(read("src/pages/PeoplePage.tsx")).not.toMatch(/\bSUBJECT_OPTIONS\b/);
+  });
+
+  it("прибуток на дашборді рахує груповий урок цілком (оплати учасників − виплата) або ніяк", () => {
+    const d = read("src/pages/DashboardPage.tsx");
+    expect(d).toMatch(/const paid = groupPaidIncome\.get\(l\.id\);\s*\n\s*if \(paid === undefined\) return \[\];/);
+    expect(d).toMatch(/\[profitLessons, periodStart, nowMs\]/);
+  });
+
+  it("заявка «керую школою» йде в наявну скриньку звернень, без нового каналу", () => {
+    const c = read("src/components/SchoolRequestCard.tsx");
+    expect(c).toMatch(/from\("feedback_submissions"\)\.insert\(/);
+    expect(c).toMatch(/category: "school_request"/);
+    expect(read("src/pages/ProfilePage.tsx")).toMatch(/\{isIndependent && <SchoolRequestCard \/>\}/);
+  });
+
+  it("учень з акаунтом потрапляє у школу лише за власною згодою", () => {
+    const sql = read("supabase/migrations/20261111170000_hub_join_invite.sql");
+    expect(sql, "таблиця закрита — лише функції").toMatch(/REVOKE ALL ON public\.hub_join_invites FROM PUBLIC, anon, authenticated/);
+    const accept = sql.slice(sql.indexOf("FUNCTION public.resolve_hub_invite"));
+    expect(accept, "членство ставить лише сама людина").toMatch(/WHERE id = _id AND user_id = auth\.uid\(\) AND status = 'pending'/);
+    const invite = sql.slice(sql.indexOf("FUNCTION public.hub_invite_existing_student"), sql.indexOf("FUNCTION public.my_hub_invites"));
+    expect(invite, "запрошення членства НЕ створює").not.toMatch(/INSERT INTO public\.hub_members/);
+    expect(invite).toMatch(/rate_limit_check\('hub_invite'/);
+    expect(read("src/pages/PeoplePage.tsx")).toMatch(/hub_invite_existing_student/);
+    const dash = read("src/pages/student/StudentDashboardPage.tsx");
+    expect(dash.match(/<SchoolInviteCard \/>/g)?.length, "видно і на онбордингу, і на дашборді").toBe(2);
+  });
+});

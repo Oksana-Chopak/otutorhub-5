@@ -1,6 +1,7 @@
 import { Check, Plus } from "lucide-react";
 import { useState, KeyboardEvent } from "react";
-import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { GENERIC_SUBJECT_OPTIONS } from "@/lib/subjects";
+import { useSchoolSubjects } from "@/hooks/useSchoolSubjects";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,13 +43,17 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
     }
   };
 
-  // Preserve any custom subjects not in canonical list
-  const extras = value.filter((v) => !SUBJECT_OPTIONS.includes(v as any));
+  // 11.11: підказки — предмети СВОЄЇ школи; поки їх немає — загальний список
+  // (не вшиті предмети школи власниці платформи).
+  const school = useSchoolSubjects();
+  const options: readonly string[] = school && school.length > 0 ? school : GENERIC_SUBJECT_OPTIONS;
+  // Preserve any custom subjects not in the suggestions
+  const extras = value.filter((v) => !options.includes(v));
 
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex flex-wrap gap-2">
-        {SUBJECT_OPTIONS.map((s) => {
+        {options.map((s) => {
           const active = value.includes(s);
           return (
             <button

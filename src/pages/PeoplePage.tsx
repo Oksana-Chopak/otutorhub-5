@@ -77,7 +77,7 @@ import { MobileFilters } from "@/components/MobileFilters";
 import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 import { safeHref } from "@/lib/safeUrl";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice} from "@/lib/currency";
-import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { GENERIC_SUBJECT_OPTIONS } from "@/lib/subjects";
 import { RemindDebtButton } from "@/components/RemindDebtButton";
 import { useLastReminders } from "@/hooks/useLastReminders";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
@@ -770,7 +770,17 @@ export default function PeoplePage() {
       await supabase.from("profiles").delete().eq("id", newId);
       const msg = String(contErr.message || "");
       if (msg.includes("profile_contacts_email_lower")) {
-        toast.error(t("people.emailAlreadyRegistered"));
+        /* 11.11: пошта вже має акаунт. Для учня це більше не глухий кут: школа надсилає
+           запрошення, і людина сама погоджується (членство відкриває школі її контакти,
+           тож без згоди — ніяк). Поки функції в базі немає — старе чесне повідомлення. */
+        let invited: string | null = null;
+        if (addForm.role === "student" && email) {
+          const { data, error } = await (supabase.rpc as any)("hub_invite_existing_student", { _email: email });
+          if (!error && typeof data === "string") invited = data;
+        }
+        if (invited === "sent") { toast.success(t("people.existingInvited")); setAddOpen(false); }
+        else if (invited === "already_member") toast.message(t("people.existingAlreadyMember"));
+        else toast.error(t("people.emailAlreadyRegistered"));
       } else {
         toast.error(t("people.saveContactsFailed"));
       }
@@ -907,9 +917,11 @@ export default function PeoplePage() {
   // Build subject options from all tutors
   const allSubjects = useMemo(() => {
     const set = new Set<string>();
-    SUBJECT_OPTIONS.forEach((s) => set.add(s));
     users.forEach((u) => (u.subjects ?? []).forEach((s) => set.add(s)));
     studentRates.forEach((r) => r.subject && set.add(r.subject));
+    // 11.11: вшиті предмети школи власниці платформи новій школі не підказуємо;
+    // поки своїх немає — загальний список.
+    if (set.size === 0) GENERIC_SUBJECT_OPTIONS.forEach((s) => set.add(s));
     return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
   }, [users, studentRates]);
 

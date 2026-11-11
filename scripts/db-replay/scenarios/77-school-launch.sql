@@ -282,7 +282,7 @@ SELECT pg_temp.expect('tB', '(5) контакту батьків (картка �
 SELECT pg_temp.expect('tB', '(5) передоплат школи не бачить', $q$SELECT (SELECT count(*) FROM student_wallet_transactions)||'/'||(SELECT count(*) FROM student_wallet_balances)$q$, '0/0');
 SELECT pg_temp.denied('tB', '(5) баланс передоплати через RPC', $q$SELECT amount_balance::text FROM get_wallet_balance({tB},{sB2})$q$);
 SELECT pg_temp.expect('tB', '(5) пари бачить, ціни в них — ні', $q$SELECT count(*)||'/'||coalesce(sum(price_per_lesson)::text, 'ціни немає') FROM student_pairs_visible$q$, '2/ціни немає');
--- крок 2 (20261111160000): напряму з таблиці репетитор школи рядків школи не читає взагалі,
+-- крок 2 (20261111180000): напряму з таблиці репетитор школи рядків школи не читає взагалі,
 -- а урок своєму учневі школи ставить, як і раніше (політика йде через tutor_has_pair)
 SELECT pg_temp.expect('tB', '(5) напряму з таблиці пар школи репетитор не читає нічого', $q$SELECT count(*)::text FROM student_rates$q$, '0');
 SELECT pg_temp.expect('ind', '(5) самостійна свої пари з таблиці читає', $q$SELECT (count(*) > 0)::text FROM student_rates$q$, 'true');
@@ -358,5 +358,23 @@ DO $$ BEGIN RAISE NOTICE '✅ (8) суперадмін: типово власн�
 -- (9) самостійну репетиторку з власними учнями мовчки менеджером не зробити
 SELECT pg_temp.denied('sa', '(9) школа на людину з власними учнями', $q$SELECT create_hub('Школа Ірини', {ind})$q$, $q$SELECT role::text FROM user_roles WHERE user_id = {ind}$q$, 'tutor');
 DO $$ BEGIN RAISE NOTICE '✅ (9) людину, що вже веде власних учнів, створення школи не перетворює на менеджера мовчки'; END $$;
+
+-- (10) школа запрошує учня, який УЖЕ має акаунт — лише зі згодою самої людини (20261111170000)
+SELECT pg_temp.signup('sFree', 'free@fam.test', 'Вільна', 'Учениця', 'student');
+SELECT pg_temp.denied('tA', '(10) репетитор школи запрошує в школу', $q$SELECT hub_invite_existing_student('free@fam.test')$q$);
+SELECT pg_temp.denied('ind', '(10) самостійна репетиторка запрошує в школу', $q$SELECT hub_invite_existing_student('free@fam.test')$q$);
+SELECT pg_temp.expect('mgrA', '(10) невідома пошта — чесне «не знайдено»', $q$SELECT hub_invite_existing_student('nobody@nowhere.test')$q$, 'not_found');
+SELECT pg_temp.expect('mgrA', '(10) репетиторку як учня не запросити', $q$SELECT hub_invite_existing_student('ind@tutor.test')$q$, 'not_student');
+SELECT pg_temp.expect('mgrA', '(10) менеджер А запрошує учня з акаунтом', $q$SELECT hub_invite_existing_student('free@fam.test')$q$, 'sent');
+SELECT pg_temp.expect('mgrA', '(10) до згоди менеджер не бачить ані профілю, ані контактів', $q$SELECT (SELECT count(*) FROM profiles WHERE id = {sFree})||'/'||(SELECT count(*) FROM profile_contacts WHERE user_id = {sFree})$q$, '0/0');
+SELECT pg_temp.expect('sFree', '(10) людина бачить запрошення і сповіщення', $q$SELECT (SELECT string_agg(hub_name, ',') FROM my_hub_invites())||'/'||(SELECT count(*) FROM notifications WHERE user_id = {sFree} AND type LIKE 'hub_invite_%')$q$, 'Школа А/1');
+SELECT pg_temp.denied('mgrB', '(10) таблицю запрошень напряму не читає ніхто', $q$SELECT count(*)::text FROM hub_join_invites$q$);
+SELECT pg_temp.expect('sB1', '(10) інший учень чужого запрошення не бачить і не приймає', $q$SELECT (SELECT count(*) FROM my_hub_invites())||'/'||resolve_hub_invite((SELECT i.id FROM my_hub_invites() i LIMIT 1), true)$q$, '0/not_found');
+SELECT pg_temp.expect('sFree', '(10) людина приймає', $q$SELECT resolve_hub_invite((SELECT id FROM my_hub_invites() LIMIT 1), true)$q$, 'accepted');
+SELECT pg_temp.expect('mgrA', '(10) після згоди — учень школи А: профіль і контакт видно', $q$SELECT (SELECT count(*) FROM profiles WHERE id = {sFree})||'/'||(SELECT count(*) FROM profile_contacts WHERE user_id = {sFree})$q$, '1/1');
+SELECT pg_temp.expect('mgrB', '(10) школа Б цієї людини не бачить', $q$SELECT (SELECT count(*) FROM profiles WHERE id = {sFree})::text$q$, '0');
+SELECT pg_temp.expect('mgrA', '(10) повторне запрошення — «вже у школі»', $q$SELECT hub_invite_existing_student('free@fam.test')$q$, 'already_member');
+SELECT pg_temp.must('mgrA', '(10) і їй можна призначити репетитора школи', $q$INSERT INTO student_rates (tutor_id, student_id, subject, price_per_lesson, currency) VALUES ({tA}, {sFree}, 'Англійська', 600, 'UAH') RETURNING id$q$);
+DO $$ BEGIN RAISE NOTICE '✅ (10) учень з акаунтом потрапляє у школу лише за власною згодою; до згоди школа не бачить про нього нічого'; END $$;
 
 ROLLBACK;

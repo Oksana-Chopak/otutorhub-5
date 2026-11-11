@@ -206,6 +206,8 @@ export default function DashboardPage() {
   // Group lessons (student_id NULL) carry payment per-participant on lesson_participants,
   // not on the lesson row — track which ones still have an unpaid participant.
   const [groupUnpaidLessonIds, setGroupUnpaidLessonIds] = useState<Set<string>>(new Set());
+  // Оплачений дохід групового уроку (сума оплат учасників) — для прибутку на дашборді.
+  const [groupPaidIncome, setGroupPaidIncome] = useState<Map<string, number>>(new Map());
   const [payoutSchedules, setPayoutSchedules] = useState<Array<{ user_id: string; name: string; payout_frequency: string | null; payout_weekday: number | null; payout_monthday: number | null; payout_anchor: string | null }>>([]);
   const [payingTutor, setPayingTutor] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
@@ -622,6 +624,25 @@ export default function DashboardPage() {
     setMoneyLessons(((moneyLessonsData ?? []) as any[]) as LessonRow[]);
     setDebtPartial(moneyReadIsPartial({ money: (moneyLessonsData ?? []).length, oldDebts: (oldDebtsData ?? []).length }));
     const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
+    /* 11.11: прибуток на дашборді не рахував групові уроки взагалі — ні оплат учасників,
+       ні виплати репетитору, тож «Мій день» і «Фінанси» показували різний прибуток тій
+       самій школі. Дохід групового живе по учасниках; дочитуємо оплачене за те саме
+       грошове вікно. Збій читання → груповий урок у прибуток не входить зовсім (як було),
+       а не входить однією виплатою без доходу. */
+    void (async () => {
+      const ids = ((moneyLessonsData ?? []) as any[]).filter((l) => !l.student_id).map((l) => l.id as string);
+      const sums = new Map<string, number>();
+      for (let i = 0; i < ids.length; i += 200) {
+        const { data, error } = await (supabase.from("lesson_participants_visible" as any) as any)
+          .select("lesson_id, student_price")
+          .in("lesson_id", ids.slice(i, i + 200))
+          .eq("student_payment_status", "paid");
+        if (error) { setGroupPaidIncome(new Map()); return; }
+        ((data ?? []) as any[]).forEach((p) => sums.set(p.lesson_id, (sums.get(p.lesson_id) ?? 0) + Number(p.student_price ?? 0)));
+      }
+      ids.forEach((id) => { if (!sums.has(id)) sums.set(id, 0); });
+      setGroupPaidIncome(sums);
+    })();
 
     // ONE follow-up round-trip: these role-gated queries are mutually independent —
     // they used to run as 4-6 serial awaits, so a manager's first paint paid every
@@ -1106,11 +1127,20 @@ export default function DashboardPage() {
     return 0;
   }, [profitPeriod]);
 
-  /* Прибуток на дашборді рахується з ІНДИВІДУАЛЬНИХ уроків: дохід групових живе
-     по учасниках (lesson_participants) і сюди не завантажується. Тому й виплату за
-     групове (11.11) у прибуток тут не беремо — інакше витрата була б без свого доходу.
-     Повна картина з групами — у «Фінансах»; «до виплати» нижче групові враховує. */
-  const profitLessons = useMemo(() => moneyLessons.filter((l) => !!l.student_id), [moneyLessons]);
+  /* Рядки для прибутку: індивідуальні уроки як є, груповий — одним рядком «оплати
+     учасників − виплата репетитору» (11.11). Груповий входить лише коли його оплати
+     прочитались: виплата без свого доходу занизила б прибуток. «До виплати» нижче
+     рахується з moneyLessons і групові враховує завжди. */
+  const profitLessons = useMemo(
+    () =>
+      moneyLessons.flatMap((l) => {
+        if (l.student_id) return [l];
+        const paid = groupPaidIncome.get(l.id);
+        if (paid === undefined) return [];
+        return [{ ...l, student_price: paid, student_payment_status: paid > 0 ? "paid" : "unpaid" } as LessonRow];
+      }),
+    [moneyLessons, groupPaidIncome],
+  );
   const billableLessons = useMemo(
     () =>
       // Shared predicate (src/lib/financials) + this page's period window — same

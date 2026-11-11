@@ -35,6 +35,7 @@ import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
 import { pairsRel } from "@/lib/pairsRel";
+import { SchoolRequestCard } from "@/components/SchoolRequestCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
@@ -765,6 +766,10 @@ export default function ProfilePage() {
               </div>
             </Link>
           )}
+
+          {/* 11.11: власниця школи реєструється як самостійний репетитор і не мала
+              звідки дізнатись, що школу можна підключити — тепер це один рядок тут. */}
+          {isIndependent && <SchoolRequestCard />}
 
           {/* ── Account section ────────────────────────────────────────────── */}
           {/* Achievements (level / streak / badges) belong to EVERY tutor — hub tutors

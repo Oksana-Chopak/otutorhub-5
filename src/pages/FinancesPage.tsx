@@ -1559,12 +1559,13 @@ export default function FinancesPage() {
     // For a hub tutor the paid/unpaid filter follows THEIR payout status, not the
     // student's (whose status they can't see).
     const kindStatusOf = (l: LessonRow) =>
-      isHubTutor ? l.tutor_payout_status : l.student_payment_status;
+      isHubTutor || l.kind === "groupPayout" ? l.tutor_payout_status : l.student_payment_status;
     // Union billable rows with prepay debts so «неоплачені» exports include
     // FUTURE unpaid lessons — same set the Debts tab shows.
     const seenIds = new Set<string>();
     const exportRows: LessonRow[] = [];
-    [...periodBillable, ...periodStudentDebts].forEach((l) => {
+    // + виплати за групові заняття (11.11): окремий рядок на урок, як і на екрані
+    [...periodBillable, ...periodStudentDebts, ...periodGroupPayouts].forEach((l) => {
       if (!seenIds.has(l.id)) { seenIds.add(l.id); exportRows.push(l); }
     });
     const source = exportRows.filter((l) => {
@@ -1576,9 +1577,9 @@ export default function FinancesPage() {
     const rows = source.map((l) => [
       formatDate(l.starts_at),
       l.subject,
-      nameOf(l.student_id),
+      l.kind === "groupPayout" ? ((l.group_id && groupNames.get(l.group_id)) || t("finances.groupTag")) : nameOf(l.student_id),
       ...(!isHubTutor
-        ? [
+        ? l.kind === "groupPayout" ? ["—", "—", ""] : [
             String(l.student_price),
             l.student_payment_status === "paid" ? t("finances.csvPaid") : t("finances.csvPending"),
             l.student_paid_at ? formatDate(l.student_paid_at) : "",
@@ -1595,7 +1596,7 @@ export default function FinancesPage() {
           ]
         : []),
       ...(!isIndependentTutor && !isHubTutor
-        ? [l.kind === "group" ? "—" : String(Number(l.student_price) - Number(l.tutor_payout))]
+        ? [l.kind === "group" || l.kind === "groupPayout" ? "—" : String(Number(l.student_price) - Number(l.tutor_payout))]
         : []),
     ]);
     const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;

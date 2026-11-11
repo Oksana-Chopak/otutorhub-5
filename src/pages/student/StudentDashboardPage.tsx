@@ -24,6 +24,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { TutorRequestStatusCard, type TutorRequestRow } from "@/components/student/TutorRequestStatusCard";
 import { computeWeeklyStats } from "@/lib/studentStats";
 import { studentLessonsFilter } from "@/lib/studentLessons";
+import { SchoolInviteCard } from "@/components/student/SchoolInviteCard";
 
 interface UpcomingLesson {
   id: string;
@@ -297,6 +298,8 @@ export default function StudentDashboardPage() {
   if (showOnboarding) {
     return (
       <>
+        {/* запрошення до школи мусить бути видно й тому, хто ще не має репетитора */}
+        <SchoolInviteCard />
         <StudentOnboarding
           onComplete={async () => {
             setShowOnboarding(false);
@@ -320,6 +323,8 @@ export default function StudentDashboardPage() {
           <h1 style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", lineHeight: 1.15 }}>{t("studentPages.greeting")}</h1>
           <p style={{ fontSize: 15, color: DS.sub, marginTop: 4 }}>{t("studentPages.greetingSub")}</p>
         </div>
+
+        <SchoolInviteCard />
 
         {loadError && (
           <ErrorState

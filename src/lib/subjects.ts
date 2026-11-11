@@ -12,6 +12,16 @@ export const SUBJECT_OPTIONS: readonly string[] = lazyArray(() => [
   i18n.t("subjects.german"),
 ]);
 
+/** Загальні підказки для школи, яка ще не має власних предметів (11.11). Не список
+ *  школи власниці платформи: нова школа не мусить бачити «Математика (нім. програма)». */
+export const GENERIC_SUBJECT_OPTIONS: readonly string[] = lazyArray(() => [
+  i18n.t("subjects.math"),
+  i18n.t("subjects.english"),
+  i18n.t("subjects.ukrainian"),
+  i18n.t("subjects.german"),
+  i18n.t("subjects.polish"),
+]);
+
 export type Subject = string;
 
 // H2 (аудит 02.09): емодзі предмета — за i18n-КЛЮЧЕМ, не за українським рядком.

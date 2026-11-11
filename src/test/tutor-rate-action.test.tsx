@@ -42,6 +42,8 @@ const { rpc, toast } = vi.hoisted(() => ({
 }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: (t: string) => mkQuery(t), rpc: (n: string, a: unknown) => rpc(n, a) } }));
 vi.mock("@/components/PayoutScheduleCard", () => ({ PayoutScheduleCard: () => null }));
+// підказки предметів школи читає окремий хук (сесія + два select) — тут він не предмет перевірки
+vi.mock("@/hooks/useSchoolSubjects", () => ({ useSchoolSubjects: () => null }));
 vi.mock("sonner", () => ({ toast }));
 
 import { LessonCard } from "@/components/LessonCard";

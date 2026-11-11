@@ -33,7 +33,7 @@ const GW = process.env.WALK_GATEWAY ?? "http://localhost:54321";
 const OUT = process.env.WALK_OUT ?? "/tmp/school-walk";
 mkdirSync(OUT, { recursive: true });
 const run = Date.now().toString(36);
-const E = { sa: `oksana-${run}@platform.test`, owner: `maria-${run}@lingua.test`, tutor: `iryna-${run}@lingua.test`, s1: `solomiia-${run}@fam.test`, s2: `marko-${run}@fam.test` };
+const E = { sa: `oksana-${run}@platform.test`, owner: `maria-${run}@lingua.test`, tutor: `iryna-${run}@lingua.test`, s1: `solomiia-${run}@fam.test`, s2: `marko-${run}@fam.test`, free: `daryna-${run}@fam.test` };
 const SCHOOL = `Lingua ${run}`;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const problems = [];
@@ -50,6 +50,8 @@ async function session() {
     const u = r.url();
     if (r.status() >= 400 && (u.includes("/rest/v1") || u.includes("/auth/v1"))) {
       let b = ""; try { b = (await r.text()).slice(0, 160); } catch { /* тіло вже закрите */ }
+      // очікувана відповідь: пошта вже має акаунт → застосунок надсилає запрошення (крок 7)
+      if (b.includes("profile_contacts_email_lower")) return;
       problems.push(`[${step}] ${r.status()} ${r.request().method()} ${u.replace(GW, "").slice(0, 120)} ${b}`);
     }
   });
@@ -95,6 +97,13 @@ async function main() {
   step = "1 реєстрація власниці";
   let s = await session();
   await s.signup("", "Марія", "Школярук", E.owner);
+  // вона ще «самостійний репетитор» — і мусить мати звідки попросити школу
+  await s.go("/profile", 4000);
+  await s.page.getByRole("button", { name: /Керуєте школою/ }).click(); await wait(800);
+  await s.page.getByLabel("Назва школи").fill(SCHOOL);
+  await s.page.getByRole("button", { name: "Надіслати заявку" }).click(); await wait(2500);
+  await s.see(/Заявку на школу надіслано/, "заявка на підключення школи з профілю");
+  if (psql(`SELECT count(*) FROM feedback_submissions WHERE category='school_request' AND message LIKE '%${SCHOOL}%'`).stdout.trim() !== "1") throw new Error(`[${step}] заявка на школу не лягла в скриньку звернень`);
   await s.browser.close(); ok(step);
 
   // ── 2. суперадмін підключає школу в адмінці ──
@@ -174,6 +183,8 @@ async function main() {
 
   step = "3е група у формі уроку і груповий урок";
   await s.go("/schedule?create=1", 4500);
+  // типовий час той самий, що в щойно створеного уроку — форма мусить попередити про накладку
+  await s.see(/вже стоїть урок/, "попередження про накладку двох уроків одного репетитора");
   await s.page.getByRole("button", { name: /Груповий/ }).click(); await wait(800);
   await s.page.getByRole("button", { name: "Марко Бойко" }).click();
   await s.page.getByRole("button", { name: "Соломія Гнатюк" }).click();
@@ -255,7 +266,31 @@ async function main() {
   await s.browser.close(); ok(step);
 }
 
-main().then(() => {
+async function existingStudent() {
+  // ── 7. учениця з уже наявним акаунтом: школа запрошує, вона сама погоджується ──
+  step = "7 учень з акаунтом — запрошення зі згодою";
+  const st = await session();
+  await st.signup("&role=student", "Дарина", "Вільна", E.free);
+  const ow = await session();
+  await ow.loginAs(E.owner);
+  await ow.go("/people?add=student", 3000);
+  const dlg = ow.page.getByRole("dialog");
+  await dlg.getByLabel("Ім'я").fill("Дарина"); await dlg.getByLabel("Прізвище").fill("Вільна");
+  await dlg.getByLabel("Електронна пошта").fill(E.free);
+  await dlg.getByRole("button", { name: "Додати", exact: true }).last().click(); await wait(3500);
+  await ow.see(/надіслали їй запрошення до школи/, "менеджер бачить, що запрошення пішло, а не «пошта зайнята»");
+  await ow.go("/people?tab=students", 3500);
+  await ow.notSee(/Дарина Вільна/, "людина у списку школи ДО її згоди");
+  await st.go("/student-dashboard", 4500);
+  await st.see(new RegExp(`Школа «${SCHOOL}» запрошує вас`), "запрошення школи в кабінеті учениці");
+  await st.page.getByRole("button", { name: "Приєднатись" }).click(); await wait(3000);
+  await st.notSee(/запрошує вас/, "запрошення після згоди");
+  await ow.go("/people?tab=students", 3500);
+  await ow.see(/Дарина Вільна/, "після згоди учениця є у списку школи");
+  await st.browser.close(); await ow.browser.close(); ok(step);
+}
+
+main().then(existingStudent).then(() => {
   if (problems.length) { console.log("\n❌ збої під час проходу:\n" + [...new Set(problems)].join("\n")); process.exit(1); }
   console.log("\n✅ прохід «перша школа» — без збоїв бази й помилок JS");
 }).catch((e) => { console.log("\n❌ " + (e?.message ?? e)); if (problems.length) console.log([...new Set(problems)].join("\n")); process.exit(1); });

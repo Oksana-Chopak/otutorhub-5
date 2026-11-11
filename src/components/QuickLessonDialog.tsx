@@ -289,6 +289,39 @@ export function QuickLessonDialog({
 
   const effStartsAt = whenLocal ?? startsAt ?? fallbackStart;
 
+  /* 11.11: попередження про накладку. Єдина форма уроку його не мала (воно жило лише в
+     старій інлайн-формі, яка уроків більше не створює), тож менеджер школи з кількома
+     репетиторами міг поставити одному два уроки на той самий час і дізнатись про це від
+     батьків. Не блокуємо — попереджаємо: накладка буває свідомою (заміна, пів години). */
+  const [overlap, setOverlap] = useState<{ subject: string; starts_at: string } | null>(null);
+  const effStartMs = effStartsAt.getTime();
+  useEffect(() => {
+    if (!open || !effTutorId || Number.isNaN(effStartMs)) { setOverlap(null); return; }
+    let alive = true;
+    const dur = (parseInt(duration) || 60) * 60_000;
+    const from = new Date(effStartMs - 6 * 3600_000).toISOString();
+    const to = new Date(effStartMs + dur).toISOString();
+    void supabase
+      .from("lessons")
+      .select("subject, starts_at, duration_minutes, status")
+      .eq("tutor_id", effTutorId)
+      .gte("starts_at", from)
+      .lt("starts_at", to)
+      .neq("status", "cancelled")
+      .limit(50)
+      .then(({ data, error }) => {
+        if (!alive) return;
+        if (error) { setOverlap(null); return; }   // не знаємо — не лякаємо
+        const hit = (data ?? []).find((l) => {
+          const ls = new Date(l.starts_at).getTime();
+          const le = ls + (Number(l.duration_minutes) || 60) * 60_000;
+          return ls < effStartMs + dur && le > effStartMs;
+        });
+        setOverlap(hit ? { subject: hit.subject ?? "", starts_at: hit.starts_at } : null);
+      });
+    return () => { alive = false; };
+  }, [open, effTutorId, effStartMs, duration]);
+
   const lock = useCoreLock();
   const { workspaceUnknown } = useWorkspaceSettings();
   // 01.11 (Рада 26.10, п. 4): замок — ДО форми, не після «Створити урок».
@@ -905,6 +938,16 @@ export function QuickLessonDialog({
               </>
             )}
           </div>
+
+          {overlap && !loading && (
+            <div role="status" style={{ flexShrink: 0, margin: "0 22px 10px", padding: "10px 12px", borderRadius: 12, fontSize: 14, lineHeight: 1.4, fontWeight: 600,
+              border: "1px solid rgba(245,158,11,.55)", background: "rgba(245,158,11,.10)", color: "var(--warning-text,#B45309)" }}>
+              ⚠ {t("quickLessonDialog.overlapWarning", {
+                subject: overlap.subject,
+                time: new Date(overlap.starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" }),
+              })}
+            </div>
+          )}
 
           {/* Footer */}
           {!loading && (students.length > 0 || groups.length > 0) && (
