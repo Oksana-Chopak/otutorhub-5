@@ -123,7 +123,10 @@ jobs:
       - name: Install
         run: |
           npm ci --no-audit --no-fund
-          npx playwright install --with-deps chromium
+          # 11.11: дзеркало apt у GitHub двічі поспіль не резолвилось, і робот не дійшов до
+          # проду взагалі (червоне не про нас). Системні бібліотеки на ubuntu-latest уже є —
+          # бракує лише шрифтів, тож при збої apt ставимо сам браузер і йдемо далі.
+          npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Що має бути на проді (штамп джерел і коміт main)
         id: expect
         run: |
