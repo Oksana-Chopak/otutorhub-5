@@ -103,6 +103,7 @@ export const uk = {
     leads_many: "Заявки · {{count}} нових",
     leads_other: "Заявки · {{count}} нових",
     leadDone: "Опрацьовано",
+    leadAdd: "Додати учнем",
     leadReopen: "Повернути",
   },
   schoolSetup: {

@@ -317,6 +317,16 @@ async function schoolPage() {
   await ow.see(/Наталя Гість/, "заявка у менеджера школи");
   await ow.see(/\+380671234567/, "контакт із заявки у менеджера школи");
   await ow.shot("owner-school-page-card");
+  // заявка → учень одним дотиком: форма вже заповнена, після додавання заявка закрита
+  await ow.page.getByRole("link", { name: "Додати учнем" }).click(); await wait(2500);
+  const add = ow.page.getByRole("dialog");
+  if ((await add.getByLabel("Ім'я").inputValue()) !== "Наталя" || (await add.getByLabel("Прізвище").inputValue()) !== "Гість")
+    throw new Error(`[${step}] імʼя із заявки не підставилось у форму учня`);
+  if ((await add.getByLabel(/Телефон/).first().inputValue()) !== "+380671234567") throw new Error(`[${step}] телефон із заявки не підставився`);
+  await add.getByRole("button", { name: "Додати", exact: true }).last().click(); await wait(3500);
+  if (q(`SELECT status FROM hub_leads WHERE name = 'Наталя Гість' ORDER BY created_at DESC LIMIT 1`) !== "done") throw new Error(`[${step}] заявка не позначилась опрацьованою після додавання учня`);
+  await ow.go("/people?tab=students", 3500);
+  await ow.see(/Наталя Гість/, "учень із заявки у списку школи");
   await guest.go("/s/nema-takoi-shkoly", 3500);
   await guest.see(/Сторінку не знайдено/, "чесне «не знайдено» для невідомої адреси");
   await guest.browser.close(); await ow.browser.close(); ok(step);

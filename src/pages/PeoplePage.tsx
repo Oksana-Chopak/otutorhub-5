@@ -2,7 +2,7 @@ import { PageFAB } from "@/components/PageFAB";
 import { ErrorState } from "@/components/ErrorState";
 import { getLocale } from "@/lib/locale";
 import { PeopleSkeleton } from "@/components/PageSkeletons";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -226,7 +226,10 @@ export default function PeoplePage() {
 
   // Open the add-person sheet with a preselected role (defaults to the active
   // tab when called from the FAB; honours a ?add=tutor|student deep-link).
+  // заявка зі сторінки школи, з якої відкрили форму «Додати учня» (id або null)
+  const pendingLeadRef = useRef<string | null>(null);
   const openAddSheet = (role: AppRole) => {
+    pendingLeadRef.current = null;
     setAddForm({ first_name: "", last_name: "", email: "", phone: "", role, subjects: [] });
     setAddOpen(true);
   };
@@ -538,6 +541,24 @@ export default function PeoplePage() {
     const add = searchParams.get("add");
     if (add === "tutor" || add === "student") {
       openAddSheet(add);
+      /* 11.11: «Додати учнем» із заявки зі сторінки школи — імʼя й контакт уже у формі,
+         менеджер лише перевіряє й тисне «Додати». Заявка позначиться опрацьованою сама,
+         щойно учня справді додано (не раніше: закрита форма заявку не закриває). */
+      const leadName = (searchParams.get("name") ?? "").trim().slice(0, 60);
+      const leadContact = (searchParams.get("contact") ?? "").trim().slice(0, 80);
+      if (add === "student" && (leadName || leadContact)) {
+        const sp = leadName.indexOf(" ");
+        setAddForm({
+          first_name: sp > 0 ? leadName.slice(0, sp) : leadName,
+          last_name: sp > 0 ? leadName.slice(sp + 1) : "",
+          email: leadContact.includes("@") ? leadContact : "",
+          phone: leadContact.includes("@") ? "" : leadContact,
+          role: "student",
+          subjects: [],
+        });
+        pendingLeadRef.current = searchParams.get("lead");
+        ["name", "contact", "lead"].forEach((k) => n.delete(k));
+      }
       if (add === "tutor") setActiveRoleTab("tutors");
       else setActiveRoleTab("students");
       n.delete("add");
@@ -840,6 +861,11 @@ export default function PeoplePage() {
       emailSent,
     });
     setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student", subjects: [] });
+    if (pendingLeadRef.current) {
+      const leadId = pendingLeadRef.current;
+      pendingLeadRef.current = null;
+      void (supabase.rpc as any)("resolve_hub_lead", { _id: leadId, _done: true }).then(() => {}, () => {});
+    }
     loadData();
   };
 

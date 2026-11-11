@@ -103,6 +103,7 @@ export const en: LocaleTranslations = {
     leads_one: "Requests · {{count}} new",
     leads_other: "Requests · {{count}} new",
     leadDone: "Done",
+    leadAdd: "Add as a student",
     leadReopen: "Reopen",
   },
   schoolSetup: {

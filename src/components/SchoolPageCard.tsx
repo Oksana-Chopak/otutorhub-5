@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -145,6 +146,14 @@ export function SchoolPageCard() {
                     {t(l.status === "done" ? "schoolPageCard.leadReopen" : "schoolPageCard.leadDone")}
                   </button>
                 </div>
+                {l.status === "new" && (
+                  <Link
+                    to={`/people?add=student&name=${encodeURIComponent(l.name)}&contact=${encodeURIComponent(l.contact)}&lead=${l.id}`}
+                    className="mt-2 flex h-11 items-center justify-center rounded-[12px] text-[15px] font-semibold"
+                    style={{ background: "var(--teal)", color: "#0f0f1a" }}>
+                    {t("schoolPageCard.leadAdd")}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

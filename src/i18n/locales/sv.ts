@@ -104,6 +104,7 @@ export const sv: LocaleTranslations = {
     leads_one: "Förfrågningar · {{count}} ny",
     leads_other: "Förfrågningar · {{count}} nya",
     leadDone: "Klar",
+    leadAdd: "Lägg till som elev",
     leadReopen: "Öppna igen",
   },
   schoolSetup: {
