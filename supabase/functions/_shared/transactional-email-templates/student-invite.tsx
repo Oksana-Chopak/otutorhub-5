@@ -140,6 +140,12 @@ function StudentInviteEmail({
             Якщо ви не очікували цього листа — просто проігноруйте його. Ми не
             створимо акаунт без вашої реєстрації.
           </Text>
+          <Text style={footer}>
+            {appName} — уроки, оплати й нагадування для репетиторів і онлайн-шкіл.{' '}
+            <a href="https://otutorhub.com/?from=invite" style={{ color: '#6b7280' }}>
+              Викладаєте самі чи керуєте школою? Спробуйте
+            </a>
+          </Text>
         </Container>
       </Body>
     </Html>

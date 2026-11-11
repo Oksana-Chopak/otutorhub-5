@@ -282,7 +282,7 @@ SELECT pg_temp.expect('tB', '(5) контакту батьків (картка �
 SELECT pg_temp.expect('tB', '(5) передоплат школи не бачить', $q$SELECT (SELECT count(*) FROM student_wallet_transactions)||'/'||(SELECT count(*) FROM student_wallet_balances)$q$, '0/0');
 SELECT pg_temp.denied('tB', '(5) баланс передоплати через RPC', $q$SELECT amount_balance::text FROM get_wallet_balance({tB},{sB2})$q$);
 SELECT pg_temp.expect('tB', '(5) пари бачить, ціни в них — ні', $q$SELECT count(*)||'/'||coalesce(sum(price_per_lesson)::text, 'ціни немає') FROM student_pairs_visible$q$, '2/ціни немає');
--- крок 2 (20261111180000): напряму з таблиці репетитор школи рядків школи не читає взагалі,
+-- крок 2 (20261111200000): напряму з таблиці репетитор школи рядків школи не читає взагалі,
 -- а урок своєму учневі школи ставить, як і раніше (політика йде через tutor_has_pair)
 SELECT pg_temp.expect('tB', '(5) напряму з таблиці пар школи репетитор не читає нічого', $q$SELECT count(*)::text FROM student_rates$q$, '0');
 SELECT pg_temp.expect('ind', '(5) самостійна свої пари з таблиці читає', $q$SELECT (count(*) > 0)::text FROM student_rates$q$, 'true');
@@ -376,5 +376,35 @@ SELECT pg_temp.expect('mgrB', '(10) школа Б цієї людини не б�
 SELECT pg_temp.expect('mgrA', '(10) повторне запрошення — «вже у школі»', $q$SELECT hub_invite_existing_student('free@fam.test')$q$, 'already_member');
 SELECT pg_temp.must('mgrA', '(10) і їй можна призначити репетитора школи', $q$INSERT INTO student_rates (tutor_id, student_id, subject, price_per_lesson, currency) VALUES ({tA}, {sFree}, 'Англійська', 600, 'UAH') RETURNING id$q$);
 DO $$ BEGIN RAISE NOTICE '✅ (10) учень з акаунтом потрапляє у школу лише за власною згодою; до згоди школа не бачить про нього нічого'; END $$;
+
+-- (11) публічна сторінка школи (20261111190000): вимкнена, доки менеджер не ввімкне; показує лише
+-- назву, опис і предмети; заявка від аноніма лягає ЛИШЕ цій школі; стелі живуть у базі
+SELECT pg_temp.expect('anon', '(11) сторінки школи немає, доки менеджер її не ввімкнув', $q$SELECT coalesce(hub_public_page('shkola-a')::text, 'немає')$q$, 'немає');
+SELECT pg_temp.denied('tA', '(11) репетитор школи вмикає сторінку школи', $q$SELECT set_hub_public_page(true, 'x')$q$);
+SELECT pg_temp.denied('ind', '(11) самостійна вмикає сторінку школи', $q$SELECT set_hub_public_page(true, 'x')$q$);
+SELECT pg_temp.must('mgrA', '(11) менеджер А вмикає сторінку своєї школи', $q$SELECT set_hub_public_page(true, 'Мови для дітей. Пишіть http://spam.io/x нам')$q$);
+SELECT pg_temp.must('pg', '(11) адреса сторінки для перевірок', $q$UPDATE hubs SET public_slug = 'shkola-a' WHERE id = {hubA}$q$);
+SELECT pg_temp.expect('anon', '(11) анонім бачить назву, опис без посилань і предмети — і більше нічого',
+  $q$SELECT (p->>'name')||' | '||(p->>'about')||' | '||(SELECT string_agg(k, ',' ORDER BY k) FROM jsonb_object_keys(p) k) FROM (SELECT hub_public_page('shkola-a') p) x$q$,
+  'Школа А | Мови для дітей. Пишіть нам | about,name,subjects');
+SELECT pg_temp.expect('anon', '(11) у предметах є предмет репетитора школи', $q$SELECT (hub_public_page('shkola-a')->'subjects' ? 'Англійська')::text$q$, 'true');
+SELECT pg_temp.expect('anon', '(11) заявка без контакту не приймається', $q$SELECT hub_public_lead('shkola-a', 'Мама Олі', 'напишіть мені', 'Англійська', NULL)$q$, 'invalid');
+SELECT pg_temp.expect('anon', '(11) заявка до вимкненої/невідомої школи', $q$SELECT hub_public_lead('nema-takoi', 'Мама Олі', '+380501112233', NULL, NULL)$q$, 'closed');
+SELECT pg_temp.expect('anon', '(11) анонім залишає заявку', $q$SELECT hub_public_lead('shkola-a', 'Мама Олі www.spam.io', '+380501112233', 'Англійська', 'Дитині 9 років')$q$, 'ok');
+SELECT pg_temp.denied('anon', '(11) анонім читає таблицю заявок', $q$SELECT count(*)::text FROM hub_leads$q$);
+SELECT pg_temp.denied('mgrA', '(11) і менеджер напряму теж — лише через функцію', $q$SELECT count(*)::text FROM hub_leads$q$);
+SELECT pg_temp.expect('mgrA', '(11) менеджер А бачить заявку: імʼя без посилання, контакт, предмет',
+  $q$SELECT (l->>'name')||' | '||(l->>'contact')||' | '||(l->>'subject') FROM (SELECT my_hub_public_page()->'leads'->0 l) x$q$, 'Мама Олі | +380501112233 | Англійська');
+SELECT pg_temp.expect('mgrA', '(11) менеджеру А прийшло сповіщення', $q$SELECT count(*)::text FROM notifications WHERE user_id = {mgrA} AND type LIKE 'hub_lead_%'$q$, '1');
+SELECT pg_temp.expect('mgrB', '(11) менеджер Б чужих заявок не бачить і сповіщення не отримав',
+  $q$SELECT jsonb_array_length(my_hub_public_page()->'leads')||'/'||(SELECT count(*) FROM notifications WHERE user_id = {mgrB} AND type LIKE 'hub_lead_%')$q$, '0/0');
+SELECT pg_temp.expect('mgrB', '(11) менеджер Б не закриває чужу заявку', $q$SELECT resolve_hub_lead((SELECT (my_hub_public_page()->'leads'->0->>'id')::uuid), true)::text$q$, 'false');
+SELECT pg_temp.expect('tA', '(11) репетитор школи заявок не бачить', $q$SELECT coalesce(my_hub_public_page()::text, 'немає')$q$, 'немає');
+-- стеля з однієї адреси: 5 на годину (одна вже була)
+SELECT pg_temp.run('anon', $q$SELECT hub_public_lead('shkola-a', 'Ще одна', '+380501112233', NULL, NULL)$q$) FROM generate_series(1, 4);
+SELECT pg_temp.expect('anon', '(11) шоста заявка за годину з однієї адреси — стеля', $q$SELECT hub_public_lead('shkola-a', 'Шоста', '+380501112233', NULL, NULL)$q$, 'limit');
+SELECT pg_temp.must('mgrA', '(11) менеджер вимикає сторінку', $q$SELECT set_hub_public_page(false, NULL)$q$);
+SELECT pg_temp.expect('anon', '(11) вимкнена сторінка зникає одразу', $q$SELECT coalesce(hub_public_page('shkola-a')::text, 'немає')$q$, 'немає');
+DO $$ BEGIN RAISE NOTICE '✅ (11) сторінка школи: лише з волі менеджера, без імен і цін, заявки — тільки своїй школі, стелі в базі'; END $$;
 
 ROLLBACK;

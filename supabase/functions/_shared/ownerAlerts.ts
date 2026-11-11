@@ -10,7 +10,8 @@
 
 // 01.11 (Рада 26.10, п. 2): «Я оплатив(ла)» — репетиторці/менеджеру в Telegram
 // тієї ж хвилини, з кнопками «✅ Підтвердити · ❌ Не бачу» (callback pc:ok|no:<id>).
-export const OWNER_ALERT_PREFIXES = ["tutor_request", "pro_request", "feedback_new", "payment_claim"] as const;
+// 11.11: `hub_lead_<id>` — заявка з публічної сторінки школи → менеджерам цієї школи.
+export const OWNER_ALERT_PREFIXES = ["tutor_request", "pro_request", "feedback_new", "payment_claim", "hub_lead"] as const;
 
 const CLAIM_RE = /^payment_claim_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 export function paymentClaimIdOf(tag: unknown): string | null {

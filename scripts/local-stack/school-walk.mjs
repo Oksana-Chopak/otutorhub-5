@@ -290,7 +290,39 @@ async function existingStudent() {
   await st.browser.close(); await ow.browser.close(); ok(step);
 }
 
-main().then(existingStudent).then(() => {
+async function schoolPage() {
+  // ── 8. сторінка школи для батьків: менеджер вмикає, стороння людина лишає заявку ──
+  step = "8 публічна сторінка школи і заявка з неї";
+  const { spawnSync } = await import("node:child_process");
+  const q = (sql) => spawnSync("psql", ["-X", "-q", "-At", "-d", process.env.STACK_DB || "stackdb", "-c", sql], { encoding: "utf8" }).stdout.trim();
+  const ow = await session();
+  await ow.loginAs(E.owner);
+  await ow.go("/profile", 4500);
+  await ow.see(/Сторінка школи/, "картка «Сторінка школи» в профілі менеджера");
+  await ow.page.getByRole("switch", { name: "Увімкнути сторінку школи" }).click(); await wait(2500);
+  await ow.see(/\/s\/lingua-/, "посилання на сторінку школи після ввімкнення");
+  const slug = q(`SELECT public_slug FROM hubs WHERE name = '${SCHOOL}'`);
+  if (!slug) throw new Error(`[${step}] у школи немає адреси сторінки`);
+  const guest = await session();           // без входу взагалі
+  await guest.go(`/s/${slug}`, 4500);
+  await guest.see(new RegExp(SCHOOL), "назва школи на публічній сторінці");
+  await guest.see(/Іспанська/, "предмет школи на публічній сторінці");
+  await guest.notSee(/Ірина|Коваль|500|300/, "імена репетиторів чи суми на публічній сторінці");
+  await guest.shot("school-public-page");
+  await guest.page.getByLabel("Ваше імʼя").fill("Наталя Гість");
+  await guest.page.getByLabel("Телефон або пошта").fill("+380671234567");
+  await guest.page.getByRole("button", { name: "Надіслати заявку" }).click(); await wait(2500);
+  await guest.see(/Заявку надіслано/, "підтвердження заявки сторонній людині");
+  await ow.go("/profile", 4500);
+  await ow.see(/Наталя Гість/, "заявка у менеджера школи");
+  await ow.see(/\+380671234567/, "контакт із заявки у менеджера школи");
+  await ow.shot("owner-school-page-card");
+  await guest.go("/s/nema-takoi-shkoly", 3500);
+  await guest.see(/Сторінку не знайдено/, "чесне «не знайдено» для невідомої адреси");
+  await guest.browser.close(); await ow.browser.close(); ok(step);
+}
+
+main().then(existingStudent).then(schoolPage).then(() => {
   if (problems.length) { console.log("\n❌ збої під час проходу:\n" + [...new Set(problems)].join("\n")); process.exit(1); }
   console.log("\n✅ прохід «перша школа» — без збоїв бази й помилок JS");
 }).catch((e) => { console.log("\n❌ " + (e?.message ?? e)); if (problems.length) console.log([...new Set(problems)].join("\n")); process.exit(1); });

@@ -51,6 +51,7 @@ const MyReferralsPage = lazyPage(() => import("./pages/MyReferralsPage"));
 const AchievementsPage = lazyPage(() => import("./pages/AchievementsPage"));
 const JoinPage = lazyPage(() => import("./pages/JoinPage"));
 const PayLinkPage = lazyPage(() => import("./pages/PayLinkPage"));
+const SchoolPublicPage = lazyPage(() => import("./pages/SchoolPublicPage"));
 const ProfilePage = lazyPage(() => import("./pages/ProfilePage"));
 const SubscriptionPage = lazyPage(() => import("./pages/SubscriptionPage"));
 const SubscriptionRequestsPage = lazyPage(() => import("./pages/SubscriptionRequestsPage"));
@@ -158,6 +159,8 @@ function AppRoutes() {
           {/* 13.10: публічна сторінка оплати за магічним посиланням — без входу і без лейауту */}
           <Route path="/pay/:token" element={<PayLinkPage />} />
           <Route path="/p/:token" element={<PayLinkPage />} />
+          {/* 11.11: публічна сторінка школи «Записатись» — без входу; вмикає її менеджер школи */}
+          <Route path="/s/:slug" element={<SchoolPublicPage />} />
           <Route path="/" element={<Index />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/for-students" element={<ForStudentsPage />} />

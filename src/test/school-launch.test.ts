@@ -209,3 +209,35 @@ describe("діри після першого проходу (11.11, другий
     expect(dash.match(/<SchoolInviteCard \/>/g)?.length, "видно і на онбордингу, і на дашборді").toBe(2);
   });
 });
+
+describe("віральність у шляху школи (11.11, третій пакет)", () => {
+  it("сторінка оплати дитини і листи ведуть на лендінг зі слідом, звідки прийшли", () => {
+    expect(read("src/pages/PayLinkPage.tsx")).toMatch(/href="\/\?from=pay"/);
+    expect(read("supabase/functions/_shared/transactional-email-templates/student-invite.tsx")).toMatch(/\?from=invite/);
+    expect(read("supabase/functions/_shared/transactional-email-templates/payment-reminder.tsx")).toMatch(/\?from=reminder/);
+    expect(read("src/components/landing/LandingHero.tsx"), "закритий список джерел, не вільний текст").toMatch(/\["pay", "invite", "reminder", "school"\]\.includes\(from\)/);
+  });
+
+  it("публічна сторінка школи: лише з волі менеджера, без імен і цін, стелі в базі", () => {
+    const sql = read("supabase/migrations/20261111190000_school_public_page.sql");
+    expect(sql).toMatch(/public_enabled boolean NOT NULL DEFAULT false/);
+    const pub = sql.slice(sql.indexOf("FUNCTION public.hub_public_page("), sql.indexOf("FUNCTION public.hub_public_lead("));
+    expect(pub).toMatch(/AND h\.public_enabled/);
+    expect(pub, "жодних імен, цін чи людей").not.toMatch(/first_name|last_name|price|rate_per_lesson|profiles/);
+    const lead = sql.slice(sql.indexOf("FUNCTION public.hub_public_lead("));
+    expect(lead, "два виміри стелі: адреса і школа").toMatch(/rate_limit_check\('hub_lead_ip'[\s\S]*rate_limit_check\('hub_lead_hub'/);
+    expect(lead, "анонім не пише в профілі й не створює акаунтів").not.toMatch(/INSERT INTO public\.(profiles|profile_contacts|user_roles|hub_members)/);
+    expect(sql, "таблиця заявок закрита — лише функції").toMatch(/REVOKE ALL ON public\.hub_leads FROM PUBLIC, anon, authenticated/);
+    expect(read("src/App.tsx")).toMatch(/path="\/s\/:slug" element=\{<SchoolPublicPage \/>\}/);
+    expect(read("supabase/functions/_shared/ownerAlerts.ts")).toMatch(/"hub_lead"/);
+  });
+
+  it("платформні екрани в профілі менеджера школи не показуються", () => {
+    const p = read("src/pages/ProfilePage.tsx");
+    for (const to of ["/subscription-requests", "/feedback-inbox", "/marketing", "/paywall-metrics"]) {
+      const line = p.split("\n").find((l) => l.includes(`to: "${to}"`))!;
+      const i = p.indexOf(line);
+      expect(p.slice(Math.max(0, i - 160), i + line.length), to).toMatch(/isSuperadmin/);
+    }
+  });
+});

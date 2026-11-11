@@ -121,7 +121,12 @@ function PaymentReminderEmail({
               <a href={registerUrl} style={{ color: '#0F6E56', fontWeight: 600 }}>створити акаунт →</a>
             </Text>
           ) : null}
-          <Text style={footer}>{appName} — облік уроків і оплат для репетиторів.</Text>
+          <Text style={footer}>
+            {appName} — облік уроків і оплат для репетиторів і онлайн-шкіл.{' '}
+            <a href="https://otutorhub.com/?from=reminder" style={{ color: '#6b7280' }}>
+              Викладаєте самі чи керуєте школою? Спробуйте
+            </a>
+          </Text>
         </Container>
       </Body>
     </Html>

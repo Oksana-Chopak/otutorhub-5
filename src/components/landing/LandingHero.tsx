@@ -114,7 +114,14 @@ export function LandingHero({ signupHref }: { signupHref: string }) {
   };
 
   // Воронка: побачив → почав вставляти → розпізнано → побачив цифри.
-  useEffect(() => { landingEvent("landing_view"); metaTrack("PageView"); }, []);
+  // `?from=` — звідки людина прийшла: зі сторінки оплати дитини, з листа-запрошення чи
+  // з нагадування (11.11: рядок «працює на oTutorHub»). Закритий список, не вільний текст.
+  useEffect(() => {
+    let from: string | null = null;
+    try { from = new URLSearchParams(window.location.search).get("from"); } catch { /* без адреси */ }
+    landingEvent("landing_view", from && ["pay", "invite", "reminder", "school"].includes(from) ? { from } : {});
+    metaTrack("PageView");
+  }, []);
   useEffect(() => { if (!isExample) landingEvent("landing_paste_started"); }, [isExample]);
   useEffect(() => {
     if (isExample || !has) return;

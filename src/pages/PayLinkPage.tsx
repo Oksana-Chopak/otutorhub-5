@@ -267,7 +267,15 @@ export default function PayLinkPage() {
           </Link>
         </div>
       )}
+      {/* 11.11: кожна родина бачить цю сторінку — це найчастіший дотик стороннього з
+          продуктом. Рядок веде на лендінг (не в застосунок) і лишає слід `from=pay`. */}
       <p className="mt-6 text-center text-[13px] text-muted-foreground">{t("payLink.footer")}</p>
+      <p className="mt-1 text-center">
+        <a href="/?from=pay" className="inline-flex min-h-[44px] items-center text-[14px] font-semibold underline"
+          style={{ color: "var(--teal-text,#1a7a6c)" }}>
+          {t("payLink.footerCta")}
+        </a>
+      </p>
     </>,
   );
 }

@@ -36,6 +36,7 @@ import { AvatarUploader } from "@/components/AvatarUploader";
 import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
 import { pairsRel } from "@/lib/pairsRel";
 import { SchoolRequestCard } from "@/components/SchoolRequestCard";
+import { SchoolPageCard } from "@/components/SchoolPageCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
@@ -262,7 +263,8 @@ export default function ProfilePage() {
           items: [
             ...(isSuperadmin ? [{ to: "/feedback-inbox", label: t("profile.itemFeedback") ?? "Звернення", icon: Inbox }] : []),
             { to: "/referrals", label: t("profile.itemTutorRequests"), icon: HandHeart },
-            { to: "/subscription-requests", label: t("profile.itemSubRequests"), icon: Crown },
+            // платформний екран (маршрут лише для суперадміна) — менеджеру школи не показуємо
+            ...(isSuperadmin ? [{ to: "/subscription-requests", label: t("profile.itemSubRequests"), icon: Crown }] : []),
           ],
         },
         {
@@ -595,6 +597,11 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* 11.11: сторінка школи для батьків («Записатись») + заявки з неї */}
+            <div className="lg:col-span-2 [&>section]:mb-0 empty:hidden">
+              <SchoolPageCard />
             </div>
 
             {/* Integrations: calendar + push + вечірній підсумок */}
