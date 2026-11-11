@@ -95,6 +95,7 @@ import {
   UserCircle,
   RefreshCw,
 } from "lucide-react";
+import { pairsRel } from "@/lib/pairsRel";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "paid" | "unpaid";
@@ -220,9 +221,12 @@ export default function DashboardPage() {
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
   // 21.09: «ставку не задано» на картці — дія, а не напис: форма ставки репетитора
   // з цим репетитором і предметом уроку; після збереження список перечитується.
-  const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null } | null>(null);
-  const setRateOf = (lesson: { tutor_id: string; subject?: string | null; source?: string | null }) =>
-    isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.subject ?? null }) : undefined;
+  const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null; group?: boolean } | null>(null);
+  const setRateOf = (lesson: { tutor_id: string; subject?: string | null; source?: string | null; group_id?: string | null }) =>
+    isManager && lesson.source !== "independent"
+      // груповий урок веде в поле «за групове заняття», а не в ставку за предмет
+      ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.group_id ? null : lesson.subject ?? null, group: !!lesson.group_id })
+      : undefined;
   /* Аудит шляхів 24.09 (§4): у самостійного репетитора урок без ЦІНИ УЧНЯ не був
      позначений ніяк. Ціна живе в його формі учня, тож дія веде туди —
      `/my-students?open=<учень>&price=1` відкриває саму форму, а не аркуш. */
@@ -391,12 +395,12 @@ export default function DashboardPage() {
           setMyStudentCount(ids.size);
         });
     } else if (isHubTutor) {
-      supabase
-        .from("student_rates")
+      void pairsRel().then((rel) => supabase
+        .from(rel)
         .select("student_id", { count: "exact", head: true })
         .eq("tutor_id", user.id)
         .neq("source", "independent")
-        .then(({ count }) => setHubStudentCount(count ?? 0));
+        .then(({ count }) => setHubStudentCount(count ?? 0)));
     }
   }, [user?.id, wsLoading, isIndependentTutor, isHubTutor]);
 
@@ -406,7 +410,7 @@ export default function DashboardPage() {
     // Load the tutor's student pairs (all sources) + unpaid billable lessons.
     const [{ data: rates }, { data: details }] = await Promise.all([
       supabase
-        .from("student_rates")
+        .from(await pairsRel())
         .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
         .eq("tutor_id", user.id),
       // Read via lessons_visible (security_invoker view): for a HUB tutor it returns
@@ -531,13 +535,13 @@ export default function DashboardPage() {
         ? supabase.from("availability_requests").select("id").eq("status", "open")
         : Promise.resolve({ data: [] as any[] }),
       isManager
-        ? supabase.from("student_rates").select("student_id")
+        ? supabase.from(await pairsRel()).select("student_id")
         : Promise.resolve({ data: [] as any[] }),
       supabase
         .from("tutor_student_defaults")
         .select("tutor_id, student_id, default_meeting_url"),
       supabase
-        .from("student_rates")
+        .from(await pairsRel())
         .select("tutor_id, student_id, currency"),
       (() => {
         // Money-only window: from the 1st of the month 5 months ago (6 calendar
@@ -640,7 +644,7 @@ export default function DashboardPage() {
           ? supabase.from("feedback_submissions").select("id", { count: "exact", head: true }).eq("status", "new")
           : noop,
         isStudent && !isManager && !isTutor
-          ? supabase.from("student_rates").select("tutor_id").eq("student_id", user.id)
+          ? supabase.from(await pairsRel()).select("tutor_id").eq("student_id", user.id)
           : noop,
         // Group lessons have no shared lesson_details row; their pending state lives on
         // lesson_participants — flag loaded group lessons with ≥1 unpaid participant.
@@ -651,7 +655,7 @@ export default function DashboardPage() {
           ? supabase.from("tutor_details").select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor").not("payout_frequency", "is", null)
           : noop,
         isIndependentTutor
-          ? supabase.from("student_rates").select("student_id", { count: "exact", head: true }).eq("tutor_id", user.id).eq("source", "independent")
+          ? supabase.from(await pairsRel()).select("student_id", { count: "exact", head: true }).eq("tutor_id", user.id).eq("source", "independent")
           : noop,
         // Hub tutor: own payout schedule + own rate (tutor_details is keyed by user_id
         // and holds ONLY the tutor's own data — no student_price / hub margin here).
@@ -659,7 +663,7 @@ export default function DashboardPage() {
           ? supabase.from("tutor_details").select("rate_per_lesson, payout_frequency, payout_weekday, payout_monthday, payout_anchor").eq("user_id", user.id).maybeSingle()
           : noop,
         isHubTutor
-          ? supabase.from("student_rates").select("student_id", { count: "exact", head: true }).eq("tutor_id", user.id).neq("source", "independent")
+          ? supabase.from(await pairsRel()).select("student_id", { count: "exact", head: true }).eq("tutor_id", user.id).neq("source", "independent")
           : noop,
       ]);
 
@@ -1102,14 +1106,19 @@ export default function DashboardPage() {
     return 0;
   }, [profitPeriod]);
 
+  /* Прибуток на дашборді рахується з ІНДИВІДУАЛЬНИХ уроків: дохід групових живе
+     по учасниках (lesson_participants) і сюди не завантажується. Тому й виплату за
+     групове (11.11) у прибуток тут не беремо — інакше витрата була б без свого доходу.
+     Повна картина з групами — у «Фінансах»; «до виплати» нижче групові враховує. */
+  const profitLessons = useMemo(() => moneyLessons.filter((l) => !!l.student_id), [moneyLessons]);
   const billableLessons = useMemo(
     () =>
       // Shared predicate (src/lib/financials) + this page's period window — same
       // billable definition as FinancesPage, so the two can't drift apart.
-      moneyLessons.filter(
+      profitLessons.filter(
         (l) => new Date(l.starts_at).getTime() >= periodStart && isBillableLesson(l, nowMs)
       ),
-    [moneyLessons, periodStart, nowMs]
+    [profitLessons, periodStart, nowMs]
   );
 
   const totalIncome = paidIncome(billableLessons);
@@ -1137,13 +1146,13 @@ export default function DashboardPage() {
     const now = new Date();
     const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
     const prevEnd   = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const prev = moneyLessons.filter((l) => {
+    const prev = profitLessons.filter((l) => {
       if (l.status === "cancelled" || l.status === "pending") return false;
       const ts = new Date(l.starts_at).getTime();
       return ts >= prevStart && ts < prevEnd;
     });
     return paidProfit(prev);
-  }, [moneyLessons]);
+  }, [profitLessons]);
 
   const profitGrowthPct = useMemo(() => {
     if (profitPeriod !== "month") return null;
@@ -1161,7 +1170,7 @@ export default function DashboardPage() {
     const vals = Array.from({ length: 6 }, (_, m) => {
       const ms = new Date(now.getFullYear(), now.getMonth() - (5 - m), 1).getTime();
       const me = new Date(now.getFullYear(), now.getMonth() - (5 - m) + 1, 1).getTime();
-      const inMonth = moneyLessons.filter((l) => {
+      const inMonth = profitLessons.filter((l) => {
         if (l.status === "cancelled" || l.status === "pending") return false;
         const ts = new Date(l.starts_at).getTime();
         return ts >= ms && ts < me;
@@ -1170,7 +1179,7 @@ export default function DashboardPage() {
     });
     const max = Math.max(...vals, 1);
     return vals.map((v) => Math.round((Math.max(v, 0) / max) * 100));
-  }, [moneyLessons]);
+  }, [profitLessons]);
 
   const pendingPayments = useMemo(
     () =>
@@ -1182,7 +1191,7 @@ export default function DashboardPage() {
         if (!l.student_id) {
           // Групові: будь-який неоплачений учасник; скасовані/запити — повз.
           if (l.status === "cancelled" || l.status === "pending") return false;
-          return groupUnpaidLessonIds.has(l.id);
+          return groupUnpaidLessonIds.has(l.id) || isPayoutDueLesson(l, nowMs);
         }
         // Перенесений борг — не урок: у картках його немає, у боржниках (нижче) є.
         if (l.carried_over) return false;
@@ -3152,6 +3161,7 @@ export default function DashboardPage() {
         open={!!rateFor}
         tutorId={rateFor?.tutorId ?? null}
         presetSubject={rateFor?.subject ?? null}
+        focusGroup={rateFor?.group}
         onOpenChange={(o) => { if (!o) setRateFor(null); }}
         onSaved={() => loadData()}
       />

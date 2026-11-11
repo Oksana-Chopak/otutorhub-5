@@ -611,7 +611,7 @@ async function handleDigestCallback(base: string, db: any, cq: any,
     const { data: rows } = await db
       .from('lessons')
       .select('id, status, starts_at, lesson_details(tutor_payout, tutor_payout_status)')
-      .eq('tutor_id', targetTutorId).neq('source', 'independent').is('group_id', null)
+      .eq('tutor_id', targetTutorId).neq('source', 'independent')   // 11.11: і групові — виплата за них є
       .in('status', ['completed', 'scheduled']);
     const nowMs = Date.now();
     let sum = 0;

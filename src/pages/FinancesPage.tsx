@@ -73,10 +73,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useGroupNames } from "@/hooks/useGroupNames";
 import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, isPrepaidAheadLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice} from "@/lib/currency";
 import { useCoreLock } from "@/hooks/useCoreLock";
 import { RemindersRecoveredCard } from "@/components/RemindersRecoveredCard";
+import { pairsRel } from "@/lib/pairsRel";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -109,7 +111,12 @@ interface LessonRow {
   // their id is synthetic (`${lessonId}::${participantId}`) so it never collides and is
   // never used as a real lesson id. No tutor_payout is tracked for groups (it would leak
   // the hub margin to students), so payout = 0 and payout_status = "paid".
-  kind?: "individual" | "group";
+  kind?: "individual" | "group" | "groupPayout";
+  /** kind="groupPayout" (11.11): ВИПЛАТА репетитору за групове заняття — один рядок на
+   * урок (id = справжній id уроку), без учня й без ціни. Живе на `lesson_details`
+   * уроку, тож учням не видно. У доходи, борги учнів і аналітику не входить —
+   * лише у виплати (до виплати / виплачено / прибуток). */
+  group_id?: string | null;
   /** Mirrors kind==="group" for the shared billable predicate: the synthetic
    * payout_status="paid" must not make a FUTURE group lesson count as billable. */
   is_group?: boolean;
@@ -120,6 +127,22 @@ interface Profile {
   id: string;
   first_name: string;
   last_name: string;
+}
+
+/** Виплата за групові уроки — з маскованої вʼю `lessons_visible` (менеджер школи й
+ *  сам репетитор бачать її, учень — ні). Збій читання не ламає сторінку: групові
+ *  доходи покажуться, а виплата лишиться відсутньою (не нулем «усе виплачено»). */
+async function groupPayoutsOf(ids: string[]): Promise<Map<string, { tutor_payout: number | null; tutor_payout_status: string | null; tutor_paid_at: string | null }>> {
+  const out = new Map<string, { tutor_payout: number | null; tutor_payout_status: string | null; tutor_paid_at: string | null }>();
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data, error } = await supabase
+      .from("lessons_visible")
+      .select("id, tutor_payout, tutor_payout_status, tutor_paid_at")
+      .in("id", ids.slice(i, i + 200));
+    if (error) return out;
+    (data ?? []).forEach((r: any) => out.set(r.id, { tutor_payout: r.tutor_payout, tutor_payout_status: r.tutor_payout_status, tutor_paid_at: r.tutor_paid_at }));
+  }
+  return out;
 }
 
 interface WalletTransaction {
@@ -433,7 +456,7 @@ export default function FinancesPage() {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
           .from("lessons")
-          .select("id, subject, starts_at, status, tutor_id")
+          .select("id, subject, starts_at, status, tutor_id, group_id")
           .not("group_id", "is", null)
           .gte("starts_at", oneYearAgo)
           .limit(500);
@@ -449,7 +472,8 @@ export default function FinancesPage() {
           arr.push(p);
           byLesson.set(p.lesson_id, arr);
         });
-        return { data: (gl as any[]).map((l) => ({ ...l, lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
+        const pay = await groupPayoutsOf((gl as any[]).map((l) => l.id));
+        return { data: (gl as any[]).map((l) => ({ ...l, ...(pay.get(l.id) ?? {}), lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
       })(),
       supabase
         .from("student_wallet_transactions" as any)
@@ -460,7 +484,7 @@ export default function FinancesPage() {
         .from("student_wallet_balances" as any)
         .select("tutor_id, student_id, lessons_balance, amount_balance"),
       supabase
-        .from("student_rates")
+        .from(await pairsRel())
         .select("tutor_id, student_id, subject, price_per_lesson, currency, archived_at")
         .is("archived_at", null),
       /* БОРГ — величина БЕЗ ПЕРІОДУ (інваріант 04.09, рішення власниці). Основні
@@ -498,7 +522,7 @@ export default function FinancesPage() {
         const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
           .from("lessons")
-          .select("id, subject, starts_at, status, tutor_id")
+          .select("id, subject, starts_at, status, tutor_id, group_id")
           .not("group_id", "is", null)
           .lt("starts_at", edge)
           .eq("status", "completed")
@@ -516,7 +540,8 @@ export default function FinancesPage() {
           arr.push(pp);
           byLesson.set(pp.lesson_id, arr);
         });
-        return { data: (gl as any[]).map((l) => ({ ...l, lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
+        const pay = await groupPayoutsOf((gl as any[]).map((l) => l.id));
+        return { data: (gl as any[]).map((l) => ({ ...l, ...(pay.get(l.id) ?? {}), lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
       })(),
     ]);
     // Аудит 01.09: перевірявся лише перший запит, і навіть він лише тостом —
@@ -641,7 +666,27 @@ export default function FinancesPage() {
         participant_id: p.id as string,
       })),
     );
-    setLessons([...mapped, ...groupRows]);
+    // Виплата за групове заняття — окремий рядок на урок (лише коли сума задана).
+    // (у самостійного виплати немає: сума 0 — рядок не народжується)
+    const groupPayoutRows: LessonRow[] = groupRaw
+      .filter((l: any) => Number(l.tutor_payout ?? 0) > 0)
+      .map((l: any) => ({
+        id: l.id,
+        subject: l.subject,
+        starts_at: l.starts_at,
+        status: l.status as LessonStatus,
+        student_id: "",
+        tutor_id: l.tutor_id,
+        student_price: 0,
+        tutor_payout: Number(l.tutor_payout),
+        student_payment_status: "paid" as PaymentStatus,
+        tutor_payout_status: (l.tutor_payout_status ?? "unpaid") as PaymentStatus,
+        student_paid_at: null,
+        tutor_paid_at: l.tutor_paid_at ?? null,
+        kind: "groupPayout" as const,
+        group_id: l.group_id ?? null,
+      }));
+    setLessons([...mapped, ...groupRows, ...groupPayoutRows]);
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
@@ -696,7 +741,7 @@ export default function FinancesPage() {
   const studentOptions = useMemo(() => {
     const seen = new Set<string>();
     return lessons
-      .filter((l) => !seen.has(l.student_id) && seen.add(l.student_id))
+      .filter((l) => l.kind !== "groupPayout" && !seen.has(l.student_id) && seen.add(l.student_id))
       .map((l) => ({ id: l.student_id, name: nameOf(l.student_id) }))
       .sort((a, b) => a.name.localeCompare(b.name));
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -711,10 +756,17 @@ export default function FinancesPage() {
   }, [lessons, profiles]);
 
   // Tutor scope applies everywhere (analytics + tab content).
+  // Рядки виплат за групові (kind="groupPayout") сюди НЕ входять: усе, що рахує
+  // доходи, борги учнів і аналітику, виходить із цього списку й лишається як було.
   const tutorScoped = useMemo(
-    () => lessons.filter((l) => tutorFilter === "all" || l.tutor_id === tutorFilter),
+    () => lessons.filter((l) => l.kind !== "groupPayout" && (tutorFilter === "all" || l.tutor_id === tutorFilter)),
     [lessons, tutorFilter],
   );
+  const groupPayoutScoped = useMemo(
+    () => lessons.filter((l) => l.kind === "groupPayout" && (tutorFilter === "all" || l.tutor_id === tutorFilter)),
+    [lessons, tutorFilter],
+  );
+  const groupNames = useGroupNames(groupPayoutScoped);
 
   // Billable = lesson actually counts toward money flow.
   // Includes: completed lessons, past lessons (date already passed), or any lesson
@@ -741,6 +793,12 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [billable, periodStart],
   );
+  // Виплати за групові, що вже «в грошах» (проведені чи минулі) за обраний період.
+  const periodGroupPayouts = useMemo(() => {
+    const nowMs = Date.now();
+    return groupPayoutScoped.filter((l) => isBillableLesson(l, nowMs) && inPeriod(l.starts_at));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupPayoutScoped, periodStart]);
 
   // PREPAYMENT model: debts are computed over ALL period rows (incl. FUTURE
   // unpaid lessons — hub students pay before lessons), not only billable ones.
@@ -773,8 +831,8 @@ export default function FinancesPage() {
   // the sums here always equal what the pay actions actually flip.
   const periodPayoutDue = useMemo(() => {
     const nowMs = Date.now();
-    return tutorScoped.filter((l) => isPayoutDueLesson(l, nowMs));
-  }, [tutorScoped]);
+    return [...tutorScoped, ...groupPayoutScoped].filter((l) => isPayoutDueLesson(l, nowMs));
+  }, [tutorScoped, groupPayoutScoped]);
 
   /** H2: нотатка транзакції — маркер → переклад; старі укр-нотатки (до 03.09) показуємо як є. */
   const noteLabel = (note: string): string => {
@@ -889,9 +947,14 @@ export default function FinancesPage() {
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
-    return [...lessonRows, ...prepayRows].sort(activeSort);
+    // Уже виплачене за групові лишається в стрічці — інакше позначку «виплачено»,
+    // поставлену помилково, не було б де зняти.
+    const paidGroupPayoutRows: Row[] = periodGroupPayouts
+      .filter((l) => l.tutor_payout_status === "paid")
+      .map((l) => ({ type: "lesson", l }));
+    return [...lessonRows, ...prepayRows, ...paidGroupPayoutRows].sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, periodTopups, canManagePrepay, sort]);
+  }, [periodBillable, periodTopups, periodGroupPayouts, canManagePrepay, sort]);
 
   const expensesRows: Row[] = useMemo(() => {
     if (isIndependentTutor) return [];
@@ -924,7 +987,7 @@ export default function FinancesPage() {
   // Sticky-summary totals — derived from `periodBillable` via the shared MON-2
   // money math (src/lib/financials, locked by financials.test.ts)…
   const arrIncome = paidIncome(periodBillable);
-  const arrExpense = paidExpense(periodBillable);
+  const arrExpense = paidExpense(periodBillable) + paidExpense(periodGroupPayouts);
 
   // …АЛЕ масиви обрізані на 500 рядках (M2). Правильне число рахує база:
   // finances_period_totals читає lessons_visible як SECURITY INVOKER, тож
@@ -1083,8 +1146,17 @@ export default function FinancesPage() {
       const expense = l.tutor_payout_status === "paid" ? Number(l.tutor_payout) : 0;
       buckets[idx].profit += income - expense;
     });
+    // виплачене за групові — теж витрата тижня
+    groupPayoutScoped.forEach((l) => {
+      if (l.tutor_payout_status !== "paid") return;
+      const ts = new Date(l.starts_at).getTime();
+      if (ts < firstStart) return;
+      const idx = Math.floor((ts - firstStart) / (7 * 24 * 3600 * 1000));
+      if (idx < 0 || idx >= buckets.length) return;
+      buckets[idx].profit -= Number(l.tutor_payout);
+    });
     return buckets.map((b) => ({ week: b.key, profit: b.profit }));
-  }, [billable]);
+  }, [billable, groupPayoutScoped]);
 
   const incomeByStudent = useMemo(() => {
     const map = new Map<string, number>();
@@ -1635,6 +1707,7 @@ export default function FinancesPage() {
             }
             const l = row.l;
             const isGroup = l.kind === "group";
+            const isGroupPayout = l.kind === "groupPayout";
             const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
             const studentUnpaid = l.student_payment_status === "unpaid";
             const tutorUnpaid = !isIndependentTutor && !isGroup && l.tutor_payout_status === "unpaid";
@@ -1665,12 +1738,12 @@ export default function FinancesPage() {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                       <span className="truncate">{l.subject}</span>
-                      {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                      {(isGroup || isGroupPayout) && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{isGroupPayout && l.group_id && groupNames.get(l.group_id) ? groupNames.get(l.group_id) : t("finances.groupTag")}</span>}
                       {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                     </p>
                     <p className="text-[14px]" style={{ color: "var(--sub,#62677E)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
-                  {!isIndependentTutor && !isGroup && (
+                  {!isIndependentTutor && !isGroup && !isGroupPayout && (
                     <div
                       className={`text-right shrink-0 font-semibold ${
                         lessonProfit >= 0 ? "text-foreground" : "text-destructive"
@@ -1683,8 +1756,9 @@ export default function FinancesPage() {
                 </div>
 
                 <div className="mt-2 grid grid-cols-1 gap-2 text-[14px]">
-                  <div className={cn(
+                  <div hidden={isGroupPayout} className={cn(
                     "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
+                    isGroupPayout && "hidden",
                     studentUnpaid ? "bg-warning/10" : "bg-success/5",
                   )}>
                     <div className="min-w-0 flex-1">
@@ -1866,6 +1940,7 @@ export default function FinancesPage() {
                 }
                 const l = row.l;
                 const isGroup = l.kind === "group";
+                const isGroupPayout = l.kind === "groupPayout";
                 const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
                 const isSelected = selected.has(l.id);
                 const studentUnpaid = l.student_payment_status === "unpaid";
@@ -1891,12 +1966,12 @@ export default function FinancesPage() {
                     <td className="px-3 py-3 text-foreground">
                       <span className="inline-flex items-center gap-1.5">
                         {l.subject}
-                        {isGroup && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                        {(isGroup || isGroupPayout) && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--teal-text,#1a7a6c)", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                         {(l as any).is_cancellation_fee && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--warning-text,#B45309)", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{(l as any).carried_over ? t("finances.carriedOverTag") : t("finances.cancellationFeeTag")}</span>}
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
+                      <div className="font-medium text-foreground">{isGroupPayout ? ((l.group_id && groupNames.get(l.group_id)) || t("finances.groupTag")) : nameOf(l.student_id)}</div>
                       {l.student_paid_at && (
                         <div className="text-[14px] text-muted-foreground">
                           {t("finances.paidDate")} {formatDate(l.student_paid_at)}
@@ -1904,11 +1979,12 @@ export default function FinancesPage() {
                       )}
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <div className={cn(
+                      {isGroupPayout && <span className="text-muted-foreground">—</span>}
+                      <div hidden={isGroupPayout} className={cn(
                         "font-semibold",
                         studentUnpaid ? "text-warning" : "text-success",
                       )}>+{formatPrice(Number(l.student_price), rowCurrency(l))}</div>
-                      <button onClick={() => togglePayment(l, "student_payment_status")} className="mt-1 inline-block">
+                      <button onClick={() => togglePayment(l, "student_payment_status")} className={cn("mt-1 inline-block", isGroupPayout && "hidden")}>
                         <Badge
                           className={
                             l.student_payment_status === "paid"
@@ -1957,7 +2033,7 @@ export default function FinancesPage() {
                     )}
                     {!isIndependentTutor && (
                       <td className={`px-3 py-3 text-right font-semibold ${!isGroup && lessonProfit < 0 ? "text-destructive" : "text-foreground"}`}>
-                        {isGroup ? (<span className="text-muted-foreground">—</span>) : rowCurrency(l) === "UAH" ? (formatPrice(lessonProfit, "UAH")) : (<span title={t("finances.mixedCurrencyProfit")}>—</span>)}
+                        {isGroup || isGroupPayout ? (<span className="text-muted-foreground">—</span>) : rowCurrency(l) === "UAH" ? (formatPrice(lessonProfit, "UAH")) : (<span title={t("finances.mixedCurrencyProfit")}>—</span>)}
                       </td>
                     )}
                   </tr>
@@ -2122,7 +2198,7 @@ export default function FinancesPage() {
      правильною валютою. Коли валют кілька — розклад «сума + сума» тим самим
      каноном, що вже діє для доходу самостійного: складати крони з гривнями не
      можна. Групові рядки виплат не несуть за побудовою. */
-  const payoutRowsForCur = periodBillable.filter((l) => l.kind !== "group");
+  const payoutRowsForCur = [...periodBillable.filter((l) => l.kind !== "group"), ...periodGroupPayouts];
   const payoutCurs = Array.from(new Set(
     payoutRowsForCur.filter((l) => Number(l.tutor_payout ?? 0) > 0).map(rowCurrency),
   ));
@@ -2316,8 +2392,7 @@ export default function FinancesPage() {
     };
     // Their own lessons, individual only (group lessons carry no tutor payout), newest
     // first. Read ONLY payout fields — student_price is never referenced here.
-    const payoutLessons = [...periodBillable]
-      .filter((l) => l.kind !== "group")
+    const payoutLessons = [...periodBillable.filter((l) => l.kind !== "group"), ...periodGroupPayouts]
       .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
     const paidCount = payoutLessons.filter((l) => l.tutor_payout_status === "paid").length;
     const pendingCount = payoutLessons.filter((l) => l.tutor_payout_status === "unpaid").length;

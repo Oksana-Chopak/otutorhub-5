@@ -1828,6 +1828,8 @@ export const en: LocaleTranslations = {
     clickToSelect: "Click to select one or more",
     ratePerSubject: "Rate per lesson by subject",
     ratePerSubjectDesc: "How much you pay the tutor for one completed lesson in this subject.",
+    groupRateLabel: "Per group lesson",
+    groupRateDesc: "One amount for each group lesson, regardless of how many students attend. Leave empty and no payout is accrued for group lessons.",
     ratePlaceholder: "e.g. 350",
     dialogStudentPriceTitle: "Student price",
     dialogStudentPriceDesc: "How much the student pays for one lesson with this tutor in the selected subject.",

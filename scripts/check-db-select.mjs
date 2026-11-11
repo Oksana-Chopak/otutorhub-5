@@ -148,10 +148,12 @@ for (const f of files) {
   const src = readFileSync(f, "utf8");
   const rel = relative(root, f);
   // .from("t") … .select("cols")
-  const fromRe = /\.from\(\s*["'`]([a-z0-9_]+)["'`]\s*\)/g;
+  // `.from(await pairsRel())` / `.from(rel)` після pairsRel() — це читання пар: ті самі
+  // колонки, що в student_rates (вʼю student_pairs_visible), тож звіряємо з таблицею.
+  const fromRe = /\.from\(\s*(?:["'`]([a-z0-9_]+)["'`]|await pairsRel\(\)|rel)\s*\)/g;
   let m;
   while ((m = fromRe.exec(src))) {
-    const table = m[1];
+    const table = m[1] ?? "student_rates";
     const line = src.slice(0, m.index).split("\n").length;
     // storage.from("bucket") — це сховище, не таблиця
     if (/storage\s*$/.test(src.slice(Math.max(0, m.index - 40), m.index))) continue;

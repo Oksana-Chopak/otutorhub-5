@@ -66,7 +66,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   // відкриває форму ставки з цим репетитором і предметом.
   const [rateOpen, setRateOpen] = useState(false);
   const isManagerViewer = roles.includes("manager");
-  const payoutMissing = !!row && isManagerViewer && !row.group_id && row.source !== "independent" && !(Number(row.tutor_payout ?? 0) > 0);
+  const payoutMissing = !!row && isManagerViewer && row.source !== "independent" && !(Number(row.tutor_payout ?? 0) > 0);
 
   const toLocalInput = (iso: string) => {
     const d = new Date(iso);
@@ -330,7 +330,8 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
         <TutorRateDialog
           open={rateOpen}
           tutorId={row.tutor_id}
-          presetSubject={row.subject}
+          presetSubject={row.group_id ? null : row.subject}
+          focusGroup={!!row.group_id}
           onOpenChange={setRateOpen}
           onSaved={() => { load(row.id); onUpdated?.(); }}
         />

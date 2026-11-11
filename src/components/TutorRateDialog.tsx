@@ -37,9 +37,18 @@ export interface TutorRateDialogProps {
   tutorId: string | null;
   /** Предмет уроку, з якого прийшли: стане рядком форми, якщо його ще немає. */
   presetSubject?: string | null;
+  /** Прийшли з ГРУПОВОГО уроку: одразу ставимо курсор у «за групове заняття». */
+  focusGroup?: boolean;
   /** Після успішного запису (сторінка перечитує уроки й побачить виплату). */
   onSaved?: (result: { backfilled: number }) => void;
 }
+
+/* Ставка за групове заняття (11.11, рішення власниці: виплата за групове — така сама
+   частина грошей школи, як за індивідуальне). Одна сума на заняття, на репетитора:
+   `tutor_details.group_rate_per_lesson`. Колонку додає міграція 20261111150000; поки
+   її немає в базі, читання відмовляє — тоді поля просто немає, решта форми працює.
+   Імʼя — константою, а не літералом у select: `types.ts` про колонку ще не знає. */
+const GROUP_RATE_COL = "group_rate_per_lesson";
 
 const normSubj = (x: string) => x.toLowerCase().replace(/\s+/g, " ").replace(/[\s.]+$/g, "").trim();
 
@@ -60,7 +69,7 @@ export function mergeSubjects(...lists: Array<Array<string | null | undefined>>)
   return out;
 }
 
-export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, onSaved }: TutorRateDialogProps) {
+export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, focusGroup, onSaved }: TutorRateDialogProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,6 +81,8 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
   // мобільному звʼязку це тихо стирало б ставки інших предметів, а виплати по
   // них падали б на ставку профілю. У такому стані зберігаємо лише введене.
   const [loadFailed, setLoadFailed] = useState(false);
+  // null = колонки ще немає в базі або вона не прочиталась → поля немає і ми її не пишемо
+  const [groupRate, setGroupRate] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !tutorId) return;
@@ -85,6 +96,7 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
         Promise.all([
           supabase.from("tutor_details").select("subjects, rate_per_lesson").eq("user_id", tutorId).maybeSingle(),
           supabase.from("tutor_subject_rates").select("subject, rate_per_lesson").eq("tutor_id", tutorId),
+          (supabase as any).from("tutor_details").select(GROUP_RATE_COL).eq("user_id", tutorId).maybeSingle(),
         ]),
         new Promise<null>((r) => setTimeout(() => r(null), 8000)),
       ]);
@@ -103,6 +115,13 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
         const v = byNorm.get(normSubj(s));
         next[s] = v != null && Number(v) > 0 ? String(v) : "";
       }
+      const gr = (loaded?.[2] ?? { data: null, error: true }) as { data: Record<string, unknown> | null; error: unknown };
+      // чинні ставки не прочитались — групову теж не показуємо й не пишемо (безпечне збереження)
+      if (gr.error || td.error || sr.error) setGroupRate(null);
+      else {
+        const v = Number(gr.data?.[GROUP_RATE_COL] ?? 0);
+        setGroupRate(v > 0 ? String(v) : "");
+      }
       setSubjects(list);
       setRates(next);
       setLoading(false);
@@ -111,12 +130,85 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
   }, [open, tutorId, presetSubject, t]);
 
   useEffect(() => {
-    if (!open) { setSubjects([]); setRates({}); setLoading(false); setSaving(false); setLoadFailed(false); }
+    if (!open) { setSubjects([]); setRates({}); setLoading(false); setSaving(false); setLoadFailed(false); setGroupRate(null); }
   }, [open]);
+
+  /** Усі записи форми одним шляхом. null = щось не записалось (тост уже показано). */
+  const writeAll = async (
+    parsed: Array<{ subject: string; rate: number }>,
+    groupVal: number | null,
+  ): Promise<number | null> => {
+    if (!tutorId) return null;
+    // 1. Список предметів на tutor_details (rate_per_lesson = перша, як фолбек).
+    // Лише коли список ПРОЧИТАНО: інакше він перезаписав би справжній.
+    if (!loadFailed && parsed.length > 0) {
+      const { error: tdErr } = await supabase
+        .from("tutor_details")
+        .upsert({ user_id: tutorId, rate_per_lesson: parsed[0].rate, subjects }, { onConflict: "user_id" });
+      if (tdErr) {
+        console.error("Failed to save tutor details", tdErr);
+        toast.error(t("people.saveFailed"));
+        return null;
+      }
+    }
+    // 1б. Ставка за групове — лише коли поле було на екрані (колонка є і прочиталась).
+    if (groupRate !== null) {
+      const { error: grErr } = await (supabase as any)
+        .from("tutor_details")
+        .upsert({ user_id: tutorId, [GROUP_RATE_COL]: groupVal && groupVal > 0 ? groupVal : null }, { onConflict: "user_id" });
+      if (grErr) {
+        console.error("Failed to save group rate", grErr);
+        toast.error(t("people.saveFailed"));
+        return null;
+      }
+    }
+    // 2. Ставка на кожен предмет.
+    const rows = parsed.map((p) => ({ tutor_id: tutorId, subject: p.subject, rate_per_lesson: p.rate }));
+    const { error: srErr } = rows.length > 0
+      ? await supabase.from("tutor_subject_rates").upsert(rows, { onConflict: "tutor_id,subject" })
+      : { error: null };
+    if (srErr) {
+      console.error("Failed to save subject rates", srErr);
+      toast.error(t("people.subjectRatesSaveFailed"));
+      return null;
+    }
+    // 3. Прибрати ставки предметів, яких у списку більше немає — порівняння
+    // нормалізоване, інакше інше написання зносило чинну ставку.
+    // Лише коли людина БАЧИЛА всі чинні ставки — видаляти невидиме не можна.
+    if (!loadFailed && parsed.length > 0) {
+      const keptNorm = new Set(subjects.map(normSubj));
+      const { data: existingRates } = await supabase.from("tutor_subject_rates").select("subject").eq("tutor_id", tutorId);
+      const toDelete = (existingRates ?? []).map((r) => r.subject as string).filter((subj) => !keptNorm.has(normSubj(subj)));
+      if (toDelete.length > 0) {
+        const { error: delErr } = await supabase.from("tutor_subject_rates").delete().eq("tutor_id", tutorId).in("subject", toDelete);
+        if (delErr) console.warn("Failed to cleanup obsolete subject rates", delErr);
+      }
+    }
+    // 4. Ставка доїжджає до вже наявних невиплачених хабових уроків.
+    // supabase.rpc не кидає виняток — помилка приходить полем error.
+    let backfilled = 0;
+    const { data: filled, error: bfErr } = await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", { _tutor_id: tutorId });
+    if (bfErr) {
+      console.error("backfill_tutor_payouts_for_tutor failed", bfErr);
+      toast.error(t("people.payoutBackfillFailed", { msg: bfErr.message ?? "" }));
+    } else if (typeof filled === "number" && filled > 0) {
+      backfilled = filled;
+      toast.success(t("people.payoutBackfilled", { count: filled }));
+    }
+    return backfilled;
+  };
 
   const save = async () => {
     if (!tutorId || saving || loading) return;
-    if (subjects.length === 0) {
+    // Групова ставка: порожньо = «не нараховувати», число — сума за заняття.
+    const groupRaw = (groupRate ?? "").trim();
+    const groupVal = groupRaw === "" ? null : parseFloat(groupRaw);
+    if (groupVal !== null && (isNaN(groupVal) || groupVal < 0)) {
+      toast.error(t("people.invalidRateForSubject", { subject: t("people.groupRateLabel") }));
+      return;
+    }
+    const groupOnly = subjects.length === 0 && groupRate !== null && groupVal !== null && groupVal > 0;
+    if (subjects.length === 0 && !groupOnly) {
       toast.error(t("people.selectAtLeastOneSubject"));
       return;
     }
@@ -136,55 +228,14 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
       }
       parsed.push({ subject: s, rate: v });
     }
-    if (parsed.length === 0) {
+    if (parsed.length === 0 && !groupOnly) {
       toast.error(t("people.enterRateForSubject", { subject: subjects[0] }));
       return;
     }
     setSaving(true);
     try {
-      // 1. Список предметів на tutor_details (rate_per_lesson = перша, як фолбек).
-      // Лише коли список ПРОЧИТАНО: інакше він перезаписав би справжній.
-      if (!loadFailed) {
-        const { error: tdErr } = await supabase
-          .from("tutor_details")
-          .upsert({ user_id: tutorId, rate_per_lesson: parsed[0].rate, subjects }, { onConflict: "user_id" });
-        if (tdErr) {
-          console.error("Failed to save tutor details", tdErr);
-          toast.error(t("people.saveFailed"));
-          return;
-        }
-      }
-      // 2. Ставка на кожен предмет.
-      const rows = parsed.map((p) => ({ tutor_id: tutorId, subject: p.subject, rate_per_lesson: p.rate }));
-      const { error: srErr } = await supabase.from("tutor_subject_rates").upsert(rows, { onConflict: "tutor_id,subject" });
-      if (srErr) {
-        console.error("Failed to save subject rates", srErr);
-        toast.error(t("people.subjectRatesSaveFailed"));
-        return;
-      }
-      // 3. Прибрати ставки предметів, яких у списку більше немає — порівняння
-      // нормалізоване, інакше інше написання зносило чинну ставку.
-      // Лише коли людина БАЧИЛА всі чинні ставки — видаляти невидиме не можна.
-      if (!loadFailed) {
-        const keptNorm = new Set(subjects.map(normSubj));
-        const { data: existingRates } = await supabase.from("tutor_subject_rates").select("subject").eq("tutor_id", tutorId);
-        const toDelete = (existingRates ?? []).map((r) => r.subject as string).filter((subj) => !keptNorm.has(normSubj(subj)));
-        if (toDelete.length > 0) {
-          const { error: delErr } = await supabase.from("tutor_subject_rates").delete().eq("tutor_id", tutorId).in("subject", toDelete);
-          if (delErr) console.warn("Failed to cleanup obsolete subject rates", delErr);
-        }
-      }
-      // 4. Ставка доїжджає до вже наявних невиплачених хабових уроків.
-      // supabase.rpc не кидає виняток — помилка приходить полем error.
-      let backfilled = 0;
-      const { data: filled, error: bfErr } = await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", { _tutor_id: tutorId });
-      if (bfErr) {
-        console.error("backfill_tutor_payouts_for_tutor failed", bfErr);
-        toast.error(t("people.payoutBackfillFailed", { msg: bfErr.message ?? "" }));
-      } else if (typeof filled === "number" && filled > 0) {
-        backfilled = filled;
-        toast.success(t("people.payoutBackfilled", { count: filled }));
-      }
+      const backfilled = await writeAll(parsed, groupVal);
+      if (backfilled === null) return;
       toast.success(t("people.saved"));
       onSaved?.({ backfilled });
       onOpenChange(false);
@@ -244,7 +295,7 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
                             min="0"
                             step="any"
                             inputMode="decimal"
-                            autoFocus={firstMissing}
+                            autoFocus={firstMissing && !focusGroup}
                             className="w-28 shrink-0"
                             style={missing ? { borderColor: "rgba(245,158,11,.75)" } : undefined}
                             value={rates[subj] ?? ""}
@@ -256,6 +307,26 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, on
                       );
                     })}
                   </div>
+                </div>
+              )}
+              {groupRate !== null && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-foreground" style={{ lineHeight: 1.25 }}>👥 {t("people.groupRateLabel")}</div>
+                    </div>
+                    <Input aria-label={t("people.groupRateLabel")}
+                      type="number" min="0" step="any" inputMode="decimal"
+                      autoFocus={!!focusGroup}
+                      className="w-28 shrink-0"
+                      style={focusGroup && groupRate.trim() === "" ? { borderColor: "rgba(245,158,11,.75)" } : undefined}
+                      value={groupRate}
+                      onChange={(e) => setGroupRate(e.target.value)}
+                      placeholder={t("people.ratePlaceholder")}
+                    />
+                    <span className="text-[14px] text-muted-foreground">{currencySymbol("UAH")}</span>
+                  </div>
+                  <p className="text-[14px] text-muted-foreground">{t("people.groupRateDesc")}</p>
                 </div>
               )}
               <div>

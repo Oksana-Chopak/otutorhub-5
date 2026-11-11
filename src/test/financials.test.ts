@@ -168,7 +168,9 @@ describe("isPayoutDueLesson (payouts = CONDUCTED lessons only, mirrors the RPC)"
     expect(isPayoutDueLesson(mk({ ...base, tutor_payout_status: "paid" }), NOW)).toBe(false);
     expect(isPayoutDueLesson(mk({ ...base, tutor_payout: 0 }), NOW)).toBe(false);
     expect(isPayoutDueLesson(mk({ ...base, tutor_payout: null }), NOW)).toBe(false);
-    expect(isPayoutDueLesson(mk({ ...base, is_group: true }), NOW)).toBe(false);
+    // 11.11: учасник групи (сума 0) — ні; виплата за групове заняття (сума > 0) — так
+    expect(isPayoutDueLesson(mk({ ...base, is_group: true, tutor_payout: 0 }), NOW)).toBe(false);
+    expect(isPayoutDueLesson(mk({ ...base, is_group: true }), NOW)).toBe(true);
   });
   it("NULL payout status counts as unpaid (matches the RPC's COALESCE)", () => {
     expect(isPayoutDueLesson(mk({ ...base, tutor_payout_status: null, status: "completed" }), NOW)).toBe(true);

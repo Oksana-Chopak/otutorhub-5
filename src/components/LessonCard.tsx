@@ -215,11 +215,10 @@ function LessonCardImpl({
   const hasAmount = (v: number | string | null | undefined) => v != null && Number(v) > 0;
   const showStudentPay = hasAmount(lesson.student_price);
   const showPayoutRow = withPayout && hasAmount(lesson.tutor_payout);
-  /* 11.11: груповому уроку рядок «ставку не задано» не показуємо. Виплати за групове
-     заняття в моделі немає (база їх не підставляє, «Виплатити» їх не чіпає), а кнопка
-     «Задати ставку» вела у ставки за ІНДИВІДУАЛЬНІ уроки — менеджер задавав ставку,
-     і картка далі казала «не задано». Як і priceMissing: для груп — ні. */
-  const payoutMissing = withPayout && manager && !lesson.group_id && !hasAmount(lesson.tutor_payout);
+  /* 11.11 (рішення власниці): виплата за групове заняття Є — зі ставки «за групове
+     заняття» репетитора. Тому груповий урок без виплати теж каже «ставку не задано»,
+     а кнопка веде у форму ставки одразу на поле групової (сторінка передає focusGroup). */
+  const payoutMissing = withPayout && manager && !hasAmount(lesson.tutor_payout);
   /* Ціни немає І сторінка знає, куди по неї йти. Групові не рахуємо: там гроші
      на учасниках, а не на уроці (інваріант групових). */
   const priceMissing = !!onSetPrice && !lesson.group_id && !hasAmount(lesson.student_price);

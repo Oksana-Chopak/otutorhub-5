@@ -22,6 +22,7 @@ import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
 import i18nInstance from "@/i18n";
 import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
+import { pairsRel } from "@/lib/pairsRel";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface WalletDialogProps {
@@ -205,7 +206,7 @@ export function WalletDialog({
     setLoadingUnpaid(true);
     (async () => {
       const [{ data: rateRow }, { data }] = await Promise.all([
-        (supabase as any).from("student_rates")
+        (supabase as any).from(await pairsRel())
           .select("currency").eq("tutor_id", tutorId).eq("student_id", studentId).limit(1).maybeSingle(),
         (supabase as any).from("lessons_visible")
           .select("id, subject, starts_at, student_price")

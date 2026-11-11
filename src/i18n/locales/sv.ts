@@ -1807,6 +1807,8 @@ export const sv: LocaleTranslations = {
     clickToSelect: "Klicka för att välja ett eller flera",
     ratePerSubject: "Taxa per lektion per ämne",
     ratePerSubjectDesc: "Hur mycket du betalar läraren för en genomförd lektion i det här ämnet.",
+    groupRateLabel: "Per grupplektion",
+    groupRateDesc: "Ett belopp för varje grupplektion, oavsett antal elever. Lämna tomt så beräknas ingen utbetalning för grupplektioner.",
     ratePlaceholder: "t.ex. 350",
     dialogStudentPriceTitle: "Elevpris",
     dialogStudentPriceDesc: "Hur mycket eleven betalar för en lektion med den här läraren i det valda ämnet.",

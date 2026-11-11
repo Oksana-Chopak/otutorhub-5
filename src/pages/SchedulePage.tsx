@@ -73,6 +73,7 @@ import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { insertNotification } from "@/lib/notifications";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { useCoreLock } from "@/hooks/useCoreLock";
+import { pairsRel } from "@/lib/pairsRel";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -231,7 +232,7 @@ export default function SchedulePage() {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [detailsLessonId, setDetailsLessonId] = useState<string | null>(null);
   // 21.09: «ставку не задано» на картці менеджера відкриває форму ставки напряму.
-  const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null } | null>(null);
+  const [rateFor, setRateFor] = useState<{ tutorId: string; subject: string | null; group?: boolean } | null>(null);
   // Snapshot of original homework/summary so we can detect actual changes for notification
   const [editOriginal, setEditOriginal] = useState<{ homework: string; summary: string }>({
     homework: "",
@@ -293,7 +294,7 @@ export default function SchedulePage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
       // Used by students to discover their assigned tutors (RLS allows student to see own rates).
-      supabase.from("student_rates").select("tutor_id, student_id, currency"),
+      supabase.from(await pairsRel()).select("tutor_id, student_id, currency"),
       supabase.from("tutor_student_defaults").select("tutor_id, student_id, default_meeting_url"),
     ]);
 
@@ -437,7 +438,7 @@ export default function SchedulePage() {
     let cancelled = false;
     (async () => {
       const { data } = await supabase
-        .from("student_rates")
+        .from(await pairsRel())
         .select("subject")
         .eq("tutor_id", form.tutor_id)
         .eq("student_id", form.student_id);
@@ -477,7 +478,7 @@ export default function SchedulePage() {
       setAutoFilling(true);
       const [exactRateRes, anyPairRateRes, payoutRes, fallbackRes] = await Promise.all([
         supabase
-          .from("student_rates")
+          .from(await pairsRel())
           .select("price_per_lesson")
           .eq("tutor_id", form.tutor_id)
           .eq("student_id", form.student_id)
@@ -487,7 +488,7 @@ export default function SchedulePage() {
         // NOTE: do not use .maybeSingle() here — pair may legitimately have several
         // subject rates and that would throw "multiple rows returned".
         supabase
-          .from("student_rates")
+          .from(await pairsRel())
           .select("price_per_lesson")
           .eq("tutor_id", form.tutor_id)
           .eq("student_id", form.student_id)
@@ -547,7 +548,7 @@ export default function SchedulePage() {
     let cancelled = false;
     (async () => {
       const { data } = await supabase
-        .from("student_rates")
+        .from(await pairsRel())
         .select("price_per_lesson")
         .eq("tutor_id", form.tutor_id)
         .eq("student_id", form.student_id)
@@ -1690,7 +1691,7 @@ export default function SchedulePage() {
                             : undefined
                         }
                         onContentClick={() => setDetailsLessonId(lesson.id)}
-                        onSetRate={isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.subject ?? null }) : undefined}
+                        onSetRate={isManager && lesson.source !== "independent" ? () => setRateFor({ tutorId: lesson.tutor_id, subject: lesson.group_id ? null : lesson.subject ?? null, group: !!lesson.group_id }) : undefined}
                         /* Аудит шляхів 24.09 (§4): ціна учня в самостійного —
                            у його формі учня; рядок «Ціну не задано» веде туди. */
                         onSetPrice={canSee("ownStudents", flags) && lesson.student_id && lesson.source === "independent"
@@ -1793,6 +1794,7 @@ export default function SchedulePage() {
         open={!!rateFor}
         tutorId={rateFor?.tutorId ?? null}
         presetSubject={rateFor?.subject ?? null}
+        focusGroup={rateFor?.group}
         onOpenChange={(o) => { if (!o) setRateFor(null); }}
         onSaved={() => loadAll()}
       />

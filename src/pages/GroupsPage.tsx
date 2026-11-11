@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import i18nInstance from "@/i18n";
+import { pairsRel } from "@/lib/pairsRel";
 const t = i18nInstance.t.bind(i18nInstance);
 
 // ── Design tokens (match the approved handoff; inline like the references) ───
@@ -891,7 +892,7 @@ function GroupDetailsDialog({
       // фолбек на student_rates про всяк випадок.
       const [{ data: pairs }, { data: rates }] = await Promise.all([
         supabase.from("tutor_student_pairs").select("student_id").eq("tutor_id", groupTutorId),
-        supabase.from("student_rates").select("student_id, archived_at").eq("tutor_id", groupTutorId),
+        supabase.from(await pairsRel()).select("student_id, archived_at").eq("tutor_id", groupTutorId),
       ]);
       (pairs ?? []).forEach((p: any) => candidateIds.add(p.student_id));
       (rates ?? []).forEach((r: any) => { if (!r.archived_at) candidateIds.add(r.student_id); });

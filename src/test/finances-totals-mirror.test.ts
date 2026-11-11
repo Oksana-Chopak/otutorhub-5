@@ -21,7 +21,11 @@ const sqlFile = readdirSync(migDir)
   .filter((f) => f.endsWith(".sql"))
   .filter((f) => readFileSync(join(migDir, f), "utf8").includes("FUNCTION public.finances_period_totals"))
   .sort().at(-1)!;
-const sql = readFileSync(join(migDir, sqlFile), "utf8");
+/* 11.11: функцію перевипустила міграція, де поруч живуть інші (DEFINER) функції —
+   звіряємо ТІЛО саме цієї функції, а не весь файл. */
+const sqlWhole = readFileSync(join(migDir, sqlFile), "utf8");
+const sqlStart = sqlWhole.lastIndexOf("FUNCTION public.finances_period_totals(");
+const sql = sqlWhole.slice(sqlStart, sqlWhole.indexOf("$$;", sqlStart) + 3);
 const viewFile = readdirSync(migDir)
   .filter((f) => f.endsWith(".sql"))
   .filter((f) => readFileSync(join(migDir, f), "utf8").includes("CREATE VIEW public.lessons_visible"))
@@ -164,8 +168,9 @@ describe("самозвірка боргів: бейдж називає поло�
     expect(ts).toMatch(/if \(l\.status === "cancelled"\) return l\.is_cancellation_fee === true;/);
     // Виплата: лише проведене, ніколи групові рядки.
     expect(code).toMatch(/l\.status = 'completed' OR l\.starts_at <= now\(\)/);
-    expect(code, "виплата рахується лише по негрупових уроках").toMatch(/l\.group_id IS NULL/);
-    expect(ts).toMatch(/if \(l\.is_group\) return false;/);
+    // 11.11: виплата за групове заняття — така сама виплата; групи більше не відсікаються
+    const payFn = ts.slice(ts.indexOf("export const isPayoutDueLesson"), ts.indexOf("export function sumByCurrency"));
+    expect(payFn).not.toMatch(/is_group/);
   });
 });
 

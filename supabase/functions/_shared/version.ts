@@ -1,7 +1,7 @@
 // ЗГЕНЕРОВАНО scripts/stamp-edge.mjs — не правити руками.
 // Хеш вмісту всіх edge-функцій (91 файлів, 53 функцій). Функція `version`
 // віддає його назовні; робот у CI звіряє з репо і каже, чи прод крутить свіже.
-export const EDGE_VERSION = "55874103";
+export const EDGE_VERSION = "fa567e21";
 export const EDGE_FUNCTIONS = 53;
 
 // Штамп КОЖНОЇ функції окремо: спільний код + її власні файли. Lovable
@@ -56,8 +56,8 @@ export const EDGE_FN_VERSION: Record<string, string> = {
   "sync-google-calendar": "deb901a2",
   "telegram-bot-info": "016fa77f",
   "telegram-link": "7136b1b2",
-  "telegram-poll": "4abb5c66",
-  "tutor-daily-digest": "f06bf358",
+  "telegram-poll": "ced22caf",
+  "tutor-daily-digest": "82726ce1",
   "tutor-evening-summary": "996a7667",
   "tutor-weekly-digest": "9f587c8e",
   "version": "c9593a41",

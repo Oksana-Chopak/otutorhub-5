@@ -38,6 +38,7 @@ import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
 import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
+import { pairsRel } from "@/lib/pairsRel";
 
 interface Props {
   open: boolean;
@@ -187,7 +188,7 @@ export function QuickLessonDialog({
       if (isManager && !effTutorId) { setStudents([]); setGroups([]); setLoading(false); return; }
       const [{ data: rates }, { data: gs }] = await Promise.all([
         supabase
-          .from("student_rates")
+          .from(await pairsRel())
           .select("student_id, subject, price_per_lesson, currency, archived_at")
           .eq("tutor_id", effTutorId)
           .eq("source", variant === "independent" ? "independent" : "hub"),

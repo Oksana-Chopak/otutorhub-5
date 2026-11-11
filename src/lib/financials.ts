@@ -128,10 +128,12 @@ export const isPrepaidAheadLesson = (l: MoneyLesson, nowMs: number = Date.now())
  * mismatch here is how "виплачено, але 2 уроки висять" happened: the old filter
  * admitted FUTURE lessons whose STUDENT had prepaid (isBillableLesson's
  * hasPayment shortcut), which the RPC then correctly skipped.
- * Group rows never owe payout (none is tracked for groups).
+ * ГРУПОВІ (11.11, рішення власниці): виплата за групове заняття Є — одна сума на
+ * урок, зі ставки `tutor_details.group_rate_per_lesson`, на `lesson_details` уроку.
+ * Рядки УЧАСНИКІВ групи (is_group) виплати не несуть за побудовою (tutor_payout = 0),
+ * тож їх відсікає перевірка суми, а не окреме правило.
  */
 export const isPayoutDueLesson = (l: MoneyLesson, nowMs: number = Date.now()): boolean => {
-  if (l.is_group) return false;
   if (l.tutor_payout_status === "paid") return false; // NULL counts as unpaid, like the RPC's COALESCE
   if (Number(l.tutor_payout ?? 0) <= 0) return false; // independents / unconfigured payout
   if (l.status === "cancelled" || l.status === "pending") return false;

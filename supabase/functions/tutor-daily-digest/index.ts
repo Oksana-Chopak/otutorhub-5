@@ -370,9 +370,11 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
     // в Telegram не сходилась із «Фінансами», куди веде цей же дайджест.
     return l.status === "completed";
   };
+  // 11.11 (рішення власниці): виплата за ГРУПОВЕ заняття — така сама виплата, як за
+  // індивідуальне (ставка «за групове заняття», сума на lesson_details уроку). Тому
+  // групові тут більше не відсіюються — дзеркало isPayoutDueLesson у financials.ts.
   const isPayoutDue = (l: any) => {
     const d = detailOf(l) ?? {};
-    if (l.group_id) return false;
     if (d.tutor_payout_status === "paid") return false;
     if (Number(d.tutor_payout ?? 0) <= 0) return false;
     if (l.status === "cancelled") return false;
@@ -388,7 +390,7 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
   // мусить його бачити в тому самому ранковому повідомленні.
   const isConductedUnrated = (l: any) => {
     const d = detailOf(l) ?? {};
-    if (l.group_id || l.status === "cancelled") return false;
+    if (l.status === "cancelled") return false;
     if (d.tutor_payout_status === "paid") return false;
     if (Number(d.tutor_payout ?? 0) > 0) return false;
     return l.status === "completed" || new Date(l.starts_at).getTime() <= nowMs;
@@ -780,16 +782,19 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       // ПРЯМО у форму ставки цього репетитора (21.09, розрив у флоу: раніше —
       // в аркуш у «Людях», де ще треба було знайти олівець), а коли всі його
       // уроки без суми з одного предмета — і предмет уже підставлений.
-      const unrated = new Map<string, { n: number; subjects: Set<string> }>();
+      const unrated = new Map<string, { n: number; subjects: Set<string>; groups: number }>();
       for (const l of unratedLessons.filter(mine)) {
-        const cur = unrated.get(l.tutor_id) ?? { n: 0, subjects: new Set<string>() };
+        const cur = unrated.get(l.tutor_id) ?? { n: 0, subjects: new Set<string>(), groups: 0 };
         cur.n += 1;
-        if (l.subject) cur.subjects.add(String(l.subject));
+        // груповому бракує ставки «за групове заняття», а не ставки за предмет
+        if (l.group_id) cur.groups += 1;
+        else if (l.subject) cur.subjects.add(String(l.subject));
         unrated.set(l.tutor_id, cur);
       }
       for (const [tid, v] of Array.from(unrated.entries()).sort((a, b) => b[1].n - a[1].n).slice(0, 3)) {
         lines.push(D.noRate(esc(tutorName.get(tid)), v.n, D.lessons(v.n)));
-        const subj = v.subjects.size === 1 ? `&subject=${encodeURIComponent(Array.from(v.subjects)[0])}` : "";
+        const subj = v.groups === v.n ? "&group=1"
+          : v.subjects.size === 1 && v.groups === 0 ? `&subject=${encodeURIComponent(Array.from(v.subjects)[0])}` : "";
         keyboard.push([{ text: D.btnRate(shortName(tutorName.get(tid), D.btnTutorName)), url: `${APP_URL}/people?open=${tid}&rate=1${subj}` }]);
       }
       if ((errCount ?? 0) > 0) lines.push(D.errors(Number(errCount)));

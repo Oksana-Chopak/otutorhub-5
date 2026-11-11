@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { pairsRel } from "@/lib/pairsRel";
 
 interface ChatContextPanelProps {
   tutorId: string | null;
@@ -106,7 +107,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
           .eq("status", "completed")
           .eq("student_payment_status", "unpaid"),
         supabase
-          .from("student_rates")
+          .from(await pairsRel())
           .select("source")
           .eq("tutor_id", tutorId)
           .eq("student_id", studentId)

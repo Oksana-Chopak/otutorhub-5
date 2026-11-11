@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { ErrorState } from "@/components/ErrorState";
+import { pairsRel } from "@/lib/pairsRel";
 
 interface MyTutor {
   id: string;
@@ -64,7 +65,7 @@ export default function StudentProfilePage() {
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("phone, telegram, instagram_url, facebook_url").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("starts_at, status, tutor_id, subject").or(await studentLessonsOrFilter(user.id)),
-        supabase.from("student_rates").select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
+        supabase.from(await pairsRel()).select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
       ]);
       if (pErr || cErr) { setLoadError(true); setLoading(false); return; }
       setLoadError(false);

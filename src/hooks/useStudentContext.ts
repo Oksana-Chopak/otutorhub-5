@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { pairsRel } from "@/lib/pairsRel";
 
 /**
  * Determines onboarding state for a student:
@@ -23,7 +24,7 @@ export function useStudentContext() {
         .select("id", { count: "exact", head: true })
         .eq("student_id", user.id),
       supabase
-        .from("student_rates")
+        .from(await pairsRel())
         .select("id", { count: "exact", head: true })
         .eq("student_id", user.id)
         .is("archived_at", null),

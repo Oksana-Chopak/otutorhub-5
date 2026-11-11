@@ -82,6 +82,7 @@ import { RemindDebtButton } from "@/components/RemindDebtButton";
 import { useLastReminders } from "@/hooks/useLastReminders";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
 import { TutorRateDialog } from "@/components/TutorRateDialog";
+import { pairsRel } from "@/lib/pairsRel";
 
 interface Profile {
   id: string;
@@ -142,7 +143,7 @@ export default function PeoplePage() {
   // Ставка репетитора — канонічна форма TutorRateDialog (21.09): сама читає
   // предмети й ставки, сама тягне бекфіл виплат; та сама форма відкривається
   // з картки уроку і з кнопки дайджесту (?open=<id>&rate=1).
-  const [tutorRate, setTutorRate] = useState<{ open: boolean; tutorId: string | null; subject: string | null }>({
+  const [tutorRate, setTutorRate] = useState<{ open: boolean; tutorId: string | null; subject: string | null; group?: boolean }>({
     open: false, tutorId: null, subject: null,
   });
 
@@ -305,7 +306,7 @@ export default function PeoplePage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       // Independent tutor rates filtered at RLS level
-      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
+      supabase.from(await pairsRel()).select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
       // A9: агрегати рахує БД (RPC нижче) — раніше клієнт вивантажував до 2000
       // уроків + 4 чанк-дозапити лише щоб порахувати борги/останню взаємодію.
@@ -552,9 +553,10 @@ export default function PeoplePage() {
   const [pendingOpenId, setPendingOpenId] = useState<string | null>(() => searchParams.get("open"));
   // 21.09: /people?open=<id>&rate=1[&subject=…] — кнопка «⚙️ Ставка» з дайджесту
   // веде ПРЯМО у форму ставки, а не в аркуш, де ще треба знайти олівець.
-  const [pendingRate] = useState<{ rate: boolean; subject: string | null }>(() => ({
+  const [pendingRate] = useState<{ rate: boolean; subject: string | null; group: boolean }>(() => ({
     rate: searchParams.get("rate") === "1",
     subject: searchParams.get("subject"),
+    group: searchParams.get("group") === "1",   // уроки без суми — групові: одразу поле групової ставки
   }));
   useEffect(() => {
     if (!pendingOpenId) return;
@@ -562,7 +564,7 @@ export default function PeoplePage() {
     if (!person) return;
     if (pendingRate.rate && person.role === "tutor" && isManager) {
       setActiveRoleTab("tutors");
-      setTutorRate({ open: true, tutorId: person.id, subject: pendingRate.subject });
+      setTutorRate({ open: true, tutorId: person.id, subject: pendingRate.subject, group: pendingRate.group });
     } else {
       setSelectedPerson(person);
       if (person.role === "student") setActiveRoleTab("students");
@@ -572,6 +574,7 @@ export default function PeoplePage() {
     n.delete("open");
     n.delete("rate");
     n.delete("subject");
+    n.delete("group");
     setSearchParams(n, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, pendingOpenId]);
@@ -924,7 +927,9 @@ export default function PeoplePage() {
         if (done) return false;
       } else if (statusFilter === "debt") {
         // Лише учні з неоплаченими проведеними уроками
-        if (isArchived || u.is_pending) return false;
+        // 11.11: учень без акаунта з боргом — теж боржник. Раніше фільтр його ховав,
+        // а саме такі учні (батьки не реєструються) і лишаються з боргом найдовше.
+        if (isArchived) return false;
         if (u.role !== "student") return false;
         if ((u.unpaid_count ?? 0) <= 0) return false;
       } else {
@@ -1394,6 +1399,7 @@ renderEmptyTab("managers")
         open={tutorRate.open}
         tutorId={tutorRate.tutorId}
         presetSubject={tutorRate.subject}
+        focusGroup={tutorRate.group}
         onOpenChange={(o) => setTutorRate((st) => ({ ...st, open: o }))}
         onSaved={() => loadData()}
       />

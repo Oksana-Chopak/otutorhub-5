@@ -39,7 +39,9 @@ describe("дайджест менеджера: борги репетиторам
 
   it("проведені уроки без ставки виплати — окремий рядок і кнопка в картку репетитора", () => {
     const pred = digest.slice(digest.indexOf("const isConductedUnrated"), digest.indexOf("const unratedLessons"));
-    expect(pred).toMatch(/if \(l\.group_id \|\| l\.status === "cancelled"\) return false/);
+    // 11.11: групові теж — виплата за них є (ставка «за групове заняття»)
+    expect(pred).toMatch(/if \(l\.status === "cancelled"\) return false/);
+    expect(pred).not.toMatch(/l\.group_id \|\|/);
     expect(pred).toMatch(/if \(d\.tutor_payout_status === "paid"\) return false/);
     expect(pred).toMatch(/if \(Number\(d\.tutor_payout \?\? 0\) > 0\) return false/);
     expect(pred).toMatch(/l\.status === "completed" \|\| new Date\(l\.starts_at\)\.getTime\(\) <= nowMs/);
@@ -71,7 +73,7 @@ describe("telegram-poll: кнопка «Виплатив(ла)» (tpaid:)", () =
     expect(branch).toMatch(/\.or\('tutor_payout_status\.is\.null,tutor_payout_status\.neq\.paid'\)/);
     expect(branch).toMatch(/payout_last_marked_at: now/);
     expect(branch).toMatch(/action: 'mark_payout_paid_via_telegram'/);
-    expect(branch).toMatch(/\.is\('group_id', null\)/);
+    expect(branch, "11.11: групові виплати закриваються тією ж кнопкою").not.toMatch(/\.is\('group_id', null\)/);
   });
 });
 

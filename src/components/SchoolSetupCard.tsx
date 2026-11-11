@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyHub } from "@/hooks/useMyHub";
 import { useDataVersion } from "@/lib/dataBus";
+import { pairsRel } from "@/lib/pairsRel";
 
 /**
  * «Запуск школи» — картка на «Моєму дні» менеджера, поки школа не запрацювала (11.11).
@@ -39,7 +40,7 @@ export function SchoolSetupCard() {
       const [tu, st, pr, le] = await Promise.all([
         supabase.from("user_roles").select("user_id", head).eq("role", "tutor"),
         supabase.from("user_roles").select("user_id", head).eq("role", "student"),
-        supabase.from("student_rates").select("id", head).is("archived_at", null),
+        supabase.from(await pairsRel()).select("id", head).is("archived_at", null),
         supabase.from("lessons").select("id", head),
       ]);
       if (!alive) return;

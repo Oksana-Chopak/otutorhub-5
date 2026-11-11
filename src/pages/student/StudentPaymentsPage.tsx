@@ -13,6 +13,7 @@ import { useSearchParams } from "react-router-dom";
 import { ErrorState } from "@/components/ErrorState";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
+import { pairsRel } from "@/lib/pairsRel";
 
 interface Row {
   id: string;
@@ -191,7 +192,7 @@ export default function StudentPaymentsPage() {
           : Promise.resolve({ data: [] as any[] }),
         tutorIds.length
           ? supabase
-              .from("student_rates")
+              .from(await pairsRel())
               .select("tutor_id, currency, payment_details")
               .eq("student_id", user.id)
               .in("tutor_id", tutorIds)

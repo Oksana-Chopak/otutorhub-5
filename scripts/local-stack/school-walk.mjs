@@ -181,9 +181,25 @@ async function main() {
   await s.page.getByRole("button", { name: /Створити групу/ }).click(); await wait(2500);
   await s.page.getByRole("button", { name: "Створити урок" }).last().click(); await wait(3500);
   await s.see(/Іспанська A1/, "груповий урок підписано назвою групи");
-  await s.notSee(/Ставку не задано/, "«ставку не задано» на груповому уроці");
+  // Виплата за групове заняття (рішення власниці 11.11): картка каже «ставку не задано»,
+  // дотик веде у форму ставки одразу на поле групової, і сума доїжджає до уроку.
+  await s.see(/Ставку не задано/, "груповий урок без групової ставки каже «ставку не задано»");
+  // після створення групового уроку відкривається аркуш учасників — закриваємо його
+  await s.page.getByRole("button", { name: "Готово" }).click({ timeout: 3000 }).catch(() => {}); await wait(800);
+  await s.page.getByRole("button", { name: /^Задати ставку репетитору/ }).first().click(); await wait(2500);
+  await s.see(/За групове заняття/, "поле «за групове заняття» у формі ставки");
+  await s.page.getByLabel("За групове заняття").fill("250");
+  await s.page.getByRole("button", { name: "Зберегти", exact: true }).click(); await wait(3500);
+  await s.see(/250\s*₴/, "виплата за групове заняття на картці уроку");
+  await s.notSee(/Ставку не задано/, "«ставку не задано» після того, як групову ставку задано");
   await s.go("/groups");
   await s.see(/задайте ціну: 2/, "група каже, що учасникам ще не задано ціну");
+  // груповий урок проведено → виплата за нього стоїть у «Фінансах» менеджера поруч з іншими
+  psql(`UPDATE lessons SET starts_at = now() - interval '2 hours', status = 'completed' WHERE group_id IS NOT NULL AND tutor_id = (SELECT id FROM auth.users WHERE email='${E.tutor}' UNION SELECT id FROM profiles WHERE id IN (SELECT user_id FROM profile_contacts WHERE email='${E.tutor}') LIMIT 1)`);
+  await s.go("/finances?tab=debts", 5000);
+  await s.see(/Іспанська A1/, "рядок виплати за групове заняття у «Фінансах» менеджера");
+  await s.see(/250\s*₴/, "сума виплати за групове у «Фінансах» менеджера");
+  await s.shot("owner-finances-group-payout");
   await s.go("/dashboard", 4500);
   await s.notSee(/Запуск школи/, "картка запуску після першого уроку");
   await s.shot("owner-dashboard");
@@ -196,11 +212,12 @@ async function main() {
   await s.go("/dashboard", 4500);
   await s.see(new RegExp(`Хаб «${SCHOOL}»`), "назва СВОЄЇ школи на плашці");
   await s.see(/Соломія Гнатюк/, "індивідуальний урок");
-  await s.see(/Іспанська A1/, "груповий урок");
+  await s.see(/250\s*₴[\s\S]*1 урок/, "до виплати від школи — проведене групове заняття, 250");
   await s.see(/300\s*₴/, "своя виплата");
   await s.notSee(/500\s*₴/, "ціна школи для учня");
   await s.go("/finances", 4500);
   await s.see(/Ваші виплати/, "фінанси репетитора — лише його виплати");
+  await s.see(/250\s*₴/, "виплата за проведене групове заняття у фінансах репетитора");
   await s.notSee(/500\s*₴/, "ціна школи для учня у фінансах репетитора");
   await s.go("/people", 3000);
   if (!/\/dashboard/.test(s.page.url())) throw new Error(`[${step}] репетитор школи потрапив у «Люди»`);
@@ -212,7 +229,7 @@ async function main() {
   s = await session();
   await s.signup(`&email=${encodeURIComponent(E.s1)}&role=student`, "Соломія", "Гнатюк", null);
   await s.go("/student/schedule");
-  await s.see(/Майбутні \(2\)/, "обидва уроки — індивідуальний і груповий");
+  await s.see(/Майбутні \(1\)/, "майбутній індивідуальний урок (груповий уже проведено)");
   await s.go("/student/payments");
   await s.see(/500\s*₴/, "ціна свого уроку");
   await s.see(/ціну не задано/, "груповий урок без ціни — словами");

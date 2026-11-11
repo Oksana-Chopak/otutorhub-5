@@ -6,6 +6,7 @@ import { openExternal } from "@/lib/openExternal";
 import { formatPrice } from "@/lib/currency";
 import { IMPORT_CURRENCY } from "@/lib/importStudents";
 import { Loader2, Paperclip, ChevronDown } from "lucide-react";
+import { pairsRel } from "@/lib/pairsRel";
 
 /**
  * Матеріали й історія уроків учня (рішення власниці 11.09, доопрацьовано 12.09).
@@ -143,7 +144,7 @@ export function StudentMaterials({
             .in("id", ids),
           (supabase as any).from("lesson_tutor_notes").select("lesson_id, notes").in("lesson_id", ids),
           supabase.from("lesson_attachments").select("id, lesson_id, file_name, storage_path").in("lesson_id", ids),
-          supabase.from("student_rates").select("currency").eq("tutor_id", tutorId).eq("student_id", studentId).limit(1).maybeSingle(),
+          supabase.from(await pairsRel()).select("currency").eq("tutor_id", tutorId).eq("student_id", studentId).limit(1).maybeSingle(),
         ]);
         if (det.error) throw det.error;
         const pairCurrency = (rate.data as { currency?: string } | null)?.currency || IMPORT_CURRENCY;

@@ -34,6 +34,7 @@ import { isPushCapable } from "@/hooks/usePushNotifications";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
+import { pairsRel } from "@/lib/pairsRel";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
@@ -353,7 +354,7 @@ export default function ProfilePage() {
       const [detailsRes, lessonsRes, ratesRes, profileRes, contactsRes, feedbackRes, ratingAllRes] = await Promise.all([
         supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("subject").eq("tutor_id", user.id),
-        supabase.from("student_rates").select("subject").eq("tutor_id", user.id),
+        supabase.from(await pairsRel()).select("subject").eq("tutor_id", user.id),
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("email, phone, telegram, messenger_url, facebook_url, instagram_url").eq("user_id", user.id).maybeSingle(),
         supabase.from("lesson_feedback").select("rating, comment, created_at, student_id").eq("tutor_id", user.id).order("created_at", { ascending: false }).limit(20),

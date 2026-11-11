@@ -45,7 +45,7 @@ describe("регресії скану 13.09", () => {
     expect(sm, "напряму з lesson_details гроші більше не беруться")
       .not.toMatch(/from\("lesson_details"\)[\s\S]{0,200}student_price/);
     expect(sm).toMatch(/if \(det\.error\) throw det\.error/); // помилка більше не ковтається мовчки
-    expect(sm).toMatch(/from\("student_rates"\)\.select\("currency"\)/);
+    expect(sm).toMatch(/from\(await pairsRel\(\)\)\.select\("currency"\)/);
   });
 
   it("2. синхронізація календаря не питає lessons.location", () => {

@@ -18,10 +18,10 @@
 --       губиться: id запрошеного не лишається НІДЕ в базі (перевірка по всіх
 --       uuid-колонках), баланс передоплати, група, борг за групове заняття, ставки цілі;
 --   (4) школи не бачать і не можуть змінити одна одну;
---   (5) репетитор школи: бачить лише свою виплату, не піднімає собі ставку, не ставить
---       урок «повз школу», не бачить боргів учнів перед школою; свою роботу робить;
+--   (5) репетитор школи: бачить лише свою виплату — ні контактів учнів, ні цін, ні передоплат,
+--       ні заявок «я оплатив»; не піднімає собі ставку, не ставить урок «повз школу»; свою роботу робить;
 --   (6) учень: бачить свої уроки, ціну й участь у групі, не бачить виплат, не позначає оплату;
---   (7) груповий урок: виплату база не вигадує, «Виплатити» = сума на екрані;
+--   (7) груповий урок: виплата — за ОКРЕМОЮ груповою ставкою; без неї «не задано»; «Виплатити» = сума на екрані;
 --   (8) суперадмін: власна школа типово · обрана школа · вся платформа; менеджер лінзи не має;
 --   (9) людину, що вже веде власних учнів, мовчки менеджером не зробити.
 BEGIN;
@@ -147,6 +147,9 @@ BEGIN
     -- ставка репетитора (TutorRateDialog)
     PERFORM pg_temp.must(m, 'rate td ' || t, format('UPDATE tutor_details SET rate_per_lesson = %s WHERE user_id = {%s} RETURNING user_id', payout, t));
     PERFORM pg_temp.must(m, 'rate tsr ' || t, format('INSERT INTO tutor_subject_rates (tutor_id, subject, rate_per_lesson) VALUES ({%s}, ''Англійська'', %s) ON CONFLICT (tutor_id, subject) DO UPDATE SET rate_per_lesson = EXCLUDED.rate_per_lesson RETURNING tutor_id', t, payout));
+    IF h = 'B' THEN  -- ставка за ГРУПОВЕ заняття (форма ставки репетитора) — лише в школі Б
+      PERFORM pg_temp.must(m, 'group rate ' || t, format('UPDATE tutor_details SET group_rate_per_lesson = 250 WHERE user_id = {%s} RETURNING user_id', t));
+    END IF;
     -- ціна пари (People → student_rates без source)
     PERFORM pg_temp.must(m, 'pair ' || s1, format('INSERT INTO student_rates (tutor_id, student_id, subject, price_per_lesson, currency) VALUES ({%s}, {%s}, ''Англійська'', %s, ''UAH'') RETURNING id', t, s1, price));
     PERFORM pg_temp.must(m, 'pair ' || s2, format('INSERT INTO student_rates (tutor_id, student_id, subject, price_per_lesson, currency) VALUES ({%s}, {%s}, ''Англійська'', %s, ''UAH'') RETURNING id', t, s2, price));
@@ -271,9 +274,24 @@ SELECT pg_temp.expect('ind', '(4) самостійна репетиторка н
 DO $$ BEGIN RAISE NOTICE '✅ (4) школи А і Б не бачать і не можуть змінити одна одну; самостійна репетиторка — поза школами'; END $$;
 
 -- (5) репетитор школи
-SELECT pg_temp.expect('tB', '(5) репетитор школи: ціни учня не бачить, свою виплату бачить', $q$SELECT count(*)||'/'||coalesce(sum(student_price)::text, 'ціни немає')||'/'||sum(tutor_payout) FROM lessons_visible$q$, '2/ціни немає/400.00');
+SELECT pg_temp.expect('tB', '(5) репетитор школи: ціни учня не бачить, свою виплату бачить (індивідуальний 400 + груповий 250)', $q$SELECT count(*)||'/'||coalesce(sum(student_price)::text, 'ціни немає')||'/'||sum(tutor_payout) FROM lessons_visible$q$, '2/ціни немає/650.00');
 SELECT pg_temp.expect('tB', '(5) ціни учасників групи не бачить', $q$SELECT count(*)||'/'||coalesce(sum(student_price)::text, 'ціни немає') FROM lesson_participants_visible$q$, '2/ціни немає');
 SELECT pg_temp.expect('tB', '(5) боргів учнів перед школою не бачить (бот, знімок)', $q$SELECT (tutor_snapshot({tB})->>'debt_sum')||'/'||(tutor_snapshot({tB})->>'debt_lessons')$q$, '0/0');
+SELECT pg_temp.expect('tB', '(5) контактів учнів не бачить — лише свій', $q$SELECT count(*)::text FROM profile_contacts$q$, '1');
+SELECT pg_temp.expect('tB', '(5) контакту батьків (картка учня) не бачить', $q$SELECT count(*)::text FROM student_details$q$, '0');
+SELECT pg_temp.expect('tB', '(5) передоплат школи не бачить', $q$SELECT (SELECT count(*) FROM student_wallet_transactions)||'/'||(SELECT count(*) FROM student_wallet_balances)$q$, '0/0');
+SELECT pg_temp.denied('tB', '(5) баланс передоплати через RPC', $q$SELECT amount_balance::text FROM get_wallet_balance({tB},{sB2})$q$);
+SELECT pg_temp.expect('tB', '(5) пари бачить, ціни в них — ні', $q$SELECT count(*)||'/'||coalesce(sum(price_per_lesson)::text, 'ціни немає') FROM student_pairs_visible$q$, '2/ціни немає');
+-- крок 2 (20261111160000): напряму з таблиці репетитор школи рядків школи не читає взагалі,
+-- а урок своєму учневі школи ставить, як і раніше (політика йде через tutor_has_pair)
+SELECT pg_temp.expect('tB', '(5) напряму з таблиці пар школи репетитор не читає нічого', $q$SELECT count(*)::text FROM student_rates$q$, '0');
+SELECT pg_temp.expect('ind', '(5) самостійна свої пари з таблиці читає', $q$SELECT (count(*) > 0)::text FROM student_rates$q$, 'true');
+SELECT pg_temp.expect('mgrB', '(5) менеджер у тих самих парах ціну бачить', $q$SELECT count(*)||'/'||sum(price_per_lesson) FROM student_pairs_visible$q$, '2/1400.00');
+SELECT pg_temp.expect('sB1', '(5) учень бачить свою пару й свою ціну', $q$SELECT count(*)||'/'||sum(price_per_lesson) FROM student_pairs_visible$q$, '1/700.00');
+SELECT pg_temp.expect('mgrA', '(5) менеджер А пар школи Б у вʼю не бачить', $q$SELECT count(*)::text FROM student_pairs_visible WHERE tutor_id = {tB}$q$, '0');
+SELECT pg_temp.expect('ind', '(5) самостійна: свої пари з ціною, контакт і картка свого учня', $q$SELECT (SELECT sum(price_per_lesson) FROM student_pairs_visible)||'/'||(SELECT count(*) FROM profile_contacts WHERE user_id = {sInd})||'/'||(SELECT count(*) FROM student_details WHERE user_id = {sInd})$q$, '450.00/1/1');
+SELECT pg_temp.expect('tB', '(5) «повернуто нагадуваннями» репетитору школи не рахуємо', $q$SELECT tutor_value_stats({tB})::text||tutor_reminder_stats({tB})::text$q$, '{}{}');
+SELECT pg_temp.denied('tB', '(5) підняти собі ставку за групове', $q$UPDATE tutor_details SET group_rate_per_lesson = 2000 WHERE user_id = {tB} RETURNING group_rate_per_lesson$q$, $q$SELECT group_rate_per_lesson::text FROM tutor_details WHERE user_id = {tB}$q$, '250.00');
 SELECT pg_temp.denied('tB', '(5) посилання на оплату з сумою боргу', $q$SELECT issue_payment_link({sB1})->>'total'$q$);
 SELECT pg_temp.denied('tB', '(5) підняти собі ставку за предметом', $q$UPDATE tutor_subject_rates SET rate_per_lesson = 1000 WHERE tutor_id = {tB} RETURNING rate_per_lesson$q$, $q$SELECT rate_per_lesson::text FROM tutor_subject_rates WHERE tutor_id = {tB}$q$, '400.00');
 SELECT pg_temp.denied('tB', '(5) додати собі ставку за новим предметом', $q$INSERT INTO tutor_subject_rates (tutor_id, subject, rate_per_lesson) VALUES ({tB}, 'Математика', 1000) RETURNING rate_per_lesson$q$);
@@ -290,7 +308,8 @@ INSERT INTO ids SELECT 'lB2', (pg_temp.must('tB', 'репетитор школи
 SELECT pg_temp.expect('pg', '(5) урок від репетитора школи: ціна й виплата зі знімка ставок', $q$SELECT student_price||'/'||tutor_payout||'/'||tutor_payout_status FROM lesson_details WHERE lesson_id = {lB2}$q$, '700.00/400.00/unpaid');
 SELECT pg_temp.must('tB', 'домашка на своєму уроці', $q$SELECT update_lesson_details_safe({lB}, '{"homework": "вправа 5"}'::jsonb)$q$);
 SELECT pg_temp.expect('mgrB', '(5) урок репетитора видно його менеджеру', $q$SELECT count(*)::text FROM lessons_visible WHERE id = {lB2} AND student_price = 700$q$, '1');
-DO $$ BEGIN RAISE NOTICE '✅ (5) репетитор школи: лише своя виплата; ставку собі не підніме, урок «повз школу» не поставить, боргів школи не бачить; свій урок і домашку — робить'; END $$;
+SELECT pg_temp.expect('pg', '(5) заявку «я оплатив» репетитор школи не бачить, менеджер бачить', $q$SELECT 'перевіряється в (6)'$q$, 'перевіряється в (6)');
+DO $$ BEGIN RAISE NOTICE '✅ (5) репетитор школи: лише своя виплата — ні контактів учнів, ні цін, ні передоплат; ставку собі не підніме, урок «повз школу» не поставить; свій урок і домашку — робить'; END $$;
 
 -- (6) учень
 SELECT pg_temp.expect('sB1', '(6) учень: свої уроки, ціна своя, виплат не видно', $q$SELECT count(*)||'/'||sum(student_price)||'/'||coalesce(sum(tutor_payout)::text, 'виплат не видно') FROM lessons_visible WHERE starts_at < now()$q$, '2/700.00/виплат не видно');
@@ -302,14 +321,20 @@ SELECT pg_temp.denied('sB1', '(6) учень позначає оплату в г
 SELECT pg_temp.denied('sB1', '(6) учень поповнює собі гаманець', $q$SELECT wallet_topup({tB}, {sB1}, 0, 9999, 'x')$q$);
 SELECT pg_temp.denied('sB1', '(6) учень міняє ціну пари', $q$UPDATE student_rates SET price_per_lesson = 1 WHERE student_id = {sB1} RETURNING price_per_lesson$q$, $q$SELECT price_per_lesson::text FROM student_rates WHERE student_id = {sB1}$q$, '700.00');
 SELECT pg_temp.expect('sB1', '(6) «я оплатив(ла)» проходить', $q$SELECT create_payment_claim({tB}, 700, NULL)->>'ok'$q$, 'true');
+SELECT pg_temp.expect('tB', '(6) заявку із сумою репетитор школи не бачить', $q$SELECT count(*)::text FROM payment_claims$q$, '0');
+SELECT pg_temp.expect('mgrB', '(6) а менеджер школи бачить', $q$SELECT count(*)||'/'||sum(amount) FROM payment_claims$q$, '1/700.00');
 DO $$ BEGIN RAISE NOTICE '✅ (6) учень: свої уроки, ціна, група й домашка — є; виплат і чужого — немає; оплату собі не позначить, «я оплатив(ла)» працює'; END $$;
 
--- (7) груповий урок: виплату база не вигадує; «Виплатити» = те, що на екрані
-SELECT pg_temp.expect('pg', '(7) груповому уроку ставку не підставлено', $q$SELECT string_agg(coalesce(d.tutor_payout, 0)::text, ',') FROM lessons l JOIN lesson_details d ON d.lesson_id = l.id WHERE l.group_id IS NOT NULL$q$, '0,0,0');
-SELECT pg_temp.expect('mgrB', '(7) «до виплати» на екрані менеджера', $q$SELECT payouts_count||'/'||payouts_owed FROM manager_debts_summary()$q$, '1/400.00');
-SELECT pg_temp.expect('mgrB', '(7) «Виплатити» закрило рівно стільки ж', $q$SELECT mark_tutor_payouts_paid({tB})::text$q$, '1');
-SELECT pg_temp.expect('pg', '(7) груповий урок лишився неторканим', $q$SELECT coalesce(tutor_payout_status, 'unpaid') FROM lesson_details WHERE lesson_id = {lgB}$q$, 'unpaid');
-DO $$ BEGIN RAISE NOTICE '✅ (7) груповий урок: ставку не вигадано, «Виплатити» закрило рівно те, що показує екран'; END $$;
+-- (7) груповий урок: виплата — за окремою груповою ставкою; без неї — «не задано»
+SELECT pg_temp.expect('pg', '(7) де групової ставки немає (школи S і А) — виплата 0, індивідуальну не підставлено', $q$SELECT string_agg(coalesce(d.tutor_payout, 0)::text, ',' ORDER BY l.tutor_id = {tB}) FROM lessons l JOIN lesson_details d ON d.lesson_id = l.id WHERE l.group_id IS NOT NULL AND l.starts_at < now() AND l.tutor_id <> {tB}$q$, '0,0');
+SELECT pg_temp.expect('pg', '(7) де групова ставка є (школа Б) — саме вона, 250, не 400', $q$SELECT d.tutor_payout||'/'||d.tutor_payout_status FROM lesson_details d WHERE d.lesson_id = {lgB}$q$, '250.00/unpaid');
+SELECT pg_temp.expect('mgrB', '(7) «до виплати» на екрані менеджера: індивідуальний 400 + груповий 250', $q$SELECT payouts_count||'/'||payouts_owed FROM manager_debts_summary()$q$, '2/650.00');
+SELECT pg_temp.expect('mgrB', '(7) «Виплатити» закрило рівно стільки ж уроків', $q$SELECT mark_tutor_payouts_paid({tB})::text$q$, '2');
+SELECT pg_temp.expect('mgrB', '(7) у витратах періоду — обидві виплати', $q$SELECT finances_period_totals(now() - interval '30 days')->>'paid_expense'$q$, '650.00');
+SELECT pg_temp.must('mgrA', 'менеджер А задає групову ставку заднім числом', $q$UPDATE tutor_details SET group_rate_per_lesson = 180 WHERE user_id = {tA} RETURNING user_id$q$);
+SELECT pg_temp.expect('mgrA', '(7) збереження ставки дотягує вже проведений груповий урок', $q$SELECT backfill_tutor_payouts_for_tutor({tA})::text$q$, '1');
+SELECT pg_temp.expect('pg', '(7) і це групова ставка, 180', $q$SELECT d.tutor_payout::text FROM lesson_details d WHERE d.lesson_id = {lgA}$q$, '180.00');
+DO $$ BEGIN RAISE NOTICE '✅ (7) груповий урок: виплата за окремою груповою ставкою (250, не індивідуальні 400); без ставки — «не задано»; «до виплати», «Виплатити» і витрати періоду рахують її так само, як індивідуальну'; END $$;
 
 -- (8) лінза суперадміна
 SELECT pg_temp.expect('sa', '(8) типово — лише власна школа', $q$SELECT count(*)||'/'||sum(student_price) FROM lessons_visible$q$, '2/500.00');

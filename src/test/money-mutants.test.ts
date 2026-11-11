@@ -110,7 +110,10 @@ describe("financials: межі, які ловили мутанти", () => {
     expect(isPayoutDueLesson({ ...base, status: "cancelled" }, NOW)).toBe(false);
     expect(isPayoutDueLesson({ ...base, status: "pending" }, NOW)).toBe(false);
     expect(isPayoutDueLesson({ ...base, tutor_payout_status: "paid" }, NOW)).toBe(false);
-    expect(isPayoutDueLesson({ ...base, is_group: true }, NOW)).toBe(false);
+    // 11.11: рядок учасника групи виплати не несе (сума 0) — відсікає сума, не прапорець;
+    // а рядок виплати за групове заняття (сума > 0) — така сама виплата.
+    expect(isPayoutDueLesson({ ...base, is_group: true, tutor_payout: 0 }, NOW)).toBe(false);
+    expect(isPayoutDueLesson({ ...base, is_group: true }, NOW)).toBe(true);
   });
 
   it("grossMarkupPct: рахує лише рядки з обома сторонами > 0", () => {

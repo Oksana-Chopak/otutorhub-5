@@ -11,6 +11,7 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import i18nInstance from "@/i18n";
+import { pairsRel } from "@/lib/pairsRel";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface PairRow {
@@ -56,7 +57,7 @@ export default function WalletsPage() {
     // 1. Pairs (student_rates) + balances in ONE round-trip — they're independent;
     //    only the profiles lookup depends on the pairs result.
     let ratesQ = supabase
-      .from("student_rates")
+      .from(await pairsRel())
       .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
       .is("archived_at", null);
     if (isIndependentTutor && user) {

@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { pairsRel } from "@/lib/pairsRel";
 
 export interface OnboardingProgress {
   hasAvailability: boolean;
@@ -77,7 +78,7 @@ export function useOnboardingProgress(): OnboardingProgress & { refetch: () => v
       // непорожні реквізити; поки учнів немає — крок не показуємо зовсім
       // (реквізити вводяться у формі учня, тож спершу «додай учня»).
       safe(
-        (supabase.from("student_rates") as any)
+        (supabase.from(await pairsRel()) as any)
           .select("id")
           .eq("tutor_id", user.id)
           .is("archived_at", null)
@@ -87,7 +88,7 @@ export function useOnboardingProgress(): OnboardingProgress & { refetch: () => v
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(
-        (supabase.from("student_rates") as any)
+        (supabase.from(await pairsRel()) as any)
           .select("id")
           .eq("tutor_id", user.id)
           .is("archived_at", null)

@@ -101,9 +101,9 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         .from("profiles")
         .select("id, first_name, last_name, archived_at, is_pending")
         .in("id", tutorIds);
-      const activeTutors = (profs ?? []).filter(
-        (p: any) => !p.archived_at && !p.is_pending,
-      );
+      // 11.11: репетитор, який ще не зареєструвався, — теж репетитор школи: менеджер
+      // призначає йому учнів заздалегідь, а після реєстрації все переноситься на акаунт.
+      const activeTutors = (profs ?? []).filter((p: any) => !p.archived_at);
       const { data: tdetails } = await supabase
         .from("tutor_details")
         .select("user_id, rate_per_lesson")

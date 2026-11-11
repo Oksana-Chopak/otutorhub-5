@@ -45,6 +45,7 @@ import { ChatAttachment } from "@/components/ChatAttachment";
 import { MessageReactions, type Reaction } from "@/components/MessageReactions";
 import { ChatContextPanel } from "@/components/ChatContextPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { pairsRel } from "@/lib/pairsRel";
 
 interface MessageAttachment {
   id: string;
@@ -187,7 +188,7 @@ export default function ChatsPage() {
           .select("tutor_id, student_id")
           .or(`tutor_id.eq.${myId},student_id.eq.${myId}`),
         supabase
-          .from("student_rates")
+          .from(await pairsRel())
           .select("tutor_id, student_id")
           .or(`tutor_id.eq.${myId},student_id.eq.${myId}`),
       ]);
@@ -790,7 +791,7 @@ export default function ChatsPage() {
 
     const [lessonsRes, ratesRes] = await Promise.all([
       supabase.from("lessons").select("tutor_id, student_id"),
-      supabase.from("student_rates").select("tutor_id, student_id"),
+      supabase.from(await pairsRel()).select("tutor_id, student_id"),
     ]);
 
     const seen = new Set<string>();

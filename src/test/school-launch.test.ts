@@ -96,10 +96,51 @@ describe("інтерфейс: шлях власниці школи без глу
     expect(s).not.toMatch(/setQuickSlot\(new Date\(\)\)/);
   });
 
-  it("груповому уроку картка не показує «ставку не задано» (виплати за групу в моделі немає)", () => {
+  /* 11.11, рішення власниці: виплата за групове заняття Є (ставка «за групове заняття»).
+     Тож груповий урок без виплати каже «ставку не задано» так само, як індивідуальний,
+     а дотик веде у ту саму форму ставки — одразу на поле групової. */
+  it("груповий урок без виплати теж каже «ставку не задано», і кнопка веде в поле групової ставки", () => {
     const card = code(read("src/components/LessonCard.tsx"));
     const line = card.split("\n").find((l) => l.includes("const payoutMissing"))!;
-    expect(line).toMatch(/!lesson\.group_id/);
+    expect(line).not.toMatch(/group_id/);
+    for (const p of ["src/pages/DashboardPage.tsx", "src/pages/SchedulePage.tsx"]) {
+      const s = read(p);
+      expect(s, p).toMatch(/subject: lesson\.group_id \? null : lesson\.subject \?\? null, group: !!lesson\.group_id/);
+      expect(s, p).toMatch(/focusGroup=\{rateFor\?\.group\}/);
+    }
+    const dlg = read("src/components/TutorRateDialog.tsx");
+    expect(dlg).toMatch(/const GROUP_RATE_COL = "group_rate_per_lesson"/);
+    expect(dlg, "колонки ще немає в базі → поля немає, і ми її не пишемо").toMatch(/if \(groupRate !== null\) \{/);
+    expect(dlg, "безпечне збереження діє і для групової").toMatch(/if \(gr\.error \|\| td\.error \|\| sr\.error\) setGroupRate\(null\)/);
+  });
+
+  it("виплата за групове — у «Фінансах» окремим рядком на урок, і в тих самих підсумках", () => {
+    const fin = read("src/pages/FinancesPage.tsx");
+    expect(fin).toMatch(/kind: "groupPayout" as const/);
+    expect(fin, "доходи, борги учнів і аналітика цих рядків не бачать").toMatch(/lessons\.filter\(\(l\) => l\.kind !== "groupPayout" &&/);
+    expect(fin).toMatch(/\[\.\.\.tutorScoped, \.\.\.groupPayoutScoped\]\.filter\(\(l\) => isPayoutDueLesson\(l, nowMs\)\)/);
+    expect(fin).toMatch(/paidExpense\(periodBillable\) \+ paidExpense\(periodGroupPayouts\)/);
+    const lib = read("src/lib/financials.ts");
+    const pred = lib.slice(lib.indexOf("export const isPayoutDueLesson"), lib.indexOf("export function sumByCurrency"));
+    expect(pred, "групові більше не відсікаються правилом — лише сумою").not.toMatch(/is_group/);
+    const digest = read("supabase/functions/tutor-daily-digest/index.ts");
+    const dp = digest.slice(digest.indexOf("const isPayoutDue = "), digest.indexOf("const unpaidLessons"));
+    expect(dp).not.toMatch(/group_id/);
+  });
+
+  it("репетитор школи читає пари через вʼю з маскою, запис іде в таблицю", () => {
+    const helper = read("src/lib/pairsRel.ts");
+    expect(helper).toMatch(/const VIEW = "student_pairs_visible"/);
+    expect(helper, "вʼю ще немає → таблиця, як раніше").toMatch(/\? VIEW : "student_rates"/);
+    for (const p of ["src/components/QuickLessonDialog.tsx", "src/pages/SchedulePage.tsx", "src/pages/DashboardPage.tsx", "src/pages/ChatsPage.tsx", "src/pages/GroupsPage.tsx", "src/components/StudentMaterials.tsx"]) {
+      const s = read(p);
+      expect(s, p).toMatch(/pairsRel\(\)/);
+      // усе, що лишилось на таблиці напряму, — запис
+      for (const m of s.matchAll(/\.from\("student_rates"\)([\s\S]{0,40})/g)) {
+        if (p.endsWith("DashboardPage.tsx") && /\.select\("student_id,arch/.test(m[1].replace(/\s+/g, ""))) continue; // лічильник самостійного
+        expect(m[1], p).toMatch(/^\s*\.(upsert|update|insert|delete)\(/);
+      }
+    }
   });
 
   it("репетитор школи бачить назву СВОЄЇ школи, а не вшиту", () => {
