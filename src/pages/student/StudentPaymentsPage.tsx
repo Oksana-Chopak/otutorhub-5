@@ -443,7 +443,9 @@ export default function StudentPaymentsPage() {
                       <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2.5" style={{ marginLeft: "auto", minWidth: 0 }}>
-                      <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
+                      <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{/* 11.11: ціни ще немає (груповий урок, де менеджер не задав ціну учасника) —
+                          кажемо це словами. «0 ₴» учень і батьки читають як «безкоштовно». */}
+                        {Number(r.student_price ?? 0) > 0 ? formatPrice(r.student_price, r.currency, { decimals: 0 }) : t("lessonWorkspaceExtra.priceNotSet")}</span>
                       {/* «Очікує» — лише про борг (проведене/штраф); майбутнє — нейтральне «Заплановано» */}
                       <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : isOwedRow(r) ? "rgba(245,158,11,.16)" : "rgba(148,155,185,.16)", color: paid ? "var(--success-text,#107836)" : isOwedRow(r) ? "var(--warning-text,#A74D08)" : "var(--sub,#62677E)" }}>
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}

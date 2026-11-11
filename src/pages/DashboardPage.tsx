@@ -42,8 +42,11 @@ import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
+import { useGroupNames } from "@/hooks/useGroupNames";
 import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
+import { SchoolSetupCard } from "@/components/SchoolSetupCard";
+import { useMyHub } from "@/hooks/useMyHub";
 import { PaymentClaimsCard } from "@/components/PaymentClaimsCard";
 import { AfterLessonSheet, type QueueLesson } from "@/components/AfterLessonSheet";
 import { ActionItemsCard } from "@/components/ActionItemsCard";
@@ -118,6 +121,8 @@ interface LessonRow {
   is_cancellation_fee?: boolean;
   /** Перенесений з іншого обліку борг (імпорт 07.09): у гроші входить, у списки уроків — ні. */
   carried_over?: boolean;
+  /** Груповий урок: student_id порожній, учні — в lesson_participants. */
+  group_id?: string | null;
 }
 
 interface ProfileRow {
@@ -190,6 +195,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
+  // 11.11: репетитор школи бачив на плашці «Хаб «oTutorHub»» — вшиту назву замість своєї школи
+  const { hub: myHub } = useMyHub();
+  const groupNames = useGroupNames(lessons); // 11.11: груповий урок підписуємо назвою групи
   // Money-only rows for the profit card / payout figures: 6 calendar months back
   // (the main `lessons` window is 30d back / 14d fwd — mid-month that hides most
   // of "last month", so mom-% and the 6-month bars were fabricated-low).
@@ -506,7 +514,7 @@ export default function DashboardPage() {
         const run = (withCarried: boolean) => {
           let q = supabase
             .from("lessons_visible")
-            .select(("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee" + (withCarried ? ", carried_over" : "")) as any)
+            .select(("id, tutor_id, student_id, group_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee" + (withCarried ? ", carried_over" : "")) as any)
             .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())  // last 30 days
             .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())  // next 14 days
             .limit(150);
@@ -553,7 +561,7 @@ export default function DashboardPage() {
         // (і штрафи, і перенесені) старші за вікно — та сама правда, що у «Фінансах».
         let q = supabase
           .from("lessons_visible")
-          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee, carried_over")
+          .select("id, tutor_id, student_id, group_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee, carried_over")
           .lt("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .in("status", ["completed", "cancelled"])
           .neq("student_payment_status", "paid")
@@ -2164,6 +2172,8 @@ export default function DashboardPage() {
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
             <>
+              {/* 11.11: порожня школа — спершу веде «Запуск школи» (сама зникає з першим уроком) */}
+              <SchoolSetupCard />
               {/* Mobile/tablet: Profit (2/3) + Students (1/3); then Tutors + Lessons.
                   Desktop (lg) uses the 4-col grid below. Profit taps → Finances. */}
               <div className="grid grid-cols-3 gap-3 lg:hidden">
@@ -2328,7 +2338,7 @@ export default function DashboardPage() {
                   }}
                 >
                   <GraduationCap className="h-[15px] w-[15px]" />
-                  {t("hubTutor.hubChip", { name: t("hubTutor.hubFallbackName") })}
+                  {t("hubTutor.hubChip", { name: myHub?.name ?? t("hubTutor.hubFallbackName") })}
                 </span>
               </div>
               {/* Mobile/tablet bubbles (lg uses the manager-style compact row
@@ -2357,7 +2367,7 @@ export default function DashboardPage() {
                     style={{ background: "rgba(255,255,255,.16)", color: "#fff" }}
                   >
                     <GraduationCap className="h-[15px] w-[15px]" />
-                    {t("hubTutor.hubChip", { name: t("hubTutor.hubFallbackName") })}
+                    {t("hubTutor.hubChip", { name: myHub?.name ?? t("hubTutor.hubFallbackName") })}
                   </span>
                 </div>
                 <p
@@ -2633,7 +2643,7 @@ export default function DashboardPage() {
                     ...Object.values(exitingPay).filter((l: any) => !pendingPayments.some((p) => p.id === l.id)),
                   ].map((lesson: any) => {
                     const tutorName = profiles[lesson.tutor_id] ?? "—";
-                    const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : t("groupLessons.cardLabel");
+                    const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : ((lesson.group_id && groupNames.get(lesson.group_id)) || t("groupLessons.cardLabel"));
                     const meetingHref = effectiveMeetingUrl(lesson);
                     const isExiting = !!exitingPay[lesson.id];
                     return (
@@ -2793,7 +2803,7 @@ export default function DashboardPage() {
                     const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
                     const meetingHref = effectiveMeetingUrl(lesson);
                     const tutorName = profiles[lesson.tutor_id] ?? "—";
-                    const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : t("groupLessons.cardLabel");
+                    const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : ((lesson.group_id && groupNames.get(lesson.group_id)) || t("groupLessons.cardLabel"));
 
                     if (isManager && !isParticipant) {
                       const canEditStatus = true;

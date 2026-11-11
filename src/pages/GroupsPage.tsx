@@ -153,6 +153,8 @@ export default function GroupsPage() {
 
   const enrollCountFor = (gid: string) =>
     enrollments.filter((e) => e.group_id === gid && e.status === "active").length;
+  const noPriceCountFor = (gid: string) =>
+    enrollments.filter((e) => e.group_id === gid && e.status === "active" && !(Number(e.price_per_lesson ?? 0) > 0)).length;
 
   return (
     <>
@@ -202,6 +204,15 @@ export default function GroupsPage() {
                 <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 12px", borderRadius: 999, background: "#f0fdf9", color: "var(--teal-text,#1a7a6c)", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                   👥 {t("groupsPage.membersCount", { count: enrollCountFor(g.id) })}
                 </div>
+                {/* 11.11: група, зібрана у формі уроку, народжується без ціни учасників
+                    (свідомо — групова ціна не дорівнює індивідуальній). Але ніде не було
+                    сказано, що її ще треба задати: уроки йшли, а боргу не виникало.
+                    Менеджеру ціни видно — йому й кажемо. Репетитору школи вони замасковані. */}
+                {isManager && noPriceCountFor(g.id) > 0 && (
+                  <div style={{ marginTop: 8, marginLeft: 8, display: "inline-flex", alignItems: "center", gap: 6, minHeight: 30, padding: "4px 12px", borderRadius: 999, background: "rgba(245,158,11,.12)", color: "var(--warning-text,#B45309)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                    ⚠️ {t("groupsPage.noPriceChip", { count: noPriceCountFor(g.id) })}
+                  </div>
+                )}
               </button>
             ))}
           </div>

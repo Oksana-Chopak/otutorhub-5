@@ -29,6 +29,10 @@ interface Props {
   studentId?: string | null;
   /** Whether the auto-invite email was already sent successfully */
   emailSent?: boolean;
+  /** Назва школи — щоб запрошення казало, КУДИ кличуть (менеджер школи). */
+  hubName?: string | null;
+  /** Менеджер школи: учня ще треба прикріпити до репетитора — це й є наступний крок. */
+  onAssignTutor?: () => void;
 }
 
 export function InviteLinkDialog({
@@ -41,6 +45,8 @@ export function InviteLinkDialog({
   role = "student",
   studentId,
   emailSent = false,
+  hubName,
+  onAssignTutor,
 }: Props) {
   const navigate = useNavigate();
   const [copiedLink, setCopiedLink] = useState(false);
@@ -62,11 +68,17 @@ export function InviteLinkDialog({
     const greeting = personName ? t("inviteLink.greeting", { name: personName }) : t("inviteLink.greetingGeneric");
     const who = inviterName ? ` (${inviterName})` : "";
     const contact = email ? t("inviteLinkExtra.contactEmail") : t("inviteLinkExtra.contactGeneric");
-    const intro = isTutor
-      ? t("inviteLinkExtra.introTutor", { who, contact })
-      : t("inviteLinkExtra.introStudent", { who, contact });
+    // 11.11: запрошення від ШКОЛИ називає школу — «приєднайся до oTutorHub» від
+    // незнайомого сервісу людина, яку взяли на роботу в «Lingua School», не впізнає.
+    const intro = hubName
+      ? (isTutor
+          ? t("inviteLinkExtra.introTutorSchool", { school: hubName, contact })
+          : t("inviteLinkExtra.introStudentSchool", { school: hubName, contact }))
+      : (isTutor
+          ? t("inviteLinkExtra.introTutor", { who, contact })
+          : t("inviteLinkExtra.introStudent", { who, contact }));
     return `${greeting}\n\n${intro}\n\n👉 ${inviteUrl}`;
-  }, [personName, inviterName, email, inviteUrl, isTutor]);
+  }, [personName, inviterName, email, inviteUrl, isTutor, hubName]);
 
   const copy = async (text: string, kind: "link" | "message") => {
     try {
@@ -123,7 +135,7 @@ export function InviteLinkDialog({
           <div style={{ width: 64, height: 64, margin: "4px auto 0", borderRadius: 20, background: "linear-gradient(135deg,#2BBFAA,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, boxShadow: "0 14px 30px -12px rgba(43,191,170,.7)" }}>🎉</div>
           <DialogTitle asChild>
             <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 23, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)", marginTop: 14 }}>
-              {firstName} {t("inviteLinkExtra.addedSuffix")}
+              {t("inviteLinkExtra.addedTitle", { name: firstName })}
             </div>
           </DialogTitle>
           <DialogDescription asChild>
@@ -216,7 +228,21 @@ export function InviteLinkDialog({
 
         {/* Footer — Done */}
         <div className="shrink-0" style={{ padding: "14px 20px 20px", borderTop: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
-          {role === "student" && studentId ? (
+          {role === "student" && studentId && onAssignTutor ? (
+            <>
+              {/* 11.11: у школі доданий учень ще нічий. «Запланувати перший урок» вів
+                  менеджера у форму, яка відповідала «спочатку додайте учня», — тупик.
+                  Справжній наступний крок — прикріпити до репетитора й назвати ціну. */}
+              <button onClick={() => { onOpenChange(false); onAssignTutor(); }}
+                style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                {t("inviteLinkExtra.assignTutorNext")}
+              </button>
+              <button onClick={() => onOpenChange(false)}
+                style={{ width: "100%", height: 44, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#62677E)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+                {t("inviteLinkExtra.doneBtn")}
+              </button>
+            </>
+          ) : role === "student" && studentId ? (
             <>
               {/* A13: «Готово»-тупик → місток у ПЕРШИЙ урок з цим учнем (deep-link форми). */}
               <button onClick={() => { onOpenChange(false); navigate(`/schedule?create=1&student=${studentId}`); }}

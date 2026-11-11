@@ -285,6 +285,10 @@ export default function AdminStatsPage() {
   const [state, setState] = useState<"loading" | "noaccess" | "error" | "ready">("loading");
   const [stats, setStats] = useState<Stats | null>(null);
   const [detail, setDetail] = useState<CrmRow | null>(null);
+  /* 11.11: «Школи» читають базу напряму (RPC), а не edge-статистику. Раніше збій
+     admin-stats ховав і їх — у день підключення школи власниця лишилась би без
+     кнопки. Тепер картка шкіл живе, щойно підтверджено, що це суперадмін. */
+  const [isAdmin, setIsAdmin] = useState(false);
 
   /* Аудит 03.09: завантаження жило всередині useEffect, тож кнопці
      «Спробувати ще» не було що викликати. Піднято у функцію. */
@@ -299,6 +303,7 @@ export default function AdminStatsPage() {
         const { data: isAdmin, error: adminErr } = await (supabase as any).rpc("is_superadmin");
         if (adminErr) { setState("error"); return; }
         if (isAdmin !== true) { setState("noaccess"); return; }
+        setIsAdmin(true);
         const { data, error } = await supabase.functions.invoke("admin-stats");
         if (error || !data) { setState("error"); return; }
         setStats(data as Stats);
@@ -368,10 +373,15 @@ export default function AdminStatsPage() {
           </div>
         )}
 
+        {/* ── Школи: підключення онлайн-шкіл (модель «школа = сутність») ── */}
+        {isAdmin && (state === "ready" || state === "error") && (
+          <div className="mt-5">
+            <SchoolsCard />
+          </div>
+        )}
+
         {state === "ready" && stats && (
           <div className="mt-5 space-y-6">
-            {/* ── Школи: підключення онлайн-шкіл (модель «школа = сутність») ── */}
-            <SchoolsCard />
             {/* ── Воронка лендінгу: хто порахував гроші й пішов ── */}
             <LandingFunnelCard />
             {/* ── CRM: хто платить, хто відвалюється, кому писати ── */}

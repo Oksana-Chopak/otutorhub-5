@@ -45,6 +45,8 @@ interface Props {
   startsAt: Date | null;
   onCreated?: () => void;
   initialStudentId?: string | null;
+  /** Менеджер приходить з уже відомим репетитором (з «Людей» після прикріплення учня). */
+  initialTutorId?: string | null;
   /** "hub": the dialog serves a HUB tutor — students come from their hub rates
    * (source='hub'), lessons are created with source='hub', and the add-student
    * CTA is hidden (hub students are owned by the manager). Default: independent. */
@@ -85,6 +87,7 @@ export function QuickLessonDialog({
   startsAt,
   onCreated,
   initialStudentId,
+  initialTutorId,
   variant = "independent",
 }: Props) {
   const isHubVariant = variant === "hub";
@@ -103,6 +106,7 @@ export function QuickLessonDialog({
   const lessonSource: "independent" | "hub" = variant === "independent" ? "independent" : "hub";
   const [tutorOptions, setTutorOptions] = useState<{ id: string; name: string }[]>([]);
   const [selTutorId, setSelTutorId] = useState<string>("");
+  const [tutorsLoaded, setTutorsLoaded] = useState(false);
   const { user } = useAuth();
   const effTutorId = isManager ? selTutorId : user?.id;
   const { t } = useTranslation();
@@ -115,15 +119,22 @@ export function QuickLessonDialog({
     (async () => {
       const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "tutor");
       const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
-      if (ids.length === 0) { setTutorOptions([]); return; }
+      if (ids.length === 0) { setTutorOptions([]); setTutorsLoaded(true); return; }
       const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
-      setTutorOptions(
-        (profs ?? [])
-          .map((p: any) => ({ id: p.id, name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() }))
-          .sort((a, b) => a.name.localeCompare(b.name, "uk")),
-      );
+      const opts = (profs ?? [])
+        .map((p: any) => ({ id: p.id, name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() }))
+        .sort((a, b) => a.name.localeCompare(b.name, "uk"));
+      setTutorOptions(opts);
+      setTutorsLoaded(true);
+      /* 11.11: репетитор уже відомий — не змушуємо обирати його вдруге: прийшли з
+         «Людей» із парою (initialTutorId) або у школі він поки один. */
+      setSelTutorId((cur) => {
+        if (cur && opts.some((o) => o.id === cur)) return cur;
+        if (initialTutorId && opts.some((o) => o.id === initialTutorId)) return initialTutorId;
+        return opts.length === 1 ? opts[0].id : cur;
+      });
     })();
-  }, [dataVersion, open, isManager]);
+  }, [dataVersion, open, isManager, initialTutorId]);
   const [studentId, setStudentId] = useState<string>("");
   // B18: якщо користувач ще не чіпав час — підставляємо «та сама пара +7 днів».
   const [timeTouched, setTimeTouched] = useState(false);
@@ -632,7 +643,17 @@ export function QuickLessonDialog({
             ) : students.length === 0 && groups.length === 0 ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
                 <p style={{ fontSize: 15, color: F.sub, marginBottom: 14, fontFamily: F.body }}>
-                  {isHubVariant ? t("quickLessonDialog.hubNoStudentsHint") : t("quickLessonDialog.noStudentsHint")}
+                  {/* 11.11: менеджеру казали «спочатку додайте першого учня» у трьох РІЗНИХ
+                      ситуаціях — і в жодній це не було правдою: (а) у школі ще немає
+                      репетитора, (б) репетитора ще не обрано, (в) учні у школі є, але
+                      жодного не прикріплено до ЦЬОГО репетитора. Кожна — свій текст і дія. */}
+                  {isManager
+                    ? (tutorsLoaded && tutorOptions.length === 0
+                        ? t("quickLessonDialog.managerNoTutorsHint")
+                        : !selTutorId
+                          ? t("quickLessonDialog.managerPickTutorHint")
+                          : t("quickLessonDialog.managerNoPairsHint", { name: tutorOptions.find((o) => o.id === selTutorId)?.name ?? "" }))
+                    : isHubVariant ? t("quickLessonDialog.hubNoStudentsHint") : t("quickLessonDialog.noStudentsHint")}
                 </p>
                 {/* «Додати учня» тут заводить НЕЗАЛЕЖНОГО учня під того, хто натиснув
                     (RPC add_or_link_independent_student). Менеджерові це не підходить:
@@ -646,13 +667,13 @@ export function QuickLessonDialog({
                     + {t("quickLessonDialog.addStudentBtn")}
                   </button>
                 )}
-                {isManager && (
-                  <Link to="/people?add=student" onClick={() => onOpenChange(false)}
+                {isManager && tutorsLoaded && (tutorOptions.length === 0 || !!selTutorId) && (
+                  <Link to={tutorOptions.length === 0 ? "/people?add=tutor" : "/people?tab=students"} onClick={() => onOpenChange(false)}
                     style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 20px",
                       borderRadius: 12, textDecoration: "none",
                       background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                       fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
-                    + {t("quickLessonDialog.addStudentBtn")}
+                    {tutorOptions.length === 0 ? t("quickLessonDialog.managerAddTutorBtn") : t("quickLessonDialog.managerAttachStudentBtn")}
                   </Link>
                 )}
               </div>

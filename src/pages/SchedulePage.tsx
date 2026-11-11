@@ -60,6 +60,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { useGroupNames } from "@/hooks/useGroupNames";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
@@ -91,6 +92,8 @@ interface Lesson {
   tutor_payout_status: PaymentStatus;
   meeting_url?: string | null;
   source?: LessonSource;
+  /** Груповий урок: student_id порожній, учні — в lesson_participants. */
+  group_id?: string | null;
 }
 
 interface PersonOption {
@@ -171,6 +174,7 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const groupNames = useGroupNames(lessons); // 11.11: груповий урок підписуємо назвою групи
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
@@ -195,6 +199,7 @@ export default function SchedulePage() {
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [quickStudentId, setQuickStudentId] = useState<string | null>(null);
+  const [quickTutorId, setQuickTutorId] = useState<string | null>(null); // 11.11: менеджер приходить із «Людей» з уже обраним репетитором
   const [quickSlot, setQuickSlot] = useState<Date | null>(null);
   const [form, setForm] = useState({
     tutor_id: "",
@@ -274,7 +279,7 @@ export default function SchedulePage() {
         // немає — запит без неї (той самий фолбек, що й у Фінансах).
         const run = (withCarried: boolean) => supabase
           .from("lessons_visible")
-          .select(("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status" + (withCarried ? ", carried_over" : "")) as any)
+          .select(("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, group_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status" + (withCarried ? ", carried_over" : "")) as any)
           .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
           .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
           .order("starts_at", { ascending: false })
@@ -989,9 +994,18 @@ export default function SchedulePage() {
       // 11.09: нова форма для ВСІХ ролей — менеджер сюди вже ходив, тепер і решта.
       // Передвибір учня з чату («створити урок») переїхав у initialStudentId.
       setQuickStudentId(searchParams.get("student"));
-      setQuickSlot(new Date());
+      setQuickTutorId(searchParams.get("tutor"));
+      {
+        // 11.11: тут стояло new Date() — урок із посилання («запланувати урок»,
+        // картка запуску школи) народжувався «зараз, о 14:29». Як і FAB: наступна повна година.
+        const d = new Date();
+        d.setMinutes(0, 0, 0);
+        d.setHours(d.getHours() + 1);
+        setQuickSlot(d);
+      }
       const n = new URLSearchParams(searchParams);
       n.delete("create");
+      n.delete("tutor");
       n.delete("student");
       setSearchParams(n, { replace: true });
     }
@@ -1633,7 +1647,7 @@ export default function SchedulePage() {
                   {shown.map((lesson) => {
                     const tutorName = profilesMap[lesson.tutor_id] ?? "?";
                     // Group lessons have no student_id — label the card honestly.
-                    const studentName = lesson.student_id ? (profilesMap[lesson.student_id] ?? "?") : t("groupLessons.cardLabel");
+                    const studentName = lesson.student_id ? (profilesMap[lesson.student_id] ?? "?") : ((lesson.group_id && groupNames.get(lesson.group_id)) || t("groupLessons.cardLabel"));
                     const canEditStatus =
                       isManager || (isTutor && lesson.tutor_id === user?.id);
                     const canDelete =
@@ -1731,9 +1745,10 @@ export default function SchedulePage() {
       )}
       <QuickLessonDialog
         open={!!quickSlot}
-        onOpenChange={(v) => { if (!v) { setQuickSlot(null); setQuickStudentId(null); } }}
+        onOpenChange={(v) => { if (!v) { setQuickSlot(null); setQuickStudentId(null); setQuickTutorId(null); } }}
         startsAt={quickSlot}
         initialStudentId={quickStudentId}
+        initialTutorId={quickTutorId}
         onCreated={() => loadAll()}
         variant={isManager ? "manager" : isIndependentTutor ? "independent" : "hub"}
       />

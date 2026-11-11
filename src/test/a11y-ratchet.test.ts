@@ -655,7 +655,9 @@ describe("матеріали учня · хронологія, розгорну�
         .not.toMatch(/\{withPayout && lesson\.tutor_payout != null && \(/);
       expect(lc, "попередження менеджеру мусить ловити і 0, і NULL")
         .not.toMatch(/\{manager && lesson\.tutor_payout == null && \(/);
-      expect(lc).toMatch(/const payoutMissing = withPayout && manager && !hasAmount\(lesson\.tutor_payout\);/);
+      // 11.11: груповому уроку рядок не показуємо (виплати за групу в моделі немає) —
+      // намір розтяжки той самий: «нуль = не задано» вирішує hasAmount, а не порівняння з 0.
+      expect(lc).toMatch(/const payoutMissing = withPayout && manager && !lesson\.group_id && !hasAmount\(lesson\.tutor_payout\);/);
       // і сама рамка рядків оплат не малюється порожньою
       // 26.09 (аудит шляхів §4): додався рядок-дія «Ціну не задано» для
       // САМОСТІЙНОГО репетитора — та сама логіка «нуль = не задано», інша сторона

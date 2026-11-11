@@ -25,17 +25,26 @@ export function useMyHub(): { hub: MyHub | null; loading: boolean } {
     let active = true;
     setLoading(true);
     // cast: hubs потрапляє у згенеровані типи лише після міграції
-    (supabase as any)
-      .from("hubs")
-      .select("id, name, created_at")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .then(({ data, error }: { data: MyHub[] | null; error: unknown }) => {
+    const sb = supabase as any;
+    (async () => {
+      try {
+        const { data, error } = await sb.from("hubs").select("id, name, created_at").order("created_at", { ascending: true });
         if (!active) return;
-        setHub(!error && data && data.length > 0 ? { id: data[0].id, name: data[0].name } : null);
-        setLoading(false);
-      })
-      .catch(() => { if (active) setLoading(false); });
+        const rows: MyHub[] = !error && Array.isArray(data) ? data : [];
+        let pick: MyHub | null = rows[0] ?? null;
+        if (rows.length > 1) {
+          /* Більше однієї школи бачить лише суперадмін. «Перша за датою» — не
+             обовʼязково та, на яку він дивиться: питаємо базу (11.11, лінза).
+             RPC ще немає в базі — лишається перша, як було. */
+          const { data: mine } = await sb.rpc("caller_hub_id");
+          if (!active) return;
+          pick = rows.find((h) => h.id === mine) ?? pick;
+        }
+        setHub(pick ? { id: pick.id, name: pick.name } : null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
     return () => { active = false; };
   }, [user?.id]);
 

@@ -30,6 +30,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useMyHub } from "@/hooks/useMyHub";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   GraduationCap,
@@ -219,6 +220,7 @@ export default function PeoplePage() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [walletPair, setWalletPair] = useState<{ student: UserRow; tutorId: string; tutorName: string } | null>(null);
   const navigate = useNavigate();
+  const { hub: myHub } = useMyHub();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Open the add-person sheet with a preselected role (defaults to the active
@@ -710,7 +712,16 @@ export default function PeoplePage() {
       return;
     }
     await ensureTutorSubject(addTutorToStudent.tutorId, addTutorToStudent.subject);
-    toast.success(t("people.tutorAddedToStudent"));
+    {
+      // 11.11: пара готова — наступний крок один: урок. Веде туди з уже обраними
+      // репетитором і учнем (раніше треба було йти в розклад і обирати обох знову).
+      const sid = addTutorToStudent.studentId;
+      const tid = addTutorToStudent.tutorId;
+      toast.success(t("people.tutorAddedToStudent"), {
+        duration: 8000,
+        action: { label: t("people.scheduleLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${sid}&tutor=${tid}`) },
+      });
+    }
     setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();
   };
@@ -1682,6 +1693,19 @@ renderEmptyTab("managers")
         role={invite.role}
         studentId={invite.studentId}
         emailSent={invite.emailSent}
+        hubName={isManager ? myHub?.name ?? null : null}
+        onAssignTutor={isManager && invite.role === "student" && invite.studentId ? () => {
+          setActiveRoleTab("students");
+          setAddTutorToStudent({
+            open: true,
+            studentId: invite.studentId as string,
+            studentName: invite.name,
+            tutorId: "",
+            subject: "",
+            price: "",
+            currency: "UAH",
+          });
+        } : undefined}
       />
 
       {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
@@ -1708,8 +1732,11 @@ renderEmptyTab("managers")
                     buried Select, so adding a tutor vs a student is obvious up front. */}
                 <div>
                   <Label>{t("people.fieldRole")}</Label>
-                  <div role="tablist" className="mt-1.5 grid grid-cols-3 gap-1 rounded-[12px] bg-[#F5F4F0] p-1">
-                    {(["tutor", "student", "manager"] as AppRole[]).map((r) => {
+                  {/* 11.11: «Менеджер» звідси прибрано. Цю роль видає лише платформа разом
+                      зі школою (create_hub); запис із «Людей» база відбивала ПІСЛЯ того,
+                      як профіль уже створено — менеджер бачив «не вдалося призначити роль». */}
+                  <div role="tablist" className="mt-1.5 grid grid-cols-2 gap-1 rounded-[12px] bg-[#F5F4F0] p-1">
+                    {(["tutor", "student"] as AppRole[]).map((r) => {
                       const active = addForm.role === r;
                       return (
                         <button
@@ -1885,7 +1912,7 @@ renderEmptyTab("managers")
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[22px] font-extrabold leading-tight text-foreground truncate">
+                    <p className="text-[20px] font-extrabold leading-tight text-foreground break-words" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {fullName(u)}
                     </p>
                     <p className="text-[14px] mt-0.5" style={{ color: "var(--sub,#62677E)" }}>
@@ -2127,7 +2154,7 @@ renderEmptyTab("managers")
                     йде ПО ПАРІ: текст повідомлення рахує сама edge-функція, тож
                     жодного числа тут не вигадуємо. Коли репетиторів кілька —
                     кнопка на кожного, з іменем. */}
-                {isManager && u.role === "student" && !u.archived_at && !u.is_pending
+                {isManager && u.role === "student" && !u.archived_at
                   && Number(u.unpaid_total ?? 0) > 0 && studentPairs.length > 0 && (
                   <div className="mx-4 mt-3 rounded-[16px] p-3.5" style={{ background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)" }}>
                     <p className="text-[16px] font-extrabold" style={{ color: "var(--warning-text,#B45309)" }}>
@@ -2158,7 +2185,13 @@ renderEmptyTab("managers")
                     "assign a tutor" — so show ONE dominant CTA instead of a 3-tile
                     grid where Wallet/Ставка look equal but secretly reroute on tap.
                     Once a tutor exists, show the full Репетитор / Гаманець / Ставка grid. */}
-                {isManager && u.role === "student" && !u.archived_at && !u.is_pending && (
+                {/* 11.11: умова `!u.is_pending` тут робила школу непридатною з першого
+                    дня. Щойно доданий учень — завжди «очікує реєстрації» (а багато батьків
+                    не реєструються ніколи), і саме йому не було як призначити репетитора:
+                    аркуш показував лише «Нагадати» й «Видалити», а форма уроку відповідала
+                    «спочатку додайте учня». База пару для незареєстрованого приймає
+                    (сценарій 76), а після реєстрації все переноситься (сценарій 77). */}
+                {isManager && u.role === "student" && !u.archived_at && (
                   studentPairs.length === 0 ? (
                     <div className="px-4 pt-3">
                       <button

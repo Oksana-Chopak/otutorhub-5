@@ -6,6 +6,7 @@ import { logAppOpen, logPageView } from "@/lib/productTelemetry";
 import { isNativeApp, isIosApp } from "@/lib/platform";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { AdminLensBanner } from "@/components/admin/AdminLensBanner";
 import { AddToHomeScreenCard } from "@/components/AddToHomeScreenCard";
 import { PaywallProvider } from "@/hooks/useCoreLock";
 import { AppSidebar } from "./AppSidebar";
@@ -113,6 +114,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <NotificationBell />
       </div>
       <main className="flex-1 overflow-auto pb-20 lg:pb-0">
+        {/* 11.11: суперадмін дивиться не свою школу — кажемо це над КОЖНИМ екраном */}
+        <AdminLensBanner />
         {titleKey && (
           <header className="sticky top-0 z-20 flex h-[52px] items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:hidden" style={{ height: "calc(52px + env(safe-area-inset-top, 0px))", paddingTop: "env(safe-area-inset-top, 0px)" }}>
             <h1 className="min-w-0 truncate font-display text-[17px] font-extrabold text-foreground">

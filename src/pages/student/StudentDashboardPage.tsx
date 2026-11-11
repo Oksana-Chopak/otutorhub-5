@@ -413,8 +413,8 @@ export default function StudentDashboardPage() {
                   : null;
                 return (
                   <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "var(--ds-surface,#fff)" }}>
-                    <div style={{ width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
-                      <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+                    <div style={{ width: 92, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
+                      <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 13, letterSpacing: ".02em", textTransform: "uppercase", color: "rgba(255,255,255,.6)", whiteSpace: "nowrap" }}>
                         {isToday ? t("common.today") : d.toLocaleDateString(getLocale(), { weekday: "short" }).replace(".", "")}
                       </span>
                       {!isToday && (
