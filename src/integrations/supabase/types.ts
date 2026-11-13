@@ -652,6 +652,92 @@ export type Database = {
           },
         ]
       }
+      hub_join_invites: {
+        Row: {
+          created_at: string
+          hub_id: string
+          id: string
+          invited_by: string
+          resolved_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hub_id: string
+          id?: string
+          invited_by: string
+          resolved_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hub_id?: string
+          id?: string
+          invited_by?: string
+          resolved_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_join_invites_hub_id_fkey"
+            columns: ["hub_id"]
+            isOneToOne: false
+            referencedRelation: "hubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hub_join_invites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hub_leads: {
+        Row: {
+          contact: string
+          created_at: string
+          hub_id: string
+          id: string
+          name: string
+          note: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          contact: string
+          created_at?: string
+          hub_id: string
+          id?: string
+          name: string
+          note?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          contact?: string
+          created_at?: string
+          hub_id?: string
+          id?: string
+          name?: string
+          note?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_leads_hub_id_fkey"
+            columns: ["hub_id"]
+            isOneToOne: false
+            referencedRelation: "hubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hub_managers: {
         Row: {
           created_at: string
@@ -724,18 +810,27 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
+          public_about: string | null
+          public_enabled: boolean
+          public_slug: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           id?: string
           name: string
+          public_about?: string | null
+          public_enabled?: boolean
+          public_slug?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
           id?: string
           name?: string
+          public_about?: string | null
+          public_enabled?: boolean
+          public_slug?: string | null
         }
         Relationships: [
           {
@@ -1807,16 +1902,30 @@ export type Database = {
         Row: {
           created_at: string
           user_id: string
+          view_hub_id: string | null
+          view_mode: string
         }
         Insert: {
           created_at?: string
           user_id: string
+          view_hub_id?: string | null
+          view_mode?: string
         }
         Update: {
           created_at?: string
           user_id?: string
+          view_hub_id?: string | null
+          view_mode?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "platform_admins_view_hub_id_fkey"
+            columns: ["view_hub_id"]
+            isOneToOne: false
+            referencedRelation: "hubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pro_bonus_ledger: {
         Row: {
@@ -2492,6 +2601,7 @@ export type Database = {
         Row: {
           bio: string | null
           created_at: string
+          group_rate_per_lesson: number | null
           payout_anchor: string | null
           payout_frequency: string | null
           payout_last_marked_at: string | null
@@ -2505,6 +2615,7 @@ export type Database = {
         Insert: {
           bio?: string | null
           created_at?: string
+          group_rate_per_lesson?: number | null
           payout_anchor?: string | null
           payout_frequency?: string | null
           payout_last_marked_at?: string | null
@@ -2518,6 +2629,7 @@ export type Database = {
         Update: {
           bio?: string | null
           created_at?: string
+          group_rate_per_lesson?: number | null
           payout_anchor?: string | null
           payout_frequency?: string | null
           payout_last_marked_at?: string | null
@@ -3073,6 +3185,48 @@ export type Database = {
           },
         ]
       }
+      student_pairs_visible: {
+        Row: {
+          archived_at: string | null
+          created_at: string | null
+          currency: string | null
+          id: string | null
+          payment_details: string | null
+          price_per_lesson: number | null
+          source: string | null
+          student_id: string | null
+          subject: string | null
+          tutor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string | null
+          payment_details?: never
+          price_per_lesson?: never
+          source?: string | null
+          student_id?: string | null
+          subject?: string | null
+          tutor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string | null
+          payment_details?: never
+          price_per_lesson?: never
+          source?: string | null
+          student_id?: string | null
+          subject?: string | null
+          tutor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       student_wallet_balances: {
         Row: {
           amount_balance: number | null
@@ -3122,6 +3276,8 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_hubs_overview: { Args: never; Returns: Json }
+      admin_lens_allows: { Args: { _hub: string }; Returns: boolean }
       admin_product_funnel: { Args: { _weeks?: number }; Returns: Json }
       ai_call_gate: {
         Args: {
@@ -3297,7 +3453,20 @@ export type Database = {
             }
             Returns: boolean
           }
+      hub_invite_existing_student: { Args: { _email: string }; Returns: string }
+      hub_make_slug: { Args: { _name: string }; Returns: string }
       hub_of_user: { Args: { _user: string }; Returns: string }
+      hub_public_lead: {
+        Args: {
+          _contact: string
+          _name: string
+          _note?: string
+          _slug: string
+          _subject?: string
+        }
+        Returns: string
+      }
+      hub_public_page: { Args: { _slug: string }; Returns: Json }
       import_student_bundle: {
         Args: {
           _currency: string
@@ -3363,6 +3532,7 @@ export type Database = {
         Returns: string
       }
       landing_bot_username: { Args: never; Returns: string }
+      lead_text_clean: { Args: { _max: number; _t: string }; Returns: string }
       lifecycle_candidates: {
         Args: { _at?: string; _limit?: number }
         Returns: Json
@@ -3431,6 +3601,10 @@ export type Database = {
         Args: { _email: string; _phone: string; _real_id: string }
         Returns: string
       }
+      merge_pending_profile_core: {
+        Args: { _email: string; _phone: string; _real_id: string }
+        Returns: string
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -3445,6 +3619,15 @@ export type Database = {
         Returns: undefined
       }
       my_feature_flags: { Args: never; Returns: Json }
+      my_hub_invites: {
+        Args: never
+        Returns: {
+          created_at: string
+          hub_name: string
+          id: string
+        }[]
+      }
+      my_hub_public_page: { Args: never; Returns: Json }
       normalize_subject: { Args: { t: string }; Returns: string }
       notify_managers: {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
@@ -3541,8 +3724,19 @@ export type Database = {
         Returns: number
       }
       payment_link_view: { Args: { _token: string }; Returns: Json }
+      person_ref_columns: {
+        Args: never
+        Returns: {
+          col: string
+          tbl: string
+        }[]
+      }
       pick_tutor_payout: {
         Args: { _subject: string; _tutor: string }
+        Returns: number
+      }
+      pick_tutor_payout_for_lesson: {
+        Args: { _lesson: string }
         Returns: number
       }
       purge_user_data: { Args: { _user_id: string }; Returns: undefined }
@@ -3569,6 +3763,14 @@ export type Database = {
         Returns: Json
       }
       rename_hub: { Args: { _hub: string; _name: string }; Returns: undefined }
+      resolve_hub_invite: {
+        Args: { _accept: boolean; _id: string }
+        Returns: string
+      }
+      resolve_hub_lead: {
+        Args: { _done: boolean; _id: string }
+        Returns: boolean
+      }
       resolve_payment_claim: {
         Args: { _confirm: boolean; _id: string }
         Returns: Json
@@ -3584,6 +3786,10 @@ export type Database = {
           last_name: string
         }[]
       }
+      set_admin_view: {
+        Args: { _hub?: string; _mode: string }
+        Returns: undefined
+      }
       set_group_enrollment_price: {
         Args: { _enrollment_id: string; _price: number }
         Returns: undefined
@@ -3591,6 +3797,10 @@ export type Database = {
       set_group_participant_payment: {
         Args: { _participant_ids: string[]; _status: string }
         Returns: number
+      }
+      set_hub_public_page: {
+        Args: { _about?: string; _enabled: boolean }
+        Returns: Json
       }
       set_lesson_tutor_payout_status: {
         Args: { _lesson_id: string; _status: string }
@@ -3617,6 +3827,10 @@ export type Database = {
         Returns: string
       }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
+      tutor_has_pair: {
+        Args: { _student: string; _tutor: string }
+        Returns: boolean
+      }
       tutor_reminder_stats: { Args: { _tutor_id: string }; Returns: Json }
       tutor_snapshot: { Args: { _tutor_id: string }; Returns: Json }
       tutor_value_stats: { Args: { _tutor_id?: string }; Returns: Json }
