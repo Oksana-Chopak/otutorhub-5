@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { logAppOpen, logPageView } from "@/lib/productTelemetry";
 import { isNativeApp, isIosApp } from "@/lib/platform";
+import { ensureFreshBuild } from "@/lib/freshBuild";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AdminLensBanner } from "@/components/admin/AdminLensBanner";
@@ -69,6 +70,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Кроки, зроблені ДО реєстрації, лежали в localStorage — тепер є user_id,
   // і їх можна пришити до акаунта. Одноразово: takeLandingFunnel чистить буфер.
   useEffect(() => { if (user) flushLandingFunnel(); }, [user]);
+  // 13.11: давно відкрита вкладка виконує стару збірку — звіряємо штамп із сервером при
+  // кожному переході й поверненні на вкладку і тихо оновлюємось у безпечний момент.
+  useEffect(() => { void ensureFreshBuild(); }, [pathname]);
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") void ensureFreshBuild(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => { document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("focus", onVisible); };
+  }, []);
   // 22.09: браузер із підпискою на СТАРОМУ ключі лагодить себе при відкритті
   // застосунку — інакше пуші тихо не доходили б, поки людина не зайде в профіль.
   useEffect(() => { if (user) void healPushSubscription(user.id); }, [user?.id]);
