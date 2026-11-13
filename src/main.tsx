@@ -5,11 +5,14 @@ import "./i18n";
 import { isNativeApp } from "@/lib/platform";
 import { installStaleBuildReload } from "@/lib/staleBuild";
 import { installHumanErrors } from "@/lib/humanErrors";
+import { installKeyboardInset } from "@/lib/keyboardInset";
 
 // Вкладка зі старою збіркою після Publish: один reload замість ErrorBoundary (19.10).
 installStaleBuildReload();
 // Відомі технічні тексти бази в повідомленнях про помилку → людські слова (13.11).
 installHumanErrors();
+// Екранна клавіатура не накриває форми-аркуші: вони підіймаються над нею (13.11).
+installKeyboardInset();
 
 // BUG-7 (2026-07-25), native only: cap the viewport scale so iOS WKWebView
 // doesn't auto-zoom on inputs < 16px (the app's DS uses 15px inputs). Web is

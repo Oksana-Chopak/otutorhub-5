@@ -49,7 +49,7 @@ export function MobileBottomNav() {
     return (
       <nav
         ref={navRef}
-        className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden"
+        className="kb-hide fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <ul className="flex items-stretch justify-around">
@@ -114,7 +114,7 @@ export function MobileBottomNav() {
   return (
     <div
       ref={navRef}
-      className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden shadow-[0_-4px_20px_-8px_rgba(15,15,26,.12)]"
+      className="kb-hide fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden shadow-[0_-4px_20px_-8px_rgba(15,15,26,.12)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div style={{ display: "flex", alignItems: "stretch", padding: "5px 0 3px" }}>
         {tabs.map(tab => {

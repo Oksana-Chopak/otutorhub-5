@@ -23,6 +23,7 @@
 import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { kbInit, kbCheck } from "./kb-lib.mjs";
 
 const { chromium } = process.env.WALK_PLAYWRIGHT_FROM
   ? createRequire(process.env.WALK_PLAYWRIGHT_FROM)("playwright")
@@ -172,6 +173,7 @@ async function runRole(role) {
     const start = () => new MutationObserver((m) => { window.__ebMut += m.length; }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
     if (document.documentElement) start(); else document.addEventListener("DOMContentLoaded", start);
   });
+  await ctx.addInitScript(kbInit);          // «екранна клавіатура» для перевірки полів у кожному вікні
   let page = await ctx.newPage();
   const net = [];
   const wire = (page) => {
@@ -243,8 +245,13 @@ async function runRole(role) {
       const row = { ...base, path: c.label, err: r.err, net: r.net, toasts: r.toasts, raw: r.raw, junk: r.junk, nav: r.url !== route ? r.url : "", layer: r.layers ? r.topText : "", dead: !r.err && r.mut === 0 && r.url === route };
       if (r.layers) {
         row.audit = await auditLayer(page);
+        // 13.11: кожне текстове поле вікна — над клавіатурою, не під нею (kb-lib.mjs)
+        const kbBad = [];
+        if (await page.locator('[role="dialog"], [role="alertdialog"]').count()) await kbCheck(page, `${role} ${route} · ${c.label}`, kbBad, { quiet: true });
+        for (const k of kbBad) row.audit.push("КЛАВІАТУРА " + k.replace(/^.*? · «/, "«"));
         // другий рівень: усе всередині відкритого вікна
-        const l2 = (await tag(page, "top", "data-eb2")).filter((x) => !SKIP.test(x.label)).slice(0, MAX_L2);
+        // EB_DEPTH=1 — лише відкрити кожне вікно й перевірити його (прокрутка, накриття, клавіатура), без дотиків усередині
+        const l2 = process.env.EB_DEPTH === "1" ? [] : (await tag(page, "top", "data-eb2")).filter((x) => !SKIP.test(x.label)).slice(0, MAX_L2);
         const seen2 = new Set();
         for (const d of l2) {
           if (seen2.has(d.label)) continue; seen2.add(d.label);
@@ -290,7 +297,7 @@ for (const role of Object.keys(ROUTES)) {
   const bad = rows.filter((r) => (r.net?.length) || r.err || r.audit?.length || r.raw?.length || r.junk?.length);
   const toasts = rows.filter((r) => r.toasts?.some((t) => t.type === "error"));
   const dead = rows.filter((r) => r.dead);
-  hard += rows.filter((r) => r.net?.length || r.audit?.some((a) => a.startsWith("МЕРТВА"))).length;
+  hard += rows.filter((r) => r.net?.length || r.audit?.some((a) => a.startsWith("МЕРТВА") || a.startsWith("КЛАВІАТУРА"))).length;
   console.log(`\n══ ${role}: дотиків ${rows.length} · збої ${bad.length} · червоні повідомлення ${toasts.length} · без реакції ${dead.length}`);
   for (const r of bad) console.log(`  ✗ ${r.route} · ${r.path}: ${[r.err && "не натискається: " + r.err.slice(-520), ...(r.net || []), ...(r.audit || []), r.raw?.length ? "ключі: " + r.raw.join(", ") : "", ...(r.junk || [])].filter(Boolean).join(" ‖ ")}`);
   for (const r of toasts) console.log(`  ⚠ ${r.route} · ${r.path}: ${r.toasts.filter((t) => t.type === "error").map((t) => t.text).join(" | ")}`);

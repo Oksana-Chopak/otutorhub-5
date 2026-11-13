@@ -507,3 +507,58 @@
   .text-warning { color: var(--warning-text, #A74D08); }
   .text-destructive { color: var(--danger-text, #B63C1A); }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════════════
+   ЕКРАННА КЛАВІАТУРА НЕ НАКРИВАЄ ФОРМУ (13.11, скарга власниці).
+   Змінні й клас `kb-open` ставить src/lib/keyboardInset.ts. Класи `kb-sheet` / `kb-bottom` /
+   `kb-center` / `kb-side` стоять у базових Dialog / Sheet / AlertDialog — тобто на КОЖНІЙ
+   формі застосунку; окрему форму «вчити» клавіатури не треба. Поза шарами Tailwind і з
+   !important навмисно: форми задають свої bottom-0 / max-h-[92vh] класами, і саме їх тут
+   треба перекрити на час, поки клавіатура відкрита.
+   ════════════════════════════════════════════════════════════════════════════════════ */
+:root { --kb-inset: 0px; --vvh: 100dvh; --vvtop: 0px; }
+
+/* аркуш знизу: низ — над клавіатурою, висота — не більша за видиму частину екрана */
+html.kb-open .kb-bottom {
+  bottom: var(--kb-inset) !important;
+  max-height: calc(var(--vvh) - 4px) !important;
+}
+@media (max-width: 639.98px) {
+  html.kb-open .kb-sheet {
+    bottom: var(--kb-inset) !important;
+    max-height: calc(var(--vvh) - 4px) !important;
+  }
+}
+/* планшет: вікно по центру — по центру ВИДИМОЇ частини */
+@media (min-width: 640px) {
+  html.kb-open .kb-sheet {
+    top: calc(var(--vvtop) + var(--vvh) / 2) !important;
+    max-height: calc(var(--vvh) - 16px) !important;
+  }
+}
+html.kb-open .kb-center {
+  top: calc(var(--vvtop) + var(--vvh) / 2) !important;
+  max-height: calc(var(--vvh) - 12px) !important;
+  overflow-y: auto;
+}
+/* бічний аркуш на всю висоту — на всю ВИДИМУ висоту */
+html.kb-open .kb-side {
+  top: var(--vvtop) !important;
+  bottom: auto !important;
+  height: var(--vvh) !important;
+}
+/* вміст форми, який сам тримає висоту («max-height: 88vh» у стилі), стискається разом із нею */
+html.kb-open .kb-sheet > [style*="max-height"],
+html.kb-open .kb-bottom > [style*="max-height"] {
+  max-height: calc(var(--vvh) - 4px) !important;
+}
+/* нижня навігація, «+» і бульбашка підтримки під час набору не потрібні: на iPhone вони під
+   клавіатурою, на Android вискакували НАД нею й накривали поле */
+html.kb-open .kb-hide { display: none !important; }
+/* відкрита розмова в чаті: поле вводу стоїть одразу над клавіатурою, а над ним видно розмову
+   (шапка 60 + відступ; нижня навігація на цей час схована) */
+@media (max-width: 1023.98px) {
+  html.kb-open .kb-chat { height: calc(var(--vvh) - 76px) !important; }
+}
+/* звичайна сторінка (вхід, профіль): місце знизу, щоб поле було куди підсунути над клавіатуру */
+html.kb-open body { padding-bottom: var(--kb-inset); }

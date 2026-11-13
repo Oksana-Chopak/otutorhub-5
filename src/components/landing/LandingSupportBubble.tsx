@@ -75,6 +75,7 @@ export function LandingSupportBubble() {
 
   return (
     <div
+      className="kb-hide"
       style={{
         position: "fixed", right: 16, zIndex: 40,
         bottom: "calc(16px + var(--cookie-banner-h, 0px))",

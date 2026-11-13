@@ -962,6 +962,8 @@ export default function ChatsPage() {
             selectedId
               ? "h-[calc(100dvh-120px)] lg:h-[calc(100vh-120px)]"
               : "mt-auto max-h-[calc(100dvh-120px)] lg:mt-0 lg:h-[calc(100vh-120px)] lg:max-h-none",
+            // 13.11: поки клавіатура відкрита, розмова займає видиму частину екрана (index.css, .kb-chat)
+            selectedId && "kb-chat",
           )}
         >
           {/* ── Col 1: Thread list ──────────────────────────────────────────── */}

@@ -49,7 +49,7 @@ export function AddFab({ onLesson, onStudent, onPayment, bottom = 78 }: Props) {
           onClick={() => setOpen(false)} />
       )}
 
-      <div className="fixed right-4 z-50 flex flex-col items-end gap-2.5"
+      <div className="kb-hide fixed right-4 z-50 flex flex-col items-end gap-2.5"
         style={{ bottom }}>
         {/* Action items — appear from bottom */}
         {open && ACTIONS.map((a, i) => (

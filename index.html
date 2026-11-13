@@ -14,7 +14,10 @@
     <link rel="icon" href="/favicon-48.png" type="image/png">
     <!-- viewport-fit=cover: makes env(safe-area-inset-*) non-zero on notched iPhones
          so fixed headers/banners/FAB/дровери clear the notch and home indicator (BUG-5) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- interactive-widget=resizes-content (13.11): на Android екранна клавіатура ЗМЕНШУЄ сторінку,
+         тож форма-аркуш сама стає над клавіатурою. iPhone цього не вміє — там працює
+         src/lib/keyboardInset.ts. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>oTutorHub — кабінет репетитора: розклад, фінанси, AI-конспекти</title>
     <meta name="description" content="oTutorHub — все для приватного репетитора в одному застосунку: розклад і нагадування, облік оплат і боргів, AI-конспекти уроків, чат з учнями та Google Calendar.">
     <meta name="author" content="oTutorHub" />
