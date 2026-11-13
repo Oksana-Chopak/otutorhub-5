@@ -2697,7 +2697,7 @@ export default function DashboardPage() {
                           studentHref={studentMaterialsPath(flags, lesson.student_id)}
                           studentName={studentName}
                           tutorName={tutorName}
-                          showTutor
+                          showTutor={isManager /* репетитор не читає на власному уроці «Репетитор: він сам» */}
                           meetingUrl={meetingHref}
                           onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           canCopy
@@ -2854,7 +2854,7 @@ export default function DashboardPage() {
                           studentHref={studentMaterialsPath(flags, lesson.student_id)}
                           studentName={studentName}
                           tutorName={tutorName}
-                          showTutor
+                          showTutor={isManager /* репетитор не читає на власному уроці «Репетитор: він сам» */}
                           meetingUrl={meetingHref}
                           onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           canCopy

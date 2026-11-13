@@ -407,4 +407,12 @@ SELECT pg_temp.must('mgrA', '(11) менеджер вимикає сторінк
 SELECT pg_temp.expect('anon', '(11) вимкнена сторінка зникає одразу', $q$SELECT coalesce(hub_public_page('shkola-a')::text, 'немає')$q$, 'немає');
 DO $$ BEGIN RAISE NOTICE '✅ (11) сторінка школи: лише з волі менеджера, без імен і цін, заявки — тільки своїй школі, стелі в базі'; END $$;
 
+-- (12) «Керуєте школою?» із профілю самостійної → власниці платформи приходить ЗАЯВКА НА ШКОЛУ
+-- (20261113100000): не «відгук», контакт один раз, дотик веде в адмінку «Школи»
+SELECT pg_temp.must('ind', '(12) самостійна лишає заявку на школу', $q$INSERT INTO feedback_submissions (user_id, category, message, contact, page_url) VALUES ({ind}, 'school_request', '🏫 Заявка: підключити школу «Нова»', 'ind@tutor.test', '/profile')$q$);
+SELECT pg_temp.expect('sa', '(12) власниці платформи — заявка на школу, пошта один раз, без «/profile», посилання в адмінку',
+  $q$SELECT (title LIKE '🏫 Заявка на школу від %')||'|'||((length(body) - length(replace(body, 'ind@tutor.test', ''))) / length('ind@tutor.test'))||'|'||(body NOT LIKE '%/profile%')||'|'||link FROM notifications WHERE user_id = {sa} AND type LIKE 'feedback_new_%' ORDER BY created_at DESC LIMIT 1$q$,
+  'true|1|true|/admin');
+DO $$ BEGIN RAISE NOTICE '✅ (12) заявка на школу приходить власниці платформи як заявка, а не як відгук'; END $$;
+
 ROLLBACK;

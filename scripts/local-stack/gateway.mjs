@@ -67,7 +67,8 @@ function session(u) {
     id: u.id, aud: "authenticated", role: "authenticated", email: u.email,
     email_confirmed_at: u.email_confirmed_at, confirmed_at: u.email_confirmed_at,
     app_metadata: { provider: "email", providers: ["email"] }, user_metadata: u.user_metadata ?? {},
-    identities: [], created_at: u.created_at, updated_at: u.created_at,
+    // не порожньо: порожній список застосунок читає як «ця пошта вже зареєстрована» (так відповідає справжній GoTrue)
+    identities: [{ id: u.id, user_id: u.id, provider: "email" }], created_at: u.created_at, updated_at: u.created_at,
   };
   const access_token = sign({
     sub: u.id, role: "authenticated", aud: "authenticated", email: u.email, iss: "local-stack",

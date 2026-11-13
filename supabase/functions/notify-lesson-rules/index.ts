@@ -100,14 +100,14 @@ Deno.serve(withErrorLog("notify-lesson-rules", async (req) => {
     const rulesPlain =
       `📋 Правила скасування та перенесення\n` +
       `Безкоштовне скасування — не пізніше ніж за ${freeHours} год до уроку. ` +
-      `Пізніше — ${feePercent}% вартості. ` +
+      (Number(feePercent) > 0 ? `Пізніше — ${feePercent}% вартості. ` : `Пізніше — без штрафу. `) +
       `Неявка — ${noshow}%. ` +
       `Безкоштовних перенесень на місяць: ${reschedules}.`
 
     const rulesHtml =
       `<b>📋 Правила скасування та перенесення</b>\n` +
       `Безкоштовне скасування — не пізніше ніж за <b>${escapeHtml(String(freeHours))}</b> год до уроку. ` +
-      `Пізніше — <b>${escapeHtml(String(feePercent))}%</b> вартості. ` +
+      (Number(feePercent) > 0 ? `Пізніше — <b>${escapeHtml(String(feePercent))}%</b> вартості. ` : `Пізніше — <b>без штрафу</b>. `) +
       `Неявка — <b>${escapeHtml(String(noshow))}%</b>. ` +
       `Безкоштовних перенесень на місяць: <b>${escapeHtml(String(reschedules))}</b>.`
 

@@ -292,9 +292,11 @@ export default function FinancesPage() {
       return;
     }
     if (loading) return;
-    const hasDebts = lessons.some(
-      (l) => l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid"
-    );
+    // 13.11: «борг» — це єдине визначення з financials, а не «статус unpaid». У самостійної
+    // репетиторки статус виплати завжди 'unpaid' при сумі 0, тож вкладка «Борги» вмикалась
+    // назавжди, і її «Операції» ставали порожніми, щойно всі оплатили.
+    const nowMs = Date.now();
+    const hasDebts = lessons.some((l) => isStudentDebtLesson(l) || isPayoutDueLesson(l, nowMs));
     if (hasDebts) setActiveTab("debts");
     autoSwitchedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -983,6 +985,12 @@ export default function FinancesPage() {
     () => rowsForActiveTab.filter((r): r is { type: "lesson"; l: LessonRow } => r.type === "lesson").map((r) => r.l),
     [rowsForActiveTab],
   );
+  // «Операції» самостійної репетиторки — усі уроки періоду (оплачені й ті, що чекають),
+  // незалежно від того, яка вкладка менеджерського вигляду зараз «активна».
+  const opsLessons: LessonRow[] = useMemo(
+    () => incomeRows.filter((r): r is { type: "lesson"; l: LessonRow } => r.type === "lesson").map((r) => r.l),
+    [incomeRows],
+  );
 
   // Sticky-summary totals — derived from `periodBillable` via the shared MON-2
   // money math (src/lib/financials, locked by financials.test.ts)…
@@ -1620,12 +1628,14 @@ export default function FinancesPage() {
   // === Renderers ===
   const renderRows = (rows: Row[]) => {
     if (rows.length === 0) {
+      // 13.11: порожні «Борги» — це добра новина, а не «за цим фільтром нічого немає».
+      const debtsClear = activeTab === "debts" && debtsRows.length === 0;
       return (
         <div className="rounded-xl border border-border bg-card p-6">
           <EmptyState
             icon={DollarSign}
-            title={t("finances.noPaymentsFiltered")}
-            description={t("finances.noPaymentsDesc")}
+            title={t(debtsClear ? "finances.debtsClearTitle" : "finances.noPaymentsFiltered")}
+            description={t(debtsClear ? "finances.debtsClearDesc" : "finances.noPaymentsDesc")}
             actionLabel={null}
           />
         </div>
@@ -2708,9 +2718,10 @@ export default function FinancesPage() {
                   {/* Mini weekly bar chart */}
                   <div style={{ display:"flex", alignItems:"flex-end", gap:5, height:48, marginBottom:16 }}>
                     {weekBars.map(bar => (
-                      <div key={bar.label} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+                      <div key={bar.label} style={{ flex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-end", gap:3 }}>
+                        {/* 13.11: відсоток висоти не мав від чого рахуватись — усі стовпчики були по 4px */}
                         <div style={{ width:"100%", borderRadius:6,
-                          height:`${bar.pct}%`, minHeight:4,
+                          flex:`0 0 ${Math.round(bar.pct * 0.26)}px`, minHeight:4,
                           background: bar.isToday ? F.teal : bar.amt>0 ? "rgba(43,191,170,.3)" : F.border,
                           transition:"height .3s" }} />
                         <span style={{ fontFamily:F.display, fontSize: 14, fontWeight:700,
@@ -2720,7 +2731,7 @@ export default function FinancesPage() {
                   </div>
                   {/* Transaction list */}
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {visibleLessons.slice(0, 20).map(l => {
+                    {opsLessons.slice(0, 20).map(l => {
                       const paid = l.student_payment_status === "paid";
                       return (
                         <div key={l.id} style={{ display:"flex", alignItems:"center", gap:12,
@@ -2758,7 +2769,7 @@ export default function FinancesPage() {
                         </div>
                       );
                     })}
-                    {visibleLessons.length === 0 && (
+                    {opsLessons.length === 0 && (
                       <p style={{ textAlign:"center", padding:"20px 0", color:F.muted, fontFamily:F.body, fontSize:14 }}>
                         {t("finances.noOpsForPeriod")}
                       </p>

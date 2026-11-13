@@ -357,7 +357,7 @@ export default function ProfilePage() {
       const [detailsRes, lessonsRes, ratesRes, profileRes, contactsRes, feedbackRes, ratingAllRes] = await Promise.all([
         supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("subject").eq("tutor_id", user.id),
-        supabase.from(await pairsRel()).select("subject").eq("tutor_id", user.id),
+        supabase.from(await pairsRel()).select("subject, student_id, archived_at").eq("tutor_id", user.id),
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("email, phone, telegram, messenger_url, facebook_url, instagram_url").eq("user_id", user.id).maybeSingle(),
         supabase.from("lesson_feedback").select("rating, comment, created_at, student_id").eq("tutor_id", user.id).order("created_at", { ascending: false }).limit(20),
@@ -397,6 +397,11 @@ export default function ProfilePage() {
       const fromLessons = (lessonsRes.data ?? [])
         .map((l) => (l.subject ?? "").trim())
         .filter(Boolean);
+      // 13.11: лічильник учнів у шапці профілю ніколи не заповнювався — кожен репетитор
+      // бачив «0 учнів». Рахуємо активні пари (і самостійні, і школи); не прочитали — лишаємо як було.
+      if (!ratesRes.error) {
+        setStudentCount(new Set((ratesRes.data ?? []).filter((r) => !r.archived_at).map((r) => r.student_id)).size);
+      }
       const fromRates = (ratesRes.data ?? [])
         .map((r) => (r.subject ?? "").trim())
         .filter(Boolean);
@@ -730,8 +735,8 @@ export default function ProfilePage() {
               {/* Stats */}
               <div style={{ display: "flex", gap: 16, marginTop: 14, paddingTop: 14, borderTop: `1px solid ${P.border}` }}>
                 {[
-                  { val: studentCount, label: t("profile.statsStudents") },
-                  { val: subjects.length, label: t("profile.statsSubjects") },
+                  { val: studentCount, label: t("profile.statsStudents", { count: studentCount }) },
+                  { val: subjects.length, label: t("profile.statsSubjects", { count: subjects.length }) },
                 ].map(({ val, label }) => (
                   <div key={label}>
                     <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 20, color: P.txt }}>{val}</span>

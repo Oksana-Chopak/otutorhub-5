@@ -485,8 +485,18 @@ export function QuickLessonDialog({
           const s = (ws ?? {}) as Record<string, unknown>;
           const notifyTelegram = (s.notify_telegram as boolean | undefined) ?? false;
           const notifyEmail = (s.notify_email as boolean | undefined) ?? false;
-          if (notifyTelegram || notifyEmail) {
-            const rules = t("quickLessonDialog.notifCancellationRulesBody", {
+          // 13.11: правила — один раз, з ПЕРШИМ уроком пари, а не з кожним новим уроком.
+          // Щотижневий учень отримував те саме «📋 Правила скасування» в дзвіночок, Telegram
+          // і пошту щоразу — сповіщення заради сповіщення. Не змогли порахувати — не шлемо.
+          const { count: pairLessons, error: pairErr } = await supabase
+            .from("lessons")
+            .select("id", { count: "exact", head: true })
+            .eq("tutor_id", effTutorId)
+            .eq("student_id", selected.student_id);
+          const firstForPair = !pairErr && (pairLessons ?? 0) <= Math.max(1, seriesCount);
+          if (firstForPair && (notifyTelegram || notifyEmail)) {
+            const feePct = Number(s.cancel_fee_percent ?? 50);
+            const rules = t(feePct > 0 ? "quickLessonDialog.notifCancellationRulesBody" : "quickLessonDialog.notifCancellationRulesBodyNoFee", {
               hours: Number(s.cancel_free_hours ?? 24),
               fee: Number(s.cancel_fee_percent ?? 50),
               noshow: Number(s.noshow_charge ?? 100),

@@ -1615,7 +1615,7 @@ export default function SchedulePage() {
             title={t('schedule.noLessonsTitle')}
             description={
               canCreate
-                ? t('schedule.noLessonsDescCreate')
+                ? t(isManager ? 'schedule.noLessonsDescCreate' : 'schedule.noLessonsDescCreateTutor')
                 : t('schedule.noLessonsDescWait')
             }
             actionLabel={canCreate ? t('schedule.createFirstLesson') : null}

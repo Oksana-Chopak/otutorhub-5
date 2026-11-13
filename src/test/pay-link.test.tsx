@@ -181,7 +181,7 @@ describe("аркуш «Нагадати» — автоматично або пе
   it("боргу немає — каже це словами і нічого не пропонує", async () => {
     rpc.mockResolvedValue({ data: { ...issue, lessons: 0, total: 0 }, error: null });
     render(<RemindSheet open onOpenChange={() => {}} studentId="s1" studentName="Оля" onAutoSend={() => {}} />);
-    expect(await screen.findByText(/Оля нічого не винен/)).toBeInTheDocument();
+    expect(await screen.findByText(/Оля: боргу немає/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Viber" })).toBeNull();
   });
 });
