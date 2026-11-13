@@ -203,6 +203,29 @@ async function main() {
   await s.see(/Ніна Нова/, "урок щойно доданої учениці в розкладі");
   ok(step);
 
+  step = "3ж форма уроку: типова дата — сьогодні, години гортаються";
+  await s.go("/schedule?create=1", 4500);
+  await s.page.getByRole("button", { name: /Соломія Гнатюк/ }).click(); await wait(1500);
+  {
+    const today = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long" }).format(new Date());
+    const tomorrow = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long" }).format(new Date(Date.now() + 86400000));
+    const txt = (await s.page.getByRole("dialog").innerText()).toLowerCase();
+    if (!txt.includes(today) && !txt.includes(tomorrow)) throw new Error(`[${step}] типова дата не сьогодні: ${txt.slice(0, 160)}`);
+  }
+  await s.page.getByRole("button", { name: "Змінити", exact: true }).click(); await wait(500);
+  await s.page.locator('[aria-haspopup="dialog"]').last().click(); await wait(600);
+  await s.page.getByRole("tab").nth(1).click(); await wait(500);
+  {
+    const box = s.page.getByRole("listbox").first();
+    const bb = await box.boundingBox();
+    const before = await box.evaluate((e) => e.scrollTop);
+    await s.page.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    await s.page.mouse.wheel(0, 132); await wait(700);
+    const after = await box.evaluate((e) => e.scrollTop);
+    if (after === before) throw new Error(`[${step}] колонка годин не гортається (${before} → ${after})`);
+  }
+  ok(step);
+
   step = "3е група у формі уроку і груповий урок";
   await s.go("/schedule?create=1", 4500);
   // типовий час той самий, що в щойно створеного уроку — форма мусить попередити про накладку

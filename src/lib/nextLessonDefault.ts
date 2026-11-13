@@ -16,6 +16,11 @@ export async function pairNextDefault(tutorId: string, studentId: string): Promi
   const last = (data as any[])?.[0]?.starts_at as string | undefined;
   if (!last) return null;
   const d = new Date(last);
+  /* 13.11, скарга власниці: «за замовчуванням стоїть не сьогоднішня дата, а 9 грудня».
+     У пари вже стояли уроки наперед (серія «щотижня»), і форма мовчки відкривалась на
+     тиждень ПІСЛЯ останнього з них — за місяць від сьогодні. Коли майбутні уроки вже є,
+     «наступний» вгадати неможливо: лишаємо сьогодні, найближчу годину. */
+  if (d.getTime() > Date.now()) return null;
   // P3: остання пара могла бути давно — котимо тижнями вперед, доки не в майбутньому.
   do { d.setDate(d.getDate() + 7); } while (d.getTime() <= Date.now());
   return d;

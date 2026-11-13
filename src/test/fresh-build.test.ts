@@ -21,4 +21,16 @@ describe("стара вкладка оновлюється сама (13.11)", ()
     expect(src).toMatch(/isNativeApp\(\)/);
     expect(src).toMatch(/sessionStorage\.getItem\(TRIED_KEY\) === stamp/);
   });
+
+describe("форма уроку: дата й прокрутка часу (13.11)", () => {
+  it("спливне вікно всередині діалогу гортається: подія не доходить до замка прокрутки", () => {
+    const src = readFileSync("src/components/ui/popover.tsx", "utf8");
+    expect(src).toMatch(/onWheel=\{\(e\) => \{ e\.stopPropagation\(\)/);
+    expect(src).toMatch(/onTouchMove=\{\(e\) => \{ e\.stopPropagation\(\)/);
+  });
+  it("якщо в пари вже є майбутні уроки, типова дата — сьогодні, а не «після останнього»", () => {
+    const src = readFileSync("src/lib/nextLessonDefault.ts", "utf8");
+    expect(src).toMatch(/if \(d\.getTime\(\) > Date\.now\(\)\) return null;/);
+  });
+});
 });
