@@ -44,6 +44,14 @@ export function computeKeyboard(input: {
     : { open: false, inset: 0, visible: innerHeight, top: 0 };
 }
 
+/* Поточний стан — для компонентів, яким мало стилів: спливне вікно (Popover) саме рахує, де
+   йому стати, і без цього вважає вільним увесь екран, разом із частиною під клавіатурою. */
+let current: KeyboardState = { open: false, inset: 0, visible: 0, top: 0 };
+const listeners = new Set<() => void>();
+export function subscribeKeyboard(cb: () => void): () => void { listeners.add(cb); return () => { listeners.delete(cb); }; }
+/** Скільки пікселів знизу сторінки зараз під клавіатурою (0, якщо вона закрита або сторінка зменшилась сама). */
+export function getKeyboardCover(): number { return current.open ? current.inset : 0; }
+
 const isEditable = (el: Element | null): el is HTMLElement => {
   if (!(el instanceof HTMLElement)) return false;
   if (el.isContentEditable) return true;
@@ -64,8 +72,19 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
 
 /** Поле у фокусі — у видиму частину своєї форми (не під клавіатуру й не під липкий підвал). */
 export function revealFocused(state: KeyboardState): void {
-  const el = document.activeElement;
-  if (!state.open || !isEditable(el)) return;
+  const focused = document.activeElement;
+  if (!state.open || !isEditable(focused)) return;
+  // Поле пошуку всередині спливного вікна (вибір предмета): саме вікно гортати нікуди — воно
+  // висить біля своєї кнопки. Підсуваємо КНОПКУ до верху видимої частини, і вікно, яке стежить
+  // за нею, розкривається під нею над клавіатурою.
+  let el: HTMLElement = focused;
+  let toTop = false;
+  const popper = focused.closest("[data-radix-popper-content-wrapper]");
+  const popId = popper?.firstElementChild?.id;
+  if (popId) {
+    const anchor = document.querySelector<HTMLElement>(`[aria-controls="${CSS.escape(popId)}"]`);
+    if (anchor) { el = anchor; toTop = true; }
+  }
   let visTop = state.top + 8;
   let visBottom = state.top + state.visible - 8;
   const sc = scrollParent(el);
@@ -75,13 +94,14 @@ export function revealFocused(state: KeyboardState): void {
     visBottom = Math.min(visBottom, sr.bottom - 4);
   }
   const r = el.getBoundingClientRect();
-  if (r.top >= visTop && r.bottom <= visBottom) return;
-  // Куди поставити поле: по центру ВИДИМОЇ частини; якщо воно вище за неї (велике поле тексту) —
-  // верхом до верху. `scrollIntoView({block:"center"})` тут не годиться: він центрує відносно
-  // всієї сторінки, а її нижні 40% — під клавіатурою.
+  if (!toTop && r.top >= visTop && r.bottom <= visBottom) return;
+  // Куди поставити: поле — по центру ВИДИМОЇ частини (велике поле тексту — верхом до верху);
+  // кнопку спливного вікна — до верху. `scrollIntoView({block:"center"})` тут не годиться: він
+  // центрує відносно всієї сторінки, а її нижні 40% — під клавіатурою.
   const room = visBottom - visTop;
-  const wantTop = visTop + Math.max(0, (room - r.height) / 2);
+  const wantTop = toTop ? visTop + 4 : visTop + Math.max(0, (room - r.height) / 2);
   let delta = r.top - wantTop;
+  if (Math.abs(delta) < 2) return;
   if (sc) {
     const before = sc.scrollTop;
     sc.scrollTop = before + delta;
@@ -102,7 +122,18 @@ export function installKeyboardInset(): void {
   let last = "";
   let timer: ReturnType<typeof setTimeout> | undefined;
 
+  // Спливні вікна (Popover) стежать за прокруткою й зміною розміру вікна, але не за тим, що форма
+  // під ними підстрибнула над клавіатуру, — і лишались висіти на старому місці. Після кожної
+  // зміни кажемо їм перерахувати місце. Прапорець — щоб не почути власну подію як нову.
+  let nudging = false;
+  const nudgePopovers = () => {
+    if (!document.querySelector("[data-radix-popper-content-wrapper]")) return;
+    nudging = true;
+    try { window.dispatchEvent(new Event("resize")); } finally { nudging = false; }
+  };
+
   const apply = () => {
+    if (nudging) return;
     if (window.innerWidth !== width) { width = window.innerWidth; baseline = window.innerHeight; } // поворот екрана
     baseline = Math.max(baseline, window.innerHeight);
     const s = computeKeyboard({
@@ -112,13 +143,16 @@ export function installKeyboardInset(): void {
     const key = `${s.open}|${s.inset}|${s.visible}|${s.top}`;
     if (key !== last) {
       last = key;
+      current = s;
+      listeners.forEach((cb) => cb());
       root.style.setProperty("--kb-inset", `${s.inset}px`);
       root.style.setProperty("--vvh", `${s.visible}px`);
       root.style.setProperty("--vvtop", `${s.top}px`);
       root.classList.toggle("kb-open", s.open);
     }
     // форма щойно змінила висоту — даємо їй перемалюватись і підсуваємо поле
-    if (s.open) { clearTimeout(timer); timer = setTimeout(() => revealFocused(s), 60); }
+    clearTimeout(timer);
+    timer = setTimeout(() => { if (s.open) revealFocused(s); nudgePopovers(); }, 60);
   };
 
   vv.addEventListener("resize", apply);

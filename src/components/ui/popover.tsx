@@ -1,4 +1,5 @@
 import * as React from "react";
+import { subscribeKeyboard, getKeyboardCover } from "@/lib/keyboardInset";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "@/lib/utils";
@@ -10,12 +11,21 @@ const PopoverTrigger = PopoverPrimitive.Trigger;
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, onWheel, onTouchMove, ...props }, ref) => (
+>(({ className, align = "center", sideOffset = 4, onWheel, onTouchMove, collisionPadding, style, ...props }, ref) => {
+  /* 13.11: спливне вікно з полем пошуку ставало ПІД екранну клавіатуру — воно рахує вільним увесь
+     екран. Кажемо йому, скільки низу зайнято клавіатурою: тоді воно саме розвертається вгору. */
+  const kbCover = React.useSyncExternalStore(subscribeKeyboard, getKeyboardCover, () => 0);
+  const padding = collisionPadding ?? (kbCover > 0 ? { top: 8, bottom: kbCover + 8 } : undefined);
+  return (
   <PopoverPrimitive.Portal>
     <PopoverPrimitive.Content
       ref={ref}
       align={align}
       sideOffset={sideOffset}
+      collisionPadding={padding}
+      /* коли місця над клавіатурою менше, ніж треба вікну, воно стискається до вільного місця й
+         гортається всередині, а не ховає низ списку під клавіатуру */
+      style={kbCover > 0 ? { ...style, maxHeight: "var(--radix-popover-content-available-height)", overflowY: "auto" } : style}
       /* 13.11, скарга власниці: «скрол годин мертвий». Спливне вікно малюється поза
          діалогом, а діалог блокує прокрутку всього, що поза ним, — тож колонки годин,
          календар і будь-який список у спливному вікні всередині форми не гортались ні
@@ -29,7 +39,8 @@ const PopoverContent = React.forwardRef<
       {...props}
     />
   </PopoverPrimitive.Portal>
-));
+  );
+});
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 export { Popover, PopoverTrigger, PopoverContent };
