@@ -1738,7 +1738,7 @@ export default function SchedulePage() {
         <div className="mt-8 border-t border-border pt-4 text-center">
           <Link
             to="/availability"
-            className="text-sm text-primary hover:underline"
+            className="tap-44 inline-block py-2 text-sm text-primary hover:underline"
           >
             {t("schedule.availabilityLink")}
           </Link>

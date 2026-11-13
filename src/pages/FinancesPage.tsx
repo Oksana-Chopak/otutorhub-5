@@ -2413,7 +2413,7 @@ export default function FinancesPage() {
         role="radio" aria-checked={period === p}
         aria-label={p === "week" ? t("finances.periodWeekShort") : p === "month" ? t("finances.periodMonthShort") : t("finances.periodAllShort")}
         style={{
-          height: 34, padding: "0 16px", borderRadius: 999, border: "none", cursor: "pointer",
+          height: 40, padding: "0 16px", borderRadius: 999, border: "none", cursor: "pointer",
           fontFamily: H.display, fontWeight: 700, fontSize: 14,
           // 11.09: тло було вшите світлим → у дарку пілюля лишалась білою
           // плашкою зі світлим написом (2.0:1). Напис на активній теж фіксуємо
@@ -2612,7 +2612,7 @@ export default function FinancesPage() {
         role="radio" aria-checked={period === p}
         aria-label={p==="week"?t("finances.periodWeekShort"):p==="month"?t("finances.periodMonthShort"):t("finances.periodAllShort")}
         style={{
-          height:34, padding:"0 16px", borderRadius:999, border:"none", cursor:"pointer",
+          height:40, padding:"0 16px", borderRadius:999, border:"none", cursor:"pointer",
           fontFamily:F.display, fontWeight:700, fontSize:14,
           background: period===p ? F.teal : F.bg,
           color: period===p ? "#0f0f1a" : F.sub,
@@ -3296,7 +3296,7 @@ export default function FinancesPage() {
                         : t("finances.periodAllShort")}
                       onClick={() => setPeriod(p)}
                       style={{
-                        height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
+                        height: 40, padding: "0 14px", borderRadius: 999, border: "none", cursor: "pointer",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
                         color: period === p ? "#0f0f1a" : "var(--sub,#62677E)",
@@ -3604,8 +3604,9 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {/* === Analytics (unchanged) === */}
-          {!isIndependentTutor && (
+          {/* === Analytics === 13.11: порожні графіки не показуємо — три картки «дані зʼявляться
+              згодом» займали два екрани нової школи. Графік зʼявляється разом із першими даними. */}
+          {!isIndependentTutor && (incomeByStudent.length > 0 || profitSparkline.some((b) => b.profit !== 0)) && (
             <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
@@ -3626,7 +3627,7 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {!isIndependentTutor && (
+          {!isIndependentTutor && markupByTutor.length > 0 && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.marginByTutor")}</h2>
@@ -3665,7 +3666,7 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {!isIndependentTutor && (
+          {!isIndependentTutor && tutorScoped.some((l) => l.status === "completed") && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
@@ -3913,7 +3914,7 @@ function MobileSortChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 transition-colors",
+        "tap-44 inline-flex min-h-[32px] items-center gap-1 rounded-full border px-2.5 py-0.5 transition-colors",
         active
           ? "border-primary/40 bg-primary/10 text-primary"
           : "border-border bg-background text-muted-foreground hover:text-foreground",

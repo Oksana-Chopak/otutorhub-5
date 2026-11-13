@@ -320,7 +320,7 @@ export function AppSidebar() {
                 setOpen(false);
                 navigate("/onboarding");
               }}
-              className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex min-h-[44px] w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
@@ -338,7 +338,7 @@ export function AppSidebar() {
               setOpen(false);
               setFeedbackOpen(true);
             }}
-            className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex min-h-[44px] w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           >
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-left">{t("feedback.btn")}</span>
@@ -355,7 +355,7 @@ export function AppSidebar() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex min-h-[44px] w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               <LifeBuoy className="h-4 w-4 shrink-0" />
               <span className="flex-1 text-left">{t("nav.supportChat")}</span>
@@ -441,7 +441,7 @@ export function AppSidebar() {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <LanguageSwitcher variant="ghost" size="icon" showLabel={false} className="h-9 w-9 shrink-0 text-slate-400 hover:bg-white/5 hover:text-white" />
+            <LanguageSwitcher variant="ghost" size="icon" showLabel={false} className="tap-44 h-9 w-9 shrink-0 text-slate-400 hover:bg-white/5 hover:text-white" />
           </div>
         </div>
       </aside>

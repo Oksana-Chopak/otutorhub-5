@@ -358,7 +358,7 @@ export default function StudentDashboardPage() {
               <CalendarDays className="h-4 w-4" style={{ color: DS.teal }} /> {t("studentPages.upcomingLessonsTitle")}
             </h2>
             <Link to="/student/schedule" style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 14, color: DS.tealD, textDecoration: "none" }}>
-              {t("studentPages.allLessonsLink")} →
+              {t("studentPages.allLessonsLink")}
             </Link>
           </div>
           {loading ? (

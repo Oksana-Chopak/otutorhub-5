@@ -807,7 +807,7 @@ export function QuickLessonDialog({
                   <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.06)" }}>
                     {([["individual","👤 " + t("quickLessonDialog.modeIndividual")], ["group","👥 " + t("quickLessonDialog.modeGroup")]] as const).map(([m, l]) => (
                       <button key={m} onClick={() => setMode(m as Mode)}
-                        style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
+                        style={{ flex: 1, height: 44, borderRadius: 9, border: "none", cursor: "pointer",
                           background: mode === m ? F.surface : "transparent",
                           boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.06)" : "none",
                           fontFamily: F.display, fontWeight: 700, fontSize: 15,

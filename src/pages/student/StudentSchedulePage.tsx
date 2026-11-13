@@ -220,9 +220,9 @@ export default function StudentSchedulePage() {
       <div className="space-y-4">
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.scheduleTitle")}</h1>
         <Tabs defaultValue="upcoming">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upcoming">{t("studentPagesExtra.upcoming", { count: upcoming.length })}</TabsTrigger>
-            <TabsTrigger value="past">{t("studentPagesExtra.pastSchedule", { count: past.length })}</TabsTrigger>
+          <TabsList className="grid h-12 w-full grid-cols-2">
+            <TabsTrigger value="upcoming" className="h-10">{t("studentPagesExtra.upcoming", { count: upcoming.length })}</TabsTrigger>
+            <TabsTrigger value="past" className="h-10">{t("studentPagesExtra.pastSchedule", { count: past.length })}</TabsTrigger>
           </TabsList>
           <TabsContent value="upcoming" className="mt-4">{renderList(upcoming)}</TabsContent>
           <TabsContent value="past" className="mt-4">{renderList(past)}</TabsContent>

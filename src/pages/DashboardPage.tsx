@@ -36,7 +36,6 @@ import { CloseDayDialog, type CloseDayRow } from "@/components/CloseDayDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TutorRateDialog } from "@/components/TutorRateDialog";
-import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { GraduationCap, Sparkles, X, Wallet, CheckCircle2 , Banknote } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
@@ -96,6 +95,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { pairsRel } from "@/lib/pairsRel";
+import { useIsSuperadmin } from "@/hooks/useIsSuperadmin";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "paid" | "unpaid";
@@ -217,6 +217,7 @@ export default function DashboardPage() {
   const [tutorReferralRequestCount, setTutorReferralRequestCount] = useState(0);
   const [supportRequestCount, setSupportRequestCount] = useState(0);
   const [feedbackNewCount, setFeedbackNewCount] = useState(0);
+  const { isSuperadmin } = useIsSuperadmin();
   const [studentsWithoutTutor, setStudentsWithoutTutor] = useState(0);
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
@@ -1472,7 +1473,7 @@ export default function DashboardPage() {
     },
   ] as const;
 
-  const pendingBonusTasks = TUTOR_BONUS_TASKS.filter(
+  const pendingBonusTasksAll = TUTOR_BONUS_TASKS.filter(
     (t) => !t.done && !skippedTasks.includes(t.action)
       // Hub tutors get the same setup helpers (availability, Zoom, calendar, AI notes)
       // for parity — but NOT "referral" (Pro referrals are an independent-tutor concept).
@@ -1497,6 +1498,15 @@ export default function DashboardPage() {
          у школі це робота менеджера (той самий HUB_SKIP, що й у майстрі). */
       && !(isHubTutor && (t.action === "proRules" || t.action === "autoMark"))
   );
+  /* 13.11 (вимога власниці: аскетично, жодних зайвих рухів). Перший екран самостійної
+     показував сім порад одразу + окрему картку Telegram + банер досягнень. Тепер —
+     не більше двох за раз, найцінніше першим (Telegram — це і є «нагадуємо замість вас»),
+     решта чекає своєї черги; закрив чи зробив одну — підʼїжджає наступна. */
+  const BONUS_ORDER = ["telegram", "payDetails", "proRules", "autoMark", "zoom", "availability", "calendar", "ai", "referral"];
+  const pendingBonusTasks = [...pendingBonusTasksAll].sort(
+    (a, b) => (BONUS_ORDER.indexOf(a.action) + 100) % 100 - (BONUS_ORDER.indexOf(b.action) + 100) % 100,
+  );
+  const shownBonusTasks = pendingBonusTasks.slice(0, 2);
 
   const smartTasks = useMemo(() => {
     // 41: реєстр відкритий усім персонам — не лише менеджеру.
@@ -1557,7 +1567,7 @@ export default function DashboardPage() {
           icon: Video,
           tone: "primary" as const,
           title: t("dashboardPageExtra.lessonsWithoutLink", { count: lessonsWithoutMeeting }),
-          description: t("dashboardExtra.noMeetingLinkDesc"),
+          description: t("dashboardExtra.noMeetingLinkDescOwn"),
           to: "/schedule?view=list&filter=nolink",
           cta: t("dashboardExtra.pendingLessonRequestsCta"),
         });
@@ -1703,7 +1713,8 @@ export default function DashboardPage() {
       });
     }
     // 3. Support / subscription requests (manager)
-    if (isManager && supportRequestCount > 0) {
+    // платформні задачі (маршрути лише для суперадміна) — менеджеру школи не показуємо
+    if (isManager && isSuperadmin && supportRequestCount > 0) {
       tasks.push({
         key: "support-requests",
         icon: Crown,
@@ -1715,7 +1726,7 @@ export default function DashboardPage() {
       });
     }
     // Звернення користувачів (фідбек/баги/питання) — менеджер
-    if (isManager && feedbackNewCount > 0) {
+    if (isManager && isSuperadmin && feedbackNewCount > 0) {
       tasks.push({
         key: "feedback-inbox",
         icon: Inbox,
@@ -1799,6 +1810,7 @@ export default function DashboardPage() {
     tutorReferralRequestCount,
     supportRequestCount,
     feedbackNewCount,
+    isSuperadmin,
     studentsWithoutTutor,
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
@@ -1928,7 +1940,7 @@ export default function DashboardPage() {
               <p className="mt-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted-foreground lg:mt-2 lg:text-[16px]">
                 <Link
                   to="/schedule"
-                  className="inline-flex items-center gap-1 transition-colors hover:text-white"
+                  className="tap-44 inline-flex items-center gap-1 transition-colors hover:text-white"
                 >
                   <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--teal)" }} />
                   {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
@@ -1949,7 +1961,7 @@ export default function DashboardPage() {
                 {pendingPayments.length > 0 && (
                   <Link
                     to="/finances?tab=debts"
-                    className="inline-flex items-center gap-1 font-medium text-amber-700 underline-offset-2 hover:underline dark:text-amber-400"
+                    className="tap-44 inline-flex items-center gap-1 font-medium text-amber-700 underline-offset-2 hover:underline dark:text-amber-400"
                   >
                     <Clock className="h-3.5 w-3.5" />
                     {t("dashboardExtra.pendingPaymentsTitle", { count: pendingPayments.length })}
@@ -2063,7 +2075,10 @@ export default function DashboardPage() {
           )}
 
           {/* A11: прогрес онбордингу — одразу під блоком дня, не в підвалі. */}
-          <TutorWelcomeBanner />
+          {/* 13.11: банер рахує кроки МАЙСТРА, а не зроблене. Людина, яка пропустила майстер
+              і сама додала учня та урок, бачила «0% готово» поруч зі своїми ж уроками.
+              Учень і урок є — простір налаштовано; решта приходить підказками нижче. */}
+          {!(obProgress.hasAnyStudent && lessons.length > 0) && <TutorWelcomeBanner />}
 
 
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
@@ -2254,7 +2269,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutorsSub", { count: tutorCount })}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2262,7 +2277,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal-text,#1a7a6c)" }}>{todayLessons.length === 0 ? t("dashboard.todayFree") : t("dashboard.lessonsToday")}</p>
+                    {todayLessons.length === 0 && <p className="mt-0.5 text-[14px]" style={{ color: "var(--muted)" }}>{t("dashboard.todayFree")}</p>}
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2288,7 +2303,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardTutorsSub", { count: tutorCount })}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2297,7 +2312,7 @@ export default function DashboardPage() {
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardStudents")}</p>
                     {/* MANAGER card: hub-wide studentCount, NOT myStudentCount (see above) */}
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardStudentsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.cardStudentsSub", { count: studentCount })}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2305,7 +2320,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal-text,#1a7a6c)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
+                    {todayLessons.length === 0 && <p className="mt-0.5 text-[14px]" style={{ color: "var(--muted)" }}>{t("dashboard.todayFree")}</p>}
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2562,12 +2577,9 @@ export default function DashboardPage() {
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
                       {hubLessonsTodayCount}
                     </p>
-                    <p
-                      className="mt-0.5 text-[14px]"
-                      style={{ color: hubLessonsTodayCount === 0 ? "var(--muted)" : "var(--teal)" }}
-                    >
-                      {hubLessonsTodayCount === 0 ? t("dashboard.todayFree") : t("dashboard.lessonsToday")}
-                    </p>
+                    {hubLessonsTodayCount === 0 && (
+                      <p className="mt-0.5 text-[14px]" style={{ color: "var(--muted)" }}>{t("dashboard.todayFree")}</p>
+                    )}
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -2636,7 +2648,9 @@ export default function DashboardPage() {
               duplicate marking card. */}
 
           {/* ── MANAGER: Pending payments list ─────────────────────────────── */}
-          {(isManager || isIndependentTutor) && (
+          {/* 13.11: без жодного уроку святкувати «усі уроки оплачені» нічим — блок зʼявляється
+              з першим уроком або боргом. */}
+          {(isManager || isIndependentTutor) && (lessons.length > 0 || debtors.length > 0 || debtPartial) && (
             <div className="mt-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #666b82)" }}>
@@ -2996,7 +3010,7 @@ export default function DashboardPage() {
                         </div>
                         )
                       ) : (
-                        pendingBonusTasks.map((task) => (
+                        shownBonusTasks.map((task) => (
                           <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[16px] bg-card shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: "3.5px solid #2BBFAA" }}>
                             {task.action === "ai" ? (
@@ -3037,24 +3051,13 @@ export default function DashboardPage() {
                       )}
                     </>
                   )}
-                  {/* Non-independent tutor: static availability task */}
-                  {(isTutor || isManager) && !isIndependentTutor && (
-                    <Link to="/availability" className="block group">
-                      <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-card py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #d0d3e0" }}>
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(208,211,224,0.25)" }}>
-                          <CalendarPlus className="h-4 w-4" style={{ color: "var(--ds-sub)" }} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.updateHours")}</p>
-                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("availabilityManagerExtra.clickToAdd")}</p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-slate-300" />
-                      </div>
-                    </Link>
+                  {/* 13.11: тут стояла вічна картка «Оновити доступні години» — справа, яку не можна
+                      закрити, поруч із підказкою «Встанови доступні години». Години є в меню. */}
+                  {!pendingBonusTasks.some((task) => task.action === "telegram") && (
+                    <div className="mt-1">
+                      <TelegramLinkCard />
+                    </div>
                   )}
-                  <div className="mt-1">
-                    <TelegramLinkCard />
-                  </div>
 
                 </div>
               )}
@@ -3080,10 +3083,8 @@ export default function DashboardPage() {
                   <StreakCard streak={streak} />
                 </div>
               )}
-              {/* Trial banner — mobile only, placed under Streak */}
-              <div className="lg:hidden">
-                <TrialCountdownBanner />
-              </div>
+              {/* 13.11: другий банер тріалу внизу прибрано — той самий відлік уже стоїть
+                  чипом у шапці; двічі на одному екрані — шум, а не нагадування. */}
             </>
           )}
 

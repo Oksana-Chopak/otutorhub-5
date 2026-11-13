@@ -787,7 +787,7 @@ export default function AuthPage() {
                     type="button"
                     onClick={handleForgotPassword}
                     disabled={resetSending || resetCooldown > 0}
-                    className="block w-full text-center text-[14px] text-muted-foreground hover:text-foreground hover:underline disabled:opacity-60 disabled:hover:no-underline disabled:cursor-default"
+                    className="block min-h-[44px] w-full text-center text-[14px] text-muted-foreground hover:text-foreground hover:underline disabled:opacity-60 disabled:hover:no-underline disabled:cursor-default"
                   >
                     {resetSending
                       ? t("auth.resetSending")

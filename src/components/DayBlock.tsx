@@ -26,7 +26,7 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
         <span style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16.5, color: "#fff" }}>{title}</span>
         {sub && <span style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,.65)", marginTop: 1 }}>{sub}</span>}
         {secondary && (
-          <button type="button" onClick={secondary.onClick} style={{ marginTop: 6, border: "none", background: "transparent", padding: 0, color: "#7ee8d8", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>
+          <button className="tap-44" type="button" onClick={secondary.onClick} style={{ marginTop: 6, border: "none", background: "transparent", padding: 0, color: "#7ee8d8", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>
             {secondary.label}
           </button>
         )}

@@ -1377,7 +1377,7 @@ export default function PeoplePage() {
               onClick={() => setStatusFilter(pill.value as typeof statusFilter)}
               className="shrink-0 rounded-full px-3.5 transition-all"
               style={{
-                height: 34,
+                height: 40,
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 700,
                 fontSize: 14,
