@@ -3822,6 +3822,7 @@ export type Database = {
         Returns: undefined
       }
       start_manager_chat: { Args: never; Returns: string }
+      student_rates_tutor_scope: { Args: never; Returns: string }
       submit_landing_feedback: {
         Args: { _contact?: string; _message: string; _page_url?: string }
         Returns: string
