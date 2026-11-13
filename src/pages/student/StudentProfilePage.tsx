@@ -173,7 +173,9 @@ export default function StudentProfilePage() {
           <>
             {/* Identity card with avatar */}
             <div style={{ borderRadius: 20, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", padding: 18 }}>
-              <div className="flex items-center gap-4">
+              {/* 13.11: аватар із кнопкою «Завантажити фото» займав увесь рядок, імʼя й пошта
+                  виїжджали за край картки й обрізались. На телефоні — стовпчиком. */}
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <AvatarUploader
                   userId={user?.id ?? ""}
                   currentUrl={avatarUrl}
@@ -181,9 +183,9 @@ export default function StudentProfilePage() {
                   lastName={lastName}
                   onChanged={(url) => setAvatarUrl(url)}
                 />
-                <div className="min-w-0">
+                <div className="min-w-0 max-w-full">
                   <p style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, color: C.ink, lineHeight: 1.2 }}>{displayName}</p>
-                  <p style={{ fontFamily: C.body, fontSize: 15, color: C.sub, marginTop: 3 }}>{user?.email}</p>
+                  <p style={{ fontFamily: C.body, fontSize: 15, color: C.sub, marginTop: 3, overflowWrap: "anywhere" }}>{user?.email}</p>
                   {/* Role pill — required by STUDENT-CABINET-HANDOFF §7 (hero: avatar, name, email, «🎓 Учень») */}
                   <span className="mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] font-bold"
                     style={{ background: "rgba(43,191,170,0.12)", color: "var(--teal-text,#1a7a6c)" }}>

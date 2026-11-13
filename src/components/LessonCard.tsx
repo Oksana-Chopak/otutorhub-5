@@ -28,6 +28,8 @@ export interface LessonCardData {
   currency?: string | null;
   lesson_type?: "individual" | "pair" | "group" | null;
   group_id?: string | null;
+  /** Скасований урок зі штрафом — гроші лишаються; без штрафу — грошей на картці немає. */
+  is_cancellation_fee?: boolean | null;
 }
 
 interface LessonCardProps {
@@ -213,6 +215,7 @@ function LessonCardImpl({
      так, як це вже роблять `countLessonsMissingPrice` і попередження у формі
      уроку. Безкоштовних уроків продукт не має: 0 завжди означає «не поставили». */
   const hasAmount = (v: number | string | null | undefined) => v != null && Number(v) > 0;
+  const noMoney = isCancelled && lesson.is_cancellation_fee === false; // скасовано без штрафу — грошей немає
   const showStudentPay = hasAmount(lesson.student_price);
   const showPayoutRow = withPayout && hasAmount(lesson.tutor_payout);
   /* 11.11 (рішення власниці): виплата за групове заняття Є — зі ставки «за групове
@@ -372,9 +375,12 @@ function LessonCardImpl({
           {studentActions && <div onClick={(e) => e.stopPropagation()}>{studentActions}</div>}
         </div>
 
-        {/* Payment rows */}
+        {/* Payment rows.
+            13.11: скасований урок БЕЗ штрафу показував «500 ₴ · Очікує» і «300 ₴ · До виплати» —
+            гроші, яких ніхто нікому не винен. Сторінка передає is_cancellation_fee; коли це
+            саме `false` на скасованому уроці, грошових рядків немає. Решта карток — як були. */}
         {(showStudentPay || showPayoutRow || payoutMissing || priceMissing) && (
-          <div style={{ borderTop: `1px solid ${L.border}`, padding: "11px 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ borderTop: `1px solid ${L.border}`, padding: "11px 13px 12px", display: noMoney ? "none" : "flex", flexDirection: "column", gap: 8 }}>
             {/* Student payment row only when a real student_price is present. For a HUB
                 tutor student_price is masked to NULL (they must not see/mark the student→hub
                 payment), so this row is hidden and only their payout row shows — no phantom

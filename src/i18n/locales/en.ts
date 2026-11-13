@@ -3161,7 +3161,7 @@ export const en: LocaleTranslations = {
     allPaidDesc: "No unpaid lessons",
     unpaidHeader: "⚠️ Unpaid lessons · {{count}}",
     modeLessons: "By lessons",
-    modeAmount: "By amount,",
+    modeAmount: "By amount",
     lessonsCountLabel: "Number of lessons",
     rateHint: "≈ {{total}} at the current rate {{rate}}/lesson",
     amountLabel: "Amount,",

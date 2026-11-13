@@ -164,8 +164,10 @@ export default function StudentSchedulePage() {
               <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 9, padding: "10px 12px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                      <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
+                    {/* 13.11: предмет обрізався до «Іспанська …» — учень не бачив, який це урок. Назва
+                        переноситься, чип статусу стає під нею, якщо не влазить. */}
+                    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", columnGap: 8, rowGap: 4, minWidth: 0 }}>
+                      <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "var(--ds-txt,#0f0f1a)", overflowWrap: "anywhere" }}>{l.subject}</p>
                       <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 14, background: live ? "rgba(43,191,170,.18)" : sm.bg, color: live ? "#1f8e7e" : sm.fg }}>
                         {joinStatus ?? statusLabel[l.status]}
                       </span>

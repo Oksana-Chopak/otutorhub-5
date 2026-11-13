@@ -280,7 +280,7 @@ export default function SchedulePage() {
         // немає — запит без неї (той самий фолбек, що й у Фінансах).
         const run = (withCarried: boolean) => supabase
           .from("lessons_visible")
-          .select(("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, group_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status" + (withCarried ? ", carried_over" : "")) as any)
+          .select(("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, group_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status, is_cancellation_fee" + (withCarried ? ", carried_over" : "")) as any)
           .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
           .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
           .order("starts_at", { ascending: false })

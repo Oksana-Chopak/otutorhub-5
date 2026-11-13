@@ -882,9 +882,11 @@ export function QuickLessonDialog({
                   </div>
                 )}
 
-                {/* Student cards */}
+                {/* 13.11: список учнів стискався до смужки в 40px, щойно у формі зʼявлялось
+                    попередження чи «щотижня» — учня було не видно й не обрати. Список не
+                    стискається; гортається вся форма. */}
                 {mode === "individual" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
                     {students.map(s => {
                       const active = studentId === s.student_id;
                       return (

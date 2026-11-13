@@ -3140,7 +3140,7 @@ export const sv: LocaleTranslations = {
     allPaidDesc: "Inga obetalda lektioner",
     unpaidHeader: "⚠️ Obetalda lektioner · {{count}}",
     modeLessons: "Per lektion",
-    modeAmount: "Med belopp,",
+    modeAmount: "Med belopp",
     lessonsCountLabel: "Antal lektioner",
     rateHint: "≈ {{total}} till nuvarande pris {{rate}}/lektion",
     amountLabel: "Belopp,",

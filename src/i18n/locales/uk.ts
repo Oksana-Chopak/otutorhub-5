@@ -3211,7 +3211,7 @@ export const uk = {
     allPaidDesc: "Неоплачених уроків немає",
     unpaidHeader: "⚠️ Неоплачені уроки · {{count}}",
     modeLessons: "Уроками",
-    modeAmount: "Сумою,",
+    modeAmount: "Сумою",
     lessonsCountLabel: "Кількість уроків",
     rateHint: "≈ {{total}} за поточною ставкою {{rate}}/урок",
     amountLabel: "Сума,",

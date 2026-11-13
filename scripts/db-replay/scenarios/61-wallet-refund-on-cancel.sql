@@ -5,7 +5,8 @@
 --   (2) репетиторка (під своєю роллю) скасовує один → кредит повертається і закриває
 --       наступний, девʼятий урок: оплачених нескасованих знову 8, баланс 0;
 --   (4) урок, позначений оплаченим руками (без гаманця), скасування не чіпає;
---   (5) кредит, що повернувся без вільного уроку, закриває наступний новий урок.
+--   (5) кредит, що повернувся без вільного уроку, закриває наступний новий урок;
+--   (6) урок повернули зі скасованих → гаманець закриває його одразу.
 BEGIN;
 SET LOCAL client_min_messages = notice;
 DO $$
@@ -72,5 +73,18 @@ BEGIN
   SELECT * INTO bal FROM public.wallet_balance_internal(ind, stu);
   IF st <> 'paid' OR bal.lessons_balance <> 0 THEN RAISE EXCEPTION 'ПРОВАЛ (5): новий урок %, баланс %', st, bal.lessons_balance; END IF;
   RAISE NOTICE '✅ (5) кредит зі скасованого уроку закрив наступний новий урок';
+
+  -- (6) урок повернули зі скасованих — кредит не лежить без діла
+  SELECT * INTO bal FROM public.wallet_balance_internal(ind, stu);
+  INSERT INTO public.student_wallet_transactions (tutor_id, student_id, kind, lessons_delta, amount_delta, created_by)
+    VALUES (ind, stu, 'topup', 1, 0, ind);   -- у гаманці 1 урок, вільних неоплачених немає
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', ind, 'role', 'authenticated')::text, true);
+  PERFORM set_config('role', 'authenticated', true);
+  UPDATE public.lessons SET status = 'scheduled' WHERE id = ids[1];
+  RESET role; PERFORM set_config('request.jwt.claims', NULL, true);
+  SELECT d.student_payment_status INTO st FROM public.lesson_details d WHERE d.lesson_id = ids[1];
+  SELECT * INTO bal FROM public.wallet_balance_internal(ind, stu);
+  IF st <> 'paid' OR bal.lessons_balance <> 0 THEN RAISE EXCEPTION 'ПРОВАЛ (6): повернутий урок %, баланс % (кредит лежить без діла)', st, bal.lessons_balance; END IF;
+  RAISE NOTICE '✅ (6) повернутий зі скасованих урок закрився передоплатою';
 END $$;
 ROLLBACK;
