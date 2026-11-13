@@ -828,7 +828,8 @@ function GroupDetailsDialog({
     });
     setScheduling(false);
     if (error || !lessonId) {
-      toast.error(error || t("groupsPageExtra.scheduleFailed"));
+      // 13.11: зайнятий слот показував сирий текст бази («duplicate key value violates…»)
+      toast.error(/23505|unique_visible_slot/.test(String(error ?? "")) ? t("quickLessonDialog.slotTaken") : (error || t("groupsPageExtra.scheduleFailed")));
       return;
     }
     toast.success(t("groupsPageExtra.scheduled", { count: active.length }));

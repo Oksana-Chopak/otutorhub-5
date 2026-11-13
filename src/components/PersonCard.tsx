@@ -5,6 +5,7 @@
  * Логіку даних НЕ містить — лише відображення.
  * Аватар з градієнтом + статус-крапка + ім'я + підрядок + бейджі + email+Copy + «Написати».
  */
+import { copyToClipboard } from "@/lib/clipboard";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MessageCircle, Copy, Check, Mail } from "lucide-react";
@@ -85,9 +86,7 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
 
   const copy = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(value).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyToClipboard(value).then((ok) => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 1200); });
   };
 
   return (

@@ -205,9 +205,24 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         else if (chargeChoice === "partial")
           newPrice = Math.max(0, Number(partialAmount) || 0);
 
+        /* 13.11: штраф пишемо ДО зміни статусу. Скасування оплаченого з передоплати уроку
+           повертає кредит у гаманець, ЯКЩО штрафу немає (trg_wallet_refund_on_cancel).
+           Коли статус мінявся першим, база ще не знала про штраф і повертала кредит —
+           а «повний штраф» після цього ставав неоплаченим боргом поверх поверненого уроку. */
+        const feeFirst = canDecideCharge && chargeChoice !== "none";
+        if (feeFirst) {
+          const { error: feeErr } = await updateLessonDetailsSafe(lesson.id, { student_price: newPrice, is_cancellation_fee: true });
+          if (feeErr) {
+            setSubmitting(false);
+            toast.error(t("tutorChangeRequests.priceFailed"), { description: feeErr.message });
+            return;
+          }
+        }
         const { error: lessonErr } = await setLessonStatus(lesson.id, "cancelled");
 
         if (lessonErr) {
+          // урок не скасувався — знімаємо позначку штрафу, щоб вона не лишилась на живому уроці
+          if (feeFirst) await updateLessonDetailsSafe(lesson.id, { student_price: Number(lesson.student_price), is_cancellation_fee: false });
           setSubmitting(false);
           toast.error(t("tutorChangeRequests.updateFailed"), { description: lessonErr.message });
           return;
@@ -218,6 +233,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         // For a HUB tutor the student→hub price is the manager's number (and is masked to
         // NULL/0 by lessons_visible here), so NEVER rewrite student_price — that would zero
         // the hub receivable. The tutor just cancels; the hub/manager decides any fee.
+        // (для штрафу це повторний запис тих самих значень — нешкідливо; для «без штрафу» — єдиний)
         if (canDecideCharge) {
           // is_cancellation_fee makes the withheld charge visible on money surfaces
           // (the billable predicate counts cancelled lessons only with this marker).

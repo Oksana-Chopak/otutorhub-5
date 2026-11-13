@@ -423,7 +423,8 @@ export function QuickLessonDialog({
         setSubmitting(false);
         if (error || !lessonId) {
           if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
-          toast.error(error || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
+          // 13.11: груповий шлях показував сирий текст бази («duplicate key value violates…»)
+          toast.error(/23505|unique_visible_slot/.test(String(error ?? "")) ? t("quickLessonDialog.slotTaken") : (error || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок")));
           return;
         }
         localStorage.setItem(LAST_MODE_KEY, "group");

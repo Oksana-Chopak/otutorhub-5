@@ -86,5 +86,19 @@ BEGIN
   SELECT * INTO bal FROM public.wallet_balance_internal(ind, stu);
   IF st <> 'paid' OR bal.lessons_balance <> 0 THEN RAISE EXCEPTION 'ПРОВАЛ (6): повернутий урок %, баланс % (кредит лежить без діла)', st, bal.lessons_balance; END IF;
   RAISE NOTICE '✅ (6) повернутий зі скасованих урок закрився передоплатою';
+
+  -- (7) скасування ЗІ ШТРАФОМ (штраф записано до зміни статусу, як це робить застосунок):
+  --     списання лишається, кредит не повертається
+  SELECT * INTO bal FROM public.wallet_balance_internal(ind, stu);
+  n := bal.lessons_balance;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', ind, 'role', 'authenticated')::text, true);
+  PERFORM set_config('role', 'authenticated', true);
+  PERFORM public.update_lesson_details_safe(ids[3], jsonb_build_object('student_price', 500, 'is_cancellation_fee', true));
+  UPDATE public.lessons SET status = 'cancelled' WHERE id = ids[3];
+  RESET role; PERFORM set_config('request.jwt.claims', NULL, true);
+  SELECT d.student_payment_status INTO st FROM public.lesson_details d WHERE d.lesson_id = ids[3];
+  SELECT * INTO bal FROM public.wallet_balance_internal(ind, stu);
+  IF st <> 'paid' OR bal.lessons_balance <> n THEN RAISE EXCEPTION 'ПРОВАЛ (7): урок зі штрафом %, баланс % (було %)', st, bal.lessons_balance, n; END IF;
+  RAISE NOTICE '✅ (7) скасування зі штрафом лишило списання на місці';
 END $$;
 ROLLBACK;

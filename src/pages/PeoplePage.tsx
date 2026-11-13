@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/clipboard";
 import { PageFAB } from "@/components/PageFAB";
 import { ErrorState } from "@/components/ErrorState";
 import { getLocale } from "@/lib/locale";
@@ -1168,8 +1169,7 @@ export default function PeoplePage() {
                           style={{ color: "var(--teal-text,#1a7a6c)" }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigator.clipboard.writeText(String(c.v));
-                            toast.success(t("people.copied"), { description: String(c.v) });
+                            void copyToClipboard(String(c.v)).then((ok) => { if (ok) toast.success(t("people.copied"), { description: String(c.v) }); else toast.error(t("common.copyFailed")); });
                           }}
                         >
                           <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
@@ -2047,7 +2047,7 @@ renderEmptyTab("managers")
                       aria-label={t("people.copyAriaLabel")}
                       className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
                       style={{ color: "var(--teal-text,#1a7a6c)" }}
-                      onClick={() => { navigator.clipboard.writeText(u.phone!); toast.success(t("people.copied"), { description: u.phone! }); }}
+                      onClick={() => { void copyToClipboard(u.phone!).then((ok) => { if (ok) toast.success(t("people.copied"), { description: u.phone! }); else toast.error(t("common.copyFailed")); }); }}
                     >
                       <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
                     </button>
@@ -2062,7 +2062,7 @@ renderEmptyTab("managers")
                       aria-label={t("people.copyAriaLabel")}
                       className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
                       style={{ color: "var(--teal-text,#1a7a6c)" }}
-                      onClick={() => { navigator.clipboard.writeText(u.email!); toast.success(t("people.copied"), { description: u.email! }); }}
+                      onClick={() => { void copyToClipboard(u.email!).then((ok) => { if (ok) toast.success(t("people.copied"), { description: u.email! }); else toast.error(t("common.copyFailed")); }); }}
                     >
                       <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
                     </button>

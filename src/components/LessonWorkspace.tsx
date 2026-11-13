@@ -173,6 +173,19 @@ export function LessonWorkspace({
         toast({ title: t("lessonWorkspace.paymentFailed"), description: error.message, variant: "destructive" });
         return;
       }
+      /* 13.11: зняти оплату з уроку, закритого ПЕРЕДОПЛАТОЮ, неможливо «просто так»: кредит
+         повертається в гаманець і за правилом «передоплата не лежить без діла» одразу знову
+         закриває цей самий урок. Екран казав «позначено неоплаченим», а в базі урок лишався
+         оплаченим — до першого оновлення сторінки. Тепер питаємо базу й кажемо, як є. */
+      if (next === "unpaid") {
+        const { data: fresh } = await supabase.from("lessons_visible").select("student_payment_status").eq("id", lessonId).maybeSingle();
+        if ((fresh as { student_payment_status?: string } | null)?.student_payment_status === "paid") {
+          setPaidLocal("paid");
+          toast({ title: t("lessonWorkspace.stillPaidByWallet"), description: t("lessonWorkspace.stillPaidByWalletDesc") });
+          onUpdated?.();
+          return;
+        }
+      }
       setPaidLocal(next);
       toast({ title: next === "paid" ? t("lessonWorkspace.markedPaid") : t("lessonWorkspace.markedUnpaid") });
       onUpdated?.();

@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/clipboard";
 import { useEffect, useMemo, useState } from "react";
 import { appOrigin } from "@/lib/webOrigin";
 import { canSee } from "@/lib/roleCapabilities";
@@ -185,7 +186,7 @@ export default function MyReferralsPage() {
 
   const handleCopy = async () => {
     if (!link) { toast.error(t("referralWidget.linkLoading")); return; }
-    await navigator.clipboard.writeText(link);
+    if (!(await copyToClipboard(link))) { toast.error(t("common.copyFailed")); return; }
     setCopied(true);
     toast.success(t("referralWidget.linkCopied"));
     setTimeout(() => setCopied(false), 1600);

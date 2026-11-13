@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/clipboard";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { openExternal } from "@/lib/openExternal";
 import { getLocale } from "@/lib/locale";
@@ -84,9 +85,8 @@ export default function StudentPaymentsPage() {
   useEffect(() => { void loadClaims(); }, [loadClaims]);
 
   const copyDetails = (info: TutorPayInfo) => {
-    navigator.clipboard.writeText(info.payment_details ?? "");
     hapticTap();
-    toast.success(t("studentPagesExtra.detailsCopied"));
+    void copyToClipboard(info.payment_details ?? "").then((ok) => { if (ok) toast.success(t("studentPagesExtra.detailsCopied")); else toast.error(t("common.copyFailed")); });
   };
   // №17 (ідеї 01.09): якщо в реквізитах є посилання (банка monobank, LiqPay,
   // будь-який https) — «скопіюй і йди в банк» перетворюється на КНОПКУ оплати.

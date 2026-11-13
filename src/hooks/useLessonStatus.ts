@@ -65,7 +65,9 @@ export function useLessonStatus() {
         .upsert(row, { onConflict: "lesson_id,student_id", ignoreDuplicates: true });
       // Фолбек: поки UNIQUE-міграцію не застосовано, on_conflict відхиляється —
       // пишемо по-старому, щоб нагорода не зникла взагалі.
-      if (error) await (supabase as any).from("student_rewards").insert(row);
+      // 13.11: учень без акаунта (ще не зареєструвався) нагороду отримати не може — база
+      // відмовляє за зовнішнім ключем (23503). Повторювати ту саму вставку вдруге немає сенсу.
+      if (error && (error as { code?: string }).code !== "23503") await (supabase as any).from("student_rewards").insert(row);
     })();
   };
 

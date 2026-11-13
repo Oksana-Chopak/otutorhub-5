@@ -1,3 +1,4 @@
+import { humanizeError } from "@/lib/humanErrors";
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
@@ -135,6 +136,11 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {
+  // 13.11: сирий текст бази в руйнівних повідомленнях → людські слова (та сама сітка, що й у sonner)
+  if (props.variant === "destructive") {
+    if (typeof props.title === "string") props.title = humanizeError(props.title) as string;
+    if (typeof props.description === "string") props.description = humanizeError(props.description) as string;
+  }
   // Порожні «бульбашки» (без заголовка й опису) не створюємо взагалі —
   // вони висіли пустими картками поверх інших сповіщень.
   if (!props.title && !props.description) {
