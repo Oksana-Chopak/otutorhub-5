@@ -181,6 +181,28 @@ async function main() {
   await s.notSee(/\d\d:[0-5][1-9]\s*\n?\s*60 хв/, "урок «о 14:29» — час за замовчуванням має бути рівною годиною");
   ok(step);
 
+  step = "3є щойно доданий учень: з форми уроку → призначити → назад в урок";
+  await s.go("/people?add=student", 3000);
+  dlg = s.page.getByRole("dialog");
+  await dlg.getByLabel("Ім'я").fill("Ніна"); await dlg.getByLabel("Прізвище").fill("Нова");
+  await dlg.getByLabel("Телефон").fill("+380671112233");
+  await dlg.getByRole("button", { name: "Додати", exact: true }).last().click(); await wait(3000);
+  await s.go("/schedule?create=1", 4500);
+  await s.see(/ще не з цим репетитором[\s\S]*Ніна Нова/i, "щойно доданий учень видно у формі уроку з дією «Призначити»");
+  await s.page.getByRole("link", { name: /Ніна Нова/ }).click(); await wait(3500);
+  dlg = s.page.getByRole("dialog").last();
+  await s.see(/Ірина Коваль/, "репетитор у формі пари вже обраний");
+  await dlg.getByRole("combobox").nth(1).click(); await wait(400);
+  await s.page.getByRole("option").first().click(); await wait(500);
+  await dlg.locator("input").last().fill("450");
+  await dlg.getByRole("button", { name: "Додати", exact: true }).click(); await wait(4500);
+  await s.see(/Ніна Нова[\s\S]*450/, "після призначення — одразу форма уроку з цією ученицею");
+  await s.page.getByRole("button", { name: /Ніна Нова/ }).click(); await wait(300);
+  await s.page.getByRole("button", { name: /^\d\d:00$|Змінити час/ }).first().click({ timeout: 1500 }).catch(() => {});
+  await s.page.getByRole("button", { name: "Створити урок" }).last().click(); await wait(3500);
+  await s.see(/Ніна Нова/, "урок щойно доданої учениці в розкладі");
+  ok(step);
+
   step = "3е група у формі уроку і груповий урок";
   await s.go("/schedule?create=1", 4500);
   // типовий час той самий, що в щойно створеного уроку — форма мусить попередити про накладку

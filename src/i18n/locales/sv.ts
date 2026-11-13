@@ -5018,6 +5018,8 @@ export const sv: LocaleTranslations = {
     tutorLabel: "Lärare",
     pickTutor: "Välj lärare",
     tutorNotInSchool: "Den här läraren tillhör inte din skola, så lektionen skapades inte. Välj en lärare från skolan eller lägg till hen under Personer.",
+    unpairedTitle: "Skolans elever — ännu inte hos den här läraren",
+    unpairedAction: "Tilldela",
     slotTaken: "Tiden är redan upptagen av en annan lektion — välj en annan tid",
     hubNoStudentsHint: "Inga elever tilldelade ännu — din chef lägger till dem snart 🤝",
     notifCancellationRulesTitle: "📋 Regler för avbokning och ombokning",

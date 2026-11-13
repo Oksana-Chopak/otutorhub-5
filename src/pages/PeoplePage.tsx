@@ -572,6 +572,23 @@ export default function PeoplePage() {
   // уроку веде менеджера туди ж, куди репетитора веде /my-students?open=.
   // Чекаємо на завантаження списку: людину беремо з нього, а не з URL.
   const [pendingOpenId, setPendingOpenId] = useState<string | null>(() => searchParams.get("open"));
+  /* 13.11: /people?assign=<учень>&tutor=<репетитор>&back=lesson — з форми уроку менеджер
+     приходить ПРЯМО у форму пари з уже обраними обома; після збереження повертаємо в урок. */
+  const [pendingAssign, setPendingAssign] = useState<{ student: string; tutor: string } | null>(() =>
+    searchParams.get("assign") ? { student: searchParams.get("assign")!, tutor: searchParams.get("tutor") ?? "" } : null);
+  const backToLessonRef = useRef(searchParams.get("back") === "lesson");
+  useEffect(() => {
+    if (!pendingAssign || !isManager) return;
+    const person = users.find((u) => u.id === pendingAssign.student);
+    if (!person) return;
+    setActiveRoleTab("students");
+    setAddTutorToStudent({ open: true, studentId: person.id, studentName: fullName(person), tutorId: pendingAssign.tutor, subject: "", price: "", currency: "UAH" });
+    setPendingAssign(null);
+    const n = new URLSearchParams(searchParams);
+    n.delete("assign"); n.delete("tutor"); n.delete("back");
+    setSearchParams(n, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users, pendingAssign, isManager]);
   // 21.09: /people?open=<id>&rate=1[&subject=…] — кнопка «⚙️ Ставка» з дайджесту
   // веде ПРЯМО у форму ставки, а не в аркуш, де ще треба знайти олівець.
   const [pendingRate] = useState<{ rate: boolean; subject: string | null; group: boolean }>(() => ({
@@ -741,10 +758,17 @@ export default function PeoplePage() {
       // репетитором і учнем (раніше треба було йти в розклад і обирати обох знову).
       const sid = addTutorToStudent.studentId;
       const tid = addTutorToStudent.tutorId;
-      toast.success(t("people.tutorAddedToStudent"), {
-        duration: 8000,
-        action: { label: t("people.scheduleLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${sid}&tutor=${tid}`) },
-      });
+      if (backToLessonRef.current) {
+        // прийшли з форми уроку — повертаємо туди ж, без зайвого дотику
+        backToLessonRef.current = false;
+        toast.success(t("people.tutorAddedToStudent"));
+        navigate(`/schedule?create=1&student=${sid}&tutor=${tid}`);
+      } else {
+        toast.success(t("people.tutorAddedToStudent"), {
+          duration: 8000,
+          action: { label: t("people.scheduleLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${sid}&tutor=${tid}`) },
+        });
+      }
     }
     setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();

@@ -108,6 +108,14 @@ export function QuickLessonDialog({
   const [tutorOptions, setTutorOptions] = useState<{ id: string; name: string }[]>([]);
   const [selTutorId, setSelTutorId] = useState<string>("");
   const [tutorsLoaded, setTutorsLoaded] = useState(false);
+  /* 13.11, скарга власниці: «не можу створити урок для репетитора хабу і нового учня,
+     якого щойно додала». Форма показувала лише учнів, уже прикріплених до обраного
+     репетитора; щойно доданого учня в ній просто не було — без жодного пояснення.
+     Тепер учні школи, яких із цим репетитором ще не звели, стоять тут же, і дотик веде
+     прямо у форму «репетитор + предмет + ціна» з уже обраними обома, а звідти — назад
+     в урок. Ціну тут не питаємо: форма пари одна, в «Людях». */
+  const [hubId, setHubId] = useState<string | null>(null);
+  const [unpaired, setUnpaired] = useState<{ id: string; name: string }[]>([]);
   const { user } = useAuth();
   const effTutorId = isManager ? selTutorId : user?.id;
   const { t } = useTranslation();
@@ -126,6 +134,7 @@ export function QuickLessonDialog({
          урок база не дає (і правильно: це не її школа). Тепер у списку лише репетитори школи,
          в якій менеджер зараз працює. Якщо школу визначити не вдалося — список як раніше. */
       const { data: hubId } = await supabase.rpc("caller_hub_id");
+      setHubId((hubId as string | null) ?? null);
       if (hubId && ids.length > 0) {
         const { data: own, error: ownErr } = await supabase
           .from("tutor_workspace_settings").select("tutor_id").eq("hub_id", hubId as string).in("tutor_id", ids);
@@ -244,6 +253,26 @@ export function QuickLessonDialog({
         }));
         rows.sort((a, b) => a.name.localeCompare(b.name, "uk"));
       }
+
+      // Менеджер: учні школи, яких із цим репетитором ще не звели
+      let rest: { id: string; name: string }[] = [];
+      if (isManager && hubId) {
+        const { data: members } = await supabase.from("hub_members").select("user_id").eq("hub_id", hubId);
+        const paired = new Set(ids);
+        const memberIds = (members ?? []).map((m: any) => m.user_id).filter((id: string) => !paired.has(id) && id !== effTutorId);
+        if (memberIds.length) {
+          const [{ data: staff }, { data: mprofs }] = await Promise.all([
+            supabase.from("user_roles").select("user_id").in("user_id", memberIds).in("role", ["tutor", "manager"]),
+            supabase.from("profiles").select("id, first_name, last_name").in("id", memberIds),
+          ]);
+          const staffIds = new Set((staff ?? []).map((r: any) => r.user_id));
+          rest = (mprofs ?? [])
+            .filter((p: any) => !staffIds.has(p.id))
+            .map((p: any) => ({ id: p.id, name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.student") }))
+            .sort((a, b) => a.name.localeCompare(b.name, "uk"));
+        }
+      }
+      if (!cancelled) setUnpaired(rest);
 
       // Load enrollments for groups
       const groupIds = (gs ?? []).map((g: any) => g.id);
@@ -642,6 +671,24 @@ export function QuickLessonDialog({
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
+  const unpairedList = isManager && selTutorId && unpaired.length > 0 ? (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, textAlign: "left" }}>
+      <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em", color: F.sub, marginTop: 6 }}>
+        {t("quickLessonDialog.unpairedTitle")}
+      </div>
+      {unpaired.map((u) => (
+        <Link key={u.id} to={`/people?assign=${u.id}&tutor=${selTutorId}&back=lesson`} onClick={() => onOpenChange(false)}
+          style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 52, padding: "8px 14px", borderRadius: 16, textDecoration: "none",
+            border: `1.5px dashed ${F.border}`, background: "transparent" }}>
+          <span style={{ flex: 1, minWidth: 0, fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.name}</span>
+          <span style={{ flexShrink: 0, fontFamily: F.display, fontWeight: 700, fontSize: 14, color: "var(--teal-text,#1a7a6c)" }}>
+            {t("quickLessonDialog.unpairedAction")} ›
+          </span>
+        </Link>
+      ))}
+    </div>
+  ) : null;
   const GRADIENTS = [
     "linear-gradient(135deg,#2BBFAA,#1d8f7e)",
     "linear-gradient(135deg,#6366F1,#4f46e5)",
@@ -727,7 +774,8 @@ export function QuickLessonDialog({
                     + {t("quickLessonDialog.addStudentBtn")}
                   </button>
                 )}
-                {isManager && tutorsLoaded && (tutorOptions.length === 0 || !!selTutorId) && (
+                {unpairedList}
+                {isManager && tutorsLoaded && (tutorOptions.length === 0 || (!!selTutorId && !unpairedList)) && (
                   <Link to={tutorOptions.length === 0 ? "/people?add=tutor" : "/people?tab=students"} onClick={() => onOpenChange(false)}
                     style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 20px",
                       borderRadius: 12, textDecoration: "none",
@@ -874,6 +922,7 @@ export function QuickLessonDialog({
                         + {t("quickLessonDialog.addStudentBtn")}
                       </button>
                     )}
+                    {unpairedList}
                   </div>
                 )}
 

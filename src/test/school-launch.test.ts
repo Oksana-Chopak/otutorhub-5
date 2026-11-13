@@ -247,4 +247,13 @@ describe("віральність у шляху школи (11.11, третій �
     expect(src).toMatch(/\.eq\("hub_id", hubId/);
     expect(src).toMatch(/quickLessonDialog\.tutorNotInSchool/);
   });
+
+  it("13.11: щойно доданий учень школи видно у формі уроку менеджера, і звідти його призначають", () => {
+    const form = readFileSync("src/components/QuickLessonDialog.tsx", "utf8");
+    expect(form).toMatch(/from\("hub_members"\)/);
+    expect(form).toMatch(/\/people\?assign=\$\{u\.id\}&tutor=\$\{selTutorId\}&back=lesson/);
+    const people = readFileSync("src/pages/PeoplePage.tsx", "utf8");
+    expect(people).toMatch(/searchParams\.get\("assign"\)/);
+    expect(people).toMatch(/backToLessonRef\.current/);
+  });
 });
