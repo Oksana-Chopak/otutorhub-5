@@ -140,8 +140,15 @@ if (!ONLY_SCENARIOS) {
   };
   const above = files.filter((f) => f.slice(0, 14) > watermark);
   const provenLive = above.filter(provenByTypes);
-  const live = files.filter((f) => f.slice(0, 14) <= watermark || provenLive.includes(f));
-  const pending = above.filter((f) => !provenLive.includes(f));
+  // 13.11: порядок, а не лише приналежність. Файл, який СТАРШИЙ за доведений живим, але сам
+  // довести себе не може (він лише перевипускає наявну функцію — у types.ts тіла не видно),
+  // раніше йшов у «ще не в проді» і проганявся ПІСЛЯ новішого живого. Так
+  // `20261015100000` (стара tutor_snapshot) перекривав `20261111120000` (нова, з маскою
+  // грошей для репетитора школи) — сценарій падав на базі, якої в проді не буває: там
+  // SQL вставляють за датою. Усе, що старше останнього доведеного, йде у фазу A за датою.
+  const lastProven = provenLive.length ? provenLive[provenLive.length - 1].slice(0, 14) : "";
+  const live = files.filter((f) => f.slice(0, 14) <= watermark || provenLive.includes(f) || f.slice(0, 14) < lastProven);
+  const pending = above.filter((f) => !live.includes(f));
   if (provenLive.length) console.log(`[db-replay] фаза A також: вище знаку, але доведені LIVE-MARKER у types.ts (Lovable застосував без хеш-файлу): ${provenLive.map((f) => f.slice(0, 14)).join(", ")}`);
   for (const f of live) applyOne(f);
   console.log(`[db-replay] фаза A (прод сьогодні): ${live.length} файлів; пропущено як «ніколи не в проді»: ${Object.keys(history.neverApplied).length}; відомих історичних провалів: ${results.expectedFailures.length}/${Object.keys(history.knownFailures).length}`);
