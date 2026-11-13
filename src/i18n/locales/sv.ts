@@ -401,6 +401,7 @@ export const sv: LocaleTranslations = {
     writeSupport: "Skriv",
   },
   humanErrors: {
+    service: "Tjänsten svarade inte — försök igen om en minut.",
     slotTaken: "Den här tiden är redan upptagen av en annan lektion — välj en annan.",
     duplicate: "Posten finns redan — den behöver inte skapas igen.",
     noAccess: "Du har inte behörighet för detta. Ladda om sidan; hjälper det inte, kontakta supporten.",
@@ -800,7 +801,7 @@ export const sv: LocaleTranslations = {
     createLessonBtn: "Skapa lektion",
   },
   finances: {
-    groupPayoutNotTracked: "Grupplektioner ger ingen lärarersättning — elevernas betalningar markeras inne i lektionen",
+    groupPayoutNotTracked: "Ersättningen för en grupplektion står på en egen lektionsrad — markera den där; deltagarraden gäller bara elevens betalning",
     markPaidBtn: "Markera betald",
     bulkMarkConfirmTitle_one: "Ändra status för {{count}} rad?",
     bulkMarkConfirmTitle_other: "Ändra status för {{count}} rader?",

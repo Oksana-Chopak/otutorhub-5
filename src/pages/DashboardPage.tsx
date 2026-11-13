@@ -842,7 +842,10 @@ export default function DashboardPage() {
     // Group lessons have no shared lesson_details row — per-participant payments are
     // marked in the lesson dialog (lesson_participants). Never write a bogus shared row.
     const lesson = lessons.find((l) => l.id === lessonId);
-    if (!lesson?.student_id) return;
+    // 13.11: мовчазний return робив «💼 … До виплати» на груповому уроці мертвою кнопкою.
+    // Виплата за групове — на уроці (11.11), позначаємо її; оплати учасників — у картці уроку.
+    if (!lesson) return;
+    if (!lesson.student_id && field === "student_payment_status") { setOpenLessonId(lessonId); return; }
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
     // OPTIMISTIC + HAPTIC FIRST so the tap is felt and seen INSTANTLY (no dead ~2s wait
     // while the DB round-trips, then a confusing blink). Revert if the write fails.

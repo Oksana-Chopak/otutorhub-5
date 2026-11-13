@@ -403,6 +403,7 @@ export const en: LocaleTranslations = {
     writeSupport: "Write",
   },
   humanErrors: {
+    service: "The service did not respond — try again in a minute.",
     slotTaken: "This time is already taken by another lesson — pick a different one.",
     duplicate: "This record already exists — no need to create it twice.",
     noAccess: "You don't have permission for this action. Refresh the page; if that doesn't help, contact support.",
@@ -1299,7 +1300,7 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
-    groupPayoutNotTracked: "Group lessons carry no tutor payout — student payments are marked inside the lesson",
+    groupPayoutNotTracked: "The payout for a group lesson is on its own lesson row — mark it there; a participant row holds only that student's payment",
     markPaidBtn: "Mark paid",
     bulkMarkConfirmTitle_one: "Change the status of {{count}} row?",
     bulkMarkConfirmTitle_other: "Change the status of {{count}} rows?",

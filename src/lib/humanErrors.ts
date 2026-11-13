@@ -18,6 +18,7 @@ const RULES: [RegExp, string][] = [
   [/violates not-null|23502|violates check constraint|23514/i, "humanErrors.invalid"],
   [/jwt expired|invalid jwt|refresh token/i, "humanErrors.session"],
   [/failed to fetch|networkerror|load failed|network request failed/i, "humanErrors.network"],
+  [/edge function returned|non-2xx status|functionshttperror|functionsfetcherror|functionsrelayerror/i, "humanErrors.service"],
 ];
 
 export function humanizeError(text: unknown): unknown {

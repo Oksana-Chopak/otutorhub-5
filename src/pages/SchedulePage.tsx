@@ -835,7 +835,10 @@ export default function SchedulePage() {
   ) => {
     // Group lessons have no shared lesson_details row — per-participant payments are
     // marked in the lesson dialog (lesson_participants). Never write a bogus shared row.
-    if (!lessons.find((l) => l.id === lessonId)?.student_id) return;
+    // 13.11: тут стояв мовчазний return для БУДЬ-ЯКОГО поля — дотик по «💼 250 ₴ До виплати» на
+    // груповому уроці нічого не робив. Виплата за групове заняття тепер Є (11.11) і живе на уроці,
+    // тож її позначаємо як звичайну; оплати учасників — у картці уроку, туди й ведемо.
+    if (!lessons.find((l) => l.id === lessonId)?.student_id && field === "student_payment_status") { setDetailsLessonId(lessonId); return; }
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     // tutor_payout_status / tutor_paid_at are column-locked (only the SECURITY DEFINER

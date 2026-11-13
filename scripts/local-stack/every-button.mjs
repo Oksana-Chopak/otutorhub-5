@@ -172,8 +172,9 @@ async function runRole(role) {
     const start = () => new MutationObserver((m) => { window.__ebMut += m.length; }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
     if (document.documentElement) start(); else document.addEventListener("DOMContentLoaded", start);
   });
-  const page = await ctx.newPage();
+  let page = await ctx.newPage();
   const net = [];
+  const wire = (page) => {
   page.on("pageerror", (e) => net.push(`помилка JS: ${String(e.message).slice(0, 180)}`));
   page.on("console", (m) => { if (m.type() === "error" && !/501|Failed to load resource|favicon|net::ERR|WebSocket|realtime/.test(m.text())) net.push(`console.error: ${m.text().slice(0, 180)}`); });
   page.on("response", async (r) => {
@@ -183,6 +184,10 @@ async function runRole(role) {
       net.push(`${r.status()} ${r.request().method()} ${u.replace(GW, "").slice(0, 110)} ${b}`);
     }
   });
+  };
+  wire(page);
+  // вкладка браузера інколи падає від нестачі памʼяті — відкриваємо нову й ідемо далі
+  const revive = async () => { try { await page.close(); } catch { /* вже мертва */ } page = await ctx.newPage(); wire(page); };
   const go = async (path, ms = 3200) => {
     await page.goto(BASE + path).catch(() => {}); await wait(ms);
     await page.getByRole("button", { name: "Прийняти" }).click({ timeout: 800 }).catch(() => {});
@@ -230,6 +235,7 @@ async function runRole(role) {
     const seen = new Set();
     for (const c of l1) {
       const key = c.label + "|" + c.href; if (seen.has(key)) continue; seen.add(key);   // однакові кнопки в списку — один раз
+      try {
       await go(route, 2300);   // кожен дотик — з чистого екрана: попередній міг лишити пошук, фільтр, відкрите меню
       const again = (await tag(page, "page", "data-eb1")).find((x) => x.label === c.label && x.href === c.href);
       if (!again) continue;
@@ -263,6 +269,11 @@ async function runRole(role) {
         }
       }
       rows.push(row);
+      } catch (e) {
+        const msg = String(e?.message ?? e).split("\n")[0].slice(0, 120);
+        if (/crashed|closed|destroyed/i.test(msg)) { console.log(`  ↻ вкладка впала на «${c.label}» — відкриваю нову`); await revive(); }
+        else rows.push({ ...base, path: c.label, err: "робот: " + msg });
+      }
     }
   }
   await browser.close();

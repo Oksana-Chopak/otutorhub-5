@@ -11,9 +11,10 @@ describe("сирий текст бази не доходить до людини
       'null value in column "rate_per_lesson" of relation "tutor_details" violates not-null constraint',
       "TypeError: Failed to fetch",
       "JWT expired",
+      "Edge Function returned a non-2xx status code",
     ]) {
       const out = String(humanizeError(raw));
-      expect(out).not.toMatch(/violates|constraint|row-level|Failed to fetch|JWT/);
+      expect(out).not.toMatch(/violates|constraint|row-level|Failed to fetch|JWT|Edge Function/);
       expect(out.length).toBeGreaterThan(10);
     }
   });
