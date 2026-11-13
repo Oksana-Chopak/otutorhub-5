@@ -240,4 +240,11 @@ describe("віральність у шляху школи (11.11, третій �
       expect(p.slice(Math.max(0, i - 160), i + line.length), to).toMatch(/isSuperadmin/);
     }
   });
+
+  it("13.11: менеджер обирає репетитора лише зі своєї школи, а відмову бази бачить словами", () => {
+    const src = readFileSync("src/components/QuickLessonDialog.tsx", "utf8");
+    expect(src).toMatch(/rpc\("caller_hub_id"\)/);
+    expect(src).toMatch(/\.eq\("hub_id", hubId/);
+    expect(src).toMatch(/quickLessonDialog\.tutorNotInSchool/);
+  });
 });

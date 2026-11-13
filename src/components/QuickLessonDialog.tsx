@@ -119,7 +119,18 @@ export function QuickLessonDialog({
     if (!open || !isManager) return;
     (async () => {
       const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "tutor");
-      const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
+      let ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
+      /* 13.11, скарга власниці: «new row violates row-level security policy for table lessons».
+         Список брав УСІХ репетиторів, яких менеджер бачить. Власниця платформи бачить ще й
+         самостійних репетиторів і репетиторів інших шкіл — обрати їх можна було, а поставити
+         урок база не дає (і правильно: це не її школа). Тепер у списку лише репетитори школи,
+         в якій менеджер зараз працює. Якщо школу визначити не вдалося — список як раніше. */
+      const { data: hubId } = await supabase.rpc("caller_hub_id");
+      if (hubId && ids.length > 0) {
+        const { data: own, error: ownErr } = await supabase
+          .from("tutor_workspace_settings").select("tutor_id").eq("hub_id", hubId as string).in("tutor_id", ids);
+        if (!ownErr && own && own.length > 0) ids = own.map((r: any) => r.tutor_id);
+      }
       if (ids.length === 0) { setTutorOptions([]); setTutorsLoaded(true); return; }
       const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
       const opts = (profs ?? [])
@@ -447,6 +458,11 @@ export function QuickLessonDialog({
       if (error) {
         console.error(error);
         if (isSubscriptionRequiredError(error)) { lock.openPaywall(); return; }
+        if (isManager && /row-level security|42501/.test(String((error as any)?.code ?? "") + String(error.message ?? ""))) {
+          // 13.11: сирий текст бази менеджеру нічого не каже — кажемо, що сталося і що робити.
+          toast.error(t("quickLessonDialog.tutorNotInSchool"));
+          return;
+        }
         toast.error((/23505|unique_visible_slot/.test(String((error as any)?.code ?? "") + String(error.message ?? "")) ? t("quickLessonDialog.slotTaken") : error.message) || t("quickLessonDialogExtra.lessonCreateFailed"));
         return;
       }

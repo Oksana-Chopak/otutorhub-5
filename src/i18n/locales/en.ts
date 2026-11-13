@@ -5038,6 +5038,7 @@ export const en: LocaleTranslations = {
     selectGroup: "Select a group",
     tutorLabel: "Tutor",
     pickTutor: "Choose a tutor",
+    tutorNotInSchool: "This tutor is not part of your school, so the lesson was not created. Pick a tutor from your school or add them in People.",
     slotTaken: "This time is already taken by another lesson of this tutor — pick a different slot",
     hubNoStudentsHint: "No students assigned yet — your manager will add them soon 🤝",
     notifCancellationRulesTitle: "📋 Cancellation & reschedule rules",
