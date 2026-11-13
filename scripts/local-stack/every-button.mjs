@@ -174,6 +174,12 @@ async function runRole(role) {
     if (document.documentElement) start(); else document.addEventListener("DOMContentLoaded", start);
   });
   await ctx.addInitScript(kbInit);          // «екранна клавіатура» для перевірки полів у кожному вікні
+  // Контроль самої перевірки: EB_KB_BREAK=1 вимикає підйом форм над клавіатуру — робот МУСИТЬ це помітити.
+  if (process.env.EB_KB_BREAK) await ctx.addInitScript(() => {
+    const st = document.createElement("style");
+    st.textContent = "html.kb-open .kb-sheet, html.kb-open .kb-bottom { bottom: 0 !important; max-height: 92vh !important; }";
+    document.addEventListener("DOMContentLoaded", () => document.head.appendChild(st));
+  });
   let page = await ctx.newPage();
   const net = [];
   const wire = (page) => {
