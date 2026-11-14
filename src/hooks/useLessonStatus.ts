@@ -60,6 +60,11 @@ export function useLessonStatus() {
       emoji: getRandomEmoji(theme), theme,
     };
     void (async () => {
+      // 14.11: учень без акаунта («очікує реєстрації») нагороду отримати не може — база відмовляє
+      // за зовнішнім ключем. Вставку, яка напевно впаде, не надсилаємо взагалі: це був збійний
+      // запит на КОЖНОМУ проведеному уроці такого учня (а так починає кожен учень школи).
+      const { data: who } = await supabase.from("profiles").select("is_pending").eq("id", l.student_id).maybeSingle();
+      if (who?.is_pending) return;
       const { error } = await (supabase as any)
         .from("student_rewards")
         .upsert(row, { onConflict: "lesson_id,student_id", ignoreDuplicates: true });
