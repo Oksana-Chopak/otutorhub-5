@@ -42,6 +42,9 @@ const must = (cond, what) => { if (!cond) throw new Error(`[${step}] ${what}`); 
 async function session() {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "uk-UA", timezoneId: "Europe/Kyiv" });
+  // 14.11: стенд не ходить до сторонніх лічильників (Clarity, Meta, Google): у CI, де мережа відкрита,
+  // Clarity після згоди на куки кидав власну помилку JS, а тестові сесії засмічували б аналітику.
+  await ctx.route(/clarity\.ms|facebook\.(com|net)|fbevents|google-analytics|googletagmanager|doubleclick/, (r) => r.abort());
   await ctx.addInitScript(() => { try { localStorage.setItem("i18nextLng", "uk"); } catch { /* приватний режим */ } });
   const page = await ctx.newPage();
   page.on("pageerror", (e) => problems.push(`[${step}] помилка JS: ${String(e.message).slice(0, 200)}`));

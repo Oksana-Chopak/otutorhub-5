@@ -110,6 +110,9 @@ for (const [role, states] of Object.entries(STATES)) {
   if (role !== "guest" && !P[role]) { console.log(`⚠️ ${role}: людини немає на стенді`); continue; }
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "uk-UA", timezoneId: "Europe/Kyiv", hasTouch: true, isMobile: true });
+  // 14.11: стенд не ходить до сторонніх лічильників (Clarity, Meta, Google): у CI, де мережа відкрита,
+  // Clarity після згоди на куки кидав власну помилку JS, а тестові сесії засмічували б аналітику.
+  await ctx.route(/clarity\.ms|facebook\.(com|net)|fbevents|google-analytics|googletagmanager|doubleclick/, (r) => r.abort());
   await ctx.addInitScript(() => {
     try { localStorage.setItem("i18nextLng", "uk"); } catch { /* приватний режим */ }
   });
