@@ -21,6 +21,8 @@ interface Lesson {
   status: string;
   meeting_url: string | null;
   tutor_id: string;
+  /** у групового уроку учня в самому уроці немає — учасники лежать окремо */
+  student_id: string | null;
   tutor_name?: string;
 }
 
@@ -66,7 +68,7 @@ export default function StudentSchedulePage() {
       // запит без неї.
       const run = (withCarried: boolean) => supabase
         .from("lessons")
-        .select(("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id" + (withCarried ? ", carried_over" : "")) as any)
+        .select(("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id, student_id" + (withCarried ? ", carried_over" : "")) as any)
         .or(orFilter)
         .order("starts_at", { ascending: false });
       const first = await run(true);
@@ -100,7 +102,10 @@ export default function StudentSchedulePage() {
   // Split by END time, not start: an ongoing lesson must stay in «Найближчі»
   // (with its live join CTA) instead of jumping to «Минулі» the second it starts.
   const endMs = (l: Lesson) => new Date(l.starts_at).getTime() + (l.duration_minutes ?? 60) * 60000;
-  const upcoming = lessons.filter((l) => endMs(l) >= now);
+  // 14.11: майбутні — найближчий зверху (запит віддає від найпізнішого, і учень бачив першим
+  // урок через два тижні, а завтрашній — унизу); минулі лишаються «найсвіжіший зверху».
+  const upcoming = lessons.filter((l) => endMs(l) >= now)
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
   const past = lessons.filter((l) => endMs(l) < now);
 
   const D = "Inter, system-ui, sans-serif";
@@ -201,13 +206,22 @@ export default function StudentSchedulePage() {
                 ) : null}
                 {/* 43: скасувати / перенести — компонент був написаний і перекладений,
                     але змонтований ЛИШЕ в тьюторському SchedulePage, куди учень не ходить. */}
-                {l.status === "scheduled" && (
+                {/* 14.11 (нічний робот «кожна кнопка»): на ГРУПОВОМУ уроці ці кнопки вели в
+                    глухий кут — база приймає запит лише на власний індивідуальний урок, і
+                    учень бачив сирий текст «row-level security». Заняття групи один учасник
+                    перенести не може; замість мертвих кнопок — чесна підказка, що робити. */}
+                {l.status === "scheduled" && l.student_id && (
                   <StudentLessonActions
                     lessonId={l.id}
                     tutorId={l.tutor_id}
                     startsAt={l.starts_at}
                     status={l.status}
                   />
+                )}
+                {l.status === "scheduled" && !l.student_id && (
+                  <p data-group-lesson-note="" className="text-[14px] text-muted-foreground" style={{ lineHeight: 1.4, margin: 0 }}>
+                    {t("studentPages.groupLessonNoRequest")}
+                  </p>
                 )}
               </div>
             </li>

@@ -212,7 +212,7 @@ async function runRole(role) {
   const net = [];
   const wire = (page) => {
   page.on("pageerror", (e) => net.push(`помилка JS: ${String(e.message).slice(0, 180)}`));
-  page.on("console", (m) => { if (m.type() === "error" && !/501|Failed to load resource|favicon|net::ERR|WebSocket|realtime/.test(m.text())) net.push(`console.error: ${m.text().slice(0, 180)}`); });
+  page.on("console", (m) => { if (m.type() === "error" && !/501|Failed to load resource|favicon|net::ERR|WebSocket|realtime|Blocked script execution in 'about:srcdoc'/.test(m.text())) net.push(`console.error: ${m.text().slice(0, 180)}`); });
   page.on("response", async (r) => {
     const u = r.url();
     if (r.status() >= 400 && (u.includes("/rest/v1") || u.includes("/auth/v1"))) {

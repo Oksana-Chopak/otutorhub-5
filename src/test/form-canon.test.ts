@@ -101,6 +101,15 @@ describe("канон форм: поля, оболонка, вибір без с�
     expect(read("components/TutorChangeRequestsCard.tsx")).toMatch(/<DateTimeField[^>]*\bmin=\{/);
   });
 
+  it("учень на груповому уроці не бачить «Перенести / Скасувати» — база такий запит не приймає", () => {
+    // 14.11, нічний робот: кнопки стояли на кожному запланованому уроці, а політика бази пускає
+    // запит лише на власний індивідуальний урок → учень групи бачив «row-level security».
+    const s = read("pages/student/StudentSchedulePage.tsx");
+    expect(s).toMatch(/l\.status === "scheduled" && l\.student_id && \(\s*<StudentLessonActions/);
+    expect(s).toMatch(/studentPages\.groupLessonNoRequest/);
+    expect(read("pages/SchedulePage.tsx")).toMatch(/isPureStudent && lesson\.student_id === user\?\.id \? \(\s*<StudentLessonActions/);
+  });
+
   it("білого напису на бірюзовій заливці немає (2.3:1) — на бірюзі напис темний", () => {
     const bad: string[] = [];
     for (const f of files) {
