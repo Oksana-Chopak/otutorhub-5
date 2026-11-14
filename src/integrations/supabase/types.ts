@@ -2032,6 +2032,7 @@ export type Database = {
           is_pending: boolean
           last_name: string
           preferred_language: string
+          timezone: string | null
           updated_at: string
         }
         Insert: {
@@ -2043,6 +2044,7 @@ export type Database = {
           is_pending?: boolean
           last_name?: string
           preferred_language?: string
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
@@ -2054,6 +2056,7 @@ export type Database = {
           is_pending?: boolean
           last_name?: string
           preferred_language?: string
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -3724,6 +3727,13 @@ export type Database = {
         Returns: number
       }
       payment_link_view: { Args: { _token: string }; Returns: Json }
+      people_timezones: {
+        Args: { _ids: string[] }
+        Returns: {
+          timezone: string
+          user_id: string
+        }[]
+      }
       person_ref_columns: {
         Args: never
         Returns: {
@@ -3810,6 +3820,7 @@ export type Database = {
         Args: { _lesson_ids: string[]; _status: string }
         Returns: undefined
       }
+      set_my_timezone: { Args: { _tz: string }; Returns: undefined }
       set_own_independent_workspace: { Args: never; Returns: undefined }
       set_tutor_payout_schedule: {
         Args: {
@@ -3868,11 +3879,13 @@ export type Database = {
           lessons_balance: number
         }[]
       }
+      wallet_cancel_refund_scope: { Args: never; Returns: string }
       wallet_delete_transaction: {
         Args: { _hard?: boolean; _tx_id: string }
         Returns: string
       }
       wallet_resettle_all: { Args: never; Returns: number }
+      wallet_restore_settle_scope: { Args: never; Returns: string }
       wallet_settle_pair: {
         Args: { _student_id: string; _tutor_id: string }
         Returns: number
