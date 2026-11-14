@@ -55,7 +55,7 @@ const STATES = {
     ["форма уроку · нова група", async (p, go) => { await go("/schedule?create=1", 4500); await p.getByRole("button", { name: /Груповий/ }).click(); await wait(500); await p.getByRole("button", { name: /Нова група/ }).click({ timeout: 2500 }).catch(() => {}); }],
     ["додати учня", async (p, go) => { await go("/people?add=student", 3500); await p.getByRole("button", { name: /контакти|Контакти/ }).first().click({ timeout: 1500 }).catch(() => {}); }],
     ["додати репетитора", async (p, go) => { await go("/people?add=tutor", 3500); }],
-    ["призначити репетитора (предмет + ціна)", async (p, go) => { await go(`/people?assign=${FREE || SID}&tutor=${TID}`, 4000); const d = p.getByRole("dialog").filter({ hasText: /до учня/ }).last(); await d.getByRole("combobox").nth(1).click({ timeout: 3000 }); await wait(400); await p.getByRole("option").first().click({ timeout: 3000 }); }],
+    ["призначити репетитора (предмет + ціна)", async (p, go) => { await go(`/people?assign=${FREE || SID}&tutor=${TID}`, 4000); const d = p.getByRole("dialog").filter({ hasText: /до учня/ }).last(); await d.locator("[data-subject-chip]").first().click({ timeout: 3000 }); await wait(400); }],
     ["редагувати людину", async (p, go) => { await go("/people?tab=students", 3500); await card(p, "Соломія Гнатюк"); await wait(800); await p.getByRole("button", { name: /Редагувати/ }).first().click({ timeout: 4000 }); }],
     ["нотатка менеджера в картці людини", async (p, go) => { await go("/people?tab=students", 3500); await card(p, "Соломія Гнатюк"); await wait(800); await p.getByRole("dialog").last().getByText(/Приватні нотатки/).click({ timeout: 3000 }); }],
     ["копія уроку (стара форма)", async (p, go) => { await go("/schedule", 4500); await p.getByRole("button", { name: "Дії", exact: true }).nth(1).click({ timeout: 4000 }); await wait(500); await p.getByRole("menuitem", { name: /Копіювати/ }).click({ timeout: 3000 }); }],
@@ -128,7 +128,7 @@ for (const [role, states] of Object.entries(STATES)) {
   for (const [name, open] of states) {
     const where = `${role} · ${name}`;
     console.log("■ " + where);
-    try { await open(page, go); } catch (e) { console.log(`   (не відкрилось: ${String(e.message).split("\n")[0].slice(0, 90)})`); if (process.env.KB_SHOTS) await page.screenshot({ path: `${OUT}/NOTOPEN_${where.replace(/[^a-zа-яіїє0-9]+/gi, "_")}.png` }).catch(() => {}); continue; }
+    try { await open(page, go); } catch (e) { console.log(`   (не відкрилось: ${String(e.message).split("\n")[0].slice(0, 90)})`); findings.push(`${where} · форма НЕ ВІДКРИЛАСЬ — не перевірено (14.11: мовчазний пропуск ховав зміну форми)`); if (process.env.KB_SHOTS) await page.screenshot({ path: `${OUT}/NOTOPEN_${where.replace(/[^a-zа-яіїє0-9]+/gi, "_")}.png` }).catch(() => {}); continue; }
     await wait(900);
     const n = await kbCheck(page, where, findings);
     if (n) { forms++; total += n; }

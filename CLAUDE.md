@@ -114,6 +114,13 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
   variants of the same subject cannot exist, so string-matched pricing never
   misses on formatting. Distinct wordings remain distinct subjects by design.
+- FORMS, стан 14.11: «Люди» → «Нова людина» і «Додати репетитора до учня» переведені в новий
+  канон (скарга власниці). Старі контроли (`<Label>` + Radix `<Select>` у діалозі) лишились у:
+  SchedulePage («Копіювати» і фільтри), AvailabilityManager, TutorChangeRequestsCard,
+  RatePropagationDialog, StudentLessonActions, TutorRateDialog, SchoolRequestCard,
+  SubscriptionRequestDialog, ChatsPage (новий чат), ContactEditDialog, ScheduleFiltersSheet,
+  FinancesPage (фільтри). Наступна хвиля — вони; грошові (TutorRateDialog, RatePropagation) —
+  першим комітом свіжої сесії.
 - FORMS GENERATION MAP (CORRECTED 20.08 — the earlier 58px-marker heuristic
   misclassified two NEW forms as old): NEW = QuickLessonDialog(3 variants),
   LessonDetailsDialog, OnboardingFlowB, RecordPaymentSheet, QuickAddStudent-
@@ -356,6 +363,19 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   спливного вікна чи тригера на вставку — прогнати хоча б зачеплену роль (`EB_ONLY=manager`,
   `EB_ROUTES=/schedule`). Матриця потоків і звʼязків — у доці проєкту «Перша школа», §7.
   Повний прогін ≈ 1,5 год на шість ролей; більше двох ролей одночасно — вкладки падають від памʼяті.
+- **Випадаючий список не блимає (14.11, мій дефект, скарга власниці) — INVIOLABLE.** Radix Select
+  закривається на `resize` ВІКНА. 13.11 `keyboardInset` після кожного фокуса надсилав вікну
+  `resize`, щоб спливні вікна перерахували місце, — і КОЖЕН список застосунку (12 екранів)
+  відкривався й за 60 мс зникав. Правила: (1) з коду застосунку вікну НІКОЛИ не надсилається
+  `resize` — перерахунок місця лише подією `scroll` і лише при зміні стану клавіатури;
+  (2) на Android клавіатура, що ховається, дає справжній resize — `keyboardInset` гасить його для
+  решти слухачів, якщо людина щойно вийшла з поля вводу і відкритий список («ввела ціну → тап по
+  валюті»); (3) у формі, де поруч стоять поле суми і вибір, вибір — рідний `<select>` або кнопки,
+  не Radix Select (форма пари «учень — репетитор» у «Людях» — зразок: репетитор і валюта рідним
+  вибором, предмет кнопками). Стережуть `keyboard-inset.test.ts`, `school-launch.test.ts`,
+  `every-button` (ознака «БЛИМНУЛО»: спливне відкрилось від дотику й саме закрилось) і
+  воркфлоу `walks.yml` — проходи у браузері тепер біжать САМІ після кожного пушу (13.11 після
+  останньої правки вони руками запущені не були, а ворота браузера не відкривають).
 - **Екранна клавіатура не накриває форму (13.11, скарга власниці) — INVIOLABLE.** На телефоні
   клавіатура НЕ зменшує сторінку, а лягає поверх нижніх ~40% екрана; форма-аркуш притиснута до
   низу, тож поле й «Зберегти» були під клавіатурою. `src/lib/keyboardInset.ts` ставить

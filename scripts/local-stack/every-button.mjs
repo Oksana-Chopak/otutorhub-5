@@ -12,7 +12,8 @@
  *   3. чи змінилось хоч щось (нічого не змінилось = мертва кнопка);
  *   4. чи кожна прокрутна зона у вікні справді гортається колесом;
  *   5. чи кожен елемент у вікні досяжний (не накритий іншим);
- *   6. чи немає на екрані сирих ключів перекладу, «undefined», «NaN».
+ *   6. чи немає на екрані сирих ключів перекладу, «undefined», «NaN»;
+ *   7. чи спливне, що відкрилось від дотику, лишилось відкритим (14.11: списки «блимали й зникали»).
  *
  * Запуск (стенд піднятий, проходи вже створили людей):
  *   node scripts/local-stack/every-button.mjs            # усі ролі
@@ -45,12 +46,25 @@ const PEOPLE = {
   independent: latest("alina", "tutor.test"),
   superadmin: latest("oksana", "platform.test"),
 };
+// 14.11: форми, що відкриваються з адреси, — теж маршрути. Форма пари «учень — репетитор» живе на
+// третьому рівні (картка → аркуш → кнопка → форма), і робот глибиною два до неї не діставав —
+// саме в ній власниця знайшла списки, що блимали.
+const idOf = (q) => psql(q).split("\n")[0] || "";
+const hubTutor = PEOPLE.hubtutor ? idOf(`select id from auth.users where email = '${PEOPLE.hubtutor}'`) : "";
+// учень школи, якого з цим репетитором ще НЕ звели, — щоб у формі були предмети для вибору
+const hubStudent = hubTutor ? idOf(`select hm.user_id from hub_members hm
+  where hm.hub_id = (select hub_id from tutor_workspace_settings where tutor_id = '${hubTutor}')
+    and hm.user_id <> '${hubTutor}'
+    and not exists (select 1 from student_rates sr where sr.student_id = hm.user_id and sr.tutor_id = '${hubTutor}')
+    and not exists (select 1 from user_roles ur where ur.user_id = hm.user_id and ur.role in ('tutor', 'manager'))
+  limit 1`) : "";
 const ONLY_ROUTES = process.env.EB_ROUTES?.split(",");
 const ROUTES = {
-  manager: ["/dashboard", "/schedule", "/schedule?view=week", "/people", "/people?tab=students", "/groups", "/chats", "/finances", "/finances?tab=debts", "/wallets", "/referrals", "/availability", "/profile", "/audit"],
+  manager: ["/dashboard", "/schedule", "/schedule?view=week", "/people", "/people?tab=students", "/groups", "/chats", "/finances", "/finances?tab=debts", "/wallets", "/referrals", "/availability", "/profile", "/audit",
+    "/schedule?create=1", "/people?add=student", "/people?add=tutor", ...(hubStudent && hubTutor ? [`/people?assign=${hubStudent}&tutor=${hubTutor}`, `/people?assign=${hubStudent}`] : [])],
   hubtutor: ["/dashboard", "/schedule", "/groups", "/chats", "/finances", "/availability", "/achievements", "/profile"],
   student: ["/student-dashboard", "/student/schedule", "/student/payments", "/student/homework", "/student/achievements", "/student/profile", "/chats"],
-  independent: ["/dashboard", "/schedule", "/schedule?view=week", "/my-students", "/groups", "/chats", "/finances", "/finances?tab=debts", "/wallets", "/availability", "/achievements", "/my-referrals", "/profile", "/subscription"],
+  independent: ["/dashboard", "/schedule", "/schedule?view=week", "/schedule?create=1", "/my-students", "/groups", "/chats", "/finances", "/finances?tab=debts", "/wallets", "/availability", "/achievements", "/my-referrals", "/profile", "/subscription"],
   superadmin: ["/dashboard", "/admin", "/errors", "/feedback-inbox", "/marketing", "/subscription-requests", "/paywall-metrics"],
   guest: ["/", "/auth", "/auth?signup=1", "/for-students", "/reset-password"],
 };
@@ -109,7 +123,8 @@ async function probesOnce(page) {
     const txt = (top || document.body).innerText || "";
     const raw = (txt.match(/\b[a-z][A-Za-z]+\.[a-z][A-Za-z]+(\.[A-Za-z]+)*\b/g) || []).filter((k) => !/\.(com|test|ua|io|app|me|se|json|sql)$|otutorhub|gmail|google|lingua|e\.g|т\.д/i.test(k)).slice(0, 3);
     const junk = (txt.match(/[^\n]*\b(undefined|NaN|\[object Object\])\b[^\n]*/g) || []).slice(0, 2).map((x) => x.trim().slice(0, 80));
-    return { layers: layers.length, topText: top ? (top.innerText || "").replace(/\s+/g, " ").slice(0, 60) : "", toasts, raw, junk, url: location.pathname + location.search, mut: window.__ebMut || 0 };
+    return { layers: layers.length, topText: top ? (top.innerText || "").replace(/\s+/g, " ").slice(0, 60) : "", toasts, raw, junk, url: location.pathname + location.search, mut: window.__ebMut || 0,
+      pop: window.__ebPop || 0, popAlive: [...document.querySelectorAll("[data-radix-popper-content-wrapper]")].filter((w) => !w.querySelector('[role="tooltip"]')).length };
   });
 }
 
@@ -172,6 +187,16 @@ async function runRole(role) {
     window.__ebMut = 0;
     const start = () => new MutationObserver((m) => { window.__ebMut += m.length; }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
     if (document.documentElement) start(); else document.addEventListener("DOMContentLoaded", start);
+    // 14.11: спливне (список, меню, вибір), яке ВІДКРИЛОСЬ від дотику й саме закрилось до кінця
+    // спостереження. Саме так «блимали» всі випадаючі списки, і робот цього не бачив: зміни на
+    // екрані були, помилок не було. Підказки (tooltip) не рахуємо — вони зникають самі за задумом.
+    window.__ebPop = 0;
+    const pops = () => new MutationObserver((ms) => {
+      for (const m of ms) for (const n of m.addedNodes) {
+        if (n.nodeType === 1 && n.matches?.("[data-radix-popper-content-wrapper]") && !n.querySelector('[role="tooltip"]')) window.__ebPop++;
+      }
+    }).observe(document.documentElement, { subtree: true, childList: true });
+    if (document.documentElement) pops(); else document.addEventListener("DOMContentLoaded", pops);
   });
   await ctx.addInitScript(kbInit);          // «екранна клавіатура» для перевірки полів у кожному вікні
   // Контроль самої перевірки: EB_KB_BREAK=1 вимикає підйом форм над клавіатуру — робот МУСИТЬ це помітити.
@@ -222,14 +247,16 @@ async function runRole(role) {
   const press = async (attr, i, label) => {
     const before = net.length;
     // повідомлення не чіпаємо (видалення вузла руками валить React) — запамʼятовуємо, які вже були
-    const had = await page.evaluate(() => { window.__ebMut = 0; return [...document.querySelectorAll("[data-sonner-toast]")].map((t) => (t.innerText || "").replace(/\s+/g, " ").trim().slice(0, 140)); });
+    const had = await page.evaluate(() => { window.__ebMut = 0; window.__ebPop = 0; return [...document.querySelectorAll("[data-sonner-toast]")].map((t) => (t.innerText || "").replace(/\s+/g, " ").trim().slice(0, 140)); });
     const el = page.locator(`[${attr}="${i}"]`).first();
     let err = "";
     try { await el.scrollIntoViewIfNeeded({ timeout: 1500 }); await el.click({ timeout: 2500 }); } catch (e) { err = String(e.message).replace(/\s+/g, " ").slice(0, 900); }
     await wait(850);
     const p = await probes(page);
     p.toasts = p.toasts.filter((t) => !had.includes(t.text));
-    return { label, err, net: net.slice(before), ...p };
+    // відкрилось від цього дотику — і вже немає: список блимнув і зник (обрати нічого не можна)
+    const blink = p.pop > 0 && p.popAlive === 0;
+    return { label, err, net: net.slice(before), blink, ...p };
   };
 
   for (const route of (ONLY_ROUTES ?? ROUTES[role])) {
@@ -238,19 +265,22 @@ async function runRole(role) {
     const first = await probes(page);
     const base = { role, route };
     if (first.raw.length || first.junk.length) rows.push({ ...base, path: "(екран)", raw: first.raw, junk: first.junk });
-    const l1 = (await tag(page, "page", "data-eb1")).filter((c) => !SKIP.test(c.label)).slice(0, MAX_L1);
+    // маршрут одразу відкрив форму → перший рівень — її елементи (сторінка під нею недосяжна)
+    const scope1 = first.layers ? "top" : "page";
+    const l1 = (await tag(page, scope1, "data-eb1")).filter((c) => !SKIP.test(c.label)).slice(0, MAX_L1);
     console.log(`■ ${role} ${route}: елементів ${l1.length}`);
     const seen = new Set();
     for (const c of l1) {
       const key = c.label + "|" + c.href; if (seen.has(key)) continue; seen.add(key);   // однакові кнопки в списку — один раз
       try {
       await go(route, 2300);   // кожен дотик — з чистого екрана: попередній міг лишити пошук, фільтр, відкрите меню
-      const again = (await tag(page, "page", "data-eb1")).find((x) => x.label === c.label && x.href === c.href);
+      const again = (await tag(page, scope1, "data-eb1")).find((x) => x.label === c.label && x.href === c.href);
       if (!again) continue;
       const r = await press("data-eb1", again.i, c.label);
       const row = { ...base, path: c.label, err: r.err, net: r.net, toasts: r.toasts, raw: r.raw, junk: r.junk, nav: r.url !== route ? r.url : "", layer: r.layers ? r.topText : "", dead: !r.err && r.mut === 0 && r.url === route };
-      if (r.layers) {
-        row.audit = await auditLayer(page);
+      if (r.blink) row.audit = ["БЛИМНУЛО: список відкрився й сам закрився"];
+      if (scope1 === "top" ? r.layers > first.layers : r.layers) {
+        row.audit = (row.audit ?? []).concat(await auditLayer(page));
         // 13.11: кожне текстове поле вікна — над клавіатурою, не під нею (kb-lib.mjs)
         const kbBad = [];
         if (await page.locator('[role="dialog"], [role="alertdialog"]').count()) await kbCheck(page, `${role} ${route} · ${c.label}`, kbBad, { quiet: true });
@@ -264,7 +294,7 @@ async function runRole(role) {
           let p = await probes(page);
           if (!p.layers || p.url !== route) {                     // вікно закрилось — відкриваємо знову
             await clean(route);
-            const re = (await tag(page, "page", "data-eb1")).find((x) => x.label === c.label && x.href === c.href);
+            const re = (await tag(page, scope1, "data-eb1")).find((x) => x.label === c.label && x.href === c.href);
             if (!re) break;
             await press("data-eb1", re.i, c.label);
             p = await probes(page);
@@ -274,7 +304,8 @@ async function runRole(role) {
           if (!inner) continue;
           const r2 = await press("data-eb2", inner.i, d.label);
           const row2 = { ...base, path: `${c.label} ▸ ${d.label}`, err: r2.err, net: r2.net, toasts: r2.toasts, raw: r2.raw, junk: r2.junk, nav: r2.url !== route ? r2.url : "", dead: !r2.err && r2.mut === 0 && r2.url === route };
-          if (r2.layers) row2.audit = await auditLayer(page);
+          if (r2.blink) row2.audit = ["БЛИМНУЛО: список відкрився й сам закрився"];
+          if (r2.layers) row2.audit = (row2.audit ?? []).concat(await auditLayer(page));
           // третій шар (спливне у вікні) закриваємо одним Escape, вікно лишається
           const after = await probes(page);
           if (after.layers > p.layers) { await page.keyboard.press("Escape"); await wait(250); }
@@ -303,7 +334,7 @@ for (const role of Object.keys(ROUTES)) {
   const bad = rows.filter((r) => (r.net?.length) || r.err || r.audit?.length || r.raw?.length || r.junk?.length);
   const toasts = rows.filter((r) => r.toasts?.some((t) => t.type === "error"));
   const dead = rows.filter((r) => r.dead);
-  hard += rows.filter((r) => r.net?.length || r.audit?.some((a) => a.startsWith("МЕРТВА") || a.startsWith("КЛАВІАТУРА"))).length;
+  hard += rows.filter((r) => r.net?.length || r.audit?.some((a) => a.startsWith("МЕРТВА") || a.startsWith("КЛАВІАТУРА") || a.startsWith("БЛИМНУЛО"))).length;
   console.log(`\n══ ${role}: дотиків ${rows.length} · збої ${bad.length} · червоні повідомлення ${toasts.length} · без реакції ${dead.length}`);
   for (const r of bad) console.log(`  ✗ ${r.route} · ${r.path}: ${[r.err && "не натискається: " + r.err.slice(-520), ...(r.net || []), ...(r.audit || []), r.raw?.length ? "ключі: " + r.raw.join(", ") : "", ...(r.junk || [])].filter(Boolean).join(" ‖ ")}`);
   for (const r of toasts) console.log(`  ⚠ ${r.route} · ${r.path}: ${r.toasts.filter((t) => t.type === "error").map((t) => t.text).join(" | ")}`);

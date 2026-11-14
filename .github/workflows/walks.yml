@@ -1,0 +1,101 @@
+# Проходи у браузері на стенді зі СПРАВЖНЬОЮ базою — після кожного пушу в main (14.11).
+#
+# Чому вони тут. 13.11 правка для екранної клавіатури зламала ВСІ випадаючі списки застосунку
+# (вони відкривались і за 60 мс закривались). Проходи school-walk / roles-walk це ловлять:
+# вони обирають репетитора й предмет саме зі списку. Але запускались вони руками — і після
+# останньої правки того дня запущені не були. Ворота (scripts/gates.mjs) браузера не відкривають,
+# тож усе було зелене, а власниця знайшла дефект на проді наступного ранку.
+# Тепер це не памʼять людини чи агента, а крок CI: стенд (PostgREST + шлюз + vite поверх
+# db-replay --keep) → «перша школа» → «сіткою по ролях» → «клавіатура не накриває форми».
+# Збій → коментар до коміту (агент читає його зі сторінки коміту) і рядок власниці в Telegram.
+name: Проходи у браузері
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: walks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  walks:
+    name: 🚶 Стенд зі справжньою базою — проходи по ролях
+    # ubuntu-24.04, не latest: Playwright із lockfile не має Chromium для 26.04 (див. ci.yml)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: "1"
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: |
+          npm ci --no-audit --no-fund
+          command -v psql >/dev/null || sudo apt-get install -y -q postgresql-client
+          npx playwright install --with-deps chromium || npx playwright install chromium
+      - name: Стенд (база з усієї історії міграцій + PostgREST + шлюз + застосунок)
+        run: bash scripts/local-stack/up.sh 2>&1 | tail -5
+      - name: Прохід «перша школа»
+        run: |
+          set -o pipefail
+          node scripts/local-stack/school-walk.mjs 2>&1 | tee walks.log
+      - name: Прохід «сіткою по ролях»
+        run: |
+          set -o pipefail
+          node scripts/local-stack/roles-walk.mjs 2>&1 | tee -a walks.log
+      - name: Клавіатура не накриває жодну форму
+        run: |
+          set -o pipefail
+          node scripts/local-stack/keyboard-walk.mjs 2>&1 | tee -a walks.log
+      - name: Збій → коментар до коміту і рядок у Telegram
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          touch walks.log
+          { echo "🚶 Проходи у браузері ЧЕРВОНІ @ ${GITHUB_SHA::7}"; echo '```'; grep -E "^(❌|✅|✗)" walks.log | tail -40; echo '```'; echo '```'; tail -c 2500 walks.log; echo '```'; } > body.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" -F body=@body.md || true
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET не заданий — повідомлення лише в журналі"; exit 0; fi
+          node -e '
+            const fs = require("fs");
+            const bad = fs.readFileSync("walks.log", "utf8").split("\n").filter((l) => /^(❌|✗)/.test(l)).slice(0, 3).join("\n");
+            const text = "🟠 Проходи у браузері знайшли збій після коміту " + process.env.GITHUB_SHA.slice(0, 7) + " (стенд, не прод):\n" + (bad || "прохід не дійшов до кінця") + "\n" + process.env.RUN_URL;
+            fetch("https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/ci-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-cron-secret": process.env.CRON_SECRET },
+              body: JSON.stringify({ text }),
+            }).then(async (r) => { console.log("ci-report →", r.status, await r.text()); })
+              .catch((e) => console.log("ci-report недосяжний:", e.message));
+          '
+      - name: Зберегти журнал
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: walks-log
+          path: walks.log
+          retention-days: 7

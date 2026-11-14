@@ -123,17 +123,23 @@ export function installKeyboardInset(): void {
   let timer: ReturnType<typeof setTimeout> | undefined;
 
   // Спливні вікна (Popover) стежать за прокруткою й зміною розміру вікна, але не за тим, що форма
-  // під ними підстрибнула над клавіатуру, — і лишались висіти на старому місці. Після кожної
-  // зміни кажемо їм перерахувати місце. Прапорець — щоб не почути власну подію як нову.
-  let nudging = false;
+  // під ними підстрибнула над клавіатуру, — і лишались висіти на старому місці. Коли клавіатура
+  // зʼявилась чи зникла, кажемо їм перерахувати місце.
+  //
+  // ⚠️ 14.11, мій дефект: тут вікну надсилалась подія resize після КОЖНОГО
+  // фокуса. Випадаючий список (Radix Select) закривається на resize вікна — тож кожен список у
+  // застосунку «блимав і зникав» через 60 мс після відкриття (скарга власниці: предмет і валюта
+  // у формі «Додати репетитора до учня»). Перерахунок місця — лише подією `scroll` (на неї
+  // список не закривається, а позиціонер слухає її так само) і лише при ЗМІНІ стану клавіатури.
+  // Подію resize звідси не надсилати ніколи — стереже keyboard-inset.test.ts.
+  let nudgeDue = false;
   const nudgePopovers = () => {
+    nudgeDue = false;
     if (!document.querySelector("[data-radix-popper-content-wrapper]")) return;
-    nudging = true;
-    try { window.dispatchEvent(new Event("resize")); } finally { nudging = false; }
+    window.dispatchEvent(new Event("scroll"));
   };
 
   const apply = () => {
-    if (nudging) return;
     if (window.innerWidth !== width) { width = window.innerWidth; baseline = window.innerHeight; } // поворот екрана
     baseline = Math.max(baseline, window.innerHeight);
     const s = computeKeyboard({
@@ -142,6 +148,7 @@ export function installKeyboardInset(): void {
     });
     const key = `${s.open}|${s.inset}|${s.visible}|${s.top}`;
     if (key !== last) {
+      nudgeDue = true;
       last = key;
       current = s;
       listeners.forEach((cb) => cb());
@@ -152,14 +159,29 @@ export function installKeyboardInset(): void {
     }
     // форма щойно змінила висоту — даємо їй перемалюватись і підсуваємо поле
     clearTimeout(timer);
-    timer = setTimeout(() => { if (s.open) revealFocused(s); nudgePopovers(); }, 60);
+    timer = setTimeout(() => { if (s.open) revealFocused(s); if (nudgeDue) nudgePopovers(); }, 60);
   };
+
+  // Android зменшує САМУ сторінку, коли клавіатура ховається, — це справжній resize вікна, а
+  // випадаючий список на нього закривається. Типовий жест «ввела ціну → тап по валюті»: список
+  // відкрився, клавіатура за 200–300 мс сховалась, список зник. Тому зміну лише ВИСОТИ вікна
+  // одразу після виходу з поля вводу, поки відкритий список, решті слухачів не показуємо
+  // (свій перерахунок робимо самі). Поворот екрана (змінилась ширина) проходить як завжди.
+  let leftFieldAt = 0;
+  window.addEventListener("resize", (e) => {
+    if (window.innerWidth !== width) return;
+    if (Date.now() - leftFieldAt > 1500) return;
+    if (!document.querySelector('[role="listbox"]')) return;
+    e.stopImmediatePropagation();
+    apply();
+    window.dispatchEvent(new Event("scroll"));
+  }, true);
 
   vv.addEventListener("resize", apply);
   vv.addEventListener("scroll", apply);
   window.addEventListener("resize", apply);
   // клавіатура виїжджає ~250–300 мс після фокуса; перевіряємо одразу і ще раз, коли вона вже стоїть
   document.addEventListener("focusin", () => { apply(); setTimeout(apply, 320); });
-  document.addEventListener("focusout", () => setTimeout(apply, 120));
+  document.addEventListener("focusout", (e) => { if (isEditable(e.target as Element | null)) leftFieldAt = Date.now(); setTimeout(apply, 120); });
   apply();
 }

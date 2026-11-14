@@ -301,3 +301,58 @@ for (const p of PERSONAS) {
     report(w, p.label);
   });
 }
+
+/* 14.11 — коротке посилання на оплату, від початку до кінця, на живому проді.
+   Lovable двічі показав попередження «короткі /p/… відкривають "не знайдено"». Код полагоджено
+   06.11, штамп edge-функції на проді збігається з репо — але це докази «про код», а не «про
+   сторінку». Тут робот робить те саме, що мама з нагадування: бере код пари тестового репетитора
+   (тим самим викликом, яким його бере аркуш «Нагадати») і відкриває /p/<код> у ЧУЖОМУ браузері
+   без входу. Сторінка мусить показати борг пари, а не «Посилання вже не діє». */
+test("коротке посилання на оплату відкриває сторінку пари, а не «не знайдено»", async ({ page, browser, request }) => {
+  const p = PERSONAS[0];
+  test.skip(!p.email || !p.password, "TEST_TUTOR_* не задано — пропуск");
+  const info = test.info();
+  const w = watch(page);
+  await login(page, p, w);
+  const session = await page.evaluate(() => {
+    for (const k of Object.keys(localStorage)) {
+      if (!/^sb-.*-auth-token$/.test(k)) continue;
+      try { const v = JSON.parse(localStorage.getItem(k) ?? "{}"); return { token: v.access_token as string | undefined, uid: v.user?.id as string | undefined }; } catch { /* не наш ключ */ }
+    }
+    return null;
+  });
+  const anon = await findAnonKey(request);
+  if (!session?.token || !session.uid || !anon) {
+    info.annotations.push({ type: "freshness", description: "коротке посилання не перевірити: немає сесії або публічного ключа" });
+    return;
+  }
+  const headers = { apikey: anon, Authorization: `Bearer ${session.token}`, "Content-Type": "application/json" };
+  const pairs = await request.get(`${SUPABASE_URL}/rest/v1/student_rates?select=student_id&tutor_id=eq.${session.uid}&limit=1`, { headers, failOnStatusCode: false });
+  const sid = pairs.ok() ? ((await pairs.json()) as Array<{ student_id: string }>)[0]?.student_id : undefined;
+  if (!sid) {
+    info.annotations.push({ type: "freshness", description: "коротке посилання не перевірити: у тестового репетитора немає жодного учня" });
+    return;
+  }
+  // той самий виклик, яким код бере аркуш «Нагадати» (RemindSheet)
+  const made = await request.post(`${SUPABASE_URL}/rest/v1/rpc/issue_payment_link`, { headers, data: { _student_id: sid, _tutor_id: session.uid }, failOnStatusCode: false });
+  const issue = made.ok() ? ((await made.json()) as { short_code?: string | null; token?: string } | null) : null;
+  const code = issue?.short_code ?? null;
+  expect(typeof code === "string" && /^[a-z0-9]{8}$/.test(code), `issue_payment_link мусить віддати короткий код (8 знаків), а віддав: ${JSON.stringify(issue).slice(0, 80)} (HTTP ${made.status()})`).toBe(true);
+
+  const ctx = await browser.newContext();
+  const pub = await ctx.newPage();
+  const seen: Array<{ status: number; body: string }> = [];
+  pub.on("response", async (r) => {
+    if (!r.url().includes("/functions/v1/pay-link")) return;
+    let body = ""; try { body = (await r.text()).slice(0, 200); } catch { /* тіло вже пішло */ }
+    seen.push({ status: r.status(), body });
+  });
+  await pub.goto(`${new URL(page.url()).origin}/p/${code}`, { waitUntil: "domcontentloaded" });
+  await expect.poll(() => seen.length, { timeout: 20_000, message: "сторінка /p/<код> так і не спитала pay-link" }).toBeGreaterThan(0);
+  await pub.waitForTimeout(1500);
+  const text = (await pub.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 200);
+  await ctx.close();
+  expect(seen[0].status, `pay-link на короткий код відповів ${seen[0].status} ${seen[0].body} · екран: «${text}»`).toBe(200);
+  expect(text, "на сторінці оплати — «не знайдено»").not.toMatch(/Посилання вже не діє|link not found|not found/i);
+  info.annotations.push({ type: "freshness", description: `коротке посилання /p/${String(code).slice(0, 2)}…: pay-link 200, сторінка пари відкрилась` });
+});

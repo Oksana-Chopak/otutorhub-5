@@ -122,11 +122,10 @@ async function ownerInOwnSchool() {
   await s.page.locator('div[role="button"]', { hasText: "Іванка Мельник" }).first().click(); await wait(1000);
   await s.page.getByRole("button", { name: "Призначити репетитора" }).click(); await wait(800);
   dlg = s.page.getByRole("dialog").last();
-  await dlg.getByRole("combobox").first().click(); await wait(400);
-  await s.page.getByRole("option", { name: /Петро Городній/ }).click(); await wait(600);
-  await dlg.getByRole("combobox").nth(1).click(); await wait(400);
-  await s.page.getByRole("option").first().click(); await wait(500);
-  await dlg.locator("input").last().fill("700");
+  // 14.11: форма пари без спливних списків — репетитор рідним вибором, предмет кнопкою
+  await dlg.locator("#add-tutor-tutor").selectOption(await dlg.locator("#add-tutor-tutor option").evaluateAll((os) => os.find((o) => o.textContent.includes("Петро Городній"))?.value ?? "")); await wait(600);
+  await dlg.locator("[data-subject-chip]").first().click(); await wait(400);
+  await dlg.locator("#add-tutor-price").fill("700");
   await dlg.getByRole("button", { name: "Додати", exact: true }).click(); await wait(2500);
   await s.page.getByRole("button", { name: "Запланувати урок" }).click(); await wait(4000);
   await s.page.getByRole("button", { name: /Іванка Мельник/ }).click(); await wait(300);

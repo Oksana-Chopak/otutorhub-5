@@ -163,11 +163,10 @@ async function main() {
     await s.page.locator('div[role="button"]', { hasText: name }).first().click(); await wait(1000);
     await s.page.getByRole("button", { name: "Призначити репетитора" }).click(); await wait(800);
     dlg = s.page.getByRole("dialog").last();
-    await dlg.getByRole("combobox").first().click(); await wait(400);
-    await s.page.getByRole("option", { name: /Ірина Коваль/ }).click(); await wait(600);
-    await dlg.getByRole("combobox").nth(1).click(); await wait(400);
-    await s.page.getByRole("option").first().click(); await wait(500);
-    await dlg.locator("input").last().fill("500");
+    // 14.11: форма пари без спливних списків — репетитор рідним вибором, предмет кнопкою
+    await dlg.locator("#add-tutor-tutor").selectOption(await dlg.locator("#add-tutor-tutor option").evaluateAll((os) => os.find((o) => o.textContent.includes("Ірина Коваль"))?.value ?? "")); await wait(600);
+    await dlg.locator("[data-subject-chip]").first().click(); await wait(400);
+    await dlg.locator("#add-tutor-price").fill("500");
     await dlg.getByRole("button", { name: "Додати", exact: true }).click(); await wait(2500);
   }
   ok(step);
@@ -192,9 +191,9 @@ async function main() {
   await s.page.getByRole("link", { name: /Ніна Нова/ }).click(); await wait(3500);
   dlg = s.page.getByRole("dialog").last();
   await s.see(/Ірина Коваль/, "репетитор у формі пари вже обраний");
-  await dlg.getByRole("combobox").nth(1).click(); await wait(400);
-  await s.page.getByRole("option").first().click(); await wait(500);
-  await dlg.locator("input").last().fill("450");
+  // 14.11: предмет — кнопкою, без спливного списку
+  await dlg.locator("[data-subject-chip]").first().click(); await wait(400);
+  await dlg.locator("#add-tutor-price").fill("450");
   await dlg.getByRole("button", { name: "Додати", exact: true }).click(); await wait(4500);
   await s.see(/Ніна Нова[\s\S]*450/, "після призначення — одразу форма уроку з цією ученицею");
   await s.page.getByRole("button", { name: /Ніна Нова/ }).click(); await wait(300);

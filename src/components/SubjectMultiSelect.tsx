@@ -62,7 +62,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
               onClick={() => toggle(s)}
               className={cn(
                 // 11.09: py-1 давало чип 31px — на мобілці це промах за промахом.
-                "inline-flex min-h-[40px] items-center gap-1.5 rounded-full border px-3.5 py-2 text-[14px] transition-colors",
+                "inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-4 py-2 text-[15px] font-semibold transition-colors",
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"

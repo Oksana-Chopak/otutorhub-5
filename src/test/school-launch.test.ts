@@ -256,4 +256,28 @@ describe("віральність у шляху школи (11.11, третій �
     expect(people).toMatch(/searchParams\.get\("assign"\)/);
     expect(people).toMatch(/backToLessonRef\.current/);
   });
+
+  /* 14.11, скарга власниці: у формі «Додати репетитора до учня» списки предмета й валюти
+     «блимали й зникали», а сама форма була в старому дизайні. Форма пари — найчастіша дія
+     менеджера нової школи, тому в ній немає ЖОДНОГО спливного списку: репетитор і валюта —
+     рідний вибір телефона, предмет — кнопками в один дотик. */
+  it("14.11: форма пари «учень — репетитор» — у новому каноні й без спливних списків", () => {
+    const people = readFileSync("src/pages/PeoplePage.tsx", "utf8");
+    const from = people.indexOf("{/* Add tutor to student dialog */}");
+    const to = people.indexOf("<PersonEditSheet", from);
+    expect(from).toBeGreaterThan(0);
+    const form = people.slice(from, to);
+    expect(form).not.toMatch(/<Select\b|<SelectTrigger|<Label\b/);
+    expect(form).toMatch(/<select\s+id="add-tutor-tutor"/);
+    expect(form).toMatch(/data-subject-chip/);
+    expect(form).toMatch(/minHeight: 48/);          // предмет-кнопка — повноцінна зона дотику
+    expect(form).toMatch(/height: 58/);             // поле репетитора — як у формі уроку
+    // гроші: ціну учня не підставляємо зі ставки репетитора (інваріант маржі)
+    expect(form).not.toMatch(/price:\s*String\(tutorRate/);
+    // форма «Нова людина» — теж без старих підписів і з перемикачем ролі на токенах теми
+    const add = people.slice(people.indexOf("PERSON BOTTOM SHEET"), people.indexOf("<Sheet open={!!selectedPerson}"));
+    expect(add.length).toBeGreaterThan(500);
+    expect(add).not.toMatch(/<Label\b/);
+    expect(add).not.toMatch(/bg-\[#F5F4F0\]|background: active \? "#fff"/);
+  });
 });

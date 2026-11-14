@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { computeKeyboard } from "@/lib/keyboardInset";
+import { computeKeyboard, installKeyboardInset } from "@/lib/keyboardInset";
 
 const base = { innerHeight: 844, baseline: 844, vvHeight: 844, vvTop: 0, scale: 1, editable: true };
 
@@ -47,5 +47,52 @@ describe("екранна клавіатура не накриває форму (
     expect(readFileSync("src/components/MobileBottomNav.tsx", "utf8").match(/kb-hide fixed bottom-0/g)?.length).toBe(2);
     expect(readFileSync("src/components/PageFAB.tsx", "utf8")).toMatch(/kb-hide fixed/);
     expect(readFileSync("src/components/AddFab.tsx", "utf8")).toMatch(/kb-hide fixed/);
+  });
+
+  /* 14.11, мій дефект: після кожного фокуса вікну надсилався resize, а випадаючий список
+     (Radix Select) на resize закривається — кожен список у застосунку блимав і зникав. */
+  it("випадаючі списки не закриваються: вікну НІКОЛИ не надсилається resize", async () => {
+    expect(readFileSync("src/lib/keyboardInset.ts", "utf8")).not.toMatch(/new Event\(\s*["']resize["']/);
+    vi.useFakeTimers();
+    const vv = Object.assign(new EventTarget(), { height: 844, offsetTop: 0, scale: 1 });
+    Object.defineProperty(window, "visualViewport", { value: vv, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 844, configurable: true });
+    installKeyboardInset();
+    const seen: string[] = [];
+    window.addEventListener("resize", () => seen.push("resize"));
+    window.addEventListener("scroll", () => seen.push("scroll"));
+
+    // список відкрився: його обгортка на сторінці, фокус перейшов у нього
+    const wrap = document.createElement("div");
+    wrap.setAttribute("data-radix-popper-content-wrapper", "");
+    const list = document.createElement("div"); list.setAttribute("role", "listbox"); list.tabIndex = -1;
+    wrap.appendChild(list); document.body.appendChild(wrap);
+    list.focus();
+    vi.advanceTimersByTime(1000);
+    expect(seen).not.toContain("resize");
+
+    // клавіатура зʼявилась → спливні вікна перераховують місце подією scroll, не resize
+    const input = document.createElement("input"); document.body.appendChild(input);
+    seen.length = 0;
+    input.focus();
+    (vv as unknown as { height: number }).height = 508;
+    vv.dispatchEvent(new Event("resize"));
+    vi.advanceTimersByTime(1000);
+    expect(seen).toContain("scroll");
+    expect(seen).not.toContain("resize");
+
+    // Android: «ввела ціну → тап по валюті» — клавіатура ховається, сторінка росте (справжній
+    // resize), список відкритий: решта слухачів (а з ними й закриття списку) цього не чують
+    seen.length = 0;
+    list.focus();
+    window.dispatchEvent(new Event("resize"));
+    expect(seen).not.toContain("resize");
+    // без відкритого списку та сама подія проходить як завжди
+    wrap.remove();
+    input.focus(); input.blur();
+    window.dispatchEvent(new Event("resize"));
+    expect(seen).toContain("resize");
+    input.remove();
+    vi.useRealTimers();
   });
 });

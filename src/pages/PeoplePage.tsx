@@ -12,7 +12,6 @@ import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -1502,7 +1501,7 @@ renderEmptyTab("managers")
               })()}
             </div>
             <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
-              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#9a6a12", marginBottom: 8 }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#7a5410", marginBottom: 8 }}>
                 {t("people.pricePerLesson", { currency: currencySymbol(studentDialog.currency) })}
               </div>
               <div className="grid grid-cols-[1fr_8rem] gap-2">
@@ -1567,30 +1566,29 @@ renderEmptyTab("managers")
               <X size={18} />
             </button>
           </div>
-          <div className="space-y-3 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
+          {/* 14.11 (скарга власниці: «форма в застарілому дизайні»): тіло форми — у новому каноні,
+              як форма уроку: поля 58px, предмет — кнопками (один дотик, без списку), ціна — у
+              золотій картці, як у сусідній формі ціни. Жодного спливного списку: репетитор і
+              валюта — рідний вибір телефона, який не залежить від клавіатури й розміру вікна. */}
+          <div className="overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <Label>{t("roles.tutor")}</Label>
-              <Select
+              <label htmlFor="add-tutor-tutor" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>
+                {t("roles.tutor")}
+              </label>
+              <select
+                id="add-tutor-tutor"
                 value={addTutorToStudent.tutorId}
-                onValueChange={(v) =>
-                  setAddTutorToStudent((s) => ({ ...s, tutorId: v, subject: "" }))
-                }
+                onChange={(e) => setAddTutorToStudent((s) => ({ ...s, tutorId: e.target.value, subject: "" }))}
+                style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "var(--ds-surface2,#fbfbfc)", border: "1.5px solid var(--ds-border,#eceef3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 17, color: addTutorToStudent.tutorId ? "var(--ds-txt,#0f0f1a)" : "var(--ds-muted,#6f7489)" }}
               >
-                <SelectTrigger aria-label={t("people.selectTutorPlaceholder")}>
-                  <SelectValue placeholder={t("people.selectTutorPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {allTutors
-                    .map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {fullName(t)}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+                <option value="">{t("people.selectTutorPlaceholder")}</option>
+                {allTutors.map((tu) => (
+                  <option key={tu.id} value={tu.id}>{fullName(tu)}</option>
+                ))}
+              </select>
             </div>
             {addTutorToStudent.tutorId && (() => {
-              const tutor = allTutors.find((t) => t.id === addTutorToStudent.tutorId);
+              const tutor = allTutors.find((tu) => tu.id === addTutorToStudent.tutorId);
               const tutorSubjects = tutor?.subjects ?? [];
               const tSubjects = tutorSubjects.length > 0 ? tutorSubjects : allSubjects;
               const takenSubjects = new Set(
@@ -1602,73 +1600,56 @@ renderEmptyTab("managers")
                   )
                   .map((r) => r.subject),
               );
-              const availableSubjects = tSubjects.filter((s) => !takenSubjects.has(s));
+              const availableSubjects = tSubjects.filter((sb) => !takenSubjects.has(sb));
               if (availableSubjects.length === 0) {
                 return (
-                  <p className="text-[14px] text-muted-foreground italic">
+                  <p style={{ fontSize: 15, lineHeight: 1.45, color: "var(--sub,#62677E)", margin: 0 }}>
                     {t("people.allSubjectsAdded")}
                   </p>
                 );
               }
+              const tutorRate = addTutorToStudent.subject
+                ? tutorSubjectRates[addTutorToStudent.tutorId]?.[addTutorToStudent.subject]
+                : undefined;
+              const sp = Number(addTutorToStudent.price);
+              const margin = tutorRate !== undefined && tutorRate > 0 && Number.isFinite(sp) && sp > 0 ? sp - tutorRate : null;
               return (
                 <>
                   <div>
-                    <Label>{t("people.labelSubject").replace(":", "")}</Label>
-                    <Select
-                      value={addTutorToStudent.subject}
-                      onValueChange={(v) => {
-                        const tutorRate = tutorSubjectRates[addTutorToStudent.tutorId]?.[v];
-                        setAddTutorToStudent((s) => ({
-                          ...s,
-                          subject: v,
-                          // FINANCE INVARIANT: ціну учня НІКОЛИ не префілимо ставкою
-                          // репетитора — цей префіл тихо зрівнював student_price з
-                          // tutor_payout і обнуляв маржу хаба по всіх нових парах.
-                          price: s.price,
-                        }));
-                      }}
-                    >
-                      <SelectTrigger aria-label={t("people.selectSubjectPlaceholder")}>
-                        <SelectValue placeholder={t("people.selectSubjectPlaceholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableSubjects.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div id="add-tutor-subject-label" style={{ marginBottom: 8, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>
+                      {t("people.labelSubject").replace(":", "")}
+                    </div>
+                    <div role="radiogroup" aria-labelledby="add-tutor-subject-label" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {availableSubjects.map((sb) => {
+                        const sel = sb === addTutorToStudent.subject;
+                        return (
+                          <button
+                            key={sb}
+                            type="button"
+                            role="radio"
+                            aria-checked={sel}
+                            data-subject-chip=""
+                            // FINANCE INVARIANT: ціну учня НІКОЛИ не префілимо ставкою
+                            // репетитора — цей префіл тихо зрівнював student_price з
+                            // tutor_payout і обнуляв маржу хаба по всіх нових парах.
+                            onClick={() => setAddTutorToStudent((s) => ({ ...s, subject: sb }))}
+                            style={{ minHeight: 48, padding: "0 16px", borderRadius: 14, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, border: sel ? "1.5px solid var(--teal,#2BBFAA)" : "1.5px solid var(--ds-border,#eceef3)", background: sel ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface2,#fbfbfc)", color: sel ? "var(--teal-text,#0F6E56)" : "var(--ds-txt,#0f0f1a)" }}
+                          >
+                            {sb}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  {addTutorToStudent.subject && (() => {
-                    const tutorRate =
-                      tutorSubjectRates[addTutorToStudent.tutorId]?.[addTutorToStudent.subject];
-                    if (tutorRate !== undefined && tutorRate > 0) {
-                      const sp = Number(addTutorToStudent.price);
-                      const margin = Number.isFinite(sp) && sp > 0 ? sp - tutorRate : null;
-                      return (
-                        <p className="text-[14px] text-muted-foreground">
-                          {t("people.tutorRateForSubject")}{" "}
-                          <span className="font-medium text-foreground">{formatPrice(tutorRate, "UAH")}</span>
-                          {margin !== null && addTutorToStudent.currency === "UAH" && (
-                            <>
-                              {" · "}{t("people.hubMarginLabel")}{" "}
-                              <span className={margin > 0 ? "font-medium text-foreground" : "font-semibold text-destructive"}>
-                                {formatPrice(margin, "UAH")}
-                              </span>
-                            </>
-                          )}
-                        </p>
-                      );
-                    }
-                    return null;
-                  })()}
-                  <div>
-                    <Label htmlFor="add-tutor-price">{t("people.priceForStudent", { currency: currencySymbol(addTutorToStudent.currency) })}</Label>
-                    <div className="grid grid-cols-[1fr_8rem] gap-2">
+                  <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
+                    <label htmlFor="add-tutor-price" style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#7a5410", marginBottom: 8 }}>
+                      {t("people.priceForStudent", { currency: currencySymbol(addTutorToStudent.currency) })}
+                    </label>
+                    <div className="grid grid-cols-[1fr_7.5rem] gap-2">
                       <Input
                         id="add-tutor-price"
                         type="number"
+                        inputMode="decimal"
                         min="0"
                         step="any"
                         value={addTutorToStudent.price}
@@ -1676,21 +1657,35 @@ renderEmptyTab("managers")
                           setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
                         }
                         placeholder={t("people.pricePlaceholder")}
+                        className="h-[52px] bg-card text-[18px] font-bold rounded-[13px]"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
                       />
-                      <Select
+                      <select
+                        aria-label={t("quickAddStudent.currency")}
                         value={addTutorToStudent.currency}
-                        onValueChange={(v) => setAddTutorToStudent((s) => ({ ...s, currency: v }))}
+                        onChange={(e) => setAddTutorToStudent((s) => ({ ...s, currency: e.target.value }))}
+                        className="bg-card text-foreground"
+                        style={{ height: 52, borderRadius: 13, padding: "0 10px", border: "0.5px solid hsl(var(--input))", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16 }}
                       >
-                        <SelectTrigger aria-label={t("quickAddStudent.currency")}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CURRENCY_OPTIONS.map((c) => (
-                            <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {CURRENCY_OPTIONS.map((c) => (
+                          <option key={c.code} value={c.code}>{c.label}</option>
+                        ))}
+                      </select>
                     </div>
+                    {tutorRate !== undefined && tutorRate > 0 && (
+                      <p style={{ margin: "10px 0 0", fontSize: 14, lineHeight: 1.45, color: "#7a5410" }}>
+                        {t("people.tutorRateForSubject")}{" "}
+                        <span style={{ fontWeight: 700 }}>{formatPrice(tutorRate, "UAH")}</span>
+                        {margin !== null && addTutorToStudent.currency === "UAH" && (
+                          <>
+                            {" · "}{t("people.hubMarginLabel")}{" "}
+                            <span style={{ fontWeight: 800, color: margin > 0 ? "#7a5410" : "#B42318" }}>
+                              {formatPrice(margin, "UAH")}
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </>
               );
@@ -1795,15 +1790,17 @@ renderEmptyTab("managers")
                   <X size={18} />
                 </button>
               </div>
-              <div className="space-y-3 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
+              {/* 14.11: тіло форми в новому каноні (поля 48px, підписи 14/800, перемикач ролі 48px
+                  на токенах теми — старий мав вшиті світлі кольори й у темній темі був білим). */}
+              <div className="overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 14 }}>
                 {/* Role is the primary choice — lead with a segmented toggle, not a
                     buried Select, so adding a tutor vs a student is obvious up front. */}
                 <div>
-                  <Label>{t("people.fieldRole")}</Label>
+                  <div id="add-person-role-label" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>{t("people.fieldRole")}</div>
                   {/* 11.11: «Менеджер» звідси прибрано. Цю роль видає лише платформа разом
                       зі школою (create_hub); запис із «Людей» база відбивала ПІСЛЯ того,
                       як профіль уже створено — менеджер бачив «не вдалося призначити роль». */}
-                  <div role="tablist" className="mt-1.5 grid grid-cols-2 gap-1 rounded-[12px] bg-[#F5F4F0] p-1">
+                  <div role="tablist" aria-labelledby="add-person-role-label" className="grid grid-cols-2 gap-1 rounded-[15px] p-1" style={{ background: "var(--ds-surface3,#f6f5f1)" }}>
                     {(["tutor", "student"] as AppRole[]).map((r) => {
                       const active = addForm.role === r;
                       return (
@@ -1813,11 +1810,12 @@ renderEmptyTab("managers")
                           role="tab"
                           aria-selected={active}
                           onClick={() => setAddForm((f) => ({ ...f, role: r }))}
-                          className="h-10 rounded-[9px] text-[14px] font-semibold transition-colors"
+                          className="h-12 rounded-[12px] text-[15px] font-bold transition-colors"
                           style={{
-                            background: active ? "#fff" : "transparent",
-                            color: active ? "#1f8e7e" : "#666b82",
-                            boxShadow: active ? "0 1px 4px rgba(15,15,26,.08)" : "none",
+                            fontFamily: "Inter, system-ui, sans-serif",
+                            background: active ? "var(--ds-surface,#fff)" : "transparent",
+                            color: active ? "var(--teal-text,#0F6E56)" : "var(--sub,#62677E)",
+                            boxShadow: active ? "0 1px 4px rgba(15,15,26,.10)" : "none",
                           }}
                         >
                           {t(`roles.${r}`)}
@@ -1828,53 +1826,59 @@ renderEmptyTab("managers")
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
+                    <label htmlFor="fn" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>{t("people.fieldFirstName")}</label>
                     <Input
                       id="fn"
                       value={addForm.first_name}
                       onChange={(e) => setAddForm((f) => ({ ...f, first_name: e.target.value }))}
                       maxLength={50}
+                      className="h-12 rounded-[13px] border-[1.5px] text-[16px] font-semibold" style={{ background: "var(--ds-surface2,#fbfbfc)", borderColor: "var(--ds-border,#eceef3)" }}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="ln">{t("people.fieldLastName")}</Label>
+                    <label htmlFor="ln" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>{t("people.fieldLastName")}</label>
                     <Input
                       id="ln"
                       value={addForm.last_name}
                       onChange={(e) => setAddForm((f) => ({ ...f, last_name: e.target.value }))}
                       maxLength={50}
+                      className="h-12 rounded-[13px] border-[1.5px] text-[16px] font-semibold" style={{ background: "var(--ds-surface2,#fbfbfc)", borderColor: "var(--ds-border,#eceef3)" }}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="em">{t("common.email")}</Label>
-                  <Input
-                    id="em"
-                    type="email"
-                    value={addForm.email}
-                    onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="napriklad@mail.com"
-                    maxLength={255}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ph">{t("common.phone")}</Label>
+                  <label htmlFor="ph" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>{t("common.phone")}</label>
                   <Input
                     id="ph"
                     type="tel"
+                    inputMode="tel"
                     value={addForm.phone}
                     onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
                     placeholder="+380..."
                     maxLength={32}
+                    className="h-12 rounded-[13px] border-[1.5px] text-[16px] font-semibold" style={{ background: "var(--ds-surface2,#fbfbfc)", borderColor: "var(--ds-border,#eceef3)" }}
                   />
                 </div>
-                <p className="text-[14px] text-muted-foreground">
+                <div>
+                  <label htmlFor="em" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>{t("common.email")}</label>
+                  <Input
+                    id="em"
+                    type="email"
+                    inputMode="email"
+                    value={addForm.email}
+                    onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="napriklad@mail.com"
+                    maxLength={255}
+                    className="h-12 rounded-[13px] border-[1.5px] text-[16px] font-semibold" style={{ background: "var(--ds-surface2,#fbfbfc)", borderColor: "var(--ds-border,#eceef3)" }}
+                  />
+                </div>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: "var(--sub,#62677E)" }}>
                   {t("people.ghostHint")}
                 </p>
                 {addForm.role === "tutor" && (
                   <div>
-                    <Label>{t("people.fieldSubjects")}</Label>
-                    <p className="text-[14px] text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
+                    <div style={{ display: "block", marginBottom: 2, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>{t("people.fieldSubjects")}</div>
+                    <p style={{ margin: "0 0 8px", fontSize: 14, color: "var(--sub,#62677E)" }}>{t("people.oneOrMore")}</p>
                     <SubjectMultiSelect
                       value={addForm.subjects}
                       onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}

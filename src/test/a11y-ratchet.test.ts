@@ -284,9 +284,10 @@ describe("матеріали учня · хронологія, розгорну�
   describe("форми: дотик і розмір шрифту після аудиту 11.09", () => {
     const rd = (f: string) => readFileSync(join(root, f), "utf8");
 
-    it("чипи предметів ≥ 40px і поле власного предмета ≥ 15px", () => {
+    it("чипи предметів ≥ 44px і поле власного предмета ≥ 15px", () => {
       const sm = rd("src/components/SubjectMultiSelect.tsx");
-      expect(sm, "чип предмета").toMatch(/min-h-\[40px\]/);
+      // 14.11: 40 → 44 — мінімальна зона дотику проєкту (робот виміряв 40px у формі «Нова людина»)
+      expect(sm, "чип предмета").toMatch(/min-h-\[44px\]/);
       expect(sm, "поле з 14px змусить iOS зумити форму").not.toMatch(/className="h-\d+ text-\[14px\]"/);
     });
 
