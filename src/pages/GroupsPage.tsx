@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ErrorState } from "@/components/ErrorState";
 import { DateTimeField } from "@/components/DateTimeField";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 import { PageFAB } from "@/components/PageFAB";
 import { GroupsSkeleton } from "@/components/PageSkeletons";
 import {
@@ -1180,7 +1181,7 @@ function GroupDetailsDialog({
                   <div style={{ fontFamily: FONT_D, fontWeight: 800, fontSize: 17, color: T.txt, marginBottom: 12 }}>{t("groupsPageExtra.scheduleTitle")}</div>
                   <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
-                      <DateTimeField value={schedStart} onChange={setSchedStart} />
+                      <DateTimeField value={schedStart} onChange={setSchedStart} zoneNote={false} />
                     </div>
                     <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 58, borderRadius: 15, background: "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${T.border}` }}>
                       <input
@@ -1194,6 +1195,7 @@ function GroupDetailsDialog({
                       <span style={{ fontFamily: FONT_D, fontWeight: 700, fontSize: 15, color: T.sub }}>{t("groupsPageExtra.durationLabel")}</span>
                     </div>
                   </div>
+                  <TimeZoneNote at={schedStart} others className="-mt-1 mb-3" />
                   <button
                     onClick={scheduleGroupLesson}
                     disabled={scheduling || active.length === 0}

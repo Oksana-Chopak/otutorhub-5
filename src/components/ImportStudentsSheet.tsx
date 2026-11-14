@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -569,6 +570,8 @@ export function ImportStudentsSheet({
                 {unsureCount > 0 && <span className="ml-2 normal-case tracking-normal text-amber-700 dark:text-amber-400">· 🤔 {t("importStudents.unsureCount", { count: unsureCount })}</span>}
               </p>
               <p className="text-[13px] text-muted-foreground">{t("importStudents.tapToFix")}</p>
+              {/* 14.11: «пн 18:00» зі списку стає уроками — кажемо, за чиїм часом */}
+              {valid.some((r) => scheduleOf(r).length > 0) && <TimeZoneNote others />}
               {valid.slice(0, 40).map((r, idx) => {
                 const isEd = (f: EditableField) => editing?.raw === r.raw && editing.field === f;
                 const chip = (field: EditableField, label: string, value: number | null, unit: string, tone?: "warn") => (

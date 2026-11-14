@@ -36,6 +36,8 @@ import { Link } from "react-router-dom";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { zoneSuffix } from "@/lib/timeZone";
 import { DateTimeField } from "@/components/DateTimeField";
 import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
 import { pairsRel } from "@/lib/pairsRel";
@@ -503,7 +505,7 @@ export function QuickLessonDialog({
         const dateStr = effStartsAt.toLocaleString(getLocale(), {
           weekday: "long", day: "numeric", month: "long",
           hour: "2-digit", minute: "2-digit",
-        });
+        }) + zoneSuffix(effStartsAt);   // 14.11: час у тексті — за поясом того, хто ставить урок
         insertNotification({
           userId: selected.student_id,
           type: `lesson_scheduled_${created.id}`,
@@ -805,6 +807,7 @@ export function QuickLessonDialog({
                   {timeEditOpen && (
                     <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                       <DateTimeField
+                        zoneNote={false}
                         value={`${ymd}T${hm}`}
                         onChange={(v) => {
                           const [d, tpart] = v.split("T");
@@ -814,6 +817,9 @@ export function QuickLessonDialog({
                       />
                     </div>
                   )}
+                  {/* 14.11: чий це час. Урок ставлять людям в інших містах — без позначки
+                      менеджерка в Стокгольмі не знала, за яким поясом вона його призначає. */}
+                  <TimeZoneNote at={`${ymd}T${hm}`} others tone="onDark" className="mt-2.5" />
                 </div>
 
                 {/* Duration chips */}

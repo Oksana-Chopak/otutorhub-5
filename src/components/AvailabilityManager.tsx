@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ErrorState } from "@/components/ErrorState";
 import { DateField, TimeField } from "@/components/DateTimeField";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -682,6 +683,11 @@ export function AvailabilityManager() {
                 <TimeField value={weeklyDialog.to} onChange={(v) => setWeeklyDialog((s) => ({ ...s, to: v }))} />
               </div>
             </div>
+            {/* 14.11: чиї це години. Свої — за поясом пристрою; менеджер, що вписує години
+                репетитора, вписує їх за місцевим часом репетитора. */}
+            {tutorId === user?.id
+              ? <TimeZoneNote />
+              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">{t("timeZone.tutorHours")}</p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWeeklyDialog((s) => ({ ...s, open: false }))}>
@@ -749,6 +755,11 @@ export function AvailabilityManager() {
                 </div>
               </div>
             )}
+            {/* 14.11: чиї це години. Свої — за поясом пристрою; менеджер, що вписує години
+                репетитора, вписує їх за місцевим часом репетитора. */}
+            {tutorId === user?.id
+              ? <TimeZoneNote />
+              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">{t("timeZone.tutorHours")}</p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideDialog((s) => ({ ...s, open: false }))}>

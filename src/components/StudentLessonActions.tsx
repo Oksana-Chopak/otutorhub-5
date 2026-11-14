@@ -293,7 +293,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="proposed-at">{t("studentLessonActionsExtra.newTimeLabel")}</Label>
-              <DateTimeField value={proposedAt} onChange={setProposedAt} />
+              <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</Label>

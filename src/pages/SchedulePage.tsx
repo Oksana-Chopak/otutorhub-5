@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Clock, Plus, Loader2, ChevronDown, ChevronUp, Circle, List, CalendarRange, HandHeart, Video, CalendarDays , Menu } from "lucide-react";
+import { zoneSuffix } from "@/lib/timeZone";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
@@ -768,7 +769,7 @@ export default function SchedulePage() {
       if (firstCreated?.student_id) {
         const dateStr = new Date(firstCreated.starts_at).toLocaleString(getLocale(), {
           weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-        });
+        }) + zoneSuffix(new Date(firstCreated.starts_at));   // 14.11: чий це час
         insertNotification({
           userId: firstCreated.student_id,
           type: `lesson_scheduled_${firstCreated.id}`,
@@ -1222,6 +1223,7 @@ export default function SchedulePage() {
                     {t('schedule.dateTime')} <span className="text-destructive">*</span>
                   </Label>
                   <DateTimeField
+                    zoneNote="others"
                     value={form.starts_at}
                     invalid={!!formErrors.starts_at}
                     describedBy={formErrors.starts_at ? "err-starts_at" : undefined}

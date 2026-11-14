@@ -20,6 +20,7 @@ import { lazyArray } from "@/lib/lazyI18n";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -705,6 +706,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
         {!hour && (
           <p className="text-[14px] mt-1.5" style={{ color: T.muted }}>{t("onboardingFlowB.lessonTimeHint")}</p>
         )}
+        <TimeZoneNote at={date && hour ? `${date}T${hour}:${minute || "00"}` : undefined} others className="mt-1.5" />
       </div>
 
       {/* Weekly repeat toggle */}
@@ -929,6 +931,7 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
           <span style={{ color: T.muted, fontFamily: T.display, flexShrink: 0 }}>—</span>
           <TimeField value={toH} onChange={setToH} className="flex-1" />
         </div>
+        <TimeZoneNote className="mt-2" />
       </div>
       <Btn disabled={!selDays.length || saving} onClick={save}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.availabilitySubmit")}

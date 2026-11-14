@@ -10,6 +10,7 @@ import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
@@ -213,14 +214,16 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             )}
             {dtEdit && (
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <DateTimeField value={dtVal} onChange={setDtVal}
-                  durationMin={durVal} onDurationChange={setDurVal} className="min-w-0 flex-1" />
+                <DateTimeField value={dtVal} onChange={setDtVal} zoneNote={false}
+                  durationMin={durVal} onDurationChange={setDurVal} className="basis-full" />
                 <button type="button" onClick={saveDt} disabled={dtSaving}
-                  className="tap-44 bg-primary text-primary-foreground h-10 rounded-[10px] px-3 text-[14px] font-bold disabled:opacity-60">
+                  className="tap-44 bg-primary text-primary-foreground h-11 min-w-11 rounded-[10px] px-3 text-[15px] font-bold disabled:opacity-60">
                   {dtSaving ? "…" : "✓"}
                 </button>
                 <button type="button" onClick={() => setDtEdit(false)}
-                  className="text-muted-foreground h-10 rounded-[10px] px-2 text-[14px]">✕</button>
+                  className="tap-44 text-muted-foreground h-11 min-w-11 rounded-[10px] px-2 text-[16px]">✕</button>
+                {/* 14.11: чий це час — окремим рядком на всю ширину, під полем і кнопками */}
+                <TimeZoneNote at={dtVal} others className="basis-full" />
               </div>
             )}
           </div>

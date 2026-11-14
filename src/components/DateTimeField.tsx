@@ -4,6 +4,7 @@ import { uk, sv, enGB } from "date-fns/locale";
 import type { Locale } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 import { getLocale } from "@/lib/locale";
 
 /**
@@ -206,7 +207,12 @@ function MonthGrid({ ymd, min, onPick }: { ymd: string; min?: string; onPick: (y
 
 export function DateTimeField({
   value, onChange, min, label, durationMin, onDurationChange, className = "", invalid = false, describedBy,
+  zoneNote = "self",
 }: {
+  /** 14.11: під полем — чий це час («За твоїм часом: Стокгольм (GMT+1)»). "others" додає
+      «кожен учасник побачить урок за своїм місцевим часом»; false — коли позначку поруч уже
+      показує сама форма (темна картка часу у формі уроку). */
+  zoneNote?: false | "self" | "others";
   value: string;                       // "YYYY-MM-DDTHH:mm"
   onChange: (v: string) => void;
   min?: string;
@@ -237,7 +243,10 @@ export function DateTimeField({
           <PopoverTrigger asChild>
             <button id={uid} type="button" aria-label={label ?? t("common.chooseDateTime")}
               aria-invalid={invalid || undefined} aria-describedby={describedBy}
-              className={`${triggerCls(invalid)} flex-1`}>
+              // 14.11: «сб, 14 лист. · 14:00» не переноситься у три рядки поза кнопкою — у вузькому
+              // рядку на новий рядок іде тривалість, а не текст дати
+              style={{ minWidth: "11rem" }}
+              className={`${triggerCls(invalid)} flex-1 whitespace-nowrap`}>
               {ymd ? `${formatYmdHm(value)} · ${hm}` : <span className="text-muted-foreground">{t("common.chooseDateTime")}</span>}
             </button>
           </PopoverTrigger>
@@ -286,6 +295,7 @@ export function DateTimeField({
           </>
         )}
       </div>
+      {zoneNote && <TimeZoneNote at={value} others={zoneNote === "others"} className="mt-1.5" />}
     </div>
   );
 }

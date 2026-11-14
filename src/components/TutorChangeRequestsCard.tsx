@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { formatPrice } from "@/lib/currency";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { DateTimeField } from "@/components/DateTimeField";
+import { zoneSuffix } from "@/lib/timeZone";
 import { insertNotification } from "@/lib/notifications";
 import { getLocale } from "@/lib/locale";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
@@ -301,7 +302,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: formatPrice(feeAmount, lesson.currency)})
               : t("tutorChangeRequestsExtra.cancelApprovedNotif")
             : t("tutorChangeRequestsExtra.rescheduleApprovedNotif", {
-                when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+                when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + zoneSuffix(new Date(proposedAt)),
               }),
         body: response.trim() || undefined,
         link: "/student/schedule",
@@ -550,7 +551,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               ) : (
                 <div className="space-y-2">
                   <Label htmlFor="proposed-time">{t("tutorChangeRequestsExtra.newTimeLabel")}</Label>
-                  <DateTimeField value={proposedAt} onChange={setProposedAt} />
+                  <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" />
                   {active.proposed_starts_at && (
                     <p className="text-[14px] text-muted-foreground">
                       {t("tutorChangeRequestsExtra.studentProposed")}{" "}

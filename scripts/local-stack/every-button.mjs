@@ -257,9 +257,14 @@ async function runRole(role) {
     await wait(850);
     const p = await probes(page);
     p.toasts = p.toasts.filter((t) => !had.includes(t.text));
+    // 14.11: «Створити урок» на вже зайнятий слот — база відмовляє (409), а екран каже це
+    // людськими словами. Це правильна поведінка, а не збій: робот тисне «Створити» на типовий
+    // час удруге. Без цього винятку кожен прогін менеджера був «червоним» ні про що.
+    const slotTaken = p.toasts.some((t) => /уже зайнятий/.test(t.text));
+    const mine = net.slice(before).filter((l) => !(slotTaken && /lessons_unique_visible_slot_idx|409 POST \/rest\/v1\/lessons\?/.test(l)));
     // відкрилось від цього дотику — і вже немає: список блимнув і зник (обрати нічого не можна)
     const blink = p.pop > 0 && p.popAlive === 0;
-    return { label, err, net: net.slice(before), blink, ...p };
+    return { label, err, net: mine, blink, ...p };
   };
 
   for (const route of (ONLY_ROUTES ?? ROUTES[role])) {
