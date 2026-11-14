@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { X, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FIELD_CLASS, FieldLabel } from "@/components/form/canon";
+import { cn } from "@/lib/utils";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -277,16 +278,16 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, fo
                   і рядок без суми мусить бути на екрані одразу, а не під списком предметів. */}
               {subjects.length > 0 && (
                 <div className="space-y-2">
-                  <Label>{t("people.ratePerSubject")}</Label>
-                  <p className="text-[14px] text-muted-foreground">{t("people.ratePerSubjectDesc")}</p>
+                  <FieldLabel className="mb-0.5">{t("people.ratePerSubject")}</FieldLabel>
+                  <p className="text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("people.ratePerSubjectDesc")}</p>
                   <div className="space-y-2">
                     {subjects.map((subj, i) => {
                       const missing = (rates[subj] ?? "").trim() === "";
                       const firstMissing = missing && subjects.findIndex((x) => (rates[x] ?? "").trim() === "") === i;
                       return (
-                        <div key={subj} className="flex items-center gap-2">
+                        <div key={subj} className="flex items-center gap-2.5">
                           <div className="min-w-0 flex-1">
-                            <div className="text-sm text-foreground" style={{ lineHeight: 1.25 }}>{subj}</div>
+                            <div className="text-[16px] font-semibold text-foreground" style={{ lineHeight: 1.25 }}>{subj}</div>
                             {/* Рядок без суми підписаний словами — саме за ним людина прийшла. */}
                             {missing && <div className="text-[13px] font-semibold text-warning">{t("people.rateMissingTag")}</div>}
                           </div>
@@ -296,13 +297,13 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, fo
                             step="any"
                             inputMode="decimal"
                             autoFocus={firstMissing && !focusGroup}
-                            className="w-28 shrink-0"
+                            className={cn(FIELD_CLASS, "w-28 shrink-0 text-right")}
                             style={missing ? { borderColor: "rgba(245,158,11,.75)" } : undefined}
                             value={rates[subj] ?? ""}
                             onChange={(e) => setRates((prev) => ({ ...prev, [subj]: e.target.value }))}
                             placeholder={t("people.ratePlaceholder")}
                           />
-                          <span className="text-[14px] text-muted-foreground">{currencySymbol("UAH")}</span>
+                          <span className="w-4 text-[16px] font-semibold text-muted-foreground">{currencySymbol("UAH")}</span>
                         </div>
                       );
                     })}
@@ -311,26 +312,26 @@ export function TutorRateDialog({ open, onOpenChange, tutorId, presetSubject, fo
               )}
               {groupRate !== null && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-foreground" style={{ lineHeight: 1.25 }}>👥 {t("people.groupRateLabel")}</div>
+                      <div className="text-[16px] font-semibold text-foreground" style={{ lineHeight: 1.25 }}>👥 {t("people.groupRateLabel")}</div>
                     </div>
                     <Input aria-label={t("people.groupRateLabel")}
                       type="number" min="0" step="any" inputMode="decimal"
                       autoFocus={!!focusGroup}
-                      className="w-28 shrink-0"
+                      className={cn(FIELD_CLASS, "w-28 shrink-0 text-right")}
                       style={focusGroup && groupRate.trim() === "" ? { borderColor: "rgba(245,158,11,.75)" } : undefined}
                       value={groupRate}
                       onChange={(e) => setGroupRate(e.target.value)}
                       placeholder={t("people.ratePlaceholder")}
                     />
-                    <span className="text-[14px] text-muted-foreground">{currencySymbol("UAH")}</span>
+                    <span className="w-4 text-[16px] font-semibold text-muted-foreground">{currencySymbol("UAH")}</span>
                   </div>
-                  <p className="text-[14px] text-muted-foreground">{t("people.groupRateDesc")}</p>
+                  <p className="text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("people.groupRateDesc")}</p>
                 </div>
               )}
               <div>
-                <Label>{t("people.fieldSubjects")}</Label>
+                <FieldLabel className="mb-0.5">{t("people.fieldSubjects")}</FieldLabel>
                 <p className="text-[14px] text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
                 <SubjectMultiSelect
                   value={subjects}

@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
@@ -105,35 +104,34 @@ export function RatePropagationDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
+        {/* 14.11, хвиля форм: кожен варіант — картка на всю ширину (дотик будь-де, не в кружечок
+            16px), обраний — бірюзова рамка. Логіка вибору та запис — без змін. */}
         <RadioGroup value={scope} onValueChange={(v) => setScope(v as Scope)} className="space-y-2 py-2">
-          <div className="flex items-start gap-2">
-            <RadioGroupItem value="future_unpaid" id="s-fu" className="mt-1" />
-            <Label htmlFor="s-fu" className="font-normal cursor-pointer">
-              <div className="font-medium">{t("ratePropagationExtra.futureUnpaidOption")}</div>
-              <div className="text-[14px] text-muted-foreground">{t("ratePropagationExtra.futureUnpaidDesc")}</div>
-            </Label>
-          </div>
-          <div className="flex items-start gap-2">
-            <RadioGroupItem value="all_unpaid" id="s-au" className="mt-1" />
-            <Label htmlFor="s-au" className="font-normal cursor-pointer">
-              <div className="font-medium">{t("ratePropagationExtra.allUnpaidOption")}</div>
-              <div className="text-[14px] text-muted-foreground">{t("ratePropagationExtra.allUnpaidDesc")}</div>
-            </Label>
-          </div>
-          <div className="flex items-start gap-2">
-            <RadioGroupItem value="all" id="s-all" className="mt-1" />
-            <Label htmlFor="s-all" className="font-normal cursor-pointer">
-              <div className="font-medium">{t("ratePropagationExtra.allOption")}</div>
-              <div className="text-[14px] text-muted-foreground text-warning">{t("ratePropagationExtra.allDesc")}</div>
-            </Label>
-          </div>
-          <div className="flex items-start gap-2">
-            <RadioGroupItem value="none" id="s-none" className="mt-1" />
-            <Label htmlFor="s-none" className="font-normal cursor-pointer">
-              <div className="font-medium">{t("ratePropagationExtra.skipOption")}</div>
-              <div className="text-[14px] text-muted-foreground">{t("ratePropagationExtra.skipDesc")}</div>
-            </Label>
-          </div>
+          {([
+            { v: "future_unpaid", id: "s-fu", title: t("ratePropagationExtra.futureUnpaidOption"), desc: t("ratePropagationExtra.futureUnpaidDesc"), warn: false },
+            { v: "all_unpaid", id: "s-au", title: t("ratePropagationExtra.allUnpaidOption"), desc: t("ratePropagationExtra.allUnpaidDesc"), warn: false },
+            { v: "all", id: "s-all", title: t("ratePropagationExtra.allOption"), desc: t("ratePropagationExtra.allDesc"), warn: true },
+            { v: "none", id: "s-none", title: t("ratePropagationExtra.skipOption"), desc: t("ratePropagationExtra.skipDesc"), warn: false },
+          ] as const).map((o) => {
+            const on = scope === o.v;
+            return (
+              <label
+                key={o.v}
+                htmlFor={o.id}
+                data-scope-option={o.v}
+                className="flex min-h-[56px] cursor-pointer items-start gap-3 rounded-[13px] border-[1.5px] px-3.5 py-3"
+                style={on
+                  ? { background: "var(--teal-l)", borderColor: "var(--teal)" }
+                  : { background: "var(--ds-surface2)", borderColor: "var(--ds-border)" }}
+              >
+                <RadioGroupItem value={o.v} id={o.id} className="mt-0.5 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-[16px] font-semibold text-foreground" style={{ lineHeight: 1.3 }}>{o.title}</span>
+                  <span className={`mt-0.5 block text-[14px] ${o.warn ? "text-warning" : "text-muted-foreground"}`} style={{ lineHeight: 1.4 }}>{o.desc}</span>
+                </span>
+              </label>
+            );
+          })}
         </RadioGroup>
 
         <AlertDialogFooter>

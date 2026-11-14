@@ -88,7 +88,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
   const chip = (active: boolean) => ({
     height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer",
     fontFamily: C.display, fontWeight: 700, fontSize: 15,
-    background: active ? "#f0fdf9" : "#fff",
+    background: active ? "var(--teal-l)" : "var(--ds-surface2)",
     border: `1.5px solid ${active ? C.teal : C.border}`,
     color: active ? C.tealD : C.sub,
   });
@@ -123,7 +123,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
               <button key={d} type="button" onClick={() => setWeekday(d)}
                 style={{ width: 44, height: 44, borderRadius: 12, cursor: "pointer",
                   fontFamily: C.display, fontWeight: 700, fontSize: 15,
-                  background: weekday === d ? C.teal : "#fff",
+                  background: weekday === d ? C.teal : "var(--ds-surface2)",
                   border: `1.5px solid ${weekday === d ? C.teal : C.border}`,
                   color: weekday === d ? "#0f0f1a" : C.sub }}>
                 {WEEKDAYS_UK[d].slice(0, 2)}
