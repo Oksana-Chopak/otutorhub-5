@@ -7,6 +7,7 @@ import {
   WEEKDAYS_FULL_UK,
   computeAvailableForDate,
   splitIntoSlots,
+  slotsForViewer,
   buildLocalDate,
   minutesToHHMM,
   toLocalISODate,
@@ -14,6 +15,10 @@ import {
   type OverrideRow,
   type BookedRow,
 } from "@/lib/availability";
+
+import { useTimeZones } from "@/hooks/useTimeZones";
+import { deviceTimeZone, sameClock, zoneLabel } from "@/lib/timeZone";
+import { TimeZoneNote } from "@/components/TimeZoneNote";
 
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -78,13 +83,34 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
   const hasPositiveOverride = overrides.some((o) => o.is_available);
   const hasAnySchedule = hasWeekly || hasPositiveOverride || overrides.length > 0;
 
+  /* 14.11: години репетитора записані ЙОГО місцевим часом. Якщо той, хто дивиться, у іншому
+     поясі (менеджерка в Стокгольмі, репетиторка в Києві) — рахуємо в часі репетитора й
+     показуємо на годиннику глядача (`slotsForViewer`). Пояс репетитора невідомий або той самий —
+     шлях як був. */
+  const tutorZones = useTimeZones([tutorId]);
+  const tutorTz = tutorZones[tutorId];
+  const myTz = deviceTimeZone();
+  const converted = !!tutorTz && !sameClock(tutorTz, myTz);
+
   const days = useMemo(() => {
     const arr: { date: Date; slots: { start: number; end: number }[] }[] = [];
     const start = new Date();
     start.setDate(start.getDate() + weekOffset * 7);
+    const dates: Date[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
+      dates.push(d);
+    }
+    if (converted && tutorTz) {
+      const byDay = slotsForViewer({
+        viewerDates: dates.map(toLocalISODate), weekly, overrides, booked,
+        tutorTz, viewerTz: myTz, slotMinutes: SLOT_MINUTES,
+      });
+      for (const d of dates) arr.push({ date: d, slots: byDay[toLocalISODate(d)] ?? [] });
+      return arr;
+    }
+    for (const d of dates) {
       const intervals = computeAvailableForDate(d, weekly, overrides, booked);
       const slots = splitIntoSlots(intervals, SLOT_MINUTES);
       const now = new Date();
@@ -95,7 +121,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
       arr.push({ date: d, slots: filtered });
     }
     return arr;
-  }, [weekly, overrides, booked, weekOffset]);
+  }, [weekly, overrides, booked, weekOffset, converted, tutorTz, myTz]);
 
   // Whether at least one slot exists across the rendered week
   const hasAnySlotInView = days.some((d) => d.slots.length > 0);
@@ -111,6 +137,14 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
           <p className="text-[14px] text-muted-foreground">
             {t("tutorAvailability.next14")}
           </p>
+          {converted && tutorTz && (
+            <div className="mt-1">
+              <TimeZoneNote />
+              <p data-tz-note="" className="pl-5 text-[13px] leading-snug text-muted-foreground">
+                {t("timeZone.convertedFrom", { zone: zoneLabel(tutorTz) })}
+              </p>
+            </div>
+          )}
         </div>
         {hasWeekly || hasPositiveOverride ? (
           <div className="flex items-center gap-1">

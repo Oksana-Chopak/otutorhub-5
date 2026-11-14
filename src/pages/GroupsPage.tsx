@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ErrorState } from "@/components/ErrorState";
 import { DateTimeField } from "@/components/DateTimeField";
-import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { TimeZoneNote, type ZonePerson } from "@/components/TimeZoneNote";
+import { useTimeZones } from "@/hooks/useTimeZones";
 import { PageFAB } from "@/components/PageFAB";
 import { GroupsSkeleton } from "@/components/PageSkeletons";
 import {
@@ -743,6 +744,14 @@ function GroupDetailsDialog({
   const [pickedStudent, setPickedStudent] = useState<string>("");
   const [pickedPrice, setPickedPrice] = useState<string>("");
   const [pickOpen, setPickOpen] = useState(false);
+  /* 14.11: пояси репетитора групи й учасників — позначка під часом заняття назве їхній час. */
+  const zoneTutor = group && group.tutor_id !== user?.id ? group.tutor_id : null;
+  const zoneStudents = enrollments.filter((e) => e.status === "active").map((e) => e.student_id);
+  const zones = useTimeZones([zoneTutor, ...zoneStudents]);
+  const zonePeople: ZonePerson[] = [
+    ...(zoneTutor ? [{ name: tutorName || t("roles.tutor"), tz: zones[zoneTutor] }] : []),
+    ...zoneStudents.map((id) => ({ name: studentNames.get(id) ?? t("shared.student"), tz: zones[id] })),
+  ];
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -1195,7 +1204,7 @@ function GroupDetailsDialog({
                       <span style={{ fontFamily: FONT_D, fontWeight: 700, fontSize: 15, color: T.sub }}>{t("groupsPageExtra.durationLabel")}</span>
                     </div>
                   </div>
-                  <TimeZoneNote at={schedStart} others className="-mt-1 mb-3" />
+                  <TimeZoneNote at={schedStart} others people={zonePeople} className="-mt-1 mb-3" />
                   <button
                     onClick={scheduleGroupLesson}
                     disabled={scheduling || active.length === 0}

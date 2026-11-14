@@ -61,7 +61,7 @@ describe("часовий пояс — словами, всюди, де вста�
     }
     // форма уроку: позначка в темній картці часу, видно без розкривання «Змінити»
     const form = readFileSync("src/components/QuickLessonDialog.tsx", "utf8");
-    expect(form).toMatch(/<TimeZoneNote at=\{`\$\{ymd\}T\$\{hm\}`\} others tone="onDark"/);
+    expect(form).toMatch(/<TimeZoneNote at=\{`\$\{ymd\}T\$\{hm\}`\} others[^>]*tone="onDark"/);
     // імпорт розкладу зі списку
     expect(readFileSync("src/components/ImportStudentsSheet.tsx", "utf8")).toMatch(/scheduleOf\(r\)\.length > 0\) && <TimeZoneNote others/);
   });

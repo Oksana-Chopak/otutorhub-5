@@ -2,6 +2,7 @@
 // Two reminders: 60 minutes before and 15 minutes before.
 // Idempotent via lesson_reminders log. Run on a cron every 5 minutes.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { loadTimeZones, readerZone, zoneTail } from "../_shared/personTime.ts";
 import { sendWebPush } from "../_shared/push.ts";
 import { withJob } from "../_shared/jobRun.ts";
 import { versionProbe } from "../_shared/build.ts";
@@ -143,6 +144,14 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
     .from("profiles")
     .select("id, first_name, last_name")
     .in("id", userIds);
+  /* 14.11: час у нагадуванні — за поясом того, хто його читає, і з позначкою поясу.
+     Доти всі отримували київський час без жодного слова про це. */
+  const zones = await loadTimeZones(supabase, userIds);
+  const whenFor = (iso: string, userId: string | null | undefined) => {
+    const z = readerZone(zones, userId);
+    const at = new Date(iso);
+    return at.toLocaleString("uk-UA", { timeZone: z.tz, day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" }) + zoneTail(z, at, "uk");
+  };
   const nameById = new Map<string, string>();
   for (const p of profiles ?? []) {
     nameById.set(
@@ -274,13 +283,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
         const studentName = lesson.student_id
           ? (nameById.get(lesson.student_id) ?? "учнем")
           : `групою (${studentsOf(lesson).length})`;
-        const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", {
-          timeZone: "Europe/Kyiv",
-          day: "2-digit",
-          month: "long",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        const dateStr = whenFor(lesson.starts_at, lesson.tutor_id);
         const text =
           `📝 Урок з <b>${escapeHtml(studentName)}</b> (${escapeHtml(lesson.subject)}) ${dateStr} вже мав відбутися.\n\n` +
           `Будь ласка, відмітьте у застосунку: <b>Проведено</b> ✅ або <b>Скасовано</b> ❌.\n` +
@@ -321,13 +324,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
       if (now < triggerMs) continue;
       if (now - triggerMs > rule.windowMs) continue;
 
-      const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", {
-        timeZone: "Europe/Kyiv",
-        day: "2-digit",
-        month: "long",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const dateStr = whenFor(lesson.starts_at, lesson.tutor_id);     // для репетитора; учневі — нижче, за його поясом
       const preLogSid = logStudentOf(lesson);
       // Груповий урок без учасників дедупити нічим — краще тиша, ніж кожні 5 хв.
       if (!preLogSid) continue;
@@ -379,6 +376,7 @@ Deno.serve(withJob("lesson-reminders", async (req) => {
       const studentChat = chatByUser.get(sid);
       const studentKey = `${lesson.id}:${sid}:${rule.kind}`;
       if (!sentSet.has(studentKey)) {
+        const dateStr = whenFor(lesson.starts_at, sid);               // 14.11: час — на годиннику ЦЬОГО учня
         const text =
           `⏰ Урок з <b>${escapeHtml(tutorName)}</b> через ${rule.minutesBefore} хв\n` +
           `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;

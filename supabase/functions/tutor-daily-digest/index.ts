@@ -202,6 +202,7 @@ import { isPayoutDueToday, kyivNow } from "../_shared/payoutSchedule.ts";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
 import { versionProbe } from "../_shared/build.ts";
 import { withJob } from "../_shared/jobRun.ts";
+import { loadTimeZones, readerZone, zoneLineIfNeeded } from "../_shared/personTime.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -305,6 +306,7 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
   const langById = new Map<string, DLang>(
     (profiles ?? []).map((p: any) => [p.id, dlang(p.preferred_language)])
   );
+  const zones = await loadTimeZones(sb, allUserIds);   // 14.11: кому який годинник
 
   // Roles
   const { data: roles } = await sb
@@ -704,6 +706,10 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
     if (isTutor && !isManager && digestEnabled.get(userId) === false) continue;
 
     const D = DT[langById.get(userId) ?? "uk"];
+    /* 14.11: час уроків у списку — на годиннику того, хто читає дайджест (власниця читає його у
+       Стокгольмі, а не в Києві). Рядок із поясом — лише якщо він не київський або невідомий. */
+    const myZone = readerZone(zones, userId);
+    const myZoneLine = zoneLineIfNeeded(myZone, new Date(), (langById.get(userId) ?? "uk") as "uk" | "en" | "sv");
     const kyivHour = Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: TZ }).format(new Date()));
     const firstName = nameById.get(userId) || D.fallbackName;
     const keyboard: TgButton[][] = [];
@@ -721,11 +727,12 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
         lines.push(D.mgrToday(myLessons.length, D.lessons(myLessons.length)));
         for (const l of myLessons.slice(0, 10)) {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
-            timeZone: TZ, hour: "2-digit", minute: "2-digit",
+            timeZone: myZone.tz, hour: "2-digit", minute: "2-digit",
           });
           lines.push(`• ${t} — ${esc(studentName.get(l.student_id))} (${esc(l.subject)})`);
         }
         if (myLessons.length > 10) lines.push(D.more(myLessons.length - 10));
+        if (myZoneLine) lines.push(myZoneLine);
       }
       // Тотали — ті самі предикати, що й у «Фінансах» (financials.ts), у межах школи.
       const sd = (unpaidLessons ?? []).filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.student_price ?? 0), 0)
@@ -824,13 +831,14 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
         lines.push(D.tutToday(myLessons.length, D.lessons(myLessons.length)));
         for (const l of myLessons) {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
-            timeZone: TZ, hour: "2-digit", minute: "2-digit",
+            timeZone: myZone.tz, hour: "2-digit", minute: "2-digit",
           });
           // ✅ «учень оплатив» — лише на ВЛАСНИХ уроках: для хабового це оплата
           // школі, яку застосунок йому свідомо не показує (маска lessons_visible).
           const paid = l.source === "independent" && detailOf(l)?.student_payment_status === "paid" ? " ✅" : "";
           lines.push(`• ${t} — ${esc(studentName.get(l.student_id))} (${esc(l.subject)})${paid}`);
         }
+        if (myZoneLine) lines.push(myZoneLine);
       }
       const myDebts = new Map<string, number>();
       // Кнопки «Оплачено» законні лише там, де репетитор САМ тоглить оплату —

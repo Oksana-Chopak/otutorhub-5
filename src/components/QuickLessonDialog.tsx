@@ -36,7 +36,8 @@ import { Link } from "react-router-dom";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
-import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { TimeZoneNote, type ZonePerson } from "@/components/TimeZoneNote";
+import { useTimeZones } from "@/hooks/useTimeZones";
 import { zoneSuffix } from "@/lib/timeZone";
 import { DateTimeField } from "@/components/DateTimeField";
 import { useCoreLock, isSubscriptionRequiredError } from "@/hooks/useCoreLock";
@@ -330,6 +331,30 @@ export function QuickLessonDialog({
   );
 
   const effStartsAt = whenLocal ?? startsAt ?? fallbackStart;
+
+  /* 14.11: кого стосується час уроку — щоб позначка поясу назвала ЇХНІЙ час поіменно
+     («Ірина Коваль: 16:00 · Київ»). Репетитор — лише коли урок ставить не він сам. */
+  const isGroup = mode === "group";
+  const zoneIds = useMemo(() => [
+    effTutorId && effTutorId !== user?.id ? effTutorId : null,
+    isGroup ? null : selected?.student_id ?? null,
+    ...(isGroup ? (selectedGroup?.participants ?? []).map((p) => p.student_id) : []),
+  ], [effTutorId, user?.id, isGroup, selected?.student_id, selectedGroup]);
+  const zones = useTimeZones(zoneIds);
+  const zonePeople = useMemo<ZonePerson[]>(() => {
+    const out: ZonePerson[] = [];
+    if (effTutorId && effTutorId !== user?.id) {
+      out.push({ name: tutorOptions.find((o) => o.id === effTutorId)?.name ?? t("roles.tutor"), tz: zones[effTutorId] });
+    }
+    if (isGroup) {
+      for (const p of selectedGroup?.participants ?? []) {
+        out.push({ name: students.find((s) => s.student_id === p.student_id)?.name ?? t("roles.student"), tz: zones[p.student_id] });
+      }
+    } else if (selected) {
+      out.push({ name: selected.name, tz: zones[selected.student_id] });
+    }
+    return out;
+  }, [effTutorId, user?.id, tutorOptions, zones, isGroup, selectedGroup, students, selected, t]);
 
   /* 11.11: попередження про накладку. Єдина форма уроку його не мала (воно жило лише в
      старій інлайн-формі, яка уроків більше не створює), тож менеджер школи з кількома
@@ -819,7 +844,7 @@ export function QuickLessonDialog({
                   )}
                   {/* 14.11: чий це час. Урок ставлять людям в інших містах — без позначки
                       менеджерка в Стокгольмі не знала, за яким поясом вона його призначає. */}
-                  <TimeZoneNote at={`${ymd}T${hm}`} others tone="onDark" className="mt-2.5" />
+                  <TimeZoneNote at={`${ymd}T${hm}`} others people={zonePeople} tone="onDark" className="mt-2.5" />
                 </div>
 
                 {/* Duration chips */}

@@ -4,7 +4,7 @@ import { uk, sv, enGB } from "date-fns/locale";
 import type { Locale } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { TimeZoneNote, type ZonePerson } from "@/components/TimeZoneNote";
 import { getLocale } from "@/lib/locale";
 
 /**
@@ -207,8 +207,10 @@ function MonthGrid({ ymd, min, onPick }: { ymd: string; min?: string; onPick: (y
 
 export function DateTimeField({
   value, onChange, min, label, durationMin, onDurationChange, className = "", invalid = false, describedBy,
-  zoneNote = "self",
+  zoneNote = "self", zonePeople,
 }: {
+  /** Люди, яких стосується цей час, з їхніми поясами — позначка назве їхній час поіменно. */
+  zonePeople?: ZonePerson[];
   /** 14.11: під полем — чий це час («За твоїм часом: Стокгольм (GMT+1)»). "others" додає
       «кожен учасник побачить урок за своїм місцевим часом»; false — коли позначку поруч уже
       показує сама форма (темна картка часу у формі уроку). */
@@ -295,7 +297,7 @@ export function DateTimeField({
           </>
         )}
       </div>
-      {zoneNote && <TimeZoneNote at={value} others={zoneNote === "others"} className="mt-1.5" />}
+      {zoneNote && <TimeZoneNote at={value} others={zoneNote === "others"} people={zonePeople} className="mt-1.5" />}
     </div>
   );
 }

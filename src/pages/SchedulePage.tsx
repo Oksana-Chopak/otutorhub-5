@@ -50,6 +50,8 @@ import {
 import { toast } from "sonner";
 import { Clock, Plus, Loader2, ChevronDown, ChevronUp, Circle, List, CalendarRange, HandHeart, Video, CalendarDays , Menu } from "lucide-react";
 import { zoneSuffix } from "@/lib/timeZone";
+import { useTimeZones } from "@/hooks/useTimeZones";
+import type { ZonePerson } from "@/components/TimeZoneNote";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
@@ -399,6 +401,13 @@ export default function SchedulePage() {
   }, [user?.id, isManager, isTutor, isStudent]);
 
   const selectedTutor = tutors.find((t) => t.id === form.tutor_id);
+  /* 14.11: позначка поясу в копії уроку називає час репетитора й учня, якщо він інший. */
+  const copyZoneIds = [form.tutor_id && form.tutor_id !== user?.id ? form.tutor_id : null, form.student_id || null];
+  const copyZones = useTimeZones(copyZoneIds);
+  const copyZonePeople: ZonePerson[] = [
+    ...(copyZoneIds[0] ? [{ name: profilesMap[copyZoneIds[0]] ?? t("roles.tutor"), tz: copyZones[copyZoneIds[0]] }] : []),
+    ...(copyZoneIds[1] ? [{ name: profilesMap[copyZoneIds[1]] ?? t("roles.student"), tz: copyZones[copyZoneIds[1]] }] : []),
+  ];
 
   // Smart-form: subjects available for the selected tutor (from tutor profile + tutor_subject_rates)
   const [tutorRateSubjects, setTutorRateSubjects] = useState<string[]>([]);
@@ -1224,6 +1233,7 @@ export default function SchedulePage() {
                   </Label>
                   <DateTimeField
                     zoneNote="others"
+                    zonePeople={copyZonePeople}
                     value={form.starts_at}
                     invalid={!!formErrors.starts_at}
                     describedBy={formErrors.starts_at ? "err-starts_at" : undefined}

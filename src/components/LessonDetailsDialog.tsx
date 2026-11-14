@@ -10,7 +10,8 @@ import { TutorRateDialog } from "@/components/TutorRateDialog";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { DateTimeField } from "@/components/DateTimeField";
-import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { TimeZoneNote, type ZonePerson } from "@/components/TimeZoneNote";
+import { useTimeZones } from "@/hooks/useTimeZones";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { canSee } from "@/lib/roleCapabilities";
@@ -58,6 +59,16 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
      roleCapabilities — те саме джерело, що дає `studentHref` картці. */
   const { flags } = useRoleFlags();
   const isTutorViewer = canSee("ownStudents", flags);
+
+  /* 14.11: чий час. Якщо в репетитора чи учня на годиннику інше, ніж у того, хто дивиться, —
+     кажемо це під часом уроку («Репетитор: 16:00 · Київ»), а при перенесенні — під полем. */
+  const tzTutor = row && row.tutor_id !== user?.id ? row.tutor_id : null;
+  const tzStudent = row && row.student_id && row.student_id !== user?.id ? row.student_id : null;
+  const zones = useTimeZones([tzTutor, tzStudent]);
+  const zonePeople: ZonePerson[] = [
+    ...(tzTutor ? [{ name: t("roles.tutor"), tz: zones[tzTutor] }] : []),
+    ...(tzStudent ? [{ name: studentName || t("roles.student"), tz: zones[tzStudent] }] : []),
+  ];
   const [dtEdit, setDtEdit] = useState(false);
   const [dtVal, setDtVal] = useState("");
   const [durVal, setDurVal] = useState(60);
@@ -206,12 +217,13 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
                 )}
                 {canReschedule && !dtEdit && (
                   <button type="button" aria-label={t("lessonCard.edit")} onClick={openDtEdit}
-                    className="text-muted-foreground hover:text-foreground shrink-0 rounded p-0.5">
+                    className="tap-44 text-muted-foreground hover:text-foreground shrink-0 rounded p-0.5">
                     <Pencil size={14} />
                   </button>
                 )}
               </div>
             )}
+            {!dtEdit && row && <TimeZoneNote at={row.starts_at} people={zonePeople} onlyIfDiffers className="mt-1" />}
             {dtEdit && (
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <DateTimeField value={dtVal} onChange={setDtVal} zoneNote={false}
@@ -223,7 +235,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
                 <button type="button" onClick={() => setDtEdit(false)}
                   className="tap-44 text-muted-foreground h-11 min-w-11 rounded-[10px] px-2 text-[16px]">✕</button>
                 {/* 14.11: чий це час — окремим рядком на всю ширину, під полем і кнопками */}
-                <TimeZoneNote at={dtVal} others className="basis-full" />
+                <TimeZoneNote at={dtVal} others people={zonePeople} className="basis-full" />
               </div>
             )}
           </div>

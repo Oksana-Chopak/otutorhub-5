@@ -4,6 +4,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js/cors";
 import { createClient } from "npm:@supabase/supabase-js";
 import { withErrorLog } from "../_shared/errorLog.ts";
+import { loadTimeZones, readerZone, zoneTail } from "../_shared/personTime.ts";
 
 interface Body {
   lesson_id: string;
@@ -71,13 +72,16 @@ Deno.serve(withErrorLog("notify-cancellation-fee", async (req) => {
       .filter(Boolean)
       .join(" ") || "Учень";
 
-    const when = new Date(body.starts_at).toLocaleString("uk-UA", {
+    // 14.11: час — за поясом репетитора, якому йде повідомлення, і з позначкою поясу
+    const tutorZone = readerZone(await loadTimeZones(admin, [body.tutor_id]), body.tutor_id);
+    const startsAt = new Date(body.starts_at);
+    const when = startsAt.toLocaleString("uk-UA", {
       day: "numeric",
       month: "long",
       hour: "2-digit",
       minute: "2-digit",
-      timeZone: "Europe/Kyiv",
-    });
+      timeZone: tutorZone.tz,
+    }) + zoneTail(tutorZone, startsAt, "uk");
 
     const escapeHtml = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

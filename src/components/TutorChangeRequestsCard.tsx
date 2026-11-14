@@ -3,6 +3,7 @@ import { formatPrice } from "@/lib/currency";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { DateTimeField } from "@/components/DateTimeField";
 import { zoneSuffix } from "@/lib/timeZone";
+import { useTimeZones } from "@/hooks/useTimeZones";
 import { insertNotification } from "@/lib/notifications";
 import { getLocale } from "@/lib/locale";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
@@ -95,6 +96,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
   const [lessons, setLessons] = useState<Record<string, LessonInfo>>({});
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<ChangeRequestRow | null>(null);
+  const zones = useTimeZones([active?.student_id]);   // 14.11: час учня в позначці поясу
   const [chargeChoice, setChargeChoice] = useState<ChargeChoice>("none");
   const [partialAmount, setPartialAmount] = useState("0");
   const [proposedAt, setProposedAt] = useState("");
@@ -551,7 +553,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               ) : (
                 <div className="space-y-2">
                   <Label htmlFor="proposed-time">{t("tutorChangeRequestsExtra.newTimeLabel")}</Label>
-                  <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" />
+                  <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" zonePeople={active ? [{ name: nameOf(active.student_id), tz: zones[active.student_id] }] : undefined} />
                   {active.proposed_starts_at && (
                     <p className="text-[14px] text-muted-foreground">
                       {t("tutorChangeRequestsExtra.studentProposed")}{" "}

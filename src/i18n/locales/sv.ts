@@ -5849,6 +5849,8 @@ export const sv: LocaleTranslations = {
     yours: "Din tid: {{zone}}",
     othersSee: "Alla ser lektionen i sin egen lokala tid.",
     tutorHours: "Ange tiderna i lärarens lokala tid, som kan skilja sig från din.",
+    tutorHoursZone: "Tiderna anges i lärarens lokala tid: {{zone}}.",
+    convertedFrom: "Lärarens tider är omräknade från hens tid: {{zone}}.",
     cities: {
       Kyiv: "Kyiv",
       Stockholm: "Stockholm",

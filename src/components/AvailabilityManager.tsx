@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ErrorState } from "@/components/ErrorState";
 import { DateField, TimeField } from "@/components/DateTimeField";
 import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { useTimeZones } from "@/hooks/useTimeZones";
+import { zoneLabel } from "@/lib/timeZone";
 import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -232,6 +234,8 @@ export function AvailabilityManager() {
   }, [tutorId, user?.id, isManager, isTutor]);
 
   const canEdit = isManager || (isTutor && tutorId === user?.id);
+  // 14.11: години зберігаються місцевим часом репетитора — менеджерові кажемо, яким саме
+  const tutorTz = useTimeZones([tutorId && tutorId !== user?.id ? tutorId : null])[tutorId];
 
   const addWeekly = async () => {
     const start = hhmmToMinutes(weeklyDialog.from);
@@ -687,7 +691,9 @@ export function AvailabilityManager() {
                 репетитора, вписує їх за місцевим часом репетитора. */}
             {tutorId === user?.id
               ? <TimeZoneNote />
-              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">{t("timeZone.tutorHours")}</p>}
+              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">
+                  {tutorTz ? t("timeZone.tutorHoursZone", { zone: zoneLabel(tutorTz) }) : t("timeZone.tutorHours")}
+                </p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWeeklyDialog((s) => ({ ...s, open: false }))}>
@@ -759,7 +765,9 @@ export function AvailabilityManager() {
                 репетитора, вписує їх за місцевим часом репетитора. */}
             {tutorId === user?.id
               ? <TimeZoneNote />
-              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">{t("timeZone.tutorHours")}</p>}
+              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">
+                  {tutorTz ? t("timeZone.tutorHoursZone", { zone: zoneLabel(tutorTz) }) : t("timeZone.tutorHours")}
+                </p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideDialog((s) => ({ ...s, open: false }))}>

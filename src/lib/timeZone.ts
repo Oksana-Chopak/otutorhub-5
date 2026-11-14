@@ -83,3 +83,64 @@ export function toInstant(v: Date | string | null | undefined): Date {
   }
   return new Date();
 }
+
+// ── Пояс ІНШОЇ людини (14.11, пакет «кожному — його час») ─────────────────────────────────────
+// Пояс пристрою застосунок записує в `profiles.timezone` (RPC `set_my_timezone`), читає пояси
+// тих, кого людина й так бачить (`people_timezones`). Усе нижче — чиста арифметика над поясами.
+
+/** Зсув поясу від UTC у хвилинах у момент `at` (Київ узимку = 120). Невідомий пояс → 0. */
+export function offsetMinutes(tz: string, at: Date = new Date()): number {
+  try {
+    const p = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).formatToParts(at).reduce<Record<string, number>>((a, x) => { if (x.type !== "literal") a[x.type] = Number(x.value); return a; }, {});
+    const asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+    return Math.round((asUtc - Math.floor(at.getTime() / 1000) * 1000) / 60000);
+  } catch {
+    return 0;
+  }
+}
+
+export interface WallTime { iso: string; y: number; m0: number; d: number; minutes: number; weekday: number }
+
+/** Що показує годинник у поясі `tz` у момент `at`: дата, хвилини від півночі, день тижня (0 = нд). */
+export function wallInZone(at: Date, tz: string): WallTime {
+  const shifted = new Date(at.getTime() + offsetMinutes(tz, at) * 60000);
+  const y = shifted.getUTCFullYear(), m0 = shifted.getUTCMonth(), d = shifted.getUTCDate();
+  return {
+    y, m0, d,
+    iso: `${y}-${String(m0 + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
+    minutes: shifted.getUTCHours() * 60 + shifted.getUTCMinutes(),
+    weekday: shifted.getUTCDay(),
+  };
+}
+
+/** Момент, коли в поясі `tz` на годиннику дата `iso` («YYYY-MM-DD») і `minutes` хвилин від півночі. */
+export function wallToInstant(iso: string, minutes: number, tz: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  const guess = Date.UTC(y, (m || 1) - 1, d || 1, 0, minutes);
+  let t = guess - offsetMinutes(tz, new Date(guess)) * 60000;
+  t = guess - offsetMinutes(tz, new Date(t)) * 60000;        // друге наближення — біля переходу на літній час
+  return new Date(t);
+}
+
+/** Чи показують два пояси той самий час у момент `at` (Стокгольм і Берлін — так, Київ — ні). */
+export function sameClock(a: string, b: string, at: Date = new Date()): boolean {
+  return a === b || offsetMinutes(a, at) === offsetMinutes(b, at);
+}
+
+/**
+ * Час моменту `at` на годиннику людини в поясі `tz`: «16:00», а якщо в неї вже інший день —
+ * «нд 01:00». Мова — мова застосунку.
+ */
+export function timeInZone(at: Date, tz: string, viewerTz: string = deviceTimeZone(), locale?: string): string {
+  const loc = locale ?? i18n.language ?? "uk";
+  try {
+    const hm = new Intl.DateTimeFormat(loc, { timeZone: tz, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(at);
+    if (wallInZone(at, tz).iso === wallInZone(at, viewerTz).iso) return hm;
+    const wd = new Intl.DateTimeFormat(loc, { timeZone: tz, weekday: "short" }).format(at);
+    return `${wd} ${hm}`;
+  } catch {
+    return "";
+  }
+}

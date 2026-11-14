@@ -26,6 +26,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { sendWebPush } from "./push.ts";
 import { payUrlFor } from "./payLink.ts";
+import { loadTimeZones, tzFor } from "./personTime.ts";
 
 const RLOC: Record<string, string> = { uk: "uk-UA", en: "en-GB", sv: "sv-SE" };
 const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "£", SEK: "kr", PLN: "zł" };
@@ -189,8 +190,15 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
   const studentFirst = String(sp?.first_name ?? "").trim();
   const studentName = [sp?.first_name, sp?.last_name].filter(Boolean).join(" ").trim() || "—";
   const tutorName = [tp?.first_name, tp?.last_name].filter(Boolean).join(" ").trim() || tr.tutorFallback;
+  /* 14.11: час уроків у нагадуванні — за поясом того, хто його читає: учня; якщо його пояс
+     невідомий (запрошений без акаунта — текст перешле репетиторка) — за поясом репетиторки;
+     нікого — київський. Доти всі читали київський час. Формат тексту (один список, одна сума)
+     не змінюється: до рядків нічого не додаємо, бо дати тепер збігаються з тим, що людина
+     бачить у застосунку. */
+  const zones = await loadTimeZones(admin, [studentId, tutorId]);
+  const readerTz = tzFor(zones, studentId, tutorId);
   const fmtDate = (iso: string) => new Date(iso).toLocaleString(RLOC[lang], {
-    timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit",
+    timeZone: readerTz, day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit",
   });
   const sym = (c?: string | null) => RSYM[c ?? "UAH"] ?? (c ?? "₴");
   const total = fresh.reduce((s, l) => s + Number(l.student_price ?? 0), 0);

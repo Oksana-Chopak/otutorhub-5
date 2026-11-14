@@ -5870,6 +5870,8 @@ export const en: LocaleTranslations = {
     yours: "Your time: {{zone}}",
     othersSee: "Everyone sees the lesson in their own local time.",
     tutorHours: "Enter hours in the tutor's local time, which may differ from yours.",
+    tutorHoursZone: "Hours are in the tutor's local time: {{zone}}.",
+    convertedFrom: "The tutor's hours are converted from their time: {{zone}}.",
     cities: {
       Kyiv: "Kyiv",
       Stockholm: "Stockholm",

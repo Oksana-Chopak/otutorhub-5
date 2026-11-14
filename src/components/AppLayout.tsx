@@ -20,6 +20,7 @@ import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { ClaimTutorRoleDialog } from "@/components/ClaimTutorRoleDialog";
 import { flushLandingFunnel } from "@/lib/landingFunnel";
 import { healPushSubscription } from "@/hooks/usePushNotifications";
+import { syncMyTimeZone } from "@/hooks/useTimeZones";
 import { supabase } from "@/integrations/supabase/client";
 
 const routeTitleKey: Record<string, string> = {
@@ -82,6 +83,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // 22.09: браузер із підпискою на СТАРОМУ ключі лагодить себе при відкритті
   // застосунку — інакше пуші тихо не доходили б, поки людина не зайде в профіль.
   useEffect(() => { if (user) void healPushSubscription(user.id); }, [user?.id]);
+  // 14.11: пояс пристрою — у профіль, щоб іншим і серверним повідомленням було з чого рахувати час
+  useEffect(() => { if (user) void syncMyTimeZone(user.id); }, [user?.id]);
   // 02.10: записи використання — app_open раз на сесію і page_view раз на шлях
   // за 5 хв. Із них адмінка рахує DAU/WAU/MAU і воронку (admin_product_funnel).
   const { flags: roleFlags, ready: rolesReady } = useRoleFlags();

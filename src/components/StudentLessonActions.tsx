@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DateTimeField } from "@/components/DateTimeField";
+import { useTimeZones } from "@/hooks/useTimeZones";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -49,6 +50,7 @@ function toLocalInputValue(iso: string) {
 
 export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Props) {
   const { user } = useAuth();
+  const zones = useTimeZones([tutorId]);   // 14.11: позначка назве час репетитора, якщо він інший
   const [pending, setPending] = useState<PendingRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -293,7 +295,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="proposed-at">{t("studentLessonActionsExtra.newTimeLabel")}</Label>
-              <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" />
+              <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" zonePeople={[{ name: t("roles.tutor"), tz: zones[tutorId] }]} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</Label>

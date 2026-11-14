@@ -7,6 +7,7 @@ import { decideDebtReminder, DEBT_INTERVAL_DAYS, buildDebtPairs, splitOtherHisto
 import { fetchAllRows } from "../_shared/fetchAll.ts";
 import { versionProbe } from "../_shared/build.ts";
 import { withJob } from '../_shared/jobRun.ts';
+import { loadTimeZones, readerZone, zoneTail } from "../_shared/personTime.ts";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -398,6 +399,16 @@ Deno.serve(withJob("payment-reminders", async (req) => {
   const debtJustSent = (tutorId: string, studentId: string) =>
     Date.now() - (lastDebtByPair.get(`${tutorId}:${studentId}`) ?? 0) < DEBT_INTERVAL_DAYS * DAY_MS;
 
+  /* 14.11: час уроку в нагадуванні — за поясом того, хто читає (учень → репетитор → Київ) і з
+     позначкою поясу, якщо читач не за київським часом або його пояс невідомий:
+     «16 листопада о 15:00 (Берлін, GMT+1)». Доти всі отримували київський час без жодного слова. Пояси довантажуються для групових учасників нижче. */
+  const zones = await loadTimeZones(supabase, [...lessons.map((l: any) => l.student_id), ...tutorIds]);
+  const whenFor = (iso: string, lang: RtLang, studentId: string, tutorId: string) => {
+    const z = readerZone(zones, studentId, tutorId);
+    const at = new Date(iso);
+    return at.toLocaleString(RLOC[lang], { timeZone: z.tz, day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" }) + zoneTail(z, at, lang);
+  };
+
   // 5. Pull tutor display names (for nicer messages)
   const { data: tutorProfiles } = tutorIds.length
     ? await supabase
@@ -495,13 +506,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     const lang = rlang(lesson.student_id);
     const T = RT[lang];
     const cur = rsym(curByPair.get(`${lesson.tutor_id}:${lesson.student_id}`));
-    const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], {
-      timeZone: "Europe/Kyiv",
-      day: "2-digit",
-      month: "long",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const dateStr = whenFor(lesson.starts_at, lang, lesson.student_id, lesson.tutor_id);
     const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
     const price = Number(lesson.student_price ?? 0);
     const header = T.header(tname);
@@ -555,6 +560,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     // B8, фаза 2: мови+валюти групових учасників (тепер вони відомі).
     await ensureLangs(parts.map((p: { student_id: string }) => p.student_id));
     await ensureCurrencies(parts.map((p: { student_id: string }) => p.student_id));
+    for (const [id, tz] of await loadTimeZones(supabase, parts.flatMap((p: any) => [p.student_id, p.lesson.tutor_id]))) zones.set(id, tz);
     // Load settings / names / telegram for any group tutors+students not already cached.
     const gTutorIds = Array.from(new Set(parts.map((p: any) => p.lesson.tutor_id))).filter((id) => !settingsByTutor.has(id as string));
     if (gTutorIds.length) {
@@ -603,7 +609,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
       const lang = rlang(p.student_id);
       const T = RT[lang];
       const cur = rsym(curByPair.get(`${lesson.tutor_id}:${p.student_id}`));
-      const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], { timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
+      const dateStr = whenFor(lesson.starts_at, lang, p.student_id, lesson.tutor_id);
       const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
       const price = Number(p.student_price ?? 0);
       const header = T.header(tname);
