@@ -57,7 +57,12 @@ jobs:
           command -v psql >/dev/null || sudo apt-get install -y -q postgresql-client
           npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Стенд (база з усієї історії міграцій + PostgREST + шлюз + застосунок)
-        run: bash scripts/local-stack/up.sh 2>&1 | tail -5
+        # без «| tail»: фонові сервери тримали б трубу відкритою, і крок не завершився б (14.11)
+        run: |
+          timeout 600 bash scripts/local-stack/up.sh > up.log 2>&1 || { tail -40 up.log; tail -20 ~/.cache/otutorhub-stack/*.log; exit 1; }
+          tail -3 up.log
+          curl -s -m 10 -o /dev/null -w "застосунок: %{http_code}\n" http://127.0.0.1:5173/
+          curl -s -m 10 -o /dev/null -w "шлюз: %{http_code}\n" http://localhost:54321/rest/v1/ || true
       - name: Прохід «перша школа»
         run: |
           set -o pipefail

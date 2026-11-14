@@ -28,7 +28,7 @@ if [ ! -x "$CACHE/postgrest" ]; then
   tar -xf "$CACHE/pgrst.tar.xz" -C "$CACHE"
 fi
 
-bash "$0" stop
+bash "$0" stop; sleep 1   # дати старому PostgREST відпустити базу, інакше DROP DATABASE програє гонку
 dropdb --if-exists stackdb
 ( cd "$ROOT" && REPLAY_DB=stackdb node scripts/db-replay/replay.mjs --keep | tail -1 )
 
@@ -42,10 +42,13 @@ server-port = 54322
 server-host = "127.0.0.1"
 CONF
 nohup "$CACHE/postgrest" "$CACHE/pgrst.conf" > "$CACHE/pgrst.log" 2>&1 < /dev/null &
-( cd "$ROOT" && JWT_SECRET="$SECRET" nohup node scripts/local-stack/gateway.mjs > "$CACHE/gateway.log" 2>&1 < /dev/null & )
+# 14.11: «cd && … &» відправляє у фон УВЕСЬ список, і проміжний bash тримає stdout скрипта
+# відкритим, поки живий сервер, — у CI крок «bash up.sh | tail» через це не завершувався ніколи.
+# Тому «cd;» окремо: у фон іде лише сама команда, з усіма трьома потоками в журнал.
+( cd "$ROOT"; JWT_SECRET="$SECRET" nohup node scripts/local-stack/gateway.mjs > "$CACHE/gateway.log" 2>&1 < /dev/null & )
 KEY="$(cd "$ROOT" && JWT_SECRET="$SECRET" node scripts/local-stack/gateway.mjs --anon-key)"
-( cd "$ROOT" && VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_PUBLISHABLE_KEY="$KEY" nohup npx vite --port 5173 --host 127.0.0.1 > "$CACHE/vite.log" 2>&1 < /dev/null & )
+( cd "$ROOT"; VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_PUBLISHABLE_KEY="$KEY" nohup npx vite --port 5173 --host 127.0.0.1 > "$CACHE/vite.log" 2>&1 < /dev/null & )
 for i in $(seq 1 40); do
-  curl -s -o /dev/null http://127.0.0.1:5173/ && curl -s -o /dev/null http://127.0.0.1:54322/ && break; sleep 1
+  curl -s -m 5 -o /dev/null http://127.0.0.1:5173/ && curl -s -m 5 -o /dev/null http://127.0.0.1:54322/ && break; sleep 1
 done
 echo "[local-stack] готово: застосунок http://127.0.0.1:5173 · шлюз :54321 · журнали в $CACHE"
