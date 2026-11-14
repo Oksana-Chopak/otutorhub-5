@@ -132,11 +132,14 @@ export function installKeyboardInset(): void {
   // у формі «Додати репетитора до учня»). Перерахунок місця — лише подією `scroll` (на неї
   // список не закривається, а позиціонер слухає її так само) і лише при ЗМІНІ стану клавіатури.
   // Подію resize звідси не надсилати ніколи — стереже keyboard-inset.test.ts.
+  // Подія йде від ДОКУМЕНТА і спливає до вікна — як справжня прокрутка сторінки. Якщо надіслати
+  // її прямо вікну, ціллю стає window, а підказка (Radix Tooltip) питає `target.contains(…)`,
+  // якого у вікна немає, — і падає з помилкою JS.
   let nudgeDue = false;
+  let lateNudge: ReturnType<typeof setTimeout> | undefined;
   const nudgePopovers = () => {
-    nudgeDue = false;
     if (!document.querySelector("[data-radix-popper-content-wrapper]")) return;
-    window.dispatchEvent(new Event("scroll"));
+    document.dispatchEvent(new Event("scroll", { bubbles: true }));
   };
 
   const apply = () => {
@@ -159,7 +162,16 @@ export function installKeyboardInset(): void {
     }
     // форма щойно змінила висоту — даємо їй перемалюватись і підсуваємо поле
     clearTimeout(timer);
-    timer = setTimeout(() => { if (s.open) revealFocused(s); if (nudgeDue) nudgePopovers(); }, 60);
+    timer = setTimeout(() => {
+      if (s.open) revealFocused(s);
+      if (!nudgeDue) return;
+      nudgeDue = false;
+      nudgePopovers();
+      // і ще раз, коли форма доїхала на нове місце (перехід ~200–300 мс): перший перерахунок міг
+      // застати її в русі — у CI спливне вікно пошуку так лишилось на 20px під клавіатурою (14.11)
+      clearTimeout(lateNudge);
+      lateNudge = setTimeout(nudgePopovers, 340);
+    }, 60);
   };
 
   // Android зменшує САМУ сторінку, коли клавіатура ховається, — це справжній resize вікна, а
@@ -174,7 +186,7 @@ export function installKeyboardInset(): void {
     if (!document.querySelector('[role="listbox"]')) return;
     e.stopImmediatePropagation();
     apply();
-    window.dispatchEvent(new Event("scroll"));
+    nudgePopovers();
   }, true);
 
   vv.addEventListener("resize", apply);

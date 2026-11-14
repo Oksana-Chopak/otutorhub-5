@@ -80,6 +80,8 @@ describe("екранна клавіатура не накриває форму (
     vi.advanceTimersByTime(1000);
     expect(seen).toContain("scroll");
     expect(seen).not.toContain("resize");
+    // ціль події — документ, не вікно: підказка (Radix Tooltip) кличе target.contains(…)
+    expect(readFileSync("src/lib/keyboardInset.ts", "utf8")).not.toMatch(/window\.dispatchEvent\(/);
 
     // Android: «ввела ціну → тап по валюті» — клавіатура ховається, сторінка росте (справжній
     // resize), список відкритий: решта слухачів (а з ними й закриття списку) цього не чують

@@ -1504,9 +1504,10 @@ renderEmptyTab("managers")
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#7a5410", marginBottom: 8 }}>
                 {t("people.pricePerLesson", { currency: currencySymbol(studentDialog.currency) })}
               </div>
-              <div className="grid grid-cols-[1fr_8rem] gap-2">
+              <div className="grid grid-cols-[1fr_7.5rem] gap-2">
                 <Input
                   id="price"
+                  inputMode="decimal"
                   type="number"
                   min="0"
                   step="any"
@@ -1516,19 +1517,18 @@ renderEmptyTab("managers")
                   className="h-[52px] bg-card text-[18px] font-bold rounded-[13px]"
                   style={{ fontFamily: "Inter, system-ui, sans-serif" }}
                 />
-                <Select
+                {/* 14.11: рідний вибір, не спливний список — поруч поле суми («ввела ціну → тап по валюті») */}
+                <select
+                  aria-label={t("quickAddStudent.currency")}
                   value={studentDialog.currency}
-                  onValueChange={(v) => setStudentDialog((s) => ({ ...s, currency: v }))}
+                  onChange={(e) => setStudentDialog((s) => ({ ...s, currency: e.target.value }))}
+                  className="bg-card text-foreground"
+                  style={{ height: 52, borderRadius: 13, padding: "0 10px", border: "0.5px solid hsl(var(--input))", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16 }}
                 >
-                  <SelectTrigger aria-label={t("quickAddStudent.currency")} className="h-[52px] bg-card rounded-[13px] font-bold">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CURRENCY_OPTIONS.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {CURRENCY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>{c.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
