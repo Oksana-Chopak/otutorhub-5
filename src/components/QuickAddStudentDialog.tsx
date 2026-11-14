@@ -226,7 +226,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   });
   const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 14, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
   const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff";
+    e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "var(--ds-surface,#fff)";
   };
   const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg;

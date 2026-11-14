@@ -60,7 +60,7 @@ const Pill = ({ on, label, gold, onClick }: { on: boolean; label: string; gold?:
       height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
       fontFamily: C.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap",
       border: `1.5px solid ${on ? (gold ? C.goldRing : C.teal) : C.border}`,
-      background: on ? (gold ? C.goldBg : C.tealL) : "#fff",
+      background: on ? (gold ? C.goldBg : C.tealL) : "var(--ds-surface,#fff)",
       color: on ? (gold ? C.gold : C.tealD) : C.muted,
       display: "inline-flex", alignItems: "center", gap: 5,
     }}>
@@ -311,7 +311,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
           {rows.map((r) => {
             const st = state[r.id] ?? { done: true, paid: true };
             return (
-              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", borderRadius: 16, border: `1.5px solid ${st.done ? C.teal : C.border}`, background: st.done ? "rgba(43,191,170,.05)" : "#fff", opacity: st.done ? 1 : 0.7 }}>
+              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", borderRadius: 16, border: `1.5px solid ${st.done ? C.teal : C.border}`, background: st.done ? "rgba(43,191,170,.05)" : "var(--ds-surface,#fff)", opacity: st.done ? 1 : 0.7 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {r.time} · {r.name}

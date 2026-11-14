@@ -1187,6 +1187,9 @@ export const en: LocaleTranslations = {
   },
 
   schedule: {
+    copyLessonStatus: "Lesson status",
+    copyStudentPayStatus: "Student payment",
+    copyPayoutStatus: "Payout status",
     filteredEmptyDesc: "There are lessons, but the selected filters hide them.",
     filteredEmptyTitle: "Nothing matches the filters",
     createLessonFailed: "Couldn't create the lesson",
@@ -2366,6 +2369,8 @@ export const en: LocaleTranslations = {
 
   filters: {
     label: "Filters",
+    period: "Period",
+    source: "Whose lessons",
   },
 
   streak: {
@@ -3647,6 +3652,7 @@ export const en: LocaleTranslations = {
     record: "Record: {{count}}",
   },
   studentLessonActions: {
+    sameTime: "That is the same time as now. Pick another day or hour.",
     cancelRequest: "Cancellation request",
     rescheduleRequest: "Reschedule request",
     requestFailed: "Failed to send request",

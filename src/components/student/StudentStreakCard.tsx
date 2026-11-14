@@ -107,7 +107,7 @@ export function StudentStreakCard({ streak, state, goal, className }: Props) {
           {/* Учень не ставить уроки сам — єдина чесна дія веде до репетитора. */}
           <Link
             to="/chats"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[15px] font-semibold text-white"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[15px] font-semibold text-[#0f0f1a]"
           >
             <MessageCircle className="h-4 w-4" />
             {t("studentStreak.writeTutor")}

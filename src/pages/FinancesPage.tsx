@@ -42,13 +42,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FieldLabel, NativeSelect } from "@/components/form/canon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ReminderStatsLine } from "@/components/ReminderStatsLine";
 import { EmptyState } from "@/components/EmptyState";
@@ -2591,8 +2585,8 @@ export default function FinancesPage() {
               </div>
               <button type="button"
                 onClick={() => { exportCsv({ kind: exportKind }); setExportOpen(false); }}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold text-white"
-                style={{ background: "var(--teal,#2BBFAA)" }}>
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold"
+                style={{ background: "var(--teal,#2BBFAA)", color: "#0f0f1a" }}>
                 <Download className="h-4 w-4" /> {t("finances.exportDownload")}
               </button>
             </div>
@@ -3197,8 +3191,8 @@ export default function FinancesPage() {
               </div>
               <button type="button"
                 onClick={() => { exportCsv({ kind: exportKind }); setExportOpen(false); }}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold text-white"
-                style={{ background: "var(--teal,#2BBFAA)" }}>
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold"
+                style={{ background: "var(--teal,#2BBFAA)", color: "#0f0f1a" }}>
                 <Download className="h-4 w-4" /> {t("finances.exportDownload")}
               </button>
             </div>
@@ -3239,33 +3233,23 @@ export default function FinancesPage() {
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
-              <Select value={tutorFilter} onValueChange={setTutorFilter}>
-                <SelectTrigger aria-label={t("finances.allTutors")} className="h-11">
-                  <SelectValue placeholder={t("finances.allTutors")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("finances.allTutors")}</SelectItem>
-                  {tutorOptions.map((tu) => (
-                    <SelectItem key={tu.id} value={tu.id}>{tu.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect id="fin-tutor-filter" aria-label={t("finances.allTutors")} value={tutorFilter} onChange={(e) => setTutorFilter(e.target.value)}>
+                <option value="all">{t("finances.allTutors")}</option>
+                {tutorOptions.map((tu) => (
+                  <option key={tu.id} value={tu.id}>{tu.name}</option>
+                ))}
+              </NativeSelect>
             </div>
           )}
           {/* Student filter — tutor view */}
           {isIndependentTutor && studentOptions.length > 1 && (
             <div className="w-full sm:w-44">
-              <Select value={studentFilter} onValueChange={setStudentFilter}>
-                <SelectTrigger aria-label={t("finances.allStudents")} className="h-11">
-                  <SelectValue placeholder={t("finances.allStudents")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("finances.allStudents")}</SelectItem>
-                  {studentOptions.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect id="fin-student-filter" aria-label={t("finances.allStudents")} value={studentFilter} onChange={(e) => setStudentFilter(e.target.value)}>
+                <option value="all">{t("finances.allStudents")}</option>
+                {studentOptions.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </NativeSelect>
             </div>
           )}
         </div>
@@ -3574,8 +3558,8 @@ export default function FinancesPage() {
                 type="button"
                 disabled={bulkBusy}
                 onClick={() => bulkMark("student_payment_status")}
-                className="flex h-11 items-center gap-1.5 rounded-[12px] px-4 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)", fontFamily: "Inter, system-ui, sans-serif" }}
+                className="flex h-11 items-center gap-1.5 rounded-[12px] px-4 text-[14px] font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ color: "#0f0f1a", background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 <CheckCheck className="h-4 w-4" />
                 {t("finances.markStudentsPaid")}
@@ -3744,16 +3728,13 @@ export default function FinancesPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportTutor")}</p>
-              <Select value={exportTutor} onValueChange={setExportTutor}>
-                <SelectTrigger aria-label={t("finances.exportTutor")}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("finances.exportAllTutors")}</SelectItem>
-                  {Array.from(new Set(periodBillable.map((l) => l.tutor_id))).map((id) => (
-                    <SelectItem key={id} value={id}>{nameOf(id)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FieldLabel htmlFor="fin-export-tutor">{t("finances.exportTutor")}</FieldLabel>
+              <NativeSelect id="fin-export-tutor" value={exportTutor} onChange={(e) => setExportTutor(e.target.value)}>
+                <option value="all">{t("finances.exportAllTutors")}</option>
+                {Array.from(new Set(periodBillable.map((l) => l.tutor_id))).map((id) => (
+                  <option key={id} value={id}>{nameOf(id)}</option>
+                ))}
+              </NativeSelect>
             </div>
             <div>
               <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
@@ -3771,8 +3752,8 @@ export default function FinancesPage() {
             </div>
             <button type="button"
               onClick={() => { exportCsv({ tutorId: exportTutor, kind: exportKind }); setExportOpen(false); }}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold text-white"
-              style={{ background: "var(--teal,#2BBFAA)" }}>
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold"
+              style={{ background: "var(--teal,#2BBFAA)", color: "#0f0f1a" }}>
               <Download className="h-4 w-4" /> {t("finances.exportDownload")}
             </button>
           </div>

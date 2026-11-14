@@ -82,7 +82,7 @@ function Btn({ children, onClick, disabled, className = "" }: any) {
   return (
     <button
       onClick={onClick} disabled={disabled}
-      className={cn("w-full h-[52px] rounded-2xl font-bold text-white text-base transition-transform active:scale-[.97]",
+      className={cn("w-full h-[52px] rounded-2xl font-bold text-[#0f0f1a] text-base transition-transform active:scale-[.97]",
         disabled ? "opacity-40 cursor-not-allowed" : "shadow-lg", className)}
       style={{ background: disabled ? T.muted : `linear-gradient(135deg,${T.teal},${T.tealD})`,
                fontFamily: T.display, boxShadow: disabled ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)" }}>
@@ -202,7 +202,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
             className="h-[42px] px-4 rounded-full text-sm font-semibold transition-all"
             style={{
               border: sel.includes(s) ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
-              background: sel.includes(s) ? T.tealL : "#fff",
+              background: sel.includes(s) ? T.tealL : "var(--ds-surface,#fff)",
               color: sel.includes(s) ? T.tealD : T.txt,
               boxShadow: sel.includes(s) ? "0 2px 8px -4px rgba(43,191,170,.5)" : "none",
               fontFamily: T.body,
@@ -812,7 +812,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
               className="h-[46px] rounded-xl font-bold text-sm transition-all"
               style={{ fontFamily: T.display,
                        border: fee === p ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
-                       background: fee === p ? T.tealL : "#fff", color: fee === p ? T.tealD : T.txt }}>
+                       background: fee === p ? T.tealL : "var(--ds-surface,#fff)", color: fee === p ? T.tealD : T.txt }}>
               {p === 0 ? "Off" : `${p}%`}
             </button>
           ))}
@@ -858,7 +858,7 @@ function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
         <button key={i} onClick={() => setPick(i)}
           className="w-full text-left rounded-2xl p-4 flex items-start gap-3 transition-all"
           style={{ border: pick === i ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
-                   background: pick === i ? T.tealL : "#fff" }}>
+                   background: pick === i ? T.tealL : "var(--ds-surface,#fff)" }}>
           <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-card"
             style={{ border: pick === i ? `6px solid ${T.teal}` : `2px solid ${T.muted}`, boxSizing: "border-box" as const }} />
           <span>
@@ -916,8 +916,8 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
           <button key={d} onClick={() => toggle(d)}
             className="font-bold text-sm transition-all"
             style={{ width: 44, height: 44, borderRadius: 12, border: "none",
-                     background: selDays.includes(d) ? T.teal : "#fff",
-                     color: selDays.includes(d) ? "#fff" : T.txt,
+                     background: selDays.includes(d) ? T.teal : "var(--ds-surface,#fff)",
+                     color: selDays.includes(d) ? "#0f0f1a" : T.txt,
                      outline: selDays.includes(d) ? "none" : `1px solid ${T.border}`,
                      fontFamily: T.display }}>
             {t(`onboardingFlowB.weekday.${di}`)}
@@ -1350,7 +1350,7 @@ const RadioCard = ({ active, onSelect, title, desc }: { active: boolean; onSelec
   <button onClick={onSelect}
     className="w-full text-left rounded-2xl p-3.5 flex items-start gap-3 transition-all"
     style={{ border: active ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
-             background: active ? T.tealL : "#fff" }}>
+             background: active ? T.tealL : "var(--ds-surface,#fff)" }}>
     <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-card transition-all"
       style={{ border: active ? `6px solid ${T.teal}` : `2px solid ${T.muted}`, boxSizing: "border-box" as const }} />
     <span>
@@ -1362,7 +1362,7 @@ const RadioCard = ({ active, onSelect, title, desc }: { active: boolean; onSelec
 
 const DigestRow = ({ on, setOn, emoji, title, desc }: any) => (
   <div className="flex items-center gap-3 rounded-2xl p-3.5 transition-colors"
-    style={{ border: `1px solid ${T.border}`, background: on ? T.tealL : "#fff" }}>
+    style={{ border: `1px solid ${T.border}`, background: on ? T.tealL : "var(--ds-surface,#fff)" }}>
     <span className="text-2xl flex-shrink-0">{emoji}</span>
     <div className="flex-1 min-w-0">
       <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
@@ -1709,7 +1709,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                     {t("onboardingFlowB.moneyDebtSub", { count: money.debtStudents })}
                   </p>
                   <button
-                    className="mt-5 w-full h-[52px] rounded-2xl font-bold text-white text-base transition-transform active:scale-[.97]"
+                    className="mt-5 w-full h-[52px] rounded-2xl font-bold text-[#0f0f1a] text-base transition-transform active:scale-[.97]"
                     style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display }}
                     onClick={async () => {
                       /* Той самий захист, що й у кнопки нижче: якщо прапорець

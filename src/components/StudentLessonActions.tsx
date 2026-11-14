@@ -2,17 +2,9 @@ import { useEffect, useState } from "react";
 import { DateTimeField } from "@/components/DateTimeField";
 import { useTimeZones } from "@/hooks/useTimeZones";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { AREA_CLASS, FieldLabel } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { Badge } from "@/components/ui/badge";
 import { CalendarX2, CalendarClock, Loader2, Hourglass } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,6 +179,12 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       toast.error(t("studentLessonActions.timeRequired"));
       return;
     }
+    // 14.11: поле відкривається з чинним часом уроку — запит «перенести на той самий час»
+    // нічого не просив, а репетитор отримував сповіщення і мав його розглядати.
+    if (new Date(proposedAt).getTime() === new Date(startsAt).getTime()) {
+      toast.error(t("studentLessonActions.sameTime"));
+      return;
+    }
     setSubmitting(true);
     try {
       const { error } = await supabase.from("lesson_change_requests").insert({
@@ -245,81 +243,67 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
         <span className="whitespace-nowrap">{t("studentLessonActionsExtra.cancelBtn2")}</span>
       </Button>
 
-      {/* Cancel dialog */}
-      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
-        <DialogContent className="sm:max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
-          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
-          <DialogHeader>
-            <DialogTitle>{t("studentLessonActionsExtra.cancelDialogTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("studentLessonActionsExtra.cancelDialogDesc", { date: lessonDate })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="cancel-reason">{t("studentLessonActionsExtra.cancelReasonLabel")}</Label>
-            <Textarea
-              id="cancel-reason"
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={t("studentLessonActionsExtra.cancelReasonPlaceholder")}
-              maxLength={500}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              {t("common.close")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={submitCancel}
-              disabled={submitting}
-            >
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("studentLessonActionsExtra.sendRequestBtn")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Cancel dialog — 14.11: оболонка й поля з канону форм */}
+      <FormSheet
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        locked={submitting}
+        testId="student-cancel"
+        title={t("studentLessonActionsExtra.cancelDialogTitle")}
+        description={t("studentLessonActionsExtra.cancelDialogDesc", { date: lessonDate })}
+        footer={
+          <>
+            <SheetButton kind="secondary" onClick={() => setCancelOpen(false)}>{t("common.close")}</SheetButton>
+            <SheetButton kind="danger" onClick={submitCancel} busy={submitting}>{t("studentLessonActionsExtra.sendRequestBtn")}</SheetButton>
+          </>
+        }
+      >
+        <div>
+          <FieldLabel htmlFor="cancel-reason">{t("studentLessonActionsExtra.cancelReasonLabel")}</FieldLabel>
+          <Textarea
+            id="cancel-reason"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t("studentLessonActionsExtra.cancelReasonPlaceholder")}
+            maxLength={500}
+            className={AREA_CLASS}
+          />
+        </div>
+      </FormSheet>
 
       {/* Reschedule dialog */}
-      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
-        <DialogContent className="sm:max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
-          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
-          <DialogHeader>
-            <DialogTitle>{t("studentLessonActionsExtra.rescheduleDialogTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("studentLessonActionsExtra.rescheduleDialogDesc", { date: lessonDate })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="proposed-at">{t("studentLessonActionsExtra.newTimeLabel")}</Label>
-              <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" zonePeople={[{ name: t("roles.tutor"), tz: zones[tutorId] }]} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</Label>
-              <Textarea
-                id="r-reason"
-                rows={3}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder={t("studentLessonActionsExtra.commentPlaceholder")}
-                maxLength={500}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRescheduleOpen(false)}>
-              {t("common.close")}
-            </Button>
-            <Button onClick={submitReschedule} disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("studentLessonActionsExtra.sendRequestBtn")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormSheet
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        locked={submitting}
+        testId="student-reschedule"
+        title={t("studentLessonActionsExtra.rescheduleDialogTitle")}
+        description={t("studentLessonActionsExtra.rescheduleDialogDesc", { date: lessonDate })}
+        footer={
+          <>
+            <SheetButton kind="secondary" onClick={() => setRescheduleOpen(false)}>{t("common.close")}</SheetButton>
+            <SheetButton onClick={submitReschedule} busy={submitting}>{t("studentLessonActionsExtra.sendRequestBtn")}</SheetButton>
+          </>
+        }
+      >
+        <div>
+          <FieldLabel>{t("studentLessonActionsExtra.newTimeLabel")}</FieldLabel>
+          <DateTimeField value={proposedAt} onChange={setProposedAt} min={toLocalInputValue(new Date().toISOString())} zoneNote="others" zonePeople={[{ name: t("roles.tutor"), tz: zones[tutorId] }]} />
+        </div>
+        <div>
+          <FieldLabel htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</FieldLabel>
+          <Textarea
+            id="r-reason"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t("studentLessonActionsExtra.commentPlaceholder")}
+            maxLength={500}
+            className={AREA_CLASS}
+          />
+        </div>
+      </FormSheet>
     </>
   );
 }

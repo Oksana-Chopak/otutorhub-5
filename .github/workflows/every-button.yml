@@ -1,0 +1,132 @@
+# Робот «кожна кнопка» — щоночі на стенді зі СПРАВЖНЬОЮ базою (14.11).
+#
+# Проходи (walks.yml) ідуть написаним шляхом після кожного пушу. Цей робот шляху не знає: на
+# кожному екрані кожної ролі тисне кожен елемент і все у вікні, що відкрилось, і після кожного
+# дотику звіряє запити до бази, помилки JS, прокрутку, накриті елементи, клавіатуру і «спливне
+# відкрилось і саме закрилось». Повний прогін — близько півтори години, тому не на кожен пуш, а
+# раз на добу; ролі розкладено на три паралельні завдання (більше двох ролей одночасно в одному
+# процесі не можна — вкладки падають від памʼяті).
+# Збій → рядок власниці в Telegram і журнал у артефактах; main при цьому не червоніє.
+name: Кожна кнопка (щоночі)
+
+on:
+  schedule:
+    - cron: "40 0 * * *"   # 02:40 Києва взимку — коли ніхто не пушить
+  workflow_dispatch:
+    inputs:
+      roles:
+        description: "Ролі через кому (manager, hubtutor, student, independent, superadmin, guest). Порожньо — усі."
+        required: false
+        default: ""
+
+concurrency:
+  group: every-button
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  press:
+    name: 🖱 ${{ matrix.name }}
+    # ubuntu-24.04, не latest: Playwright із lockfile не має Chromium для 26.04 (див. ci.yml)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: менеджер школи
+            roles: manager
+          - name: репетитор школи й учень
+            roles: hubtutor,student
+          - name: самостійний репетитор, суперадмін, гість
+            roles: independent,superadmin,guest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: "1"
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      EB_OUT: every-button-out
+    steps:
+      - name: Чи ця роль у запиті
+        id: pick
+        env:
+          WANT: ${{ github.event.inputs.roles }}
+          HAVE: ${{ matrix.roles }}
+        run: |
+          if [ -z "$WANT" ]; then echo "roles=$HAVE" >> "$GITHUB_OUTPUT"; exit 0; fi
+          keep=""
+          for r in ${HAVE//,/ }; do case ",$WANT," in *",$r,"*) keep="${keep:+$keep,}$r";; esac; done
+          echo "roles=$keep" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.pick.outputs.roles != ''
+      - uses: actions/setup-node@v4
+        if: steps.pick.outputs.roles != ''
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: steps.pick.outputs.roles != ''
+        run: |
+          npm ci --no-audit --no-fund
+          command -v psql >/dev/null || sudo apt-get install -y -q postgresql-client
+          npx playwright install --with-deps chromium || npx playwright install chromium
+      - name: Стенд і люди (проходи створюють школу, репетиторів, учнів, уроки)
+        if: steps.pick.outputs.roles != ''
+        run: |
+          timeout 600 bash scripts/local-stack/up.sh > up.log 2>&1 || { tail -40 up.log; tail -20 ~/.cache/otutorhub-stack/*.log; exit 1; }
+          tail -2 up.log
+          node scripts/local-stack/school-walk.mjs > seed.log 2>&1 || { tail -30 seed.log; exit 1; }
+          node scripts/local-stack/roles-walk.mjs >> seed.log 2>&1 || { tail -30 seed.log; exit 1; }
+          grep -c "^✅" seed.log
+      - name: Кожна кнопка
+        if: steps.pick.outputs.roles != ''
+        env:
+          EB_ONLY: ${{ steps.pick.outputs.roles }}
+        run: |
+          set -o pipefail
+          node scripts/local-stack/every-button.mjs 2>&1 | tee every-button.log
+      - name: Збій → рядок у Telegram
+        if: failure() && steps.pick.outputs.roles != ''
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          WHO: ${{ matrix.name }}
+        run: |
+          touch every-button.log
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET не заданий — повідомлення лише в журналі"; exit 0; fi
+          node -e '
+            const fs = require("fs");
+            const lines = fs.readFileSync("every-button.log", "utf8").split("\n");
+            const bad = lines.filter((l) => /^\s+✗/.test(l)).slice(0, 4).map((l) => l.trim().slice(0, 220)).join("\n");
+            const text = "🟠 Нічний робот «кожна кнопка» (" + process.env.WHO + ", стенд, не прод) знайшов збій:\n" + (bad || "прогін не дійшов до кінця") + "\n" + process.env.RUN_URL;
+            fetch("https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/ci-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-cron-secret": process.env.CRON_SECRET },
+              body: JSON.stringify({ text }),
+            }).then(async (r) => { console.log("ci-report →", r.status, await r.text()); })
+              .catch((e) => console.log("ci-report недосяжний:", e.message));
+          '
+      - name: Зберегти журнал і звіти
+        if: always() && steps.pick.outputs.roles != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: every-button-${{ strategy.job-index }}
+          path: |
+            every-button.log
+            every-button-out/*.json
+            seed.log
+          retention-days: 7

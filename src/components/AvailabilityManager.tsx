@@ -8,23 +8,8 @@ import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { ChoiceChips, FieldLabel, NativeSelect } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { toast } from "sonner";
 import { confirmDialog } from "@/hooks/useConfirm";
 import {
@@ -442,14 +427,12 @@ export function AvailabilityManager() {
 
       {/* Manager: tutor selector */}
       {isManager && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <Label className="text-sm shrink-0">{t("availabilityManagerExtra.tutorLabel")}</Label>
-          <Select value={selectedTutorId} onValueChange={setSelectedTutorId}>
-            <SelectTrigger aria-label={t("availabilityManagerExtra.selectTutor")} className="max-w-xs"><SelectValue placeholder={t("availabilityManagerExtra.selectTutor")} /></SelectTrigger>
-            <SelectContent>
-              {tutors.map((tt) => (<SelectItem key={tt.id} value={tt.id}>{fullName(tt)}</SelectItem>))}
-            </SelectContent>
-          </Select>
+        <div style={{ marginBottom: 16, maxWidth: 360 }}>
+          <FieldLabel htmlFor="avail-tutor">{t("availabilityManagerExtra.tutorLabel")}</FieldLabel>
+          <NativeSelect id="avail-tutor" value={selectedTutorId} onChange={(e) => setSelectedTutorId(e.target.value)}>
+            <option value="">{t("availabilityManagerExtra.selectTutor")}</option>
+            {tutors.map((tt) => (<option key={tt.id} value={tt.id}>{fullName(tt)}</option>))}
+          </NativeSelect>
         </div>
       )}
 
@@ -650,133 +633,115 @@ export function AvailabilityManager() {
         </div>
       )}
 
-      {/* Weekly add dialog */}
-      <Dialog open={weeklyDialog.open} onOpenChange={(o) => setWeeklyDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-sm rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
-          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
-          <DialogHeader>
-            <DialogTitle>{t("availabilityManagerExtra.addWeeklyTitle")}</DialogTitle>
-            <DialogDescription>{t("availabilityManagerExtra.addWeeklyDesc")}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div>
-              <Label>{t("availabilityManagerExtra.dayOfWeekLabel")}</Label>
-              <Select
-                value={String(weeklyDialog.weekday)}
-                onValueChange={(v) => setWeeklyDialog((s) => ({ ...s, weekday: Number(v) }))}
-              >
-                <SelectTrigger aria-label={t("availabilityManagerExtra.dayOfWeekLabel")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {WEEKDAYS_FULL_UK.map((d, i) => (
-                    <SelectItem key={i} value={String(i)}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>{t("availabilityManagerExtra.fromLabel")}</Label>
-                <TimeField value={weeklyDialog.from} onChange={(v) => setWeeklyDialog((s) => ({ ...s, from: v }))} />
-              </div>
-              <div>
-                <Label>{t("availabilityManagerExtra.toLabel")}</Label>
-                <TimeField value={weeklyDialog.to} onChange={(v) => setWeeklyDialog((s) => ({ ...s, to: v }))} />
-              </div>
-            </div>
-            {/* 14.11: чиї це години. Свої — за поясом пристрою; менеджер, що вписує години
-                репетитора, вписує їх за місцевим часом репетитора. */}
-            {tutorId === user?.id
-              ? <TimeZoneNote />
-              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">
-                  {tutorTz ? t("timeZone.tutorHoursZone", { zone: zoneLabel(tutorTz) }) : t("timeZone.tutorHours")}
-                </p>}
+      {/* Weekly add dialog — 14.11, хвиля форм: оболонка й поля з канону; день тижня — кнопками */}
+      <FormSheet
+        open={weeklyDialog.open}
+        onOpenChange={(o) => setWeeklyDialog((s) => ({ ...s, open: o }))}
+        testId="avail-weekly"
+        title={t("availabilityManagerExtra.addWeeklyTitle")}
+        description={t("availabilityManagerExtra.addWeeklyDesc")}
+        footer={
+          <>
+            <SheetButton kind="secondary" onClick={() => setWeeklyDialog((s) => ({ ...s, open: false }))}>{t("availabilityManagerExtra.cancelBtn")}</SheetButton>
+            <SheetButton onClick={addWeekly}>{t("availabilityManagerExtra.addBtn")}</SheetButton>
+          </>
+        }
+      >
+        <div>
+          <FieldLabel id="avail-weekday-label">{t("availabilityManagerExtra.dayOfWeekLabel")}</FieldLabel>
+          <ChoiceChips
+            labelledBy="avail-weekday-label"
+            compact
+            stretch
+            value={String(weeklyDialog.weekday)}
+            onChange={(v) => setWeeklyDialog((s) => ({ ...s, weekday: Number(v) }))}
+            options={[1, 2, 3, 4, 5, 6, 0].map((d) => ({ value: String(d), label: WEEKDAYS_UK[d], ariaLabel: WEEKDAYS_FULL_UK[d] }))}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <FieldLabel>{t("availabilityManagerExtra.fromLabel")}</FieldLabel>
+            <TimeField value={weeklyDialog.from} onChange={(v) => setWeeklyDialog((s) => ({ ...s, from: v }))} />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setWeeklyDialog((s) => ({ ...s, open: false }))}>
-              {t("availabilityManagerExtra.cancelBtn")}
-            </Button>
-            <Button onClick={addWeekly}>{t("availabilityManagerExtra.addBtn")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div>
+            <FieldLabel>{t("availabilityManagerExtra.toLabel")}</FieldLabel>
+            <TimeField value={weeklyDialog.to} onChange={(v) => setWeeklyDialog((s) => ({ ...s, to: v }))} />
+          </div>
+        </div>
+        {/* 14.11: чиї це години. Свої — за поясом пристрою; менеджер, що вписує години
+            репетитора, вписує їх за місцевим часом репетитора. */}
+        {tutorId === user?.id
+          ? <TimeZoneNote />
+          : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">
+              {tutorTz ? t("timeZone.tutorHoursZone", { zone: zoneLabel(tutorTz) }) : t("timeZone.tutorHours")}
+            </p>}
+      </FormSheet>
 
       {/* Override add dialog */}
-      <Dialog open={overrideDialog.open} onOpenChange={(o) => setOverrideDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-sm rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
-          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
-          <DialogHeader>
-            <DialogTitle>
-              {overrideDialog.is_available ? t("availabilityManagerExtra.extraHoursTitle") : t("availabilityManagerExtra.dayOffTitle")}
-            </DialogTitle>
-            <DialogDescription>
-              {overrideDialog.is_available
-                ? t("availabilityManagerExtra.extraHoursDesc")
-                : t("availabilityManagerExtra.dayOffDesc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
+      <FormSheet
+        open={overrideDialog.open}
+        onOpenChange={(o) => setOverrideDialog((s) => ({ ...s, open: o }))}
+        testId="avail-override"
+        title={overrideDialog.is_available ? t("availabilityManagerExtra.extraHoursTitle") : t("availabilityManagerExtra.dayOffTitle")}
+        description={overrideDialog.is_available
+          ? t("availabilityManagerExtra.extraHoursDesc")
+          : t("availabilityManagerExtra.dayOffDesc")}
+        footer={
+          <>
+            <SheetButton kind="secondary" onClick={() => setOverrideDialog((s) => ({ ...s, open: false }))}>{t("availabilityManagerExtra.cancelBtn")}</SheetButton>
+            <SheetButton onClick={addOverride}>{t("availabilityManagerExtra.saveBtn")}</SheetButton>
+          </>
+        }
+      >
+        <div>
+          <FieldLabel>{t("availabilityManagerExtra.dateLabel")}</FieldLabel>
+          <DateField value={overrideDialog.date} min={new Date().toISOString().slice(0, 10)} onChange={(v) => setOverrideDialog((s) => ({ ...s, date: v }))} />
+        </div>
+        <div>
+          <FieldLabel id="avail-type-label">{t("availabilityManagerExtra.typeLabel")}</FieldLabel>
+          <ChoiceChips
+            labelledBy="avail-type-label"
+            stretch
+            value={overrideDialog.is_available ? "yes" : "no"}
+            onChange={(v) => setOverrideDialog((s) => ({ ...s, is_available: v === "yes" }))}
+            options={[
+              { value: "no", label: t("availabilityManagerExtra.dayOffOption") },
+              { value: "yes", label: t("availabilityManagerExtra.extraHoursOption") },
+            ]}
+          />
+        </div>
+        {!overrideDialog.is_available && (
+          <label className="flex min-h-[44px] cursor-pointer select-none items-center gap-3 text-[16px] font-semibold text-foreground">
+            <input
+              type="checkbox"
+              checked={overrideDialog.fullDay}
+              onChange={(e) => setOverrideDialog((s) => ({ ...s, fullDay: e.target.checked }))}
+              className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
+              style={{ accentColor: "var(--teal)" }}
+            />
+            {t("availabilityManagerExtra.fullDayLabel")}
+          </label>
+        )}
+        {(overrideDialog.is_available || !overrideDialog.fullDay) && (
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>{t("availabilityManagerExtra.dateLabel")}</Label>
-              <DateField value={overrideDialog.date} min={new Date().toISOString().slice(0, 10)} onChange={(v) => setOverrideDialog((s) => ({ ...s, date: v }))} />
+              <FieldLabel>{t("availabilityManagerExtra.fromLabel")}</FieldLabel>
+              <TimeField value={overrideDialog.from} onChange={(v) => setOverrideDialog((s) => ({ ...s, from: v }))} />
             </div>
             <div>
-              <Label>{t("availabilityManagerExtra.typeLabel")}</Label>
-              <Select
-                value={overrideDialog.is_available ? "yes" : "no"}
-                onValueChange={(v) => setOverrideDialog((s) => ({ ...s, is_available: v === "yes" }))}
-              >
-                <SelectTrigger aria-label={t("availabilityManagerExtra.typeLabel")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no">{t("availabilityManagerExtra.dayOffOption")}</SelectItem>
-                  <SelectItem value="yes">{t("availabilityManagerExtra.extraHoursOption")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <FieldLabel>{t("availabilityManagerExtra.toLabel")}</FieldLabel>
+              <TimeField value={overrideDialog.to} onChange={(v) => setOverrideDialog((s) => ({ ...s, to: v }))} />
             </div>
-            {!overrideDialog.is_available && (
-              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={overrideDialog.fullDay}
-                  onChange={(e) => setOverrideDialog((s) => ({ ...s, fullDay: e.target.checked }))}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                {t("availabilityManagerExtra.fullDayLabel")}
-              </label>
-            )}
-            {(overrideDialog.is_available || !overrideDialog.fullDay) && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>{t("availabilityManagerExtra.fromLabel")}</Label>
-                  <TimeField value={overrideDialog.from} onChange={(v) => setOverrideDialog((s) => ({ ...s, from: v }))} />
-                </div>
-                <div>
-                  <Label>{t("availabilityManagerExtra.toLabel")}</Label>
-                  <TimeField value={overrideDialog.to} onChange={(v) => setOverrideDialog((s) => ({ ...s, to: v }))} />
-                </div>
-              </div>
-            )}
-            {/* 14.11: чиї це години. Свої — за поясом пристрою; менеджер, що вписує години
-                репетитора, вписує їх за місцевим часом репетитора. */}
-            {tutorId === user?.id
-              ? <TimeZoneNote />
-              : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">
-                  {tutorTz ? t("timeZone.tutorHoursZone", { zone: zoneLabel(tutorTz) }) : t("timeZone.tutorHours")}
-                </p>}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOverrideDialog((s) => ({ ...s, open: false }))}>
-              {t("availabilityManagerExtra.cancelBtn")}
-            </Button>
-            <Button onClick={addOverride}>{t("availabilityManagerExtra.saveBtn")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+        {/* 14.11: чиї це години. Свої — за поясом пристрою; менеджер, що вписує години
+            репетитора, вписує їх за місцевим часом репетитора. */}
+        {tutorId === user?.id
+          ? <TimeZoneNote />
+          : <p data-tz-note="" className="text-[13px] leading-snug text-muted-foreground">
+              {tutorTz ? t("timeZone.tutorHoursZone", { zone: zoneLabel(tutorTz) }) : t("timeZone.tutorHours")}
+            </p>}
+      </FormSheet>
     </div>
   );
 }

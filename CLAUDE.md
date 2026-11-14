@@ -114,13 +114,26 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
   variants of the same subject cannot exist, so string-matched pricing never
   misses on formatting. Distinct wordings remain distinct subjects by design.
-- FORMS, стан 14.11: «Люди» → «Нова людина» і «Додати репетитора до учня» переведені в новий
-  канон (скарга власниці). Старі контроли (`<Label>` + Radix `<Select>` у діалозі) лишились у:
-  SchedulePage («Копіювати» і фільтри), AvailabilityManager, TutorChangeRequestsCard,
-  RatePropagationDialog, StudentLessonActions, TutorRateDialog, SchoolRequestCard,
-  SubscriptionRequestDialog, ChatsPage (новий чат), ContactEditDialog, ScheduleFiltersSheet,
-  FinancesPage (фільтри). Наступна хвиля — вони; грошові (TutorRateDialog, RatePropagation) —
-  першим комітом свіжої сесії.
+- FORMS, стан 14.11 (друга хвиля, того ж дня): **канон полів і оболонка форми — спільні
+  компоненти**, а не розміри, які кожна форма пише заново (саме так старі й нові розʼїхались):
+  `src/components/form/canon.tsx` (`FieldLabel` 14/800 · `FIELD_CLASS` / `AREA_CLASS` — поле 48px,
+  текст 16px, рамка 1.5px, кут 13 · `NativeSelect` — рідний вибір телефона · `ChoiceChips` — вибір
+  кнопками 44px) і `src/components/form/FormSheet.tsx` (`FormSheet` — аркуш знизу / вікно по центру
+  з ручкою, заголовком, хрестиком 44px і підвалом; `SheetButton` primary / secondary / danger, 50px).
+  Переведено: фільтри розкладу, копія уроку, доступні години (обидва діалоги й вибір репетитора),
+  запит учня на скасування / інший час, розгляд запиту репетитором, «Керуєте школою?», заявка на
+  Pro, новий чат, контакти у профілі, фільтри «Фінансів» і «Людей», експорт; грошові — ставка
+  репетитора, «Застосувати нову ціну», графік виплат (лише вигляд, запис без змін).
+  **Нова форма = `FormSheet` + поля з канону; Radix `Select` у робочих екранах заборонений**
+  (лишився тільки на службових сторінках суперадміна) — стереже `form-canon.test.ts`.
+  `DateTimeField` — тих самих розмірів (48px, кут 13). Не переведено: анкета пошуку репетитора
+  `FindTutorDialog` (вшиті світлі кольори — у темній темі не перевірена), `MyStudents` (форма
+  учня самостійного), `WalletDialog`, `InviteLinkDialog`, форми адмінки.
+- ТЕМНА ТЕМА, пастка 14.11: `background: on ? tealL : "#fff"` поруч із текстом із токена — у
+  темній темі світлий напис на білому (необрані кнопки графіка виплат, днів, груп, домашка
+  учня, поле у фокусі). Фон під текст із токена — лише `var(--ds-surface)` / `--ds-surface2`.
+  Білий напис на бірюзовій заливці — 2.3:1; на бірюзі напис темний (`#0f0f1a`). Обидва —
+  ратчети у `form-canon.test.ts`.
 - FORMS GENERATION MAP (CORRECTED 20.08 — the earlier 58px-marker heuristic
   misclassified two NEW forms as old): NEW = QuickLessonDialog(3 variants),
   LessonDetailsDialog, OnboardingFlowB, RecordPaymentSheet, QuickAddStudent-
@@ -432,7 +445,8 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   вписує їх за часом репетитора (зазвичай переписує з його слів) — і форма каже яким:
   «Години — за місцевим часом репетитора: Київ (GMT+2)».
 - Перевірка: `node scripts/local-stack/timezone-walk.mjs` (у CI після кожного пушу) — три
-  браузери у трьох поясах на справжній базі; сценарій `79-person-timezone.sql`;
+  браузери у трьох поясах на справжній базі, і шлях «учениця просить інший час → репетиторка
+  погоджує → урок переїхав» до кінця (запит «на той самий час» і в минуле не надсилається); сценарій `79-person-timezone.sql`;
   `person-timezone.test.tsx`, `person-timezone-edge.test.ts`.
 
 ### CARRIED-OVER DEBT — імпорт «усе, що є» (07.09) — do not "fix"

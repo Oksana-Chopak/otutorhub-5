@@ -1219,6 +1219,9 @@ export const uk = {
 
   // Schedule
   schedule: {
+    copyLessonStatus: "Статус уроку",
+    copyStudentPayStatus: "Оплата учня",
+    copyPayoutStatus: "Статус виплати",
     filteredEmptyDesc: "Уроки є, але їх сховали обрані фільтри.",
     filteredEmptyTitle: "Під фільтри нічого не підійшло",
     createLessonFailed: "Не вдалося створити урок",
@@ -2415,6 +2418,8 @@ export const uk = {
 
   filters: {
     label: "Фільтри",
+    period: "Період",
+    source: "Чиї уроки",
   },
 
   streak: {
@@ -3705,6 +3710,7 @@ export const uk = {
     record: "Рекорд: {{count}}",
   },
   studentLessonActions: {
+    sameTime: "Це той самий час, що й зараз. Обери інший день або годину.",
     cancelRequest: "Запит на скасування",
     rescheduleRequest: "Запит на перенесення",
     requestFailed: "Не вдалося надіслати запит",

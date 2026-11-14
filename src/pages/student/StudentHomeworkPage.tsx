@@ -244,7 +244,7 @@ export default function StudentHomeworkPage() {
   const renderCard = (r: HomeworkRow) => {
     const done = doneSet.has(r.lesson_id);
     return (
-    <li key={r.lesson_id} style={{ borderRadius: 18, border: done ? "1px solid rgba(34,197,94,.4)" : "1px solid var(--ds-border,#eceef3)", background: done ? "#f6fdf8" : "#fff", padding: 14, transition: "background .2s, border-color .2s" }}>
+    <li key={r.lesson_id} style={{ borderRadius: 18, border: done ? "1px solid rgba(34,197,94,.4)" : "1px solid var(--ds-border,#eceef3)", background: done ? "rgba(34,197,94,.08)" : "var(--ds-surface,#fff)", padding: 14, transition: "background .2s, border-color .2s" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
         <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: done ? "rgba(34,197,94,.14)" : "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{done ? "✅" : "📚"}</span>
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -307,8 +307,8 @@ export default function StudentHomeworkPage() {
           display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
           fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15,
           border: done ? "1px solid var(--ds-border,#eceef3)" : "none",
-          background: done ? "#fff" : "linear-gradient(135deg,#2BBFAA,#25a896)",
-          color: done ? "#666b82" : "#0f0f1a",
+          background: done ? "var(--ds-surface,#fff)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
+          color: done ? "var(--sub,#62677E)" : "#0f0f1a",
           boxShadow: done ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
         }}
       >

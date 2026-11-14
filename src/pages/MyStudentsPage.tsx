@@ -67,13 +67,6 @@ import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { safeHref, sanitizeHttpUrl } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CURRENCY_OPTIONS, formatPrice, currencySymbol } from "@/lib/currency";
 import { PersonCard, PersonAva } from "@/components/PersonCard";
@@ -1035,7 +1028,7 @@ export default function MyStudentsPage() {
             const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
               e.target.style.borderColor = F.teal;
               e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)";
-              e.target.style.background = "#fff";
+              e.target.style.background = "var(--ds-surface,#fff)";
             };
             const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
               e.target.style.borderColor = F.border;
@@ -1235,7 +1228,7 @@ export default function MyStudentsPage() {
                     </div>
                     <textarea rows={3} aria-label={t("myStudents.notesPlaceholder")} value={form.tutor_notes} placeholder={t("myStudents.notesPlaceholder")}
                       onChange={(e) => setForm({ ...form, tutor_notes: e.target.value })}
-                      onFocus={(e) => { e.target.style.borderColor = "#F5B544"; e.target.style.boxShadow = "0 0 0 3px rgba(245,181,68,.16)"; e.target.style.background = "#fff"; }}
+                      onFocus={(e) => { e.target.style.borderColor = "#F5B544"; e.target.style.boxShadow = "0 0 0 3px rgba(245,181,68,.16)"; e.target.style.background = "var(--ds-surface,#fff)"; }}
                       onBlur={(e) => { e.target.style.borderColor = "rgba(245,181,68,.35)"; e.target.style.boxShadow = "none"; e.target.style.background = "#FFFCF4"; }}
                       style={{ width: "100%", borderRadius: 13, padding: "12px 14px", fontSize: 16, fontFamily: F.body, color: F.txt, boxSizing: "border-box", outline: "none", resize: "none", lineHeight: 1.5, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)", transition: "all .15s" }} />
                   </div>

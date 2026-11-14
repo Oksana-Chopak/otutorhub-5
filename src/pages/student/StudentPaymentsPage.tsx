@@ -409,7 +409,7 @@ export default function StudentPaymentsPage() {
                       type="button"
                       onClick={() => openPayLink(paymentLinkOf(tp.payment_details)!)}
                       className="mt-2.5 flex h-11 w-full items-center justify-center gap-2 rounded-[12px] transition-opacity active:opacity-90"
-                      style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
+                      style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                     >
                       💳 {t("studentPagesExtra.payNow")}
                     </button>
@@ -461,7 +461,7 @@ export default function StudentPaymentsPage() {
                           type="button"
                           onClick={() => openPayLink(paymentLinkOf(payInfoFor(r.tutor_id)?.payment_details)!)}
                           className="flex h-11 flex-shrink-0 items-center justify-center gap-1 rounded-[10px] px-3 transition-opacity active:opacity-90"
-                          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14 }}
+                          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14 }}
                         >
                           💳 {t("studentPagesExtra.payNow")}
                         </button>

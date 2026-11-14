@@ -2,13 +2,7 @@ import { Filter } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ChoiceChips, FieldLabel, NativeSelect } from "@/components/form/canon";
 import {
   Sheet,
   SheetContent,
@@ -51,85 +45,80 @@ function FilterControls({
   students,
 }: Props) {
   const { t } = useTranslation();
+  // 14.11, хвиля форм: фільтри — у каноні. Короткі набори (статус, період, чиї уроки) —
+  // кнопками, один дотик без списку; люди — рідним вибором телефона. Спливних списків
+  // Radix тут більше немає: в аркуші вони були 40px заввишки з текстом 14px.
   return (
-    <div className="flex flex-col gap-3">
-      <Select
-        value={filters.status}
-        onValueChange={(v) => filters.setStatus(v as any)}
-      >
-        <SelectTrigger aria-label={t("common.status")} className="h-10 text-sm">
-          <SelectValue placeholder={t("common.status")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("schedule.allStatuses")}</SelectItem>
-          <SelectItem value="scheduled">{t("schedule.statusScheduled")}</SelectItem>
-          <SelectItem value="completed">{t("schedule.statusCompleted")}</SelectItem>
-          <SelectItem value="cancelled">{t("schedule.statusCancelled")}</SelectItem>
-        </SelectContent>
-      </Select>
+    <div className="flex flex-col gap-4">
+      <div>
+        <FieldLabel id="flt-status-label">{t("common.status")}</FieldLabel>
+        <ChoiceChips
+          labelledBy="flt-status-label"
+          value={filters.status}
+          onChange={(v) => filters.setStatus(v as any)}
+          options={[
+            { value: "all", label: t("schedule.allStatuses") },
+            { value: "scheduled", label: t("schedule.statusScheduled") },
+            { value: "completed", label: t("schedule.statusCompleted") },
+            { value: "cancelled", label: t("schedule.statusCancelled") },
+          ]}
+        />
+      </div>
 
       {showTutorFilter && (
-        <Select value={filters.tutor} onValueChange={filters.setTutor}>
-          <SelectTrigger aria-label={t("roles.tutor")} className="h-10 text-sm">
-            <SelectValue placeholder={t("roles.tutor")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("schedule.allTutors")}</SelectItem>
+        <div>
+          <FieldLabel htmlFor="flt-tutor">{t("roles.tutor")}</FieldLabel>
+          <NativeSelect id="flt-tutor" value={filters.tutor} onChange={(e) => filters.setTutor(e.target.value)}>
+            <option value="all">{t("schedule.allTutors")}</option>
             {tutors.map((tu) => (
-              <SelectItem key={tu.id} value={tu.id}>
-                {tu.name}
-              </SelectItem>
+              <option key={tu.id} value={tu.id}>{tu.name}</option>
             ))}
-          </SelectContent>
-        </Select>
+          </NativeSelect>
+        </div>
       )}
 
       {showStudentFilter && (
-        <Select value={filters.student} onValueChange={filters.setStudent}>
-          <SelectTrigger aria-label={t("schedule.student")} className="h-10 text-sm">
-            <SelectValue placeholder={t("schedule.student")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("schedule.allStudents")}</SelectItem>
+        <div>
+          <FieldLabel htmlFor="flt-student">{t("schedule.student")}</FieldLabel>
+          <NativeSelect id="flt-student" value={filters.student} onChange={(e) => filters.setStudent(e.target.value)}>
+            <option value="all">{t("schedule.allStudents")}</option>
             {students.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.name}
-              </SelectItem>
+              <option key={s.id} value={s.id}>{s.name}</option>
             ))}
-          </SelectContent>
-        </Select>
+          </NativeSelect>
+        </div>
       )}
 
-      <Select
-        value={filters.period}
-        onValueChange={(v) => filters.setPeriod(v as any)}
-      >
-        <SelectTrigger aria-label={t("common.month")} className="h-10 text-sm">
-          <SelectValue placeholder={t("common.month")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("schedule.allPeriods")}</SelectItem>
-          <SelectItem value="upcoming">{t("schedule.periodUpcoming")}</SelectItem>
-          <SelectItem value="past">{t("schedule.periodPast")}</SelectItem>
-          <SelectItem value="week">{t("schedule.periodThisWeek")}</SelectItem>
-          <SelectItem value="month">{t("schedule.periodThisMonth")}</SelectItem>
-        </SelectContent>
-      </Select>
+      <div>
+        <FieldLabel id="flt-period-label">{t("filters.period")}</FieldLabel>
+        <ChoiceChips
+          labelledBy="flt-period-label"
+          value={filters.period}
+          onChange={(v) => filters.setPeriod(v as any)}
+          options={[
+            { value: "all", label: t("schedule.allPeriods") },
+            { value: "upcoming", label: t("schedule.periodUpcoming") },
+            { value: "past", label: t("schedule.periodPast") },
+            { value: "week", label: t("schedule.periodThisWeek") },
+            { value: "month", label: t("schedule.periodThisMonth") },
+          ]}
+        />
+      </div>
 
       {showSourceFilter && (
-        <Select
-          value={filters.source}
-          onValueChange={(v) => filters.setSource(v as any)}
-        >
-          <SelectTrigger aria-label={t("schedule.sourceAll")} className="h-10 text-sm">
-            <SelectValue placeholder={t("schedule.sourceAll")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("schedule.sourceAll")}</SelectItem>
-            <SelectItem value="hub">{t("schedule.sourceHub")}</SelectItem>
-            <SelectItem value="independent">{t("schedule.sourceMine")}</SelectItem>
-          </SelectContent>
-        </Select>
+        <div>
+          <FieldLabel id="flt-source-label">{t("filters.source")}</FieldLabel>
+          <ChoiceChips
+            labelledBy="flt-source-label"
+            value={filters.source}
+            onChange={(v) => filters.setSource(v as any)}
+            options={[
+              { value: "all", label: t("schedule.sourceAll") },
+              { value: "hub", label: t("schedule.sourceHub") },
+              { value: "independent", label: t("schedule.sourceMine") },
+            ]}
+          />
+        </div>
       )}
     </div>
   );

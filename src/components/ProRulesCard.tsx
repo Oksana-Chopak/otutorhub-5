@@ -203,7 +203,7 @@ export function ProRulesCard() {
             <button key={p.k} onClick={() => applyPreset(p)} type="button"
               style={{ display: "flex", alignItems: "center", gap: 13, textAlign: "left", padding: 14, borderRadius: 18, cursor: "pointer",
                 border: `1.5px solid ${on ? C.teal : C.border}`, background: on ? C.tealL : C.surface, boxShadow: on ? "none" : C.shadowSm }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: on ? "#fff" : C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{p.emoji}</div>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: on ? "var(--ds-surface,#fff)" : C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{p.emoji}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17 }}>{p.title}</span>

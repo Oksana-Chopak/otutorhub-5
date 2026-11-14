@@ -342,7 +342,7 @@ export default function ReferralsPage() {
                           {contacts.length > 0 && (
                             <a href={contacts[0][3]}
                               {...(contacts[0][0] === "telegram" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                              style={{ height: 56, borderRadius: 15, textDecoration: "none", background: "linear-gradient(135deg,var(--teal,#2BBFAA),var(--teal-d,#25a896))", color: "#fff", fontFamily: F, fontWeight: 700, fontSize: 16, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                              style={{ height: 56, borderRadius: 15, textDecoration: "none", background: "linear-gradient(135deg,var(--teal,#2BBFAA),var(--teal-d,#25a896))", color: "#0f0f1a", fontFamily: F, fontWeight: 700, fontSize: 16, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                               {(() => { const I = contacts[0][1]; return <I size={21} strokeWidth={2.1} />; })()}
                               {t(contacts[0][0] === "email" ? "referralsPageExtra.writeEmailBtn"
                                 : contacts[0][0] === "phone" ? "referralsPageExtra.callBtn"

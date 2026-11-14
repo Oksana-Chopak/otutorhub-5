@@ -326,7 +326,7 @@ export function AppSidebar() {
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {!settings?.onboarding_completed &&
                 ((settings?.onboarding_step ?? 1) <= CORE_TOTAL) && (
-                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[14px] font-semibold text-white animate-pulse">
+                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[14px] font-semibold text-[#0f0f1a] animate-pulse">
                   {t("nav.newBadge")}
                 </span>
               )}

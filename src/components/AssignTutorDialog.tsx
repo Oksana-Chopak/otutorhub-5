@@ -45,7 +45,7 @@ function Avatar({ name, size = 48 }: { name: string; size?: number }) {
 function MoneyInput({ value, onChange, placeholder, accent }: { value: string; onChange: (v: string) => void; placeholder?: string; accent?: string }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div style={{ display: "flex", alignItems: "center", minWidth: 0, height: 58, borderRadius: 15, padding: "0 14px", background: focused ? "#fff" : "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${focused ? (accent || "#2BBFAA") : "var(--ds-border,#eceef3)"}`, boxShadow: focused ? `0 0 0 3px ${accent ? "rgba(245,181,68,.16)" : "rgba(43,191,170,.14)"}` : "none", transition: "all .15s" }}>
+    <div style={{ display: "flex", alignItems: "center", minWidth: 0, height: 58, borderRadius: 15, padding: "0 14px", background: focused ? "var(--ds-surface,#fff)" : "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${focused ? (accent || "#2BBFAA") : "var(--ds-border,#eceef3)"}`, boxShadow: focused ? `0 0 0 3px ${accent ? "rgba(245,181,68,.16)" : "rgba(43,191,170,.14)"}` : "none", transition: "all .15s" }}>
       <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#6f7489", marginRight: 6, flexShrink: 0 }}>{currencySymbol("UAH")}</span>
       <input aria-label={placeholder}
         value={value}

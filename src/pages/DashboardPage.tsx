@@ -2194,7 +2194,7 @@ export default function DashboardPage() {
                   <Link to="/achievements" aria-label={t("nav.achievements")}
                     className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56,
-                             background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
+                             background: streak.current_streak > 0 ? "linear-gradient(135deg,rgba(245,158,11,.10),var(--ds-surface,#fff))" : "var(--ds-surface,#fff)" }}>
                     <span className="text-xl flex-shrink-0">🔥</span>
                     <div className="min-w-0">
                       <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#62677E)" }}>

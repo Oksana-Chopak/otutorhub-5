@@ -503,7 +503,7 @@ export default function SubscriptionPage() {
                   const on = billing === o.v;
                   const price = o.v === "yearly" ? iapOffer.yearlyPrice : iapOffer.monthlyPrice;
                   return (
-                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", minHeight: 44, padding: "9px 10px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, lineHeight: 1.25, background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>
+                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", minHeight: 44, padding: "9px 10px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, lineHeight: 1.25, background: on ? "var(--ds-surface,#fff)" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>
                       <div>{o.l}</div>
                       {price && <div style={{ fontSize: 14, color: on ? S.tealD : S.muted, marginTop: 1 }}>{price}</div>}
                     </button>
@@ -543,7 +543,7 @@ export default function SubscriptionPage() {
                 {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "halfyear" as const, l: t("subscriptionPageExtra.billingHalfyear") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearlyDiscount") }]).map((o) => {
                   const on = billing === o.v;
                   return (
-                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", minHeight: 44, padding: "9px 12px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>{o.l}</button>
+                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", minHeight: 44, padding: "9px 12px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", background: on ? "var(--ds-surface,#fff)" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>{o.l}</button>
                   );
                 })}
               </div>

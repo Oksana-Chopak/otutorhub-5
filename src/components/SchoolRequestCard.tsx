@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ChevronRight, X } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FIELD_CLASS, FieldLabel } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -77,42 +77,31 @@ export function SchoolRequestCard() {
         {!sent && <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />}
       </button>
 
-      <Dialog open={open} onOpenChange={(o) => { if (!busy) setOpen(o); }}>
-        <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
-          <DialogTitle className="sr-only">{t("schoolRequest.dialogTitle")}</DialogTitle>
-          <div className="flex justify-center pt-2.5 pb-1 sm:hidden"><div className="h-1 w-9 rounded-full bg-border" /></div>
-          <div className="flex items-start justify-between gap-3 px-5 pb-2 pt-3">
-            <div className="min-w-0">
-              <div className="text-[20px] font-extrabold text-foreground">{t("schoolRequest.dialogTitle")}</div>
-              <div className="mt-1 text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("schoolRequest.dialogDesc")}</div>
-            </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label={t("common.close")}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-secondary text-muted-foreground">
-              <X size={18} />
-            </button>
-          </div>
-          <div className="space-y-4 px-5 pb-4 pt-2">
-            <div>
-              <Label htmlFor="school-request-name">{t("schoolRequest.nameLabel")}</Label>
-              <Input id="school-request-name" autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
-                placeholder={t("schoolRequest.namePlaceholder")} className="mt-1.5" />
-            </div>
-            <div>
-              <Label htmlFor="school-request-size">{t("schoolRequest.sizeLabel")}</Label>
-              <Input id="school-request-size" value={size} onChange={(e) => setSize(e.target.value)} inputMode="numeric" maxLength={6}
-                placeholder={t("schoolRequest.sizePlaceholder")} className="mt-1.5" />
-            </div>
-            <p className="text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("schoolRequest.note")}</p>
-          </div>
-          <div className="border-t border-border px-5 pb-5 pt-3">
-            <button type="button" onClick={() => void submit()} disabled={busy || name.trim().length < 2}
-              className="h-[50px] w-full rounded-[14px] text-[16px] font-semibold disabled:opacity-60"
-              style={{ background: "var(--teal)", color: "#0f0f1a" }}>
-              {t(busy ? "schoolRequest.sending" : "schoolRequest.send")}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <FormSheet
+        open={open}
+        onOpenChange={setOpen}
+        locked={busy}
+        testId="school-request"
+        title={t("schoolRequest.dialogTitle")}
+        description={t("schoolRequest.dialogDesc")}
+        footer={
+          <SheetButton onClick={() => void submit()} disabled={busy || name.trim().length < 2}>
+            {t(busy ? "schoolRequest.sending" : "schoolRequest.send")}
+          </SheetButton>
+        }
+      >
+        <div>
+          <FieldLabel htmlFor="school-request-name">{t("schoolRequest.nameLabel")}</FieldLabel>
+          <Input id="school-request-name" autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
+            placeholder={t("schoolRequest.namePlaceholder")} className={FIELD_CLASS} />
+        </div>
+        <div>
+          <FieldLabel htmlFor="school-request-size">{t("schoolRequest.sizeLabel")}</FieldLabel>
+          <Input id="school-request-size" value={size} onChange={(e) => setSize(e.target.value)} inputMode="numeric" maxLength={6}
+            placeholder={t("schoolRequest.sizePlaceholder")} className={FIELD_CLASS} />
+        </div>
+        <p className="text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("schoolRequest.note")}</p>
+      </FormSheet>
     </>
   );
 }

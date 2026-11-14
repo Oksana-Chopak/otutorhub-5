@@ -689,6 +689,9 @@ export const sv: LocaleTranslations = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    copyLessonStatus: "Lektionsstatus",
+    copyStudentPayStatus: "Elevens betalning",
+    copyPayoutStatus: "Utbetalningsstatus",
     filteredEmptyDesc: "Det finns lektioner, men de valda filtren döljer dem.",
     filteredEmptyTitle: "Inget matchar filtren",
     createLessonFailed: "Kunde inte skapa lektionen",
@@ -2345,6 +2348,8 @@ export const sv: LocaleTranslations = {
 
   filters: {
     label: "Filter",
+    period: "Period",
+    source: "Vems lektioner",
   },
 
   streak: {
@@ -3626,6 +3631,7 @@ export const sv: LocaleTranslations = {
     record: "Rekord: {{count}}",
   },
   studentLessonActions: {
+    sameTime: "Det är samma tid som nu. Välj en annan dag eller tid.",
     cancelRequest: "Avbokningsförfrågan",
     rescheduleRequest: "Ombokning",
     requestFailed: "Kunde inte skicka förfrågan",

@@ -22,13 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AREA_CLASS, FIELD_CLASS, FIELD_LABEL_CLASS, NativeSelect } from "@/components/form/canon";
 import {
   Dialog,
   DialogContent,
@@ -1090,7 +1084,7 @@ export default function SchedulePage() {
               <DialogContent className="w-full max-w-[480px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] flex flex-col">
                 <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-border sm:hidden" />
                 <DialogHeader className="px-6 pt-4 pb-2 shrink-0">
-                  <DialogTitle className="text-foreground">{t('schedule.newLesson')}</DialogTitle>
+                  <DialogTitle className="text-[20px] font-extrabold text-foreground">{t('schedule.newLesson')}</DialogTitle>
                   <div className="mt-2 flex items-center gap-2 text-[14px] text-muted-foreground">
                     <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[14px] font-semibold",
                       step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
@@ -1104,46 +1098,42 @@ export default function SchedulePage() {
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
                   {step === 1 && (<>
                   <div>
-                    <Label className={cn(formErrors.tutor_id && "text-destructive")}>
+                    <Label htmlFor="copy-tutor" className={cn(FIELD_LABEL_CLASS, formErrors.tutor_id && "text-destructive")}>
                       {t('roles.tutor')} <span className="text-destructive">*</span>
                     </Label>
-                    <Select
+                    <NativeSelect
+                      id="copy-tutor"
+                      aria-label={t('schedule.selectTutor')}
                       value={form.tutor_id}
-                      onValueChange={(v) => {
+                      onChange={(ev) => {
+                        const v = ev.target.value;
                         setForm((f) => ({ ...f, tutor_id: v }));
                         if (formErrors.tutor_id) setFormErrors((e) => ({ ...e, tutor_id: false }));
                       }}
                       disabled={isTutor && !isManager}
+                      aria-invalid={formErrors.tutor_id || undefined}
+                      aria-describedby={formErrors.tutor_id ? "err-tutor_id" : undefined}
+                      className={cn(formErrors.tutor_id && "border-destructive ring-1 ring-destructive")}
                     >
-                      <SelectTrigger aria-label={t('schedule.selectTutor')}
-                        aria-invalid={formErrors.tutor_id || undefined}
-                        aria-describedby={formErrors.tutor_id ? "err-tutor_id" : undefined}
-                        className={cn(
-                          formErrors.tutor_id &&
-                            "border-destructive ring-1 ring-destructive focus:ring-destructive"
-                        )}
-                      >
-                        <SelectValue placeholder={t('schedule.selectTutor')} />
-                      </SelectTrigger>
-                    <SelectContent>
-                      {tutors.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
+                      <option value="">{t('schedule.selectTutor')}</option>
+                      {tutors.map((tu) => (
+                        <option key={tu.id} value={tu.id}>{tu.name}</option>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </NativeSelect>
                   {formErrors.tutor_id && (
                     <p id="err-tutor_id" role="alert" className="mt-1 text-[14px] text-destructive">{t('schedule.selectTutor')}</p>
                   )}
                 </div>
                 <div>
-                  <Label className={cn(formErrors.student_id && "text-destructive")}>
+                  <Label htmlFor="copy-student" className={cn(FIELD_LABEL_CLASS, formErrors.student_id && "text-destructive")}>
                     {t('schedule.student')} <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    value={form.student_id}
-                    onValueChange={(v) => {
+                  <NativeSelect
+                    id="copy-student"
+                    aria-label={t('schedule.selectStudent')}
+                    value={form.student_id ?? ""}
+                    onChange={(ev) => {
+                      const v = ev.target.value;
                       setForm((f) => ({ ...f, student_id: v }));
                       // B18: та сама пара +7 днів, якщо час іще не чіпали.
                       void (async () => {
@@ -1157,25 +1147,15 @@ export default function SchedulePage() {
                       if (formErrors.student_id) setFormErrors((e) => ({ ...e, student_id: false }));
                     }}
                     disabled={isStudent && !isManager && !isTutor}
+                    aria-invalid={formErrors.student_id || undefined}
+                    aria-describedby={formErrors.student_id ? "err-student_id" : undefined}
+                    className={cn(formErrors.student_id && "border-destructive ring-1 ring-destructive")}
                   >
-                    <SelectTrigger aria-label={t('schedule.selectStudent')}
-                      aria-invalid={formErrors.student_id || undefined}
-                      aria-describedby={formErrors.student_id ? "err-student_id" : undefined}
-                      className={cn(
-                        formErrors.student_id &&
-                          "border-destructive ring-1 ring-destructive focus:ring-destructive"
-                      )}
-                    >
-                      <SelectValue placeholder={t('schedule.selectStudent')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {students.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <option value="">{t('schedule.selectStudent')}</option>
+                    {students.map((st) => (
+                      <option key={st.id} value={st.id}>{st.name}</option>
+                    ))}
+                  </NativeSelect>
                   {formErrors.student_id && (
                     <p id="err-student_id" role="alert" className="mt-1 text-[14px] text-destructive">{t('schedule.selectStudent')}</p>
                   )}
@@ -1204,7 +1184,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
+                  <Label htmlFor="subject" className={cn(FIELD_LABEL_CLASS, formErrors.subject && "text-destructive")}>
                     {t('schedule.subject')} <span className="text-destructive">*</span>
                   </Label>
                   <SubjectComboBox
@@ -1219,6 +1199,7 @@ export default function SchedulePage() {
                     aria-invalid={formErrors.subject || undefined}
                     aria-describedby={formErrors.subject ? "err-subject" : undefined}
                     className={cn(
+                      "h-12 rounded-[13px] border-[1.5px] border-[color:var(--ds-border)] bg-[var(--ds-surface2)] px-3.5 text-[16px] font-semibold",
                       formErrors.subject &&
                         "border-destructive ring-1 ring-destructive"
                     )}
@@ -1228,7 +1209,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
+                  <Label htmlFor="starts_at" className={cn(FIELD_LABEL_CLASS, formErrors.starts_at && "text-destructive")}>
                     {t('schedule.dateTime')} <span className="text-destructive">*</span>
                   </Label>
                   <DateTimeField
@@ -1252,8 +1233,9 @@ export default function SchedulePage() {
                 </>)}
                 {step === 2 && (<>
                 <div>
-                  <Label htmlFor="duration">{t('schedule.duration')}</Label>
+                  <Label htmlFor="duration" className={FIELD_LABEL_CLASS}>{t('schedule.duration')}</Label>
                   <Input
+                    className={FIELD_CLASS}
                     id="duration"
                     type="number"
                     min="15"
@@ -1264,11 +1246,12 @@ export default function SchedulePage() {
                 </div>
                 {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
                   <div>
-                    <Label htmlFor="indep_student_price" className="flex items-center gap-1.5">
+                    <Label htmlFor="indep_student_price" className={cn(FIELD_LABEL_CLASS, "flex items-center gap-1.5")}>
                       {t('schedule.pricePerLesson')}
                       {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                     </Label>
                     <Input
+                      className={FIELD_CLASS}
                       id="indep_student_price"
                       type="number"
                       min="0"
@@ -1286,29 +1269,26 @@ export default function SchedulePage() {
                 {isManager && (
                   <>
                     <div>
-                      <Label>{t('common.status')}</Label>
-                      <Select
+                      <Label htmlFor="copy-status" className={FIELD_LABEL_CLASS}>{t('schedule.copyLessonStatus')}</Label>
+                      <NativeSelect
+                        id="copy-status"
                         value={form.status}
-                        onValueChange={(v) => setForm((f) => ({ ...f, status: v as LessonStatus }))}
+                        onChange={(ev) => { const v = ev.target.value; setForm((f) => ({ ...f, status: v as LessonStatus })); }}
                       >
-                        <SelectTrigger aria-label={t('common.status')}>
-                          <SelectValue placeholder={t('common.status')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">{t('schedule.statusPending')}</SelectItem>
-                          <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
-                          <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
-                          <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <option value="pending">{t('schedule.statusPending')}</option>
+                        <option value="scheduled">{t('schedule.statusScheduled')}</option>
+                        <option value="completed">{t('schedule.statusCompleted')}</option>
+                        <option value="cancelled">{t('schedule.statusCancelled')}</option>
+                      </NativeSelect>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="student_price" className="flex items-center gap-1.5">
+                        <Label htmlFor="student_price" className={cn(FIELD_LABEL_CLASS, "flex items-center gap-1.5")}>
                           {t('schedule.pricePerLesson')}
                           {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         </Label>
                         <Input
+                          className={FIELD_CLASS}
                           id="student_price"
                           type="number"
                           min="0"
@@ -1318,11 +1298,12 @@ export default function SchedulePage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="tutor_payout" className="flex items-center gap-1.5">
+                        <Label htmlFor="tutor_payout" className={cn(FIELD_LABEL_CLASS, "flex items-center gap-1.5")}>
                           {t('schedule.tutorPayout')}
                           {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         </Label>
                         <Input
+                          className={FIELD_CLASS}
                           id="tutor_payout"
                           type="number"
                           min="0"
@@ -1346,34 +1327,26 @@ export default function SchedulePage() {
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label>{t('common.status')}</Label>
-                        <Select
+                        <Label htmlFor="copy-student-pay" className={FIELD_LABEL_CLASS}>{t('schedule.copyStudentPayStatus')}</Label>
+                        <NativeSelect
+                          id="copy-student-pay"
                           value={form.student_payment_status}
-                          onValueChange={(v) => setForm((f) => ({ ...f, student_payment_status: v as PaymentStatus }))}
+                          onChange={(ev) => { const v = ev.target.value; setForm((f) => ({ ...f, student_payment_status: v as PaymentStatus })); }}
                         >
-                          <SelectTrigger aria-label={t('common.status')}>
-                            <SelectValue placeholder={t('common.status')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unpaid">{t('schedule.unpaid')}</SelectItem>
-                            <SelectItem value="paid">{t('schedule.paid')}</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <option value="unpaid">{t('schedule.unpaid')}</option>
+                          <option value="paid">{t('schedule.paid')}</option>
+                        </NativeSelect>
                       </div>
                       <div>
-                        <Label>{t('schedule.tutorPayout')}</Label>
-                        <Select
+                        <Label htmlFor="copy-tutor-pay" className={FIELD_LABEL_CLASS}>{t('schedule.copyPayoutStatus')}</Label>
+                        <NativeSelect
+                          id="copy-tutor-pay"
                           value={form.tutor_payout_status}
-                          onValueChange={(v) => setForm((f) => ({ ...f, tutor_payout_status: v as PaymentStatus }))}
+                          onChange={(ev) => { const v = ev.target.value; setForm((f) => ({ ...f, tutor_payout_status: v as PaymentStatus })); }}
                         >
-                          <SelectTrigger aria-label={t('common.status')}>
-                            <SelectValue placeholder={t('common.status')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unpaid">{t('schedule.unpaid')}</SelectItem>
-                            <SelectItem value="paid">{t('schedule.paid')}</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <option value="unpaid">{t('schedule.unpaid')}</option>
+                          <option value="paid">{t('schedule.paid')}</option>
+                        </NativeSelect>
                       </div>
                     </div>
                   </>
@@ -1390,23 +1363,20 @@ export default function SchedulePage() {
                 )}
                 {(isManager || isTutor) && (
                   <div>
-                    <Label htmlFor="repeat">{t("scheduleExtra.repeatWeekly")}</Label>
-                    <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
-                      <SelectTrigger id="repeat"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">{t("scheduleExtra.noRepeat")}</SelectItem>
-                        <SelectItem value="2">{t("scheduleExtra.weeks2")}</SelectItem>
-                        <SelectItem value="4">{t("scheduleExtra.weeks4")}</SelectItem>
-                        <SelectItem value="8">{t("scheduleExtra.weeks8")}</SelectItem>
-                        <SelectItem value="12">{t("scheduleExtra.weeks12")}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="repeat" className={FIELD_LABEL_CLASS}>{t("scheduleExtra.repeatWeekly")}</Label>
+                    <NativeSelect id="repeat" value={repeatWeeks} onChange={(ev) => setRepeatWeeks(ev.target.value)}>
+                      <option value="1">{t("scheduleExtra.noRepeat")}</option>
+                      <option value="2">{t("scheduleExtra.weeks2")}</option>
+                      <option value="4">{t("scheduleExtra.weeks4")}</option>
+                      <option value="8">{t("scheduleExtra.weeks8")}</option>
+                      <option value="12">{t("scheduleExtra.weeks12")}</option>
+                    </NativeSelect>
                   </div>
                 )}
                 <div className="pt-1">
                   <div className="space-y-1.5">
-                    <Label>{t('schedule.meetingUrl')}</Label>
-                    <Input aria-label={t('schedule.meetingUrl')} value={form.meeting_url} onChange={(e) => setForm({ ...form, meeting_url: e.target.value })} placeholder="https://meet.google.com/…" />
+                    <Label className={FIELD_LABEL_CLASS}>{t('schedule.meetingUrl')}</Label>
+                    <Input className={FIELD_CLASS} aria-label={t('schedule.meetingUrl')} value={form.meeting_url} onChange={(e) => setForm({ ...form, meeting_url: e.target.value })} placeholder="https://meet.google.com/…" />
                   </div>
                   <button
                     type="button"
@@ -1422,7 +1392,7 @@ export default function SchedulePage() {
                     <Textarea
                       id="notes"
                       rows={3}
-                      className="mt-2"
+                      className={cn(AREA_CLASS, "mt-2")}
                       value={form.notes}
                       onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                       placeholder={t('schedule.notesPlaceholder')}
@@ -1671,8 +1641,12 @@ export default function SchedulePage() {
                       (isTutor &&
                         lesson.tutor_id === user?.id &&
                         (lesson.status === "pending" || lesson.status === "scheduled"));
+                    // 14.11: груповий урок «Копіювати» не пропонуємо — копія відкривала форму ОДНОГО
+                    // учня з порожнім полем «Учень» і без учасників групи; заняття групи
+                    // ставлять у «Групах» або формою уроку в режимі «Груповий».
                     const canCopy =
-                      isManager || (isTutor && lesson.tutor_id === user?.id);
+                      !!lesson.student_id &&
+                      (isManager || (isTutor && lesson.tutor_id === user?.id));
 
                     return (
                       <LessonCard

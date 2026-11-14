@@ -28,6 +28,7 @@ const idOf = (email) => psql(`select id from auth.users where email = '${email}'
 
 const mgr = who("maria", "lingua.test"), tut = who("iryna", "lingua.test"), stu = who("solomiia", "fam.test");
 if (!mgr || !tut || !stu) { console.log("⚠️ людей немає на стенді — спершу school-walk"); process.exit(1); }
+psql(`delete from lesson_change_requests where student_id = '${idOf(stu)}' and status = 'pending'`);
 psql(`update profiles set timezone = null where id in ('${idOf(mgr)}', '${idOf(tut)}', '${idOf(stu)}')`);
 
 const problems = [];
@@ -93,7 +94,57 @@ await wait(1200);
 n = await st.note();
 must(/За твоїм часом: Берлін/.test(n), "учениця бачить, що час — за Берліном", n);
 must(/Репетитор: \d\d:\d\d · Київ/.test(n), "і який це час у репетитора в Києві", n);
+
+// 4. Запит на інший час доходить до кінця: учениця просить → репетиторка погоджує → урок переїхав
+//    (14.11: цей шлях досі не проходив у браузері ніхто, крім живих людей)
+const sheet = () => st.page.locator('[data-form-sheet="student-reschedule"]');
+const before = psql(`select l.id || '|' || l.starts_at from lessons l where l.student_id = '${idOf(stu)}' and l.status = 'scheduled' order by l.starts_at limit 1`);
+const [lessonId, startsBefore] = before.split("|");
+// той самий час, що й зараз, — не запит: форма каже це словами і нічого не надсилає
+await sheet().getByRole("button", { name: "Надіслати запит" }).click({ timeout: 5000 }); await wait(1200);
+must(psql(`select count(*) from lesson_change_requests where lesson_id = '${lessonId}' and status = 'pending'`) === "0", "запит «на той самий час» не надсилається");
+must(await sheet().count() === 1, "форма лишається відкритою — учениця обирає інший час");
+// інший день у календарі
+await sheet().locator('[aria-haspopup="dialog"]').first().click({ timeout: 5000 }); await wait(700);
+{
+  const tabs = st.page.getByRole("tab");
+  if (await tabs.first().getAttribute("aria-selected") !== "true") { await tabs.first().click(); await wait(400); }
+  const days = st.page.locator('[role="tabpanel"] button:not([disabled])').filter({ hasText: /^\d{1,2}$/ });
+  // день, на якому урок стоїть зараз (psql віддає «2026-11-30 16:00:00+01» — число беремо з рядка)
+  const picked = Number((startsBefore || "").slice(8, 10)) || -1;
+  const count = await days.count();
+  let done = false;
+  for (let i = count - 1; i >= 0 && !done; i--) {
+    const txt = (await days.nth(i).innerText()).trim();
+    const chosen = await days.nth(i).evaluate((el) => el.getAttribute("aria-selected") === "true" || el.closest("[aria-selected='true']") !== null);
+    if (Number(txt) !== picked && !chosen) { await days.nth(i).click({ timeout: 3000 }); done = true; }
+  }
+  await wait(500);
+  await st.page.getByRole("button", { name: "Готово" }).last().click({ timeout: 3000 }); await wait(500);
+}
+await sheet().locator("textarea").fill("Не встигаю зі школи, можна пізніше?");
+await sheet().getByRole("button", { name: "Надіслати запит" }).click({ timeout: 5000 }); await wait(2500);
+const req = psql(`select id || '|' || proposed_starts_at || '|' || status from lesson_change_requests where lesson_id = '${lessonId}' order by created_at desc limit 1`);
+const [reqId, proposed, reqStatus] = req.split("|");
+must(reqStatus === "pending" && !!proposed && proposed !== startsBefore, "запит учениці записався з іншим часом", req);
+must(await sheet().count() === 0, "після надсилання форма закрилась");
 await st.ctx.close();
+
+const tu = await session(tut, "Europe/Kyiv");
+await tu.go("/schedule", 5000);
+await tu.page.getByRole("button", { name: "Розглянути" }).first().click({ timeout: 6000 }); await wait(1500);
+const tSheet = tu.page.locator('[data-form-sheet="tutor-change-request"]');
+must(await tSheet.count() === 1, "репетиторка відкрила запит учениці");
+const tText = (await tSheet.innerText().catch(() => "")).replace(/\s+/g, " ");
+must(/Не встигаю зі школи/.test(tText), "бачить коментар учениці", tText);
+n = await tu.note();
+must(/За твоїм часом: Київ/.test(n), "час у запиті — за Києвом", n);
+must(/Соломія Гнатюк: \d\d:\d\d · Берлін/.test(n), "і який це час в учениці в Берліні", n);
+await tSheet.getByRole("button", { name: "Підтвердити" }).click({ timeout: 5000 }); await wait(3500);
+const after = psql(`select r.status || '|' || (l.starts_at = r.proposed_starts_at) from lesson_change_requests r join lessons l on l.id = r.lesson_id where r.id = '${reqId}'`);
+must(after === "approved|true", "після згоди запит закрито, а урок стоїть на новому часі", after);
+must(await tSheet.count() === 0, "форма запиту закрилась");
+await tu.ctx.close();
 
 await browser.close();
 if (problems.length) {

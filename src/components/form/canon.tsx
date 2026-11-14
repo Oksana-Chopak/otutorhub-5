@@ -26,6 +26,12 @@ export const AREA_CLASS =
 
 const LABEL_CLASS = "mb-1.5 block text-[14px] font-extrabold leading-tight";
 
+/**
+ * Той самий вигляд підпису для базового Radix `Label` — там, де форму переводять у канон
+ * механічно й підпис лишається тим самим компонентом (копія уроку в «Розкладі»).
+ */
+export const FIELD_LABEL_CLASS = `${LABEL_CLASS} text-[color:var(--sub)] md:text-[14px]`;
+
 /** Підпис поля. `htmlFor` — для поля з id; без нього рендериться `<div>` (підпис групи кнопок). */
 export function FieldLabel({
   htmlFor, id, children, className, hint,
@@ -61,7 +67,7 @@ export const NativeSelect = React.forwardRef<
       value={value}
       className={cn(
         "h-12 w-full appearance-none rounded-[13px] border-[1.5px] border-[color:var(--ds-border)] bg-[var(--ds-surface2)] pl-3.5 pr-10 text-[16px] font-semibold outline-none focus-visible:border-[#2BBFAA] focus-visible:ring-2 focus-visible:ring-[#2BBFAA] disabled:cursor-not-allowed disabled:opacity-50",
-        value === "" || value === undefined ? "text-muted-foreground" : "text-foreground",
+        value === "" || value == null ? "text-muted-foreground" : "text-foreground",
         className,
       )}
       {...props}
@@ -73,11 +79,11 @@ export const NativeSelect = React.forwardRef<
 ));
 NativeSelect.displayName = "NativeSelect";
 
-export interface ChoiceOption<T extends string> { value: T; label: React.ReactNode; disabled?: boolean }
+export interface ChoiceOption<T extends string> { value: T; label: React.ReactNode; disabled?: boolean; /** повна назва для скрінрідера, коли на кнопці скорочення («Пн») */ ariaLabel?: string }
 
 /** Вибір одного з кількох кнопками (radiogroup). Кнопка — 44px, обраний — бірюзова рамка й фон. */
 export function ChoiceChips<T extends string>({
-  value, onChange, options, labelledBy, ariaLabel, className, stretch = false,
+  value, onChange, options, labelledBy, ariaLabel, className, stretch = false, compact = false,
 }: {
   value: T | "";
   onChange: (v: T) => void;
@@ -87,9 +93,11 @@ export function ChoiceChips<T extends string>({
   className?: string;
   /** кнопки діляться порівну на всю ширину (2–3 варіанти) */
   stretch?: boolean;
+  /** без бічних відступів — для ряду з семи днів тижня */
+  compact?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-labelledby={labelledBy} aria-label={ariaLabel} className={cn("flex flex-wrap gap-2", className)}>
+    <div role="radiogroup" aria-labelledby={labelledBy} aria-label={ariaLabel} className={cn("flex flex-wrap", compact ? "gap-1.5" : "gap-2", className)}>
       {options.map((o) => {
         const on = o.value === value;
         return (
@@ -98,11 +106,13 @@ export function ChoiceChips<T extends string>({
             type="button"
             role="radio"
             aria-checked={on}
+            aria-label={o.ariaLabel}
             disabled={o.disabled}
             data-choice-chip=""
             onClick={() => onChange(o.value)}
             className={cn(
-              "min-h-[44px] rounded-[13px] border-[1.5px] px-4 text-[15px] font-semibold transition-colors disabled:opacity-50",
+              "min-h-[44px] rounded-[13px] border-[1.5px] text-[15px] font-semibold transition-colors disabled:opacity-50",
+              compact ? "min-w-[44px] px-0" : "px-4",
               stretch && "flex-1",
             )}
             style={on

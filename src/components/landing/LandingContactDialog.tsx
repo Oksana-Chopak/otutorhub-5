@@ -87,7 +87,7 @@ export function LandingContactDialog({ open, onOpenChange }: Props) {
             <button
               type="button"
               onClick={close}
-              className="mt-4 h-11 w-full rounded-[12px] bg-[var(--teal)] text-[15px] font-semibold text-white"
+              className="mt-4 h-11 w-full rounded-[12px] bg-[var(--teal)] text-[15px] font-semibold text-[#0f0f1a]"
             >
               {t("common.close")}
             </button>
@@ -126,7 +126,7 @@ export function LandingContactDialog({ open, onOpenChange }: Props) {
               type="button"
               onClick={submit}
               disabled={sending}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] bg-[var(--teal)] text-[15px] font-semibold text-white disabled:opacity-60"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] bg-[var(--teal)] text-[15px] font-semibold text-[#0f0f1a] disabled:opacity-60"
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               {t("landingContact.send")}

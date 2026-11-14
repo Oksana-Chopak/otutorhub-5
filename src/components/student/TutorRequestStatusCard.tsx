@@ -114,7 +114,7 @@ export function TutorRequestStatusCard({ request, onCancelled }: Props) {
           <button
             onClick={openChat}
             disabled={busy !== null}
-            className="inline-flex h-11 items-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-white disabled:opacity-60"
+            className="inline-flex h-11 items-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-[#0f0f1a] disabled:opacity-60"
           >
             {busy === "chat" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
             {t("studentPages.requestChatBtn")}

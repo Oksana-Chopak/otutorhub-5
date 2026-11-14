@@ -13,13 +13,7 @@ import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { NativeSelect } from "@/components/form/canon";
 import {
   Dialog,
   DialogContent,
@@ -284,7 +278,7 @@ export default function PeoplePage() {
         <p className="text-sm" style={{ color: "var(--sub)" }}>{copy.text}</p>
         {copy.cta && (
           <button type="button" onClick={() => openAddSheet(copy.role)}
-            className="tap-44 mt-3 inline-flex h-11 items-center rounded-[12px] bg-[var(--teal)] px-4 text-[15px] font-semibold text-white">
+            className="tap-44 mt-3 inline-flex h-11 items-center rounded-[12px] bg-[var(--teal)] px-4 text-[15px] font-semibold text-[#0f0f1a]">
             {copy.cta}
           </button>
         )}
@@ -1320,33 +1314,21 @@ export default function PeoplePage() {
             }
           >
             <div className="w-full lg:w-48">
-              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger aria-label={t("people.allSubjects")} className="h-11">
-                  <SelectValue placeholder={t("people.allSubjects")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("people.allSubjects")}</SelectItem>
-                  {allSubjects.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect id="people-subject-filter" aria-label={t("people.allSubjects")} value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}>
+                <option value="all">{t("people.allSubjects")}</option>
+                {allSubjects.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </NativeSelect>
             </div>
             <div className="w-full lg:w-44">
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-                <SelectTrigger aria-label={t("common.status")} className="h-11">
-                  <SelectValue placeholder={t("common.status")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">{t("people.statusActive")}</SelectItem>
-                  <SelectItem value="pending">{t("people.statusPending")}</SelectItem>
-                  <SelectItem value="onboarding">{t("people.statusOnboarding")}</SelectItem>
-                  <SelectItem value="archived">{t("people.statusArchived")}</SelectItem>
-                  <SelectItem value="all">{t("people.statusAll")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <NativeSelect id="people-status-filter" aria-label={t("common.status")} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}>
+                <option value="active">{t("people.statusActive")}</option>
+                <option value="pending">{t("people.statusPending")}</option>
+                <option value="onboarding">{t("people.statusOnboarding")}</option>
+                <option value="archived">{t("people.statusArchived")}</option>
+                <option value="all">{t("people.statusAll")}</option>
+              </NativeSelect>
             </div>
           </MobileFilters>
         </div>

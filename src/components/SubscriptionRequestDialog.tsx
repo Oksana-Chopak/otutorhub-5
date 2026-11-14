@@ -1,22 +1,13 @@
 import { useEffect, useState } from "react";
 import { priceLabel, totalLabel, PRICE_TOTAL, PLAN_DISCOUNT } from "@/lib/pricing";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { AREA_CLASS, FieldLabel } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, CheckCircle2, Crown } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { notifyManagers, newRequestId, requestNotificationType } from "@/lib/notifications";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -119,126 +110,93 @@ export function SubscriptionRequestDialog({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[20px] rounded-b-none bottom-0 top-auto translate-y-0 sm:rounded-[20px] sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%]">
-        <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-border sm:hidden" />
-        <DialogHeader>
-          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Crown className="h-5 w-5" />
-          </div>
-          <DialogTitle>{t("subscriptionDialog.title")}</DialogTitle>
-          <DialogDescription>
-            {t("subscriptionDialog.requestDescription")}
-          </DialogDescription>
-        </DialogHeader>
+  const plans: { v: Billing; id: string; title: string; line: string; badge?: string }[] = [
+    { v: "yearly", id: "bill-yearly", title: t("subscriptionDialog.yearly"), badge: "−20%",
+      line: t("subscriptionDialogExtra.planLine", { perMonth: priceLabel("yearly"), total: totalLabel("yearly"), off: PLAN_DISCOUNT.yearly }) },
+    { v: "halfyear", id: "bill-halfyear", title: t("subscriptionDialog.halfyear"),
+      line: t("subscriptionDialogExtra.planLine", { perMonth: priceLabel("halfyear"), total: totalLabel("halfyear"), off: PLAN_DISCOUNT.halfyear }) },
+    { v: "monthly", id: "bill-monthly", title: t("subscriptionDialog.monthly"),
+      line: t("subscriptionDialogExtra.perMonth", { price: priceLabel("monthly") }) },
+  ];
 
-        {checking ? (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+  // 14.11, хвиля форм: оболонка, підписи й поле — з канону. Плани, ціни й запис заявки — без змін.
+  return (
+    <FormSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      locked={submitting}
+      testId="subscription-request"
+      title={<span className="inline-flex items-center gap-2"><Crown aria-hidden className="h-5 w-5 text-primary" />{t("subscriptionDialog.title")}</span>}
+      description={t("subscriptionDialog.requestDescription")}
+      footer={
+        <>
+          <SheetButton kind="secondary" onClick={() => onOpenChange(false)}>{t("common.close")}</SheetButton>
+          {!existingPending && (
+            <SheetButton onClick={submit} busy={submitting} disabled={checking}>{t("subscriptionDialog.submit")}</SheetButton>
+          )}
+        </>
+      }
+    >
+      {checking ? (
+        <div className="flex items-center justify-center py-6" aria-busy="true">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : existingPending ? (
+        <div className="rounded-[13px] border border-success/30 bg-success/5 p-4">
+          <div className="mb-1 inline-flex items-center gap-2 text-success">
+            <CheckCircle2 className="h-4 w-4" />
+            <span className="text-[16px] font-semibold">{t("subscriptionDialog.alreadySent")}</span>
           </div>
-        ) : existingPending ? (
-          <div className="rounded-[12px] border border-success/30 bg-success/5 p-4 text-sm">
-            <div className="mb-1 inline-flex items-center gap-2 text-success">
-              <CheckCircle2 className="h-4 w-4" />
-              <span className="font-medium">{t("subscriptionDialog.alreadySent")}</span>
-            </div>
-            <p className="text-muted-foreground">{t("subscriptionDialog.alreadySentDesc")}</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t("subscriptionDialog.periodLabel")}</Label>
-              <RadioGroup
-                value={billing}
-                onValueChange={(v) => setBilling(v as Billing)}
-                className="grid grid-cols-1 gap-2 sm:grid-cols-2"
-              >
+          <p className="text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("subscriptionDialog.alreadySentDesc")}</p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <FieldLabel id="bill-label">{t("subscriptionDialog.periodLabel")}</FieldLabel>
+            <RadioGroup
+              aria-labelledby="bill-label"
+              value={billing}
+              onValueChange={(v) => setBilling(v as Billing)}
+              className="grid grid-cols-1 gap-2"
+            >
+              {plans.map((pl) => (
                 <label
-                  htmlFor="bill-yearly"
-                  className={cn(
-                    "flex cursor-pointer items-start gap-2 rounded-[16px] border p-3 text-sm transition",
-                    billing === "yearly"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  )}
+                  key={pl.v}
+                  htmlFor={pl.id}
+                  className="flex min-h-[56px] cursor-pointer items-start gap-3 rounded-[13px] border-[1.5px] px-3.5 py-3"
+                  style={billing === pl.v
+                    ? { background: "var(--teal-l)", borderColor: "var(--teal)" }
+                    : { background: "var(--ds-surface2)", borderColor: "var(--ds-border)" }}
                 >
-                  <RadioGroupItem id="bill-yearly" value="yearly" className="mt-0.5" />
+                  <RadioGroupItem id={pl.id} value={pl.v} className="mt-0.5 shrink-0" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-foreground">{t("subscriptionDialog.yearly")}</span>
-                      <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[14px] font-semibold text-success">
-                        −20%
-                      </span>
+                      <span className="text-[16px] font-semibold text-foreground">{pl.title}</span>
+                      {pl.badge && (
+                        <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[14px] font-semibold text-success">{pl.badge}</span>
+                      )}
                     </div>
-                    <p className="text-[14px] text-muted-foreground">
-                      {t("subscriptionDialogExtra.planLine", { perMonth: priceLabel("yearly"), total: totalLabel("yearly"), off: PLAN_DISCOUNT.yearly })}
-                    </p>
+                    <p className="mt-0.5 text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{pl.line}</p>
                   </div>
                 </label>
-                <label
-                  htmlFor="bill-halfyear"
-                  className={cn(
-                    "flex cursor-pointer items-start gap-2 rounded-[16px] border p-3 text-sm transition",
-                    billing === "halfyear"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  )}
-                >
-                  <RadioGroupItem id="bill-halfyear" value="halfyear" className="mt-0.5" />
-                  <div className="min-w-0">
-                    <span className="font-medium text-foreground">{t("subscriptionDialog.halfyear")}</span>
-                    <p className="text-[14px] text-muted-foreground">
-                      {t("subscriptionDialogExtra.planLine", { perMonth: priceLabel("halfyear"), total: totalLabel("halfyear"), off: PLAN_DISCOUNT.halfyear })}
-                    </p>
-                  </div>
-                </label>
-                <label
-                  htmlFor="bill-monthly"
-                  className={cn(
-                    "flex cursor-pointer items-start gap-2 rounded-[16px] border p-3 text-sm transition",
-                    billing === "monthly"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  )}
-                >
-                  <RadioGroupItem id="bill-monthly" value="monthly" className="mt-0.5" />
-                  <div className="min-w-0">
-                    <span className="font-medium text-foreground">{t("subscriptionDialog.monthly")}</span>
-                    <p className="text-[14px] text-muted-foreground">
-                      {t("subscriptionDialogExtra.perMonth", { price: priceLabel("monthly") })}
-                    </p>
-                  </div>
-                </label>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="msg">{t("subscriptionDialog.msgLabel")}</Label>
-              <Textarea
-                id="msg"
-                placeholder={t("subscriptionDialog.msgPlaceholder")}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={3}
-                maxLength={1000}
-              />
-            </div>
+              ))}
+            </RadioGroup>
           </div>
-        )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("common.close")}
-          </Button>
-          {!existingPending && (
-            <Button onClick={submit} disabled={submitting || checking}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("subscriptionDialog.submit")}
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <div>
+            <FieldLabel htmlFor="msg">{t("subscriptionDialog.msgLabel")}</FieldLabel>
+            <Textarea
+              id="msg"
+              placeholder={t("subscriptionDialog.msgPlaceholder")}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
+              maxLength={1000}
+              className={AREA_CLASS}
+            />
+          </div>
+        </>
+      )}
+    </FormSheet>
   );
 }

@@ -10,23 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { FieldLabel, NativeSelect } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { selectInChunks } from "@/lib/chunkIn";
@@ -1704,64 +1689,59 @@ export default function ChatsPage() {
         </Sheet>
       )}
 
-      {/* New chat dialog — manager only */}
-      <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
-        <DialogContent className="rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
-          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
-          <DialogHeader>
-            <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
-            <DialogDescription>{t("chats.newChatDesc")}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <Label>{t("chats.pairLabel")}</Label>
-            {pairsLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
-              </div>
-            ) : availablePairs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("chats.noPairs")}</p>
-            ) : (
-              <>
-                <Select value={selectedPair} onValueChange={setSelectedPair}>
-                  <SelectTrigger aria-label={t("chats.selectPairPlaceholder")}>
-                    <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availablePairs.map((p) => {
-                      const key = `${p.tutor_id}|${p.student_id}`;
-                      const exists = threads.some(
-                        (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
-                      );
-                      return (
-                        <SelectItem key={key} value={key}>
-                          {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
-                          {exists ? t("chats.chatAlreadyExistsTag") : ""}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                {selectedPair && (() => {
-                  const [tId, sId] = selectedPair.split("|");
-                  const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
-                  if (!existing) return null;
-                  return (
-                    <p className="text-[14px] text-warning">{t("chats.chatExistsWarning")}</p>
+      {/* New chat dialog — manager only. 14.11, хвиля форм: оболонка й поле з канону, пара —
+          рідним вибором телефона (спливного списку Radix тут більше немає). */}
+      <FormSheet
+        open={newChatOpen}
+        onOpenChange={setNewChatOpen}
+        locked={creatingThread}
+        testId="new-chat"
+        title={t("chats.newChatTitle")}
+        description={t("chats.newChatDesc")}
+        footer={
+          <>
+            <SheetButton kind="secondary" onClick={() => setNewChatOpen(false)}>{t("common.cancel")}</SheetButton>
+            <SheetButton onClick={createManagerThread} busy={creatingThread} disabled={!selectedPair}>{t("chats.createBtn")}</SheetButton>
+          </>
+        }
+      >
+        <div>
+          <FieldLabel htmlFor="new-chat-pair">{t("chats.pairLabel")}</FieldLabel>
+          {pairsLoading ? (
+            <div className="flex items-center gap-2 text-[15px] text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
+            </div>
+          ) : availablePairs.length === 0 ? (
+            <p className="text-[15px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{t("chats.noPairs")}</p>
+          ) : (
+            <>
+              <NativeSelect id="new-chat-pair" value={selectedPair} onChange={(e) => setSelectedPair(e.target.value)}>
+                <option value="">{t("chats.selectPairPlaceholder")}</option>
+                {availablePairs.map((p) => {
+                  const key = `${p.tutor_id}|${p.student_id}`;
+                  const exists = threads.some(
+                    (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
                   );
-                })()}
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
-              {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : t("chats.createBtn")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                  return (
+                    <option key={key} value={key}>
+                      {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
+                      {exists ? t("chats.chatAlreadyExistsTag") : ""}
+                    </option>
+                  );
+                })}
+              </NativeSelect>
+              {selectedPair && (() => {
+                const [tId, sId] = selectedPair.split("|");
+                const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
+                if (!existing) return null;
+                return (
+                  <p className="mt-2 text-[14px] text-warning">{t("chats.chatExistsWarning")}</p>
+                );
+              })()}
+            </>
+          )}
+        </div>
+      </FormSheet>
 
       {/* Unified new-chat action: bottom-right FAB on mobile (manager only), shown on
           the thread-list view so it never overlaps an open conversation's composer. */}

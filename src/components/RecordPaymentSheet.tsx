@@ -444,7 +444,7 @@ export function RecordPaymentSheet({
                   {([["lessons", t("recordPayment.byLessons")], ["amount", t("recordPaymentExtra.byAmount")]] as const).map(([key, label]) => (
                     <button key={key} type="button" onClick={() => setMode(key as any)}
                       style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
-                        background: mode === key ? "#fff" : "transparent",
+                        background: mode === key ? "var(--ds-surface,#fff)" : "transparent",
                         boxShadow: mode === key ? "0 1px 4px rgba(15,15,26,.12)" : "none",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         color: mode === key ? "#1f8e7e" : "#6f7489" }}>

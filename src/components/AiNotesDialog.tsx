@@ -36,7 +36,7 @@ const Mode = ({ icon: Icon, title, desc }: { icon: typeof Mic; title: string; de
 );
 
 const ToggleRow = ({ on, onChange, title, desc, disabled }: { on: boolean; onChange: (v: boolean) => void; title: string; desc: string; disabled?: boolean }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${on ? C.tealRing : C.border}`, background: on ? "rgba(43,191,170,.05)" : "#fff", opacity: disabled ? 0.5 : 1 }}>
+  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${on ? C.tealRing : C.border}`, background: on ? "rgba(43,191,170,.05)" : "var(--ds-surface,#fff)", opacity: disabled ? 0.5 : 1 }}>
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
       <div style={{ fontSize: 14, color: C.ink2, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>

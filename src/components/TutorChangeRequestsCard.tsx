@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { formatPrice } from "@/lib/currency";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { DateTimeField } from "@/components/DateTimeField";
@@ -16,15 +16,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { AREA_CLASS, FIELD_CLASS, FieldLabel } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -33,7 +26,6 @@ import {
   CalendarX2,
   CheckCircle2,
   XCircle,
-  Loader2,
   Inbox,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,6 +89,9 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<ChangeRequestRow | null>(null);
   const zones = useTimeZones([active?.student_id]);   // 14.11: час учня в позначці поясу
+  // заголовок аркуша не «перескакує» на інший, поки аркуш згасає після закриття
+  const lastKind = useRef<ChangeRequestRow["kind"]>("cancel");
+  if (active) lastKind.current = active.kind;
   const [chargeChoice, setChargeChoice] = useState<ChargeChoice>("none");
   const [partialAmount, setPartialAmount] = useState("0");
   const [proposedAt, setProposedAt] = useState("");
@@ -436,29 +431,40 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         </CardContent>
       </Card>
 
-      <Dialog open={!!active} onOpenChange={(v) => !v && close()}>
-        <DialogContent className="sm:max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
+      {/* 14.11, хвиля форм: оболонка, підписи й поля — з канону; рішення про плату й запис без змін */}
+      <FormSheet
+        open={!!(active && activeLesson)}
+        onOpenChange={(v) => { if (!v) close(); }}
+        locked={submitting}
+        testId="tutor-change-request"
+        title={lastKind.current === "cancel"
+          ? t("tutorChangeRequestsExtra.cancelTitle")
+          : t("tutorChangeRequestsExtra.rescheduleTitle")}
+        description={active && activeLesson ? (
+          <>
+            {nameOf(active.student_id)} · {activeLesson.subject} ·{" "}
+            {format(new Date(activeLesson.starts_at), "d MMM, HH:mm", { locale: uk })}
+          </>
+        ) : undefined}
+        footer={
+          <>
+            <SheetButton kind="secondary" onClick={reject} disabled={submitting}>
+              <XCircle aria-hidden className="h-4 w-4" />
+              {t("tutorChangeRequestsExtra.rejectBtn")}
+            </SheetButton>
+            <SheetButton onClick={approve} busy={submitting} disabled={wsLoading}>
+              {!submitting && <CheckCircle2 aria-hidden className="h-4 w-4" />}
+              {t("tutorChangeRequests.approveBtn")}
+            </SheetButton>
+          </>
+        }
+      >
           {active && activeLesson && (
             <>
-              <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
-              <DialogHeader>
-                <DialogTitle>
-                  {active.kind === "cancel"
-                    ? t("tutorChangeRequestsExtra.cancelTitle")
-                    : t("tutorChangeRequestsExtra.rescheduleTitle")}
-                </DialogTitle>
-                <DialogDescription>
-                  {nameOf(active.student_id)} · {activeLesson.subject} ·{" "}
-                  {format(new Date(activeLesson.starts_at), "d MMM, HH:mm", {
-                    locale: uk,
-                  })}
-                </DialogDescription>
-              </DialogHeader>
-
               {active.reason && (
-                <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                  <p className="text-[14px] text-muted-foreground mb-1">{t("tutorChangeRequestsExtra.studentComment")}</p>
-                  <p className="text-foreground italic">«{active.reason}»</p>
+                <div className="rounded-[13px] p-3.5" style={{ background: "var(--ds-surface3)" }}>
+                  <p className="mb-1 text-[14px] text-muted-foreground">{t("tutorChangeRequestsExtra.studentComment")}</p>
+                  <p className="text-[16px] italic text-foreground" style={{ lineHeight: 1.4 }}>«{active.reason}»</p>
                 </div>
               )}
 
@@ -467,7 +473,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   {isIndependent && ( /* P8: free-hours — політика незалежного, не хаба */
                   <div
                     className={cn(
-                      "rounded-lg border p-3 text-[14px]",
+                      "rounded-[13px] border p-3.5 text-[14px]",
                       isLate
                         ? "border-warning/40 bg-warning/10 text-warning"
                         : "border-success/30 bg-success/5 text-success"
@@ -487,7 +493,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       йому самому, і не мав ЖОДНОГО вибору про плату. */}
                   {canDecideCharge ? (
                     <>
-                      <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
+                      <FieldLabel className="mb-0">{t("tutorChangeRequestsExtra.paymentLabel")}</FieldLabel>
                       <RadioGroup
                         value={chargeChoice}
                         onValueChange={(v) => setChargeChoice(v as ChargeChoice)}
@@ -512,50 +518,49 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                         ].map((opt) => (
                           <label
                             key={opt.value}
-                            className={cn(
-                              "flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition",
-                              chargeChoice === opt.value
-                                ? "border-primary bg-primary/5"
-                                : "border-border hover:border-primary/40"
-                            )}
+                            className="flex min-h-[56px] cursor-pointer items-start gap-3 rounded-[13px] border-[1.5px] px-3.5 py-3"
+                            style={chargeChoice === opt.value
+                              ? { background: "var(--teal-l)", borderColor: "var(--teal)" }
+                              : { background: "var(--ds-surface2)", borderColor: "var(--ds-border)" }}
                           >
-                            <RadioGroupItem value={opt.value} className="mt-0.5" />
+                            <RadioGroupItem value={opt.value} className="mt-0.5 shrink-0" />
                             <div className="min-w-0">
-                              <p className="font-medium text-foreground">{opt.title}</p>
-                              <p className="text-[14px] text-muted-foreground">{opt.desc}</p>
+                              <p className="text-[16px] font-semibold text-foreground" style={{ lineHeight: 1.3 }}>{opt.title}</p>
+                              <p className="mt-0.5 text-[14px] text-muted-foreground" style={{ lineHeight: 1.4 }}>{opt.desc}</p>
                             </div>
                           </label>
                         ))}
                       </RadioGroup>
                       {chargeChoice === "partial" && (
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="partial-amount" className="text-sm">
+                        <div className="flex items-center gap-3">
+                          <FieldLabel htmlFor="partial-amount" className="mb-0">
                             {t("tutorChangeRequestsExtra.amountLabel")}
-                          </Label>
+                          </FieldLabel>
                           <Input
                             id="partial-amount"
                             type="number"
+                            inputMode="decimal"
                             min={0}
                             max={activeLesson.student_price}
                             value={partialAmount}
                             onChange={(e) => setPartialAmount(e.target.value)}
-                            className="w-28"
+                            className={cn(FIELD_CLASS, "w-28 text-right")}
                           />
                         </div>
                       )}
                     </>
                   ) : (
-                    <p className="rounded-lg border border-border bg-muted/40 p-3 text-[14px] text-muted-foreground">
+                    <p className="rounded-[13px] p-3.5 text-[14px] text-muted-foreground" style={{ background: "var(--ds-surface3)", lineHeight: 1.4 }}>
                       {t("tutorChangeRequestsExtra.hubCancelNote")}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="proposed-time">{t("tutorChangeRequestsExtra.newTimeLabel")}</Label>
-                  <DateTimeField value={proposedAt} onChange={setProposedAt} zoneNote="others" zonePeople={active ? [{ name: nameOf(active.student_id), tz: zones[active.student_id] }] : undefined} />
+                <div>
+                  <FieldLabel>{t("tutorChangeRequestsExtra.newTimeLabel")}</FieldLabel>
+                  <DateTimeField value={proposedAt} onChange={setProposedAt} min={toLocalInputValue(new Date().toISOString())} zoneNote="others" zonePeople={active ? [{ name: nameOf(active.student_id), tz: zones[active.student_id] }] : undefined} />
                   {active.proposed_starts_at && (
-                    <p className="text-[14px] text-muted-foreground">
+                    <p className="mt-2 text-[14px] text-muted-foreground">
                       {t("tutorChangeRequestsExtra.studentProposed")}{" "}
                       {format(new Date(active.proposed_starts_at), "d MMMM, HH:mm", {
                         locale: uk,
@@ -565,8 +570,8 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="t-response">{t("tutorChangeRequestsExtra.responseLabel")}</Label>
+              <div>
+                <FieldLabel htmlFor="t-response">{t("tutorChangeRequestsExtra.responseLabel")}</FieldLabel>
                 <Textarea
                   id="t-response"
                   rows={2}
@@ -574,32 +579,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   onChange={(e) => setResponse(e.target.value)}
                   placeholder={t("tutorChangeRequestsExtra.responsePlaceholder")}
                   maxLength={500}
+                  className={AREA_CLASS}
                 />
               </div>
-
-              <DialogFooter className="gap-2 sm:gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={reject}
-                  disabled={submitting}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <XCircle className="mr-1 h-4 w-4" />
-                  {t("tutorChangeRequestsExtra.rejectBtn")}
-                </Button>
-                <Button onClick={approve} disabled={submitting || wsLoading}>
-                  {submitting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                  )}
-                  {t("tutorChangeRequests.approveBtn")}
-                </Button>
-              </DialogFooter>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+      </FormSheet>
     </>
   );
 }

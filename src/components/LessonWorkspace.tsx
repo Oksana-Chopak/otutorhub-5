@@ -804,7 +804,7 @@ export function LessonWorkspace({
                   const on = p.k === platform;
                   return (
                     <button key={p.k} type="button" onClick={() => setPlatform(p.k)} className="tap-44"
-                      style={{ height: 40, padding: "0 14px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "#fff", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                      style={{ height: 40, padding: "0 14px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "var(--ds-surface,#fff)", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                       {p.label}
                     </button>
                   );
@@ -828,7 +828,7 @@ export function LessonWorkspace({
                   const on = k === linkMode;
                   return (
                     <button key={k} type="button" onClick={() => setLinkMode(k as "permanent" | "once")}
-                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "12px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 15, background: on ? "#fff" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
+                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "12px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 15, background: on ? "var(--ds-surface,#fff)" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
                       {l}
                     </button>
                   );

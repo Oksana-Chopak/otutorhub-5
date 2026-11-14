@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { FIELD_CLASS, FieldLabel } from "@/components/form/canon";
+import { FormSheet, SheetButton } from "@/components/form/FormSheet";
 import { toast } from "sonner";
 import {
-  Loader2, X, Mail, Phone, Send, MessageCircle, Facebook, Instagram,
+  Mail, Phone, Send, MessageCircle, Facebook, Instagram,
   Landmark, CreditCard, ShieldCheck,
 } from "lucide-react";
 import i18nInstance from "@/i18n";
@@ -27,8 +21,8 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label htmlFor={htmlFor} className="text-[14px] font-medium text-[#666b82]">{label}</Label>
+    <div>
+      <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
       <div className="relative">
         <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sub,#62677E)]" />
         {children}
@@ -235,87 +229,69 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     }
   };
 
+  // 14.11, хвиля форм: оболонка й поля з канону; запис контактів — без змін.
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
-        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
-        <DialogTitle className="sr-only">{t("contactEditExtra.titleFormat", { name: userName })}</DialogTitle>
-        <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-          <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
-              {t("contactEditExtra.titleFormat", { name: userName })}
-            </div>
-            <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>
-              {t("contactEdit.visibilityHint")}
-            </div>
-          </div>
-          <button type="button" onClick={() => onOpenChange(false)} aria-label={t("common.close")}
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#62677E)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <X size={18} />
-          </button>
-        </div>
-        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0 20px 16px" }}>
-        <div className="space-y-5 py-2">
+    <FormSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      locked={saving}
+      testId="contact-edit"
+      title={t("contactEditExtra.titleFormat", { name: userName })}
+      description={t("contactEdit.visibilityHint")}
+      footer={
+        <>
+          <SheetButton kind="secondary" onClick={() => onOpenChange(false)} disabled={saving}>{t("common.cancel")}</SheetButton>
+          <SheetButton onClick={save} busy={saving}>{t("common.save")}</SheetButton>
+        </>
+      }
+    >
+        <div className="space-y-5 pb-1">
           <Section label={t("contactEditExtra.sectionContacts")}>
             <Field icon={Mail} label="Email" htmlFor="c-email">
-              <Input id="c-email" type="email" className="pl-10" placeholder="name@email.com"
+              <Input id="c-email" type="email" className={`${FIELD_CLASS} pl-10`} placeholder="name@email.com"
                 value={form.email ?? ""} onChange={(e) => setField("email", e.target.value)} maxLength={255} />
             </Field>
             <Field icon={Phone} label={t("contactEditExtra.phoneLabel")} htmlFor="c-phone">
-              <Input id="c-phone" type="tel" className="pl-10" placeholder="+380..."
+              <Input id="c-phone" type="tel" className={`${FIELD_CLASS} pl-10`} placeholder="+380..."
                 value={form.phone ?? ""} onChange={(e) => setField("phone", e.target.value)} maxLength={32} />
             </Field>
             <Field icon={Send} label={t("contactEditExtra.telegramLabel")} htmlFor="c-tg">
-              <Input id="c-tg" className="pl-10" placeholder="@username"
+              <Input id="c-tg" className={`${FIELD_CLASS} pl-10`} placeholder="@username"
                 value={form.telegram ?? ""} onChange={(e) => setField("telegram", e.target.value)} maxLength={64} />
             </Field>
           </Section>
 
           <Section label={t("contactEditExtra.sectionSocial")}>
             <Field icon={MessageCircle} label={t("contactEditExtra.messengerLabel")} htmlFor="c-msg">
-              <Input id="c-msg" type="url" className="pl-10" placeholder="https://m.me/..."
+              <Input id="c-msg" type="url" className={`${FIELD_CLASS} pl-10`} placeholder="https://m.me/..."
                 value={form.messenger_url ?? ""} onChange={(e) => setField("messenger_url", e.target.value)} maxLength={500} />
             </Field>
             <Field icon={Facebook} label="Facebook" htmlFor="c-fb">
-              <Input id="c-fb" type="url" className="pl-10" placeholder="https://facebook.com/..."
+              <Input id="c-fb" type="url" className={`${FIELD_CLASS} pl-10`} placeholder="https://facebook.com/..."
                 value={form.facebook_url ?? ""} onChange={(e) => setField("facebook_url", e.target.value)} maxLength={500} />
             </Field>
             <Field icon={Instagram} label="Instagram" htmlFor="c-ig">
-              <Input id="c-ig" type="url" className="pl-10" placeholder="https://instagram.com/..."
+              <Input id="c-ig" type="url" className={`${FIELD_CLASS} pl-10`} placeholder="https://instagram.com/..."
                 value={form.instagram_url ?? ""} onChange={(e) => setField("instagram_url", e.target.value)} maxLength={500} />
             </Field>
           </Section>
 
           <Section label={t("contactEditExtra.sectionPayout")}>
             <Field icon={Landmark} label={t("contactEditExtra.bankLabel")} htmlFor="c-bank">
-              <Input id="c-bank" className="pl-10" placeholder={t("contactEditExtra.bankPlaceholder")}
+              <Input id="c-bank" className={`${FIELD_CLASS} pl-10`} placeholder={t("contactEditExtra.bankPlaceholder")}
                 value={form.bank_name ?? ""} onChange={(e) => setField("bank_name", e.target.value)} maxLength={64} />
             </Field>
             <Field icon={CreditCard} label={t("contactEditExtra.cardLabel")} htmlFor="c-card">
-              <Input id="c-card" className="pl-10" inputMode="numeric" autoComplete="off" maxLength={25}
+              <Input id="c-card" className={`${FIELD_CLASS} pl-10`} inputMode="numeric" autoComplete="off" maxLength={25}
                 placeholder={form.bank_card_last4 ? `•••• ${form.bank_card_last4}` : "0000 0000 0000 0000"}
                 value={cardInput} onChange={(e) => setCardInput(e.target.value)} />
             </Field>
-            <div className="flex items-start gap-2 rounded-[12px] bg-[#F5F4F0] px-3 py-2.5">
-              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[var(--sub,#62677E)]" />
-              <p className="text-[14px] leading-snug text-[#666b82]">{t("contactEditExtra.securityNote")}</p>
+            <div className="flex items-start gap-2 rounded-[13px] px-3 py-2.5" style={{ background: "var(--ds-surface3)" }}>
+              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-muted-foreground" />
+              <p className="text-[14px] leading-snug text-muted-foreground">{t("contactEditExtra.securityNote")}</p>
             </div>
           </Section>
         </div>
-        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end px-0">
-          <Button variant="outline" className="h-11 rounded-[12px] border-[0.5px]" onClick={() => onOpenChange(false)} disabled={saving}>
-            {t("common.cancel")}
-          </Button>
-          <Button onClick={save} disabled={saving} className="h-[50px] w-full rounded-[14px] text-[16px] font-semibold sm:w-auto" style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {t("common.save")}
-          </Button>
-        </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </FormSheet>
   );
 }

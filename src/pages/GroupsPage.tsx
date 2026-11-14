@@ -503,7 +503,7 @@ function CreateGroupDialog({
                           style={{
                             display: "flex", alignItems: "center", gap: 13, padding: 14, borderRadius: 16,
                             cursor: "pointer", border: `2px solid ${on ? T.teal : T.border}`,
-                            background: on ? T.tealL : "#fff", flexShrink: 0,
+                            background: on ? T.tealL : "var(--ds-surface,#fff)", flexShrink: 0,
                             boxShadow: on ? "none" : SHADOW_SM,
                           }}
                         >
@@ -542,7 +542,7 @@ function CreateGroupDialog({
                             minHeight: 52, padding: "0 18px", borderRadius: 15, cursor: "pointer",
                             display: "inline-flex", alignItems: "center", gap: 8, fontFamily: FONT_D,
                             fontWeight: 700, fontSize: 16,
-                            background: on ? T.tealL : "#fff", color: on ? T.tealD : T.txt,
+                            background: on ? T.tealL : "var(--ds-surface,#fff)", color: on ? T.tealD : T.txt,
                             border: `2px solid ${on ? T.teal : T.border}`,
                             boxShadow: on ? "none" : SHADOW_SM,
                           }}
@@ -631,7 +631,7 @@ function WizardField({
       style={{
         display: "flex", alignItems: "center", gap: 11,
         minHeight: big ? 64 : 58, borderRadius: 16, padding: "0 18px",
-        background: focused ? "#fff" : "var(--ds-surface2,#fbfbfc)",
+        background: focused ? "var(--ds-surface,#fff)" : "var(--ds-surface2,#fbfbfc)",
         border: `2px solid ${focused ? T.teal : T.border}`,
         boxShadow: focused ? "0 0 0 4px rgba(43,191,170,.13)" : "none",
         transition: "all .15s",

@@ -68,7 +68,7 @@ export function formatYmdHm(v: string, opts: { withTime?: boolean } = {}): strin
 }
 
 const triggerCls = (invalid: boolean) =>
-  `tap-44 bg-secondary text-foreground flex h-11 min-w-0 items-center gap-2 rounded-[10px] border px-3 text-left text-[16px] ${
+  `tap-44 bg-secondary text-foreground flex h-12 min-w-0 items-center gap-2 rounded-[13px] border-[1.5px] px-3.5 text-left text-[16px] font-semibold ${
     invalid ? "border-destructive ring-1 ring-destructive" : "border-border"
   }`;
 
@@ -291,7 +291,7 @@ export function DateTimeField({
               aria-label={t("schedule.duration")}
               type="number" min={15} step={5} value={durationMin}
               onChange={(e) => onDurationChange(Math.max(15, Number(e.target.value) || 15))}
-              className="bg-secondary text-foreground border-border h-11 w-[76px] rounded-[10px] border px-2.5 text-[16px]"
+              className="bg-secondary text-foreground border-border h-12 w-[76px] rounded-[13px] border-[1.5px] px-2.5 text-[16px] font-semibold"
             />
             <span className="text-muted-foreground text-[13px]">{t("lessonDetails.durationUnit")}</span>
           </>

@@ -109,7 +109,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
                     display: "flex", alignItems: "center", gap: 9, padding: "12px 13px",
                     borderRadius: 14, cursor: "pointer", textAlign: "left",
                     border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
-                    background: active ? "rgba(43,191,170,.08)" : "#fff",
+                    background: active ? "rgba(43,191,170,.08)" : "var(--ds-surface,#fff)",
                     boxShadow: active ? "0 4px 14px -6px rgba(43,191,170,.4)" : "none",
                     transition: "all .15s ease",
                   }}

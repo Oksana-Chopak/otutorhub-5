@@ -266,7 +266,7 @@ export function SchoolsCard() {
                         aria-label={t("adminSchools.renameLabel")}
                       />
                       <button type="button" onClick={() => void rename()} disabled={busy}
-                        className="h-11 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-white">
+                        className="h-11 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-[#0f0f1a]">
                         {t("adminSchools.save")}
                       </button>
                       <button type="button" onClick={() => setRenaming(null)} className={ghostBtn}>
@@ -316,7 +316,7 @@ export function SchoolsCard() {
                               aria-label={t("adminSchools.tutorEmailPlaceholder")}
                             />
                             <button type="button" onClick={() => void addExistingTutor()} disabled={busy || !adding.email.trim()}
-                              className="flex h-11 items-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-white disabled:opacity-50">
+                              className="flex h-11 items-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-[#0f0f1a] disabled:opacity-50">
                               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                               {t("adminSchools.addTutorConfirm")}
                             </button>
@@ -337,7 +337,7 @@ export function SchoolsCard() {
             <input className={input} value={email} onChange={(e) => setEmail(e.target.value)} type="email"
               placeholder={t("adminSchools.emailPlaceholder")} aria-label={t("adminSchools.emailPlaceholder")} />
             <button type="button" onClick={() => void create()} disabled={busy || !name.trim() || !email.trim()}
-              className="flex h-11 items-center justify-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-white disabled:opacity-50">
+              className="flex h-11 items-center justify-center gap-2 rounded-[12px] bg-[var(--teal)] px-4 text-[14px] font-semibold text-[#0f0f1a] disabled:opacity-50">
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("adminSchools.create")}
             </button>
