@@ -4,11 +4,11 @@ import { toast } from "sonner";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox, Reply, Loader2 } from "lucide-react";
+import { Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox, Reply, Loader2, School } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SUPPORT_TELEGRAM, supportFallbackUrl } from "@/lib/support";
 
-type Category = "bug" | "idea" | "question" | "other";
+type Category = "bug" | "idea" | "question" | "other" | "school_request";
 type Status = "new" | "in_progress" | "resolved";
 
 interface Row {
@@ -33,6 +33,8 @@ const CAT: Record<Category, { icon: typeof Bug; bg: string; color: string }> = {
   idea: { icon: Lightbulb, bg: "rgba(43,191,170,.14)", color: "var(--teal-text,#1a7a6c)" },
   question: { icon: HelpCircle, bg: "rgba(245,158,11,.14)", color: "var(--warning-text,#B45309)" },
   other: { icon: MessageSquare, bg: "rgba(15,15,26,.06)", color: "#6b7280" },
+  // 15.11: заявка «Керуєте школою?» (SchoolRequestCard) — своя іконка й підпис, не сирий ключ.
+  school_request: { icon: School, bg: "rgba(124,58,237,.1)", color: "var(--violet-text,#6d28d9)" },
 };
 
 export default function FeedbackInboxPage() {

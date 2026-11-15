@@ -7,6 +7,20 @@ import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 import { isPushCapable } from "@/hooks/usePushNotifications";
+import { useAuth } from "@/hooks/useAuth";
+
+/**
+ * 15.11 (прохід «кожна кнопка кожної ролі»): сповіщення учневі про урок («📅 Новий урок
+ * у розкладі», «📋 Правила скасування», нагадування з edge) несуть адресу `/schedule` —
+ * спільну для всіх ролей. Учень із неї потрапляв на ІНШИЙ розклад, ніж той, що в його
+ * меню (`/student/schedule`), — інший вигляд, інші кнопки. Для учня ведемо в його розклад
+ * з тим самим `?lesson=`. Решта ролей — без змін.
+ */
+export function linkForReader(link: string, pureStudent: boolean): string {
+  if (!pureStudent) return link;
+  const m = /^\/schedule(?=$|[?#])(.*)$/.exec(link);
+  return m ? `/student/schedule${m[1]}` : link;
+}
 
 function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -58,10 +72,12 @@ export function NotificationBell({ className }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { notifications, unreadCount, markRead, markAllRead, loadError, reload } = useNotifications();
+  const { roles } = useAuth();
+  const pureStudent = (roles ?? []).includes("student") && !(roles ?? []).includes("tutor") && !(roles ?? []).includes("manager");
 
   const handleClick = async (n: AppNotification) => {
     if (!n.read) await markRead(n.id);
-    if (n.link) navigate(n.link);
+    if (n.link) navigate(linkForReader(n.link, pureStudent));
   };
 
   const displayed = notifications.slice(0, 10);

@@ -13,6 +13,7 @@ import { insertNotification } from "@/lib/notifications";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { getRandomEmoji, THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { getLocale } from "@/lib/locale";
 
 /**
  * C1: ЄДИНИЙ конвеєр статусу уроку (аудит B4). Одна дія — однакова
@@ -27,6 +28,8 @@ export type LessonLite = {
   subject?: string;
   source?: string | null;
   student_payment_status?: string | null;
+  /** Коли урок починається — для запобіжника «проведено» до початку (15.11). */
+  starts_at?: string | null;
 };
 
 export type CompleteOpts = {
@@ -77,6 +80,23 @@ export function useLessonStatus() {
   };
 
   const complete = async (l: LessonLite, o: CompleteOpts = {}): Promise<boolean> => {
+    /* 15.11 (прохід «кожна кнопка кожної ролі»): у меню статусу картки «Проведено» стоїть
+       і в уроку, який буде за тиждень. Один випадковий дотик — і майбутній урок одразу
+       стає боргом учня й виплатою репетитору (модель боргу 04.09 рахує ПРОВЕДЕНЕ). Не
+       забороняємо (буває, урок справді зсунули раніше), але питаємо — лише в цьому
+       випадку, тож звичайне «провів» лишається одним дотиком. */
+    const startMs = l.starts_at ? new Date(l.starts_at).getTime() : NaN;
+    if (Number.isFinite(startMs) && startMs > Date.now()) {
+      const sure = await confirmDialog({
+        title: t("lessonFutureDone.title"),
+        description: t("lessonFutureDone.desc", {
+          when: new Date(startMs).toLocaleString(getLocale(), { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
+        }),
+        confirmText: t("lessonFutureDone.confirm"),
+        cancelText: t("common.cancel"),
+      });
+      if (!sure) return false;
+    }
     const { error } = await setLessonStatus(l.id, "completed");
     if (error) { haptic.error(); toast.error(t("dashboardExtra.statusChangeFailed")); return false; }
     if (o.celebrate !== false) {

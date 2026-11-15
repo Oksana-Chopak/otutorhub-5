@@ -76,3 +76,29 @@ export const SUBJECT_STEP = ALL_STEPS.find(s => s.action === "subject")!;
 export const CORE  = ALL_STEPS.filter(s => s.group === "essential" && s.action !== "subject");
 export const LATER = ALL_STEPS.filter(s => s.group === "setup");
 export const CORE_TOTAL = CORE.length;
+
+/**
+ * 15.11 (прохід «кожна кнопка кожної ролі»): «Зроблю пізніше» тепер памʼятається на
+ * пристрої. До цього вихід зберігав лише крок, а примусовий перехід із дашборда
+ * тримався на sessionStorage — у застосунку з телефона це «до закриття», тож
+ * репетиторку, яка вже відповіла «пізніше», майстер зустрічав при КОЖНОМУ запуску.
+ * Майстер лишається досяжним: банер на дашборді, «Гайд по налаштуванню» в меню.
+ */
+const deferKey = (userId: string) => `onboarding_deferred_${userId}`;
+export function deferOnboarding(userId: string): void {
+  try { localStorage.setItem(deferKey(userId), "1"); } catch { /* приватний режим — лишається сесійний ключ */ }
+}
+export function onboardingDeferred(userId: string): boolean {
+  try { return localStorage.getItem(deferKey(userId)) === "1"; } catch { return false; }
+}
+
+/**
+ * Перший НЕзроблений обовʼязковий крок, починаючи з `from` (включно), або -1, якщо
+ * всі зроблені. Майстер не показує екран «✓ уже зроблено → Далі» для кроку, який
+ * людина закрила ділом (учня імпортувала, предмет поставила школа) — це дотик заради
+ * дотику.
+ */
+export function firstUndoneStep(steps: StepDef[], isDone: (s: StepDef) => boolean, from = 0): number {
+  for (let i = Math.max(0, from); i < steps.length; i++) if (!isDone(steps[i])) return i;
+  return -1;
+}

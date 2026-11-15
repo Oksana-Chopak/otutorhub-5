@@ -612,7 +612,10 @@ describe("матеріали учня · хронологія, розгорну�
         .not.toMatch(/<div className="rounded-\[14px\] border bg-card" style=\{\{ borderColor: "var\(--border,var\(--ds-border,#eceef3\)\)", minHeight: 56 \}\} \/>/);
       expect(dp, "сітка звужується під кількість карток (01.11: гейміфікація за вимикачем)")
         .toMatch(/SHOW_GAMIFICATION && level && streak \? "lg:grid-cols-4" : SHOW_GAMIFICATION && \(level \|\| streak\) \? "lg:grid-cols-3" : "lg:grid-cols-2"/);
-      expect(dp, "01.11: серії/рівні/афірмації на дашборді вимкнено рішенням власниці").toMatch(/const SHOW_GAMIFICATION = false/);
+      // 15.11: вимикач один на весь застосунок (онбординг, кабінет учня, меню) — src/lib/gamification.
+      expect(dp, "дашборд бере спільний вимикач, а не власну копію").toMatch(/const SHOW_GAMIFICATION = GAMIFICATION_VISIBLE;/);
+      expect(read("src/lib/gamification.ts"), "01.11: серії/рівні/афірмації/XP вимкнено рішенням власниці")
+        .toMatch(/export const GAMIFICATION_VISIBLE = false;/);
     });
 
     it("підсумок місяця — картка на осі лівої колонки, а не банер на всю ширину", () => {

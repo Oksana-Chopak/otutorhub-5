@@ -8,7 +8,7 @@
 import { copyToClipboard } from "@/lib/clipboard";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageCircle, Copy, Check, Mail } from "lucide-react";
+import { MessageCircle, Copy, Check, Mail, Send } from "lucide-react";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -192,15 +192,23 @@ interface PersonCardProps {
   active?: boolean;         // selected on desktop
   onOpen: () => void;
   onWrite: () => void;
+  /** 15.11: учень без акаунта — чату з ним немає, тож єдина дія рядка стає «Запросити». */
+  onInvite?: () => void;
 }
 
 function PersonCardImpl({
   name, avatarUrl, status, subLine, email, isPending,
-  unpaidTotal, obDone, kind, isOwner, active, onOpen, onWrite,
+  unpaidTotal, obDone, kind, isOwner, active, onOpen, onWrite, onInvite,
 }: PersonCardProps) {
   const { t } = useTranslation();
   const [hover, setHover] = useState(false);
   const canWrite = !isPending;
+  /* 15.11 (прохід «кожна кнопка»): в учня «⏳ Очікує входу» кнопка чату була сірою
+     й мертвою — дотик не робив нічого і не казав чому. Але дія для такого учня Є:
+     надіслати запрошення. Вона й стає єдиною кнопкою рядка. */
+  const invite = isPending && onInvite ? onInvite : null;
+  const actionOn = canWrite || !!invite;
+  const actionLabel = invite ? t("personCard.invite") : t("personCard.write");
 
   return (
     <div
@@ -247,22 +255,22 @@ function PersonCardImpl({
       {/* Single action — Написати */}
       <div style={{ flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
         <button
-          onClick={onWrite}
-          disabled={!canWrite}
-          title={t("personCard.write")}
-          aria-label={t("personCard.write")}
+          onClick={invite ?? onWrite}
+          disabled={!actionOn}
+          title={actionLabel}
+          aria-label={actionLabel}
           style={{
             width: 46, height: 46, borderRadius: 14, border: "none",
-            cursor: canWrite ? "pointer" : "default", flexShrink: 0,
-            background: canWrite
+            cursor: actionOn ? "pointer" : "default", flexShrink: 0,
+            background: actionOn
               ? `linear-gradient(135deg,${T.teal},${T.tealD})`
               : "rgba(15,15,26,0.06)",
-            color: canWrite ? "#0f0f1a" : T.muted,
+            color: actionOn ? "#0f0f1a" : T.muted,
             display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: canWrite ? "0 6px 14px -6px rgba(43,191,170,0.6)" : "none",
+            boxShadow: actionOn ? "0 6px 14px -6px rgba(43,191,170,0.6)" : "none",
           }}
         >
-          <MessageCircle size={21} strokeWidth={2} />
+          {invite ? <Send size={20} strokeWidth={2} /> : <MessageCircle size={21} strokeWidth={2} />}
         </button>
       </div>
     </div>

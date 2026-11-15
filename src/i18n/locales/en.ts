@@ -227,6 +227,9 @@ export const en: LocaleTranslations = {
     signOut: "Sign out",
   },
   dayBlock: {
+    schoolTodayTitle: "{{count}} more lessons at the school today · first at {{time}}",
+    schoolTodayTitle_one: "{{count}} more lesson at the school today · at {{time}}",
+    schoolTodayTitle_other: "{{count}} more lessons at the school today · first at {{time}}",
     summariesTitle: "Summaries for {{count}} lessons",
     tomorrowTitle: "Tomorrow {{count}} lessons, first at {{time}}",
     nowTitle: "Now: {{name}}",
@@ -279,7 +282,7 @@ export const en: LocaleTranslations = {
     addSummary: "Summary not added yet",
     markPaid: "Mark as paid",},
   reviewPrompt: {
-    title: "How was your lesson with {{tutor}}?",
+    title: "How was your lesson?",
     commentPlaceholder: "Add a few words (optional)…",
     submit: "Send review",
     thanks: "Thanks for your review! 🌟",
@@ -385,6 +388,11 @@ export const en: LocaleTranslations = {
   subscriptionDialogExtra: {
     planLine: "{{perMonth}}/mo · {{total}} one-off (−{{off}}%)",
     perMonth: "{{price}}/mo",
+  },
+  lessonFutureDone: {
+    title: "This lesson has not happened yet",
+    desc: "It is scheduled for {{when}}. Mark it as done now? A done lesson goes straight into payments.",
+    confirm: "Yes, mark done",
   },
   lessonCancelConfirm: {
     title: "Cancel this lesson?",
@@ -2072,6 +2080,8 @@ export const en: LocaleTranslations = {
     category_idea: "Idea",
     category_question: "Question",
     category_other: "Other",
+    // 15.11: заявка «Керуєте школою?» (13.11) показувалась сирим ключем у скриньці.
+    category_school_request: "School request",
     noName: "No name",
     filterAll: "All ({{count}})",
     filterNew: "New ({{count}})",
@@ -2699,6 +2709,13 @@ export const en: LocaleTranslations = {
     rateFooterLabel: "Rate per lesson",
     hubStudents: "hub students",
     lessonsToday: "lessons today",
+    hubStudentsTitle: "School students",
+    hubStudentsLabel: "school students",
+    hubStudentsLabel_one: "school student",
+    hubStudentsLabel_other: "school students",
+    lessonsTodayLabel: "lessons today",
+    lessonsTodayLabel_one: "lesson today",
+    lessonsTodayLabel_other: "lessons today",
     proActiveTitle: "Subscription active — from the hub",
     proActiveDesc: "All features unlocked. Nothing to pay.",
   },
@@ -4625,6 +4642,8 @@ export const en: LocaleTranslations = {
     findTutorBtn: "Find a tutor",
     noHomework: "No homework yet",
     howToPay: "How to pay",
+    alreadyPaidTitle: "Already paid?",
+    alreadyPaidSub: "Tap once you have paid — the payment gets confirmed and the debt disappears.",
     noLessonsCard: "Your first lesson is ahead ✨",
     paidStatus: "Paid",
     awaitingStatus: "Pending",
@@ -5664,6 +5683,7 @@ export const en: LocaleTranslations = {
     monthdayLabel: "Day of month",
   },
   personCard: {
+    invite: "Invite",
     copy: "Copy",
     pendingEntry: "⏳ Awaiting sign-in",
     debt: "⚠️ Debt {{amount}}",

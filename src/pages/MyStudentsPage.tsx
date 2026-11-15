@@ -824,6 +824,7 @@ export default function MyStudentsPage() {
                   active={selectedStudentId === s.id}
                   onOpen={() => setSelectedStudentId(s.id === selectedStudentId ? null : s.id)}
                   onWrite={() => navigate(`/chats?with=${s.id}`)}
+                  onInvite={() => setInvite({ open: true, name, email: s.email, phone: s.phone, studentId: s.id, emailSent: false })}
                 />
               );
             })}

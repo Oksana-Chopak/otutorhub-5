@@ -12,7 +12,7 @@
  * - XP total: 950 (не 875)
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { appOrigin } from "@/lib/webOrigin";
@@ -21,7 +21,8 @@ import { formatPrice, currencySymbol } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
 import { TimeZoneNote } from "@/components/TimeZoneNote";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,7 +63,7 @@ const TOTAL_XP = 950;
 
 // ── Step definitions ──────────────────────────────────────────────────────────
 
-import { ALL_STEPS, type StepDef, type StepProgress } from "@/lib/onboardingSteps";
+import { ALL_STEPS, type StepDef, type StepProgress, deferOnboarding, firstUndoneStep } from "@/lib/onboardingSteps";
 const BONUS = ALL_STEPS.filter(s => s.group === "bonus");
 
 // ── Confetti ──────────────────────────────────────────────────────────────────
@@ -104,6 +105,8 @@ function GhostBtn({ children, onClick, style = {} }: any) {
 }
 
 function XpSticker({ xp }: { xp: number }) {
+  // 15.11: XP прибрано рішенням ради (src/lib/gamification) — наклейка не рендериться ніде.
+  if (!GAMIFICATION_VISIBLE) return null;
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[14px] font-bold"
       style={{ background: "#fef9ec", color: "#92400e", outline: "1px solid #fbbf24", fontFamily: T.display }}>
@@ -1387,6 +1390,8 @@ const IncludedRow = ({ emoji, title, desc }: any) => (
 export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // 15.11: `auto` ставить дашборд, коли сам привів людину сюди (вона не просила).
+  const autoArrival = (useLocation().state as { auto?: boolean } | null)?.auto === true;
   const { user, roles, loading: authLoading } = useAuth();
   const { settings, updateSettings, isIndependent, loading: wsLoading, roleReady } = useWorkspaceSettings();
 
@@ -1445,6 +1450,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     hasPaymentRules:false, hasAutoCompleteChoice:false, hasGoogleCalendar:false, hasDebtAnswer:false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
+  // Предмет читається окремим запитом ПІСЛЯ основних — без цього прапорця «усе зроблено»
+  // хабової (її єдиний обовʼязковий крок — предмет) рахувалось би до відповіді.
+  const [subjectChecked, setSubjectChecked] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [victory, setVictory]     = useState<{ emoji:string; title:string; xp:number; isFinal:boolean }|null>(null);
   const [activeBonus, setActiveBonus] = useState<StepDef|null>(null);
@@ -1506,7 +1514,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       if (!cancelled) setProgressLoading(false);
 
       safe(supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(), null as any)
-        .then((r: any) => { if (r?.data?.subjects?.length > 0) patch({ hasSubject: true }); });
+        .then((r: any) => { if (r?.data?.subjects?.length > 0) patch({ hasSubject: true }); if (!cancelled) setSubjectChecked(true); });
       safe(supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1), {data:[]} as any)
         .then((r: any) => patch({ hasAvailability: (r.data?.length ?? 0) > 0 }));
       safe(supabase.from("referral_codes" as any).select("id").eq("tutor_id", user.id).limit(1), {data:[]} as any)
@@ -1612,6 +1620,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     /* Одиночний крок із дашборда: прогрес майстра не чіпаємо (людина його вже
        пройшла), а після збереження повертаємо туди, звідки прийшли. */
     if (singleStep) { navigate("/dashboard"); return true; }
+    manualBack.current = false; // рух уперед знову перестрибує зроблені кроки
     const next = idx + 1;
     // «людський крок» = індекс+1; зберігаємо крок, ЯКИЙ показати далі → next+1.
     // A15: спершу ЗАПИС; збій → тост і лишаємось на місці (прогрес не бреше).
@@ -1643,6 +1652,38 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const completeStep = async (id: number) => {
     if (await advance()) markDone(id);
   };
+
+  /* 15.11 (прохід «кожна кнопка кожної ролі»): хабова репетиторка, якій предмет уже
+     поставила школа, при кожному новому вході потрапляла сюди на екран «Крок 1 з 1 ·
+     Предмет обрано ✓ · Завершити →» — дотик заради дотику, і так щоразу, доки не
+     натисне. Тепер майстер не зупиняється на кроці, який уже закрито ділом (імпорт,
+     школа, попередній візит): іде до першого незробленого. Якщо незробленого немає,
+     а людину привів дашборд (`autoArrival`), майстер тихо завершується і повертає її
+     назад. Хто відкрив його сам (меню, банер) — бачить фінальний екран з бонусами.
+     «Назад» — свідомий крок назад: перестрибування вимикається до наступного «Далі». */
+  const manualBack = useRef(false);
+  const autoFinishing = useRef(false);
+  const progressReady = !progressLoading && subjectChecked;
+  useEffect(() => {
+    if (!progressReady || singleStep || manualBack.current || idx >= CORE.length) return;
+    const isDone = (s: StepDef) => stepIsDone(s.id);
+    if (!isDone(CORE[idx])) return;
+    const next = firstUndoneStep(CORE, isDone, idx);
+    if (next !== -1) { setIdx(next); return; }
+    if (autoArrival && completed.size === 0 && CORE.every(isDone)) {
+      if (autoFinishing.current) return;
+      autoFinishing.current = true;
+      void (async () => {
+        const err = await updateSettings({ onboarding_completed: true } as any);
+        if (err) { autoFinishing.current = false; setIdx(CORE.length); return; }
+        logEvent("onboarding_auto_finished");
+        navigate("/", { replace: true });
+      })();
+      return;
+    }
+    setIdx(CORE.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressReady, progress, completed, idx, singleStep, autoArrival]);
 
   // ── CSS animations (injected once) ─────────────────────────────────────────
   const styles = `
@@ -1747,12 +1788,14 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                   </p>
                 </>
               )}
-              <div className="mt-4 inline-flex">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
-                  style={{ background: "#fef9ec", color: "#92400e", outline: "1.5px solid #fbbf24", fontFamily: T.display }}>
-                  {t("onboardingFlowB.celebrationXp", { earned: earnedXP, total: TOTAL_XP })}
-                </span>
-              </div>
+              {GAMIFICATION_VISIBLE && (
+                <div className="mt-4 inline-flex">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
+                    style={{ background: "#fef9ec", color: "#92400e", outline: "1.5px solid #fbbf24", fontFamily: T.display }}>
+                    {t("onboardingFlowB.celebrationXp", { earned: earnedXP, total: TOTAL_XP })}
+                  </span>
+                </div>
+              )}
             </div>
 
             <p className="text-[14px] font-black uppercase tracking-widest mb-3" style={{ color: T.sub }}>
@@ -1906,7 +1949,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
 
           {/* Bottom nav */}
           <div className="flex items-center justify-between mt-4 min-h-[44px]">
-            <GhostBtn onClick={() => setIdx(i => Math.max(0,i-1))}
+            <GhostBtn onClick={() => { manualBack.current = true; setIdx(i => Math.max(0,i-1)); }}
               style={{ visibility: idx === 0 ? "hidden" : "visible" }}>
               {t("onboardingFlowB.back")}
             </GhostBtn>
@@ -1921,6 +1964,8 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               // а бейдж «Новий!» гасне чесно за onboarding_step.
               const err = await updateSettings({ onboarding_step: idx + 1 } as any);
               if (err) toast.error(t("onboardingFlowB.saveFailed"));
+              // 15.11: «пізніше» памʼятається на пристрої — дашборд більше не тягне сюди сам.
+              if (user) deferOnboarding(user.id);
               logEvent("onboarding_exit_later", { step: idx + 1 }); // C6
               navigate("/");
             }}

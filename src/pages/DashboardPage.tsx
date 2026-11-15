@@ -1,3 +1,5 @@
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
+import { onboardingDeferred } from "@/lib/onboardingSteps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAwardBadges } from "@/hooks/useAwardBadges";
 import { priceLabel } from "@/lib/pricing";
@@ -189,8 +191,14 @@ export default function DashboardPage() {
     if (settings.onboarding_completed) return;
     const sessionKey = `onboarding_redirected_${user.id}`;
     if (sessionStorage.getItem(sessionKey) === "1") return;
-    // A12: ключ ставить сам онбординг при прибутті.
-    navigate("/onboarding", { replace: true });
+    // 15.11: людина вже сказала «Зроблю пізніше» на цьому пристрої — не тягнемо її в майстер
+    // при кожному новому запуску (у застосунку з телефона sessionStorage живе до закриття,
+    // тож раніше майстер вискакував щоразу). Дашборд і далі веде туди банером.
+    if (onboardingDeferred(user.id)) return;
+    // A12: ключ ставить сам онбординг при прибутті. `auto` — майстер знає, що людина
+    // не просила його відкрити: якщо всі обовʼязкові кроки вже зроблені (хабовій предмет
+    // ставить школа), він тихо завершиться й поверне на дашборд, без зайвого «Завершити →».
+    navigate("/onboarding", { replace: true, state: { auto: true } });
   }, [wsLoading, user?.id, isTutor, isManager, settings, navigate]);
 
   const [loading, setLoading] = useState(true);
@@ -281,7 +289,8 @@ export default function DashboardPage() {
   // афірмації на головному екрані репетиторки ВИМКНЕНО — людина з 19
   // неоплаченими уроками не хоче бачити «0 рятівники». Нарахування лишається в
   // базі (бейджі/серії дають дні Pro), з екрана прибрано лише показ.
-  const SHOW_GAMIFICATION = false;
+  // 15.11: прапорець один на весь застосунок (онбординг, кабінет учня, меню) — src/lib/gamification.
+  const SHOW_GAMIFICATION = GAMIFICATION_VISIBLE;
   // Gamification: badge unlock toasts + streak card + referral nudge counters
   const gamification = useTutorGamification();
   const { badges, loading: gamificationLoading, streak, level } = gamification;
@@ -1960,8 +1969,12 @@ export default function DashboardPage() {
                     його й читали як «показати всі неоплачені». Тепер це посилання з
                     лічильником, що веде в борги.
                     amber-400 давав 1,54:1 на світлому тлі — на сонці напису просто
-                    немає. amber-700 лишає сигнал і дає 5,3:1 (аудит 10.09). */}
-                {pendingPayments.length > 0 && (
+                    немає. amber-700 лишає сигнал і дає 5,3:1 (аудит 10.09).
+                    15.11: репетиторці школи — ні. Її «очікують оплати» = уроки, за які
+                    школа ще не виплатила, і рівно це число вже стоїть на картці «До
+                    виплати» двома рядками нижче; а слово «оплати» читалось як «учні не
+                    заплатили» — гроші учнів репетиторці школи не показуємо (рішення 11.11). */}
+                {pendingPayments.length > 0 && !isHubTutor && (
                   <Link
                     to="/finances?tab=debts"
                     className="tap-44 inline-flex items-center gap-1 font-medium text-amber-700 underline-offset-2 hover:underline dark:text-amber-400"
@@ -2074,6 +2087,7 @@ export default function DashboardPage() {
               onOpenSchedule={() => navigate("/schedule")}
               canMarkPaid={isIndependentTutor || isManager}
               paidLabelKey={isManager ? "dayBlock.andStudentPaid" : "dayBlock.andPaid"}
+              isOwnLesson={isManager ? (l) => l.tutor_id === user?.id : undefined}
             />
           )}
 
@@ -2495,7 +2509,7 @@ export default function DashboardPage() {
                     {hubStudentCount ?? 0}
                   </p>
                   <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#62677E)" }}>
-                    {t("hubTutor.hubStudents")}
+                    {t("hubTutor.hubStudentsLabel", { count: hubStudentCount ?? 0 })}
                   </p>
                 </div>
                 <div
@@ -2515,7 +2529,7 @@ export default function DashboardPage() {
                     {hubLessonsTodayCount}
                   </p>
                   <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#62677E)" }}>
-                    {t("hubTutor.lessonsToday")}
+                    {t("hubTutor.lessonsTodayLabel", { count: hubLessonsTodayCount })}
                   </p>
                 </div>
               </div>
@@ -2556,7 +2570,7 @@ export default function DashboardPage() {
                 >
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#62677E)" }}>
-                      {t("hubTutor.hubStudents")}
+                      {t("hubTutor.hubStudentsTitle")}
                     </p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
                       {hubStudentCount ?? 0}
@@ -2661,7 +2675,7 @@ export default function DashboardPage() {
                 </p>
                 {pendingPayments.length > 0 && (
                   <span className="text-[14px] font-semibold" style={{ color: "var(--warning-text,#B45309)" }}>
-                    {pendingPayments.length} {pendingPayments.length === 1 ? t("lessonCard.lesson") : t("lessonCard.lessons")}
+                    {t("finances.lessonsCount", { count: pendingPayments.length })}
                   </span>
                 )}
               </div>

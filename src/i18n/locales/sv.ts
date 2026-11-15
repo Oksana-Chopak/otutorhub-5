@@ -228,6 +228,9 @@ export const sv: LocaleTranslations = {
     signOut: "Logga ut",
   },
   dayBlock: {
+    schoolTodayTitle: "{{count}} lektioner till i skolan idag · första kl. {{time}}",
+    schoolTodayTitle_one: "{{count}} lektion till i skolan idag · kl. {{time}}",
+    schoolTodayTitle_other: "{{count}} lektioner till i skolan idag · första kl. {{time}}",
     summariesTitle: "Anteckningar för {{count}} lektioner",
     tomorrowTitle: "Imorgon {{count}} lektioner, första kl. {{time}}",
     nowTitle: "Nu: {{name}}",
@@ -280,7 +283,7 @@ export const sv: LocaleTranslations = {
     addSummary: "Sammanfattning saknas",
     markPaid: "Markera som betald",},
   reviewPrompt: {
-    title: "Hur var din lektion med {{tutor}}?",
+    title: "Hur var lektionen?",
     commentPlaceholder: "Lägg till några ord (valfritt)…",
     submit: "Skicka omdöme",
     thanks: "Tack för ditt omdöme! 🌟",
@@ -383,6 +386,11 @@ export const sv: LocaleTranslations = {
   subscriptionDialogExtra: {
     planLine: "{{perMonth}}/mån · {{total}} engångs (−{{off}}%)",
     perMonth: "{{price}}/mån",
+  },
+  lessonFutureDone: {
+    title: "Lektionen har inte ägt rum än",
+    desc: "Den är planerad till {{when}}. Markera som genomförd redan nu? En genomförd lektion går direkt till betalningar.",
+    confirm: "Ja, markera",
   },
   lessonCancelConfirm: {
     title: "Avboka lektionen?",
@@ -2051,6 +2059,8 @@ export const sv: LocaleTranslations = {
     category_idea: "Idé",
     category_question: "Fråga",
     category_other: "Övrigt",
+    // 15.11: заявка «Керуєте школою?» (13.11) показувалась сирим ключем у скриньці.
+    category_school_request: "Skolförfrågan",
     noName: "Inget namn",
     filterAll: "Alla ({{count}})",
     filterNew: "Nya ({{count}})",
@@ -2678,6 +2688,13 @@ export const sv: LocaleTranslations = {
     rateFooterLabel: "Taxa per lektion",
     hubStudents: "hubbelever",
     lessonsToday: "lektioner idag",
+    hubStudentsTitle: "Elever i skolan",
+    hubStudentsLabel: "elever i skolan",
+    hubStudentsLabel_one: "elev i skolan",
+    hubStudentsLabel_other: "elever i skolan",
+    lessonsTodayLabel: "lektioner idag",
+    lessonsTodayLabel_one: "lektion idag",
+    lessonsTodayLabel_other: "lektioner idag",
     proActiveTitle: "Prenumeration aktiv — från hubben",
     proActiveDesc: "Alla funktioner är öppna. Inget att betala.",
   },
@@ -4604,6 +4621,8 @@ export const sv: LocaleTranslations = {
     findTutorBtn: "Hitta en lärare",
     noHomework: "Inga läxor ännu",
     howToPay: "Hur man betalar",
+    alreadyPaidTitle: "Redan betalat?",
+    alreadyPaidSub: "Tryck när du har betalat — betalningen bekräftas och skulden försvinner.",
     noLessonsCard: "Din första lektion väntar ✨",
     paidStatus: "Betald",
     awaitingStatus: "Väntar",
@@ -5643,6 +5662,7 @@ export const sv: LocaleTranslations = {
     monthdayLabel: "Dag i månaden",
   },
   personCard: {
+    invite: "Bjud in",
     copy: "Kopiera",
     pendingEntry: "⏳ Väntar på inloggning",
     debt: "⚠️ Skuld {{amount}}",

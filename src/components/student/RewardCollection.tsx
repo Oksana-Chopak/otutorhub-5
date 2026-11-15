@@ -3,6 +3,7 @@ import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import type { StudentReward } from "@/hooks/useStudentGamification";
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 
 interface Props {
   rewards: StudentReward[];
@@ -29,11 +30,14 @@ export function RewardCollection({ rewards, loading, earnedAchievements, totalAc
           <Sparkles className="h-4 w-4" style={{ color: C.teal }} />
           {t("rewardCollection.title")}
         </h2>
-        <Link to="/student/achievements" style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.tealD, textDecoration: "none" }}>
-          {typeof earnedAchievements === "number" && typeof totalAchievements === "number" && totalAchievements > 0
-            ? `🏅 ${t("rewardCollection.achievementsCount", { earned: earnedAchievements, total: totalAchievements })} →`
-            : `${t("rewardCollection.seeAll")} →`}
-        </Link>
+        {/* 15.11: досягнення — гейміфікація (src/lib/gamification); нагороди від репетитора лишаються. */}
+        {GAMIFICATION_VISIBLE && (
+          <Link to="/student/achievements" style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.tealD, textDecoration: "none" }}>
+            {typeof earnedAchievements === "number" && typeof totalAchievements === "number" && totalAchievements > 0
+              ? `🏅 ${t("rewardCollection.achievementsCount", { earned: earnedAchievements, total: totalAchievements })} →`
+              : `${t("rewardCollection.seeAll")} →`}
+          </Link>
+        )}
       </div>
 
       {loading ? null : rewards.length === 0 ? (

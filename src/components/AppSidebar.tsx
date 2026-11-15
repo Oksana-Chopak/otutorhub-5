@@ -1,3 +1,4 @@
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 import { Link, NavLink as RouterNavLink, useNavigate } from "react-router-dom";
 import { CORE_TOTAL } from "@/lib/onboardingSteps";
 import { useTranslation } from "react-i18next";
@@ -66,6 +67,8 @@ type NavItem = {
   badgeKey?: "availability" | "chats" | "subscription";
   independentOnly?: boolean;
   superadminOnly?: boolean;
+  /** Пункт гейміфікації — у меню лише коли її показ увімкнено (src/lib/gamification). */
+  gamified?: boolean;
 };
 
 // Single 5-item navigation per role. All other pages live under /profile.
@@ -81,7 +84,8 @@ const allNavItems: NavItem[] = [
   // Достижения — for BOTH tutor kinds: the hub tutor's cabinet must feel as full
   // and motivating as the manager's (streak/level/badges are computed for them too).
   { to: "/availability", labelKey: "nav.availability", icon: Clock3, roles: ["tutor"] },
-  { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"] },
+  // 15.11: рішення ради 01.11 «викинути XP/серії» — пункт ховається разом із гейміфікацією.
+  { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"], gamified: true },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
   // Manager
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager"] },
@@ -105,7 +109,7 @@ const allNavItems: NavItem[] = [
   { to: "/chats", labelKey: "studentNav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
   // 24.09 (аудит шляхів): сторінка досягнень учня не мала входу в навігації —
   // дістатись можна було лише з картки нагород на дашборді.
-  { to: "/student/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["student"] },
+  { to: "/student/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["student"], gamified: true },
   { to: "/student/profile", labelKey: "studentNav.profile", icon: UserCircle, roles: ["student"] },
 ];
 
@@ -165,6 +169,7 @@ export function AppSidebar() {
 
   const navItems = allNavItems.filter((item) => {
     if (item.superadminOnly) return isSuperadmin; // видимість — лише платформний прапор
+    if (item.gamified && !GAMIFICATION_VISIBLE) return false; // 15.11: одна правда з дашбордом
     if (!item.roles.some((r) => roles.includes(r))) return false;
     // Аудит 01.09: поки налаштування летять, прапор = false, тож пункти
     // «Мої учні» і «Гаманці» встигали блимнути і зникнути. Під час завантаження

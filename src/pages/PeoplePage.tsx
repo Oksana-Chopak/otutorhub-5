@@ -167,7 +167,9 @@ export default function PeoplePage() {
 
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
-  const [activeRoleTab, setActiveRoleTab] = useState<"tutors" | "students" | "managers">("tutors");
+  // 15.11: школа відкриває «Людей» здебільшого заради учнів (їх десятки, репетиторів —
+  // кілька) — список учнів і є першим екраном; решта вкладок на місці.
+  const [activeRoleTab, setActiveRoleTab] = useState<"tutors" | "students" | "managers">("students");
   const [addForm, setAddForm] = useState({
     first_name: "",
     last_name: "",
@@ -1028,6 +1030,9 @@ export default function PeoplePage() {
     return fullName(a).localeCompare(fullName(b), "uk");
   };
   const tutors = filteredUsers.filter((u) => u.role === "tutor").sort(sortByRegistration);
+  const tabRole = activeRoleTab === "tutors" ? "tutor" : activeRoleTab === "managers" ? "manager" : "student";
+  const tabPeople = users.filter((u) => u.role === tabRole);
+  const showStatusPills = statusFilter !== "all" || tabPeople.length >= 6 || tabPeople.some((u) => !!u.archived_at);
   const students = filteredUsers.filter((u) => u.role === "student").sort(sortByRegistration);
   const managers = filteredUsers.filter((u) => u.role === "manager");
   const noRole = filteredUsers.filter((u) => !u.role);
@@ -1367,8 +1372,12 @@ export default function PeoplePage() {
         <ErrorState onRetry={() => void loadData()} />
       )}
 
-      {/* ── STATUS PILLS ── */}
-      {!loading && !loadError && (
+      {/* ── STATUS PILLS ──
+          15.11 («мінімум виборів на сторінці»): пʼять фільтрів над списком із трьох
+          людей — п'ять рішень, яких ніхто не просив. Фільтри зʼявляються, коли список
+          справді довгий, коли є архів (інакше його не відкрити) або коли фільтр уже
+          ввімкнено (щоб його можна було зняти). */}
+      {!loading && !loadError && showStatusPills && (
         <div className="mb-3 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {[
             { value: "all", label: t("people.statusAll") },

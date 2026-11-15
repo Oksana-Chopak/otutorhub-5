@@ -284,6 +284,9 @@ export default function StudentPaymentsPage() {
   const tutorsWithDetails = tutorPayInfos.filter(
     (t) => t.payment_details && t.payment_details.trim(),
   );
+  const tutorsDueWithoutDetails = tutorPayInfos.filter(
+    (tp) => !(tp.payment_details && tp.payment_details.trim()) && (dueByTutor[tp.tutor_id] ?? 0) > 0,
+  );
 
   return (
     <>
@@ -414,6 +417,36 @@ export default function StudentPaymentsPage() {
                       💳 {t("studentPagesExtra.payNow")}
                     </button>
                   )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 15.11 (прохід по ролях): учень школи без реквізитів (школа їх не вписала) після
+            «💳 N уроків без оплати → Оплатити» потрапляв сюди й не мав жодної дії, крім чату:
+            «Я оплатив(ла)» жила лише всередині блоку реквізитів. Заявка не залежить від
+            реквізитів — база сама адресує її тому, хто отримує гроші (менеджерам школи або
+            репетитору), тож кнопка є для кожного, кому учень винен. */}
+        {tutorsDueWithoutDetails.length > 0 && (
+          <div style={{ borderRadius: 18, padding: 16, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
+            <h2 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{t("studentPagesExtra.alreadyPaidTitle")}</h2>
+            <p style={{ marginTop: 3, fontSize: 14, color: "var(--sub,#62677E)", lineHeight: 1.45 }}>{t("studentPagesExtra.alreadyPaidSub")}</p>
+            <ul className="space-y-2" style={{ listStyle: "none", margin: "8px 0 0", padding: 0 }}>
+              {tutorsDueWithoutDetails.map((tp) => (
+                <li key={tp.tutor_id}>
+                  <p style={{ marginTop: 8, fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "var(--ds-txt,#0f0f1a)" }}>
+                    {tp.tutor_name} · {formatPrice(dueByTutor[tp.tutor_id] ?? 0, tp.currency, { decimals: 0 })}
+                  </p>
+                  <IPaidButton
+                    autoOpen={autoPaidTutor === tp.tutor_id}
+                    tutorId={tp.tutor_id}
+                    tutorName={tp.tutor_name}
+                    amountDue={dueByTutor[tp.tutor_id] ?? 0}
+                    currency={tp.currency}
+                    pending={pendingClaims[tp.tutor_id] ?? null}
+                    onCreated={() => void loadClaims()}
+                  />
                 </li>
               ))}
             </ul>

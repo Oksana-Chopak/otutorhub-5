@@ -40,7 +40,7 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
   );
 }
 
-export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false, onJoin, onComplete, onWriteSummary, onCloseDay, onOpenQueue, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid" }: {
+export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false, onJoin, onComplete, onWriteSummary, onCloseDay, onOpenQueue, onPlanNext, onOpenSchedule, canMarkPaid = true, paidLabelKey = "dayBlock.andPaid", isOwnLesson }: {
   lessons: DayLesson[];
   tomorrow: { count: number; firstTime: string | null };
   pendingCount: number;
@@ -59,6 +59,11 @@ export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false
   canMarkPaid?: boolean;
   /** Ключ підпису чекбокса оплати. Менеджеру — явний «і учень оплатив»: чекбокс пише student_payment_status, а «і оплачено» читалось як виплата репетитору. */
   paidLabelKey?: string;
+  /** 15.11: чий це урок. Менеджер бачить уроки всіх репетиторів, але «Приєднатися»,
+      «Додати посилання» і «Конспект для N уроків» — дії того, хто ВЕДЕ урок. Прохід
+      показав менеджерці школи, яка не викладає, головною дією дня «✍️ Конспект для 4
+      уроків — Написати» (чужих уроків). Позначити проведеним — може і менеджер. */
+  isOwnLesson?: (l: DayLesson) => boolean;
 }) {
   const { t } = useTranslation();
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -68,11 +73,13 @@ export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false
   const [noSummaryIds, setNoSummaryIds] = useState<string[]>([]);
 
   const sorted = useMemo(() => [...lessons].sort((a, b) => a.starts_at.localeCompare(b.starts_at)), [lessons]);
+  // Дії ведучого (приєднатися, посилання, конспект) — лише по СВОЇХ уроках.
+  const own = useMemo(() => (isOwnLesson ? sorted.filter(isOwnLesson) : sorted), [sorted, isOwnLesson]);
   const endMs = (l: DayLesson) => new Date(l.starts_at).getTime() + (l.duration_minutes ?? 60) * 60000;
-  const current  = sorted.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() <= nowMs && nowMs < endMs(l));
-  const soon     = sorted.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs && new Date(l.starts_at).getTime() - nowMs <= 30 * 60000);
+  const current  = own.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() <= nowMs && nowMs < endMs(l));
+  const soon     = own.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs && new Date(l.starts_at).getTime() - nowMs <= 30 * 60000);
   const justPast = sorted.find((l) => l.status === "scheduled" && endMs(l) <= nowMs);
-  const completedIds = useMemo(() => sorted.filter((l) => l.status === "completed").map((l) => l.id), [sorted]);
+  const completedIds = useMemo(() => own.filter((l) => l.status === "completed").map((l) => l.id), [own]);
 
   useEffect(() => {
     let off = false;
@@ -156,7 +163,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false
       </div>
     );
   // P3: сьогоднішній МАЙБУТНІЙ урок (>30 хв) — власний стан, а не фолбек у «закрито».
-  const nextToday = sorted.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs);
+  const nextToday = own.find((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs);
   if (nextToday) {
     const timeStr = new Date(nextToday.starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
     return (<>
@@ -165,6 +172,19 @@ export function DayBlock({ lessons, tomorrow, pendingCount, pendingOlder = false
         onAction={() => nextToday.meetingHref ? onJoin(nextToday.meetingHref, nextToday.id) : onWriteSummary(nextToday.id)} />
       {closeBar}
     </>);
+  }
+  // 15.11: менеджер, який сам не веде уроків, бачить, що день школи ще триває, —
+  // а не «Конспект» чужих уроків і не «🌙 день закрито» о 10-й ранку.
+  if (isOwnLesson) {
+    const othersAhead = sorted.filter((l) => !isOwnLesson(l) && l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs);
+    if (othersAhead.length > 0) {
+      const firstTime = new Date(othersAhead[0].starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
+      return (<>
+        <DayCard emoji="🏫" title={t("dayBlock.schoolTodayTitle", { count: othersAhead.length, time: firstTime })}
+          action={t("dayBlock.openSchedule")} onAction={onOpenSchedule} />
+        {closeBar}
+      </>);
+    }
   }
   if (noSummaryIds.length > 0)
     return (<>

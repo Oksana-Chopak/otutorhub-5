@@ -176,10 +176,12 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <div style={{ minWidth: 0 }}>
           <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", lineHeight: 1.25 }}>
-            {t("reviewPrompt.title", { tutor: current.tutor_name }) || `Як пройшов урок з ${current.tutor_name}?`}
+            {/* 15.11: «з Ірина Коваль» — імʼя не відмінюється, тож заголовок без імені,
+                а хто вів урок — у рядку нижче, поруч із предметом і датою. */}
+            {t("reviewPrompt.title")}
           </p>
           <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "#6b7280", marginTop: 3 }}>
-            {current.subject} · {fmtDate}
+            {[current.tutor_name, current.subject, fmtDate].filter(Boolean).join(" · ")}
           </p>
         </div>
         <button

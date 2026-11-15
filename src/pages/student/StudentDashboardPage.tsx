@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { StudentNextBlock } from "@/components/StudentNextBlock";
+import { StudentNextBlock, pickStudentNext, type StudentNextBlockProps } from "@/components/StudentNextBlock";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { StudentOnboarding } from "@/components/student/StudentOnboarding";
@@ -15,6 +15,7 @@ import { useStudentAchievementCelebration } from "@/hooks/useStudentAchievementC
 import { RewardCollection } from "@/components/student/RewardCollection";
 import { StudentStreakCard } from "@/components/student/StudentStreakCard";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
@@ -84,7 +85,8 @@ export default function StudentDashboardPage() {
   } = useStudentGamification();
   // Розблокування ачівки святкується ОДНАКОВО на дашборді й на сторінці
   // досягнень — інакше той, хто відкрив лише дашборд, не дізнається про неї.
-  useStudentAchievementCelebration(achievements, rewardsLoading, gamificationError);
+  // 15.11: гейміфікацію не показуємо (src/lib/gamification) — і тостів «Нова ачівка» теж немає.
+  useStudentAchievementCelebration(achievements, rewardsLoading || !GAMIFICATION_VISIBLE, gamificationError);
 
   // Tutor-less student with an OPEN request: show «запит у роботі» instead of
   // re-offering the find-a-tutor CTA — the request used to be invisible after
@@ -316,6 +318,22 @@ export default function StudentDashboardPage() {
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
 
+  const nextProps: StudentNextBlockProps = {
+    hasTutor,
+    upcomingCount: upcoming.length,
+    nextStartsAt: upcoming[0]?.starts_at ?? null,
+    nextSubject: upcoming[0]?.subject ?? null,
+    nextMeetingUrl: upcoming[0]?.meeting_url ?? null,
+    pendingPaymentsCount,
+    homeworkCount,
+    weeklyCount,
+    weeklyRecord,
+    lessonsBalance,
+  };
+  const nextKey = !loading && !ctxLoading ? pickStudentNext(nextProps, nowTick) : null;
+  const showPayTile = pendingPaymentsCount > 0 && nextKey !== "debt";
+  const showHomeworkTile = homeworkCount > 0 && nextKey !== "homework";
+
   return (
     <>
       <div className="space-y-5" style={{ fontFamily: DS.body, color: DS.txt }}>
@@ -337,20 +355,7 @@ export default function StudentDashboardPage() {
         <ReviewPromptCard />
 
         {/* 42: StudentNextBlock — реєстр «що далі» за взірцем DayBlock */}
-        {!loading && !ctxLoading && (
-          <StudentNextBlock
-            hasTutor={hasTutor}
-            upcomingCount={upcoming.length}
-            nextStartsAt={upcoming[0]?.starts_at ?? null}
-            nextSubject={upcoming[0]?.subject ?? null}
-            nextMeetingUrl={upcoming[0]?.meeting_url ?? null}
-            pendingPaymentsCount={pendingPaymentsCount}
-            homeworkCount={homeworkCount}
-            weeklyCount={weeklyCount}
-            weeklyRecord={weeklyRecord}
-            lessonsBalance={lessonsBalance}
-          />
-        )}
+        {!loading && !ctxLoading && <StudentNextBlock {...nextProps} />}
         {/* Block 1: Upcoming lessons — DS cards with dark time rail */}
         <div style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -472,8 +477,13 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        {/* Block 2 & 3: Quick stats — DS bubbles */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Block 2 & 3: Quick stats — DS bubbles.
+            15.11: плитка — лише коли каже щось НОВЕ. «Очікують оплати 8» під картою
+            «💳 8 уроків без оплати → Оплатити» — те саме число двічі; «0» — шум, а вхід
+            в «Оплати» і «ДЗ» і так є в нижньому меню. */}
+        {(showPayTile || showHomeworkTile) && (
+        <div className={`grid gap-3 ${showPayTile && showHomeworkTile ? "grid-cols-2" : "grid-cols-1"}`}>
+          {showPayTile && (
           <Link to="/student/payments" style={{ textDecoration: "none" }}>
             <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(245,181,68,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -485,6 +495,8 @@ export default function StudentDashboardPage() {
               </div>
             </div>
           </Link>
+          )}
+          {showHomeworkTile && (
           <Link to="/student/homework" style={{ textDecoration: "none" }}>
             <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -496,17 +508,22 @@ export default function StudentDashboardPage() {
               </div>
             </div>
           </Link>
+          )}
         </div>
+        )}
 
-        {/* Block 4: Progress + personal record */}
-        <StudentProgressBar
-          completedCount={completedCount}
-          weeklyCount={weeklyCount}
-          weeklyRecord={weeklyRecord}
-        />
-
-        {/* Block 4b: серія тижнів + ціль тижня (§4 аудиту 24.09) */}
-        <StudentStreakCard streak={streak} state={streakStatus} goal={goal} />
+        {/* Block 4: Progress + personal record; 4b: серія тижнів + ціль тижня (§4 аудиту 24.09).
+            15.11: рівні, рекорди й серії — гейміфікація, прибрана рішенням ради 01.11. */}
+        {GAMIFICATION_VISIBLE && (
+          <>
+            <StudentProgressBar
+              completedCount={completedCount}
+              weeklyCount={weeklyCount}
+              weeklyRecord={weeklyRecord}
+            />
+            <StudentStreakCard streak={streak} state={streakStatus} goal={goal} />
+          </>
+        )}
 
         {/* Block 5: Reward collection */}
         <RewardCollection

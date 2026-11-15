@@ -44,10 +44,29 @@ export function LandingSupportBubble() {
     let until = 0;
     try { until = Number(localStorage.getItem(DISMISS_KEY) ?? 0); } catch { /* приватний режим */ }
     if (until > Date.now()) return;
-    // Показуємо не миттєво: спершу людина має побачити сам лендінг.
-    const show = window.setTimeout(() => setHidden(false), 2500);
-    const shrink = window.setTimeout(() => setExpanded(false), 9000);
-    return () => { window.clearTimeout(show); window.clearTimeout(shrink); };
+    /* Показуємо не миттєво: спершу людина має побачити сам лендінг.
+       15.11 (прохід по екранах, 390×844): через 2,5 с бульбашка з підписом лягала
+       рівно на «Спробувати з прикладом» — головну дію першого екрана, і накривала її
+       ще 6,5 с. Тепер вона зʼявляється, коли людина ПРОГОРТАЄ перший екран (там уже
+       немає кнопки, яку можна накрити), або через 25 с бездіяльності — хто сидить на
+       першому екрані так довго, той, найімовірніше, має питання. */
+    let shrink = 0;
+    let shown = false;
+    const reveal = () => {
+      if (shown) return;
+      shown = true;
+      setHidden(false);
+      shrink = window.setTimeout(() => setExpanded(false), 6500);
+      window.removeEventListener("scroll", onScroll);
+    };
+    const onScroll = () => { if (window.scrollY > window.innerHeight * 0.6) reveal(); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const late = window.setTimeout(reveal, 25000);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(late);
+      window.clearTimeout(shrink);
+    };
   }, []);
 
   // 15.09: бульбашка висіла ПОВЕРХ відкритої анкети підбору (z-index 60 проти

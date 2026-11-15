@@ -20,6 +20,7 @@ import { studentLessonsOrFilter } from "@/lib/studentLessons";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { ErrorState } from "@/components/ErrorState";
 import { pairsRel } from "@/lib/pairsRel";
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 
 interface MyTutor {
   id: string;
@@ -222,10 +223,13 @@ export default function StudentProfilePage() {
               </div>
             )}
 
-            {/* Gamification — level & progress (real completed-lessons XP) */}
-            <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", padding: 16 }}>
-              <StudentProgressBar completedCount={completed} weeklyCount={weekly} weeklyRecord={weeklyRecord} />
-            </div>
+            {/* Gamification — level & progress (real completed-lessons XP).
+                15.11: прибрано разом з усією гейміфікацією (src/lib/gamification). */}
+            {GAMIFICATION_VISIBLE && (
+              <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", padding: 16 }}>
+                <StudentProgressBar completedCount={completed} weeklyCount={weekly} weeklyRecord={weeklyRecord} />
+              </div>
+            )}
 
             {/* Editable details */}
             <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", padding: 18 }} className="space-y-4">

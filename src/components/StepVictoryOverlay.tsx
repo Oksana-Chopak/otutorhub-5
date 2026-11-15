@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { useTranslation } from "react-i18next";
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 
 interface Props {
   emoji: string;
@@ -71,17 +72,20 @@ export function StepVictoryOverlay({ emoji, title, xp, isFinal, onDone }: Props)
             {isFinal ? t("stepVictory.allDone") : t("stepVictory.stepDone")}
           </p>
         </div>
-        <div className="relative">
-          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-success px-3 py-1.5 text-sm font-bold text-primary-foreground shadow-md">
-            +{xp} XP
-          </span>
-          <span
-            className="animate-xp-float pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 text-sm font-bold text-primary"
-            aria-hidden
-          >
-            +{xp}
-          </span>
-        </div>
+        {/* 15.11: XP прибрано рішенням ради (src/lib/gamification) — лишається саме свято кроку. */}
+        {GAMIFICATION_VISIBLE && (
+          <div className="relative">
+            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-success px-3 py-1.5 text-sm font-bold text-primary-foreground shadow-md">
+              +{xp} XP
+            </span>
+            <span
+              className="animate-xp-float pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 text-sm font-bold text-primary"
+              aria-hidden
+            >
+              +{xp}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

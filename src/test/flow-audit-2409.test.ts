@@ -115,6 +115,9 @@ describe("аудит шляхів 24.09: навігація під щоденн�
   it("«Доступні години» і досягнення учня мають вхід у меню", () => {
     const side = src("src/components/AppSidebar.tsx");
     expect(side).toMatch(/\{ to: "\/availability", labelKey: "nav\.availability"/);
-    expect(side).toMatch(/\{ to: "\/student\/achievements", labelKey: "nav\.achievements", icon: Trophy, roles: \["student"\] \}/);
+    // 15.11: пункт лишається описаним, але показується лише разом із гейміфікацією
+    // (рішення ради 01.11 «викинути XP/серії» — src/lib/gamification).
+    expect(side).toMatch(/\{ to: "\/student\/achievements", labelKey: "nav\.achievements", icon: Trophy, roles: \["student"\], gamified: true \}/);
+    expect(side).toMatch(/if \(item\.gamified && !GAMIFICATION_VISIBLE\) return false;/);
   });
 });
