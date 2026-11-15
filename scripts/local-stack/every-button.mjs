@@ -60,7 +60,7 @@ const hubStudent = hubTutor ? idOf(`select hm.user_id from hub_members hm
   limit 1`) : "";
 const ONLY_ROUTES = process.env.EB_ROUTES?.split(",");
 const ROUTES = {
-  manager: ["/dashboard", "/schedule", "/schedule?view=week", "/people", "/people?tab=students", "/groups", "/chats", "/finances", "/finances?tab=debts", "/wallets", "/referrals", "/availability", "/profile", "/audit",
+  manager: ["/dashboard", "/schedule", "/schedule?view=week", "/people?tab=tutors", "/people", "/groups", "/chats", "/finances", "/finances?tab=debts", "/wallets", "/referrals", "/availability", "/profile", "/audit",
     "/schedule?create=1", "/people?add=student", "/people?add=tutor", ...(hubStudent && hubTutor ? [`/people?assign=${hubStudent}&tutor=${hubTutor}`, `/people?assign=${hubStudent}`] : [])],
   hubtutor: ["/dashboard", "/schedule", "/groups", "/chats", "/finances", "/availability", "/achievements", "/profile"],
   student: ["/student-dashboard", "/student/schedule", "/student/payments", "/student/homework", "/student/achievements", "/student/profile", "/chats"],

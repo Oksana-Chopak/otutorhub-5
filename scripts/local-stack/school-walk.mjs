@@ -142,7 +142,7 @@ async function main() {
   ok(step);
 
   step = "3в ставка репетитора";
-  await s.go("/people");
+  await s.go("/people?tab=tutors"); // 15.11: «Люди» відкриваються на учнях
   await s.page.locator('div[role="button"]', { hasText: "Ірина Коваль" }).first().click(); await wait(1000);
   await s.page.getByRole("button", { name: "Налаштування репетитора" }).click(); await wait(1000);
   await s.page.getByPlaceholder("напр. 350").first().fill("300");

@@ -107,7 +107,7 @@ async function ownerInOwnSchool() {
   await dlg.getByLabel("Електронна пошта").fill(E.tutor);
   const custom = dlg.getByPlaceholder("Або впиши свій предмет…"); await custom.fill("Математика"); await custom.press("Enter");
   await dlg.getByRole("button", { name: "Додати", exact: true }).last().click(); await wait(3000);
-  await s.go("/people");
+  await s.go("/people?tab=tutors"); // 15.11: «Люди» відкриваються на учнях
   await s.page.locator('div[role="button"]', { hasText: "Петро Городній" }).first().click(); await wait(1000);
   await s.page.getByRole("button", { name: "Налаштування репетитора" }).click(); await wait(1000);
   await s.page.getByPlaceholder("напр. 350").first().fill("400");
