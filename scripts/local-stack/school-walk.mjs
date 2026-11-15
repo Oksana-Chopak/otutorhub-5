@@ -268,7 +268,7 @@ async function main() {
   s = await session();
   await s.signup(`&email=${encodeURIComponent(E.tutor)}&role=tutor`, "Ірина", "Коваль", null);
   await s.go("/dashboard", 4500);
-  await s.see(new RegExp(`Хаб «${SCHOOL}»`), "назва СВОЄЇ школи на плашці");
+  await s.see(new RegExp(`Школа «${SCHOOL}»`), "назва СВОЄЇ школи на плашці"); // 15.11: «хаб» → «школа»
   await s.see(/Соломія Гнатюк/, "індивідуальний урок");
   await s.see(/250\s*₴[\s\S]*1 урок/, "до виплати від школи — проведене групове заняття, 250");
   await s.see(/300\s*₴/, "своя виплата");

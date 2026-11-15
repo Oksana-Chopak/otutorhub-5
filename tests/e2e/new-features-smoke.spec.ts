@@ -35,7 +35,7 @@ test.describe("New features — smoke", () => {
     await page.waitForLoadState("networkidle");
     console.log("[hub-manager] landed on:", page.url());
     await expect(
-      page.getByRole("button", { name: /менеджер хабу|hub manager|hubbansvarig/i }),
+      page.getByRole("button", { name: /менеджер (хабу|школи)|hub manager|hubbansvarig/i }),
     ).toBeVisible({ timeout: 10_000 });
     await ctx.close();
   });

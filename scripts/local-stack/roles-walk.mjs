@@ -165,7 +165,7 @@ async function hubTutor() {
   const s = await session();
   await s.signup(`&email=${encodeURIComponent(E.tutor)}&role=tutor`, "Петро", "Городній", null);
   await s.go("/dashboard", 5000);
-  await s.see(new RegExp(`Хаб «Моя школа ${run}»`), "назва своєї школи");
+  await s.see(new RegExp(`Школа «Моя школа ${run}»`), "назва своєї школи"); // 15.11: «хаб» → «школа»
   await s.notSee(/700/, "ціна школи на «Моєму дні» репетитора");
   ok();
 
