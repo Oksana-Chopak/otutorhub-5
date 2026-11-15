@@ -2426,19 +2426,22 @@ export default function DashboardPage() {
                   boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)",
                 }}
               >
-                <div className="flex items-start justify-between gap-2.5">
+                {/* 15.11: підпис і чип школи ділили один рядок — довга назва школи стискала
+                    підпис у стовпчик «ДО / ВИПЛАТИ / ВІД / ШКОЛИ». Тепер підпис цілий, а чип,
+                    якщо не вміщається, переходить нижче й обрізає задовгу назву. */}
+                <div className="flex flex-wrap items-center justify-between gap-2.5">
                   <span
-                    className="text-[14px] font-bold uppercase tracking-[0.08em]"
+                    className="whitespace-nowrap text-[14px] font-bold uppercase tracking-[0.08em]"
                     style={{ color: "rgba(255,255,255,.6)" }}
                   >
                     💼 {t("hubTutor.payoutDueTitle")}
                   </span>
                   <span
-                    className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[14px] font-bold"
+                    className="inline-flex h-[30px] max-w-full min-w-0 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold"
                     style={{ background: "rgba(255,255,255,.16)", color: "#fff" }}
                   >
-                    <GraduationCap className="h-[15px] w-[15px]" />
-                    {t("hubTutor.hubChip", { name: myHub?.name ?? t("hubTutor.hubFallbackName") })}
+                    <GraduationCap className="h-[15px] w-[15px] flex-shrink-0" />
+                    <span className="truncate">{t("hubTutor.hubChip", { name: myHub?.name ?? t("hubTutor.hubFallbackName") })}</span>
                   </span>
                 </div>
                 <p
