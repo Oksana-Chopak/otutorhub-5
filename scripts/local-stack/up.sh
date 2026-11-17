@@ -35,6 +35,9 @@ dropdb --if-exists stackdb
 cat > "$CACHE/pgrst.conf" <<CONF
 db-uri = "postgres://$PGUSER@/stackdb?host=$PGHOST&port=$PGPORT"
 db-schemas = "public"
+# як у проді: API віддає не більше 1000 рядків і не каже, що обрізав (17.11 — без цього стенд
+# не бачив, що ліміт 2000 у клієнті на проді мовчки повертає 1000)
+db-max-rows = 1000
 db-extra-search-path = "public, extensions"
 db-anon-role = "anon"
 jwt-secret = "$SECRET"

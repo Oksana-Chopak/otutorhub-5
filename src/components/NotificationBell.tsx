@@ -1,4 +1,5 @@
 import { Bell } from "lucide-react";
+import { isSafeInternalPath } from "@/lib/safePath";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -77,7 +78,8 @@ export function NotificationBell({ className }: Props) {
 
   const handleClick = async (n: AppNotification) => {
     if (!n.read) await markRead(n.id);
-    if (n.link) navigate(linkForReader(n.link, pureStudent));
+    // посилання у сповіщенні приходить ззовні — відкриваємо лише шлях усередині застосунку
+    if (isSafeInternalPath(n.link)) navigate(linkForReader(n.link, pureStudent));
   };
 
   const displayed = notifications.slice(0, 10);

@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { forgetCoalesced } from "@/lib/coalesce";
 
 /** Ключ, під яким react-query тримає кеш у localStorage (App.tsx, офлайн D). */
 export const RQ_PERSIST_KEY = "otutorhub.rq-cache.v1";
@@ -19,6 +20,7 @@ export function registerQueryClient(client: QueryClient): void {
  */
 export function purgeLocalCaches(): void {
   try { registered?.clear(); } catch { /* кеш у памʼяті — best-effort */ }
+  forgetCoalesced(); // спільні відповіді оболонки (чи суперадмін, лічильник чатів)
   try { window.localStorage.removeItem(RQ_PERSIST_KEY); } catch { /* приватний режим */ }
   try { window.sessionStorage.clear(); } catch { /* приватний режим */ }
 }

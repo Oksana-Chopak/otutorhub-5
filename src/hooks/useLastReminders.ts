@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { coalesce } from "@/lib/coalesce";
 import { useAuth } from "@/hooks/useAuth";
 
 /**
@@ -28,13 +29,14 @@ export function useLastReminders() {
     // тесті) означають лише «підпису не буде».
     let rows: Array<{ tutor_id: string; student_id: string; sent_at: string }> = [];
     try {
-      const { data, error } = await supabase
+      // хук стоїть і в пошуку оболонки, і на сторінці — один запит на обох, поки він летить
+      const { data, error } = await coalesce(`last-reminders:${user.id}`, () => supabase
         .from("lesson_payment_reminders")
         .select("tutor_id, student_id, sent_at, reminder_kind")
         .gte("sent_at", since)
         .in("reminder_kind", ["manual", "telegram_button"])
         .order("sent_at", { ascending: false })
-        .limit(500);
+        .limit(500));
       if (error) return;
       rows = (data ?? []) as typeof rows;
     } catch {

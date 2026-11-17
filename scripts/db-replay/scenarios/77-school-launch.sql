@@ -415,4 +415,132 @@ SELECT pg_temp.expect('sa', '(12) власниці платформи — зая
   'true|1|true|/admin');
 DO $$ BEGIN RAISE NOTICE '✅ (12) заявка на школу приходить власниці платформи як заявка, а не як відгук'; END $$;
 
+
+-- (13) ШВИДКІ ВʼЮ (17.11, міграція 20261117120000): `lessons_visible` і `lesson_participants_visible`
+-- рахують «чи це урок моєї школи» один раз на рядок замість девʼяти. Це перевипуск вʼю з власним
+-- менеджерським армом, тож доводимо НЕ «схоже», а «побайтово те саме»: нижче — попереднє
+-- визначення дослівно, і кожна людина фікстури (менеджери трьох шкіл, репетитори, учні,
+-- самостійна, суперадмін у двох лінзах) мусить побачити через нове вʼю рівно ті самі рядки й
+-- ті самі гроші, що й через старе.
+CREATE VIEW public.lessons_visible_old WITH (security_invoker = false) AS
+ WITH caller AS (
+         SELECT auth.uid() AS uid,
+            has_role(auth.uid(), 'manager'::app_role) AS is_manager
+        )
+ SELECT l.id,
+    l.tutor_id,
+    l.student_id,
+    l.created_by,
+    l.subject,
+    l.subject_id,
+    l.starts_at,
+    l.duration_minutes,
+    l.status,
+    l.notes,
+    l.source,
+    l.lesson_type,
+    l.group_id,
+    l.created_at,
+    l.updated_at,
+    l.meeting_url,
+    ld.homework,
+    ld.summary,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.student_id THEN ld.student_notes
+            ELSE NULL::text
+        END AS student_notes,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.student_id OR c.uid = l.tutor_id AND l.source = 'independent'::text THEN ld.student_price
+            ELSE NULL::numeric
+        END AS student_price,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.student_id OR c.uid = l.tutor_id AND l.source = 'independent'::text THEN ld.student_payment_status
+            ELSE NULL::text
+        END AS student_payment_status,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.student_id OR c.uid = l.tutor_id AND l.source = 'independent'::text THEN ld.student_paid_at
+            ELSE NULL::timestamp with time zone
+        END AS student_paid_at,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.student_id OR c.uid = l.tutor_id AND l.source = 'independent'::text THEN ld.is_cancellation_fee
+            ELSE NULL::boolean
+        END AS is_cancellation_fee,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.tutor_id THEN ld.tutor_payout
+            ELSE NULL::numeric
+        END AS tutor_payout,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.tutor_id THEN ld.tutor_payout_status
+            ELSE NULL::text
+        END AS tutor_payout_status,
+        CASE
+            WHEN c.is_manager AND is_hub_scoped(l.tutor_id) OR c.uid = l.tutor_id THEN ld.tutor_paid_at
+            ELSE NULL::timestamp with time zone
+        END AS tutor_paid_at,
+    COALESCE(sr.currency, lp.currency, 'UAH'::text) AS currency,
+    l.carried_over
+   FROM lessons l
+     LEFT JOIN lesson_details ld ON ld.lesson_id = l.id
+     CROSS JOIN caller c
+     LEFT JOIN LATERAL ( SELECT r.currency
+           FROM student_rates r
+          WHERE r.tutor_id = l.tutor_id AND r.student_id = l.student_id AND r.archived_at IS NULL
+          ORDER BY (NOT r.subject IS DISTINCT FROM l.subject) DESC, r.created_at DESC NULLS LAST
+         LIMIT 1) sr ON true
+     LEFT JOIN lesson_participants lp ON lp.lesson_id = l.id AND lp.student_id = c.uid
+  WHERE c.is_manager AND is_hub_scoped(l.tutor_id) AND (l.source = 'hub'::text OR l.source IS NULL) OR c.uid = l.tutor_id OR c.uid = l.student_id OR (l.lesson_type = ANY (ARRAY['pair'::lesson_type, 'group'::lesson_type])) AND l.group_id IS NOT NULL AND is_group_active_student(l.group_id, c.uid);
+CREATE VIEW public.lesson_participants_visible_old WITH (security_invoker = false) AS
+ SELECT lp.id,
+    lp.lesson_id,
+    lp.student_id,
+    lp.attendance_status,
+    lp.created_at,
+    lp.currency,
+    l.tutor_id,
+    l.starts_at,
+    l.subject,
+    l.status,
+    l.source,
+        CASE
+            WHEN has_role(auth.uid(), 'manager'::app_role) AND is_hub_scoped(l.tutor_id) AND (l.source = 'hub'::text OR l.source IS NULL) OR lp.student_id = auth.uid() OR l.tutor_id = auth.uid() AND l.source = 'independent'::text THEN lp.student_price
+            ELSE NULL::numeric
+        END AS student_price,
+        CASE
+            WHEN has_role(auth.uid(), 'manager'::app_role) AND is_hub_scoped(l.tutor_id) AND (l.source = 'hub'::text OR l.source IS NULL) OR lp.student_id = auth.uid() OR l.tutor_id = auth.uid() AND l.source = 'independent'::text THEN lp.student_payment_status
+            ELSE NULL::text
+        END AS student_payment_status,
+        CASE
+            WHEN has_role(auth.uid(), 'manager'::app_role) AND is_hub_scoped(l.tutor_id) AND (l.source = 'hub'::text OR l.source IS NULL) OR lp.student_id = auth.uid() OR l.tutor_id = auth.uid() AND l.source = 'independent'::text THEN lp.student_paid_at
+            ELSE NULL::timestamp with time zone
+        END AS student_paid_at
+   FROM lesson_participants lp
+     JOIN lessons l ON l.id = lp.lesson_id
+  WHERE l.tutor_id = auth.uid() OR lp.student_id = auth.uid() OR has_role(auth.uid(), 'manager'::app_role) AND is_hub_scoped(l.tutor_id) AND (l.source = 'hub'::text OR l.source IS NULL);
+GRANT SELECT ON public.lessons_visible_old, public.lesson_participants_visible_old TO authenticated;
+
+DO $$
+DECLARE r record; a text; b text; c text; d text; n int := 0; lens text;
+BEGIN
+  FOR r IN SELECT i.k, i.v, EXISTS (SELECT 1 FROM platform_admins p WHERE p.user_id = i.v) AS sa
+             FROM ids i WHERE EXISTS (SELECT 1 FROM auth.users u WHERE u.id = i.v) LOOP
+    FOREACH lens IN ARRAY (CASE WHEN r.sa THEN ARRAY['own', 'all'] ELSE ARRAY['-'] END) LOOP
+      IF r.sa THEN UPDATE platform_admins SET view_mode = lens WHERE user_id = r.v; END IF;
+      PERFORM set_config('request.jwt.claims', json_build_object('sub', r.v, 'role', 'authenticated')::text, true);
+      PERFORM set_config('role', 'authenticated', true);
+      SELECT md5(coalesce(string_agg(x::text, '|' ORDER BY id), '')) INTO a FROM lessons_visible x;
+      SELECT md5(coalesce(string_agg(x::text, '|' ORDER BY id), '')) INTO b FROM lessons_visible_old x;
+      SELECT md5(coalesce(string_agg(x::text, '|' ORDER BY id), '')) INTO c FROM lesson_participants_visible x;
+      SELECT md5(coalesce(string_agg(x::text, '|' ORDER BY id), '')) INTO d FROM lesson_participants_visible_old x;
+      PERFORM set_config('role', 'postgres', true);
+      PERFORM set_config('request.jwt.claims', NULL, true);
+      IF a IS DISTINCT FROM b THEN RAISE EXCEPTION 'ПРОВАЛ (13): % (лінза %) бачить через нове lessons_visible не те, що через старе', r.k, lens; END IF;
+      IF c IS DISTINCT FROM d THEN RAISE EXCEPTION 'ПРОВАЛ (13): % (лінза %) бачить через нове lesson_participants_visible не те, що через старе', r.k, lens; END IF;
+      n := n + 1;
+    END LOOP;
+  END LOOP;
+  IF n < 8 THEN RAISE EXCEPTION 'ПРОВАЛ (13): порівняно лише % людей — фікстура не та', n; END IF;
+  UPDATE platform_admins SET view_mode = 'own';
+  RAISE NOTICE '✅ (13) швидкі вʼю: % людей і лінз бачать побайтово те саме, що й до пришвидшення', n;
+END $$;
+
 ROLLBACK;

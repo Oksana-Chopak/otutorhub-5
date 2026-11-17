@@ -30,21 +30,34 @@ jobs:
     name: Trigger notifications
     runs-on: ubuntu-latest
     steps:
+      # 17.11: GitHub запускає розклад із запізненням на 6–8 годин. Раніше вікно визначалось
+      # за годинником запуску («07 → ранок, інакше вечір»), тому ранкові сповіщення не
+      # надсилались ВЗАГАЛІ (запуск о 14:00 вважався вечірнім), а вечірні приходили вночі
+      # (16.11 — о 01:53 за Києвом). Тепер: вікно — з розкладу, який спрацював, а запізнілий
+      # запуск нічого не надсилає. Вчасно сповіщення ставить сама база (pg_cron,
+      # міграція 20261117120000); цей воркфлоу лишається для ручного запуску й як запасний.
       - name: Detect window
         id: window
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          EVENT: ${{ github.event_name }}
+          MANUAL: ${{ inputs.window }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "window=${{ inputs.window }}" >> $GITHUB_OUTPUT
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "window=$MANUAL" >> "$GITHUB_OUTPUT"; echo "late=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          HOUR=$((10#$(date -u +%H)))
+          if [ "$SCHEDULE" = "0 7 * * *" ]; then W=morning; FROM=7; else W=evening; FROM=16; fi
+          echo "window=$W" >> "$GITHUB_OUTPUT"
+          if [ "$HOUR" -ge "$FROM" ] && [ "$HOUR" -le $((FROM + 1)) ]; then
+            echo "late=no" >> "$GITHUB_OUTPUT"
           else
-            HOUR=$(date -u +%H)
-            if [ "$HOUR" = "07" ]; then
-              echo "window=morning" >> $GITHUB_OUTPUT
-            else
-              echo "window=evening" >> $GITHUB_OUTPUT
-            fi
+            echo "late=yes" >> "$GITHUB_OUTPUT"
+            echo "::notice::Запуск «$W» спізнився (зараз ${HOUR}:xx UTC, мав бути о ${FROM}:00) — нічого не надсилаємо, щоб сповіщення не прийшло вночі."
           fi
 
       - name: Check CRON_SECRET is configured
+        if: steps.window.outputs.late != 'yes'
         run: |
           if [ -z "${{ secrets.CRON_SECRET }}" ]; then
             echo "::error::CRON_SECRET is not set in GitHub Secrets."
@@ -57,6 +70,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
       - name: Call scheduled-notifications Edge Function
+        if: steps.window.outputs.late != 'yes'
         run: |
           RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
             --max-time 30 \

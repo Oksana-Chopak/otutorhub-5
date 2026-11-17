@@ -15,11 +15,10 @@
  * Дозволяємо лише ВНУТРІШНІЙ відносний шлях: абсолютна чи протокол-відносна
  * адреса тут перетворилась би на відкрите перенаправлення.
  */
+import { isSafeInternalPath } from "@/lib/safePath";
+
 const KEY = "tutorhub.returnTo";
 
-function isSafeInternalPath(path: string): boolean {
-  return path.startsWith("/") && !path.startsWith("//");
-}
 
 export function rememberReturnTo(path: string): void {
   if (!isSafeInternalPath(path)) return;

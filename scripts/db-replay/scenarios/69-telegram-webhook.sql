@@ -2,7 +2,7 @@
 --
 -- Що доводимо:
 --   (1) після міграції є РІВНО один крон для Telegram — `telegram-webhook-watch`
---       на `*/5 * * * *`;
+--       на `*/15 * * * *` (з 17.11; до того — */5);
 --   (2) жодного іншого джоба, що кличе `functions/v1/telegram-poll`, не лишилось
 --       (саме хвилинний тримав довгий getUpdates і давав 409);
 --   (3) сторож ходить із секретом із бази (`get_cron_shared_secret()`), а не з
@@ -14,11 +14,11 @@ SET LOCAL client_min_messages = notice;
 DO $$
 DECLARE n int; cmd text;
 BEGIN
-  -- ── (1) один сторож на */5 ─────────────────────────────────────────────────
+  -- ── (1) один сторож на */15 ─────────────────────────────────────────────────
   SELECT count(*) INTO n FROM cron.job
-   WHERE jobname = 'telegram-webhook-watch' AND schedule = '*/5 * * * *';
-  IF n <> 1 THEN RAISE EXCEPTION 'ПРОВАЛ (1): сторожів на */5 — %, а має бути 1', n; END IF;
-  RAISE NOTICE '✅ (1) один сторож вебхука на */5';
+   WHERE jobname = 'telegram-webhook-watch' AND schedule = '*/15 * * * *';
+  IF n <> 1 THEN RAISE EXCEPTION 'ПРОВАЛ (1): сторожів на */15 — %, а має бути 1', n; END IF;
+  RAISE NOTICE '✅ (1) один сторож вебхука на */15';
 
   -- ── (2) хвилинного опитування немає ───────────────────────────────────────
   SELECT count(*) INTO n FROM cron.job

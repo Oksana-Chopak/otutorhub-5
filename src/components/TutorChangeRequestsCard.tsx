@@ -34,7 +34,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { uk } from "date-fns/locale";
+import { dateFnsLocale } from "@/lib/locale";
 import { cn } from "@/lib/utils";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -381,11 +381,11 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
             const lessonDate = format(
               new Date(lesson.starts_at),
               "d MMM, HH:mm",
-              { locale: uk }
+              { locale: dateFnsLocale() }
             );
             const proposedDate = req.proposed_starts_at
               ? format(new Date(req.proposed_starts_at), "d MMM, HH:mm", {
-                  locale: uk,
+                  locale: dateFnsLocale(),
                 })
               : null;
             const Icon = req.kind === "cancel" ? CalendarX2 : CalendarClock;
@@ -443,7 +443,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         description={active && activeLesson ? (
           <>
             {nameOf(active.student_id)} · {activeLesson.subject} ·{" "}
-            {format(new Date(activeLesson.starts_at), "d MMM, HH:mm", { locale: uk })}
+            {format(new Date(activeLesson.starts_at), "d MMM, HH:mm", { locale: dateFnsLocale() })}
           </>
         ) : undefined}
         footer={
@@ -563,7 +563,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     <p className="mt-2 text-[14px] text-muted-foreground">
                       {t("tutorChangeRequestsExtra.studentProposed")}{" "}
                       {format(new Date(active.proposed_starts_at), "d MMMM, HH:mm", {
-                        locale: uk,
+                        locale: dateFnsLocale(),
                       })}
                     </p>
                   )}

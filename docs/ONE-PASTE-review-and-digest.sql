@@ -38,7 +38,7 @@ begin
          raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
       values
         ('00000000-0000-0000-0000-000000000000', v_sid, 'authenticated', 'authenticated',
-         s.email, extensions.crypt('DemoStud2026!', extensions.gen_salt('bf')), now(),
+         s.email, extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf')) /* 17.11: випадковий — цими учнями ніхто не входить */, now(),
          '{"provider":"email","providers":["email"]}'::jsonb,
          jsonb_build_object('full_name', s.name), now(), now());
       insert into auth.identities

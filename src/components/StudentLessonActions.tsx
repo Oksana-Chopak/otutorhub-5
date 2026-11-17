@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { uk } from "date-fns/locale";
+import { dateFnsLocale } from "@/lib/locale";
 import { insertNotification } from "@/lib/notifications";
 import { useHaptic } from "@/hooks/useHaptic";
 import i18nInstance from "@/i18n";
@@ -215,7 +215,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
     }
   };
 
-  const lessonDate = format(new Date(startsAt), "d MMMM, HH:mm", { locale: uk });
+  const lessonDate = format(new Date(startsAt), "d MMMM, HH:mm", { locale: dateFnsLocale() });
 
   return (
     <>

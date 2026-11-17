@@ -1229,6 +1229,9 @@ export const uk = {
 
   // Schedule
   schedule: {
+    cutUpcoming: "Показано уроки до {{date}} — далі є ще.",
+    cutPast: "Минулі уроки показано від {{date}}.",
+    cutLoadMore: "Показати більше уроків",
     copyLessonStatus: "Статус уроку",
     copyStudentPayStatus: "Оплата учня",
     copyPayoutStatus: "Статус виплати",

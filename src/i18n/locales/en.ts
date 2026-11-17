@@ -1195,6 +1195,9 @@ export const en: LocaleTranslations = {
   },
 
   schedule: {
+    cutUpcoming: "Showing lessons up to {{date}} — there are more after that.",
+    cutPast: "Past lessons are shown from {{date}}.",
+    cutLoadMore: "Show more lessons",
     copyLessonStatus: "Lesson status",
     copyStudentPayStatus: "Student payment",
     copyPayoutStatus: "Payout status",

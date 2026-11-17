@@ -10,6 +10,7 @@ import { PageFAB } from "@/components/PageFAB";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { readAllPages } from "@/lib/pagedRead";
 import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -190,6 +191,12 @@ export default function SchedulePage() {
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
   const [pastLimit, setPastLimit] = useState(8);
+  /* 17.11: «Пізніше» теж показує не все одразу — у школі це сотні карток на одному екрані
+     телефона (і стільки ж у розмітці). Перші 20, далі «Показати ще». */
+  const [laterLimit, setLaterLimit] = useState(20);
+  /* Стеля читання розкладу в кожен бік (вперед / назад) і те, де список обрізано. */
+  const [listCap, setListCap] = useState(400);
+  const [listCut, setListCut] = useState<{ upcomingUntil: string | null; pastSince: string | null }>({ upcomingUntil: null, pastSince: null });
 
   // Filters — centralized in a hook so desktop + mobile share state/logic.
   const filters = useScheduleFilters();
@@ -278,15 +285,39 @@ export default function SchedulePage() {
         const run = (withCarried: boolean) => supabase
           .from("lessons_visible")
           .select(("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, group_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status, is_cancellation_fee" + (withCarried ? ", carried_over" : "")) as any)
-          .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
-          .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
-          .order("starts_at", { ascending: false })
-          .limit(300);
-        const res = await run(true);
-        if (!res.error) return { ...res, data: ((res.data ?? []) as any[]).filter((l) => l.carried_over !== true) };
-        return run(false);
+          ;
+        /* 17.11, обʼємна перевірка (школа на 150 учнів): одне читання «−90…+60 днів, 300 рядків
+           від НАЙПІЗНІШОГО» віддавало уроки через два-три тижні, а сьогоднішні й завтрашні до
+           списку не потрапляли — менеджер відкривав розклад і не бачив сьогоднішнього дня,
+           без жодного попередження. Тепер два читання: від початку сьогодні ВПЕРЕД (найближчий
+           перший) і від сьогодні НАЗАД (найсвіжіший перший); сьогодні потрапляє за побудовою.
+           Якщо уроків більше за стелю — екран каже, до якої дати показано, і дає «Показати ще». */
+        const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+        const both = async (withCarried: boolean) => {
+          const [up, past] = await Promise.all([
+            readAllPages<any>((from, to) => run(withCarried)
+              .gte("starts_at", dayStart.toISOString())
+              .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())
+              .order("starts_at", { ascending: true }).order("id").range(from, to), { cap: listCap }),
+            readAllPages<any>((from, to) => run(withCarried)
+              .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+              .lt("starts_at", dayStart.toISOString())
+              .order("starts_at", { ascending: false }).order("id").range(from, to), { cap: listCap }),
+          ]);
+          return {
+            data: [...up.data, ...past.data], error: up.error ?? past.error,
+            cap: {
+              upcomingUntil: up.truncated && up.data.length ? String(up.data[up.data.length - 1].starts_at) : null,
+              pastSince: past.truncated && past.data.length ? String(past.data[past.data.length - 1].starts_at) : null,
+            },
+          };
+        };
+        const res = await both(true);
+        if (!res.error) return { ...res, data: res.data.filter((l) => l.carried_over !== true) };
+        return both(false);
       })(),
-      supabase.from("profiles").select("id, first_name, last_name").limit(300),
+      // 17.11: було «перші 300 людей» — у школі більшій за це імена решти ставали «?»
+      readAllPages<any>((from, to) => supabase.from("profiles").select("id, first_name, last_name").order("id").range(from, to), { cap: 5000 }),
       // RLS: non-managers only see their own row here. Used by managers/tutors for filters.
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
@@ -362,6 +393,7 @@ export default function SchedulePage() {
     );
     setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? t('roles.student') })));
 
+    setListCut((lessonsRes as any).cap ?? { upcomingUntil: null, pastSince: null });
     const rawLessons = (lessonsRes.data ?? []) as any[];
     const lessonsWithSource = rawLessons
       .filter((l) => {
@@ -382,7 +414,7 @@ export default function SchedulePage() {
   const dataVersion = useDataVersion(); // C3
   useEffect(() => {
     loadAll();
-  }, [user?.id, dataVersion]);
+  }, [user?.id, dataVersion, listCap]);
 
   // Pre-select for tutor/student
   useEffect(() => {
@@ -1617,8 +1649,10 @@ export default function SchedulePage() {
           {grouped.map(([bucketLabel, dayLessons]) => {
             const isToday = bucketLabel === t('common.today');
             const isPast = bucketLabel === t('schedule.bucketPast');
-            const shown = isPast ? dayLessons.slice(0, pastLimit) : dayLessons;
-            const hiddenPast = dayLessons.length - shown.length;
+            const isLater = bucketLabel === t('schedule.bucketLater');
+            const shown = isPast ? dayLessons.slice(0, pastLimit) : isLater ? dayLessons.slice(0, laterLimit) : dayLessons;
+            const hiddenPast = isPast ? dayLessons.length - shown.length : 0;
+            const hiddenLater = isLater ? dayLessons.length - shown.length : 0;
             return (
               <div key={bucketLabel}>
                 <h3
@@ -1714,9 +1748,32 @@ export default function SchedulePage() {
                     {t("schedule.showMorePast", { count: hiddenPast })}
                   </button>
                 )}
+                {isLater && hiddenLater > 0 && (
+                  <button
+                    type="button"
+                    data-show-more-later=""
+                    onClick={() => setLaterLimit((n) => n + 40)}
+                    className="mt-2 min-h-[44px] w-full rounded-[12px] border border-border bg-card py-2.5 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-secondary"
+                  >
+                    {t("schedule.showMorePast", { count: hiddenLater })}
+                  </button>
+                )}
               </div>
             );
           })}
+          {(listCut.upcomingUntil || listCut.pastSince) && (
+            <div data-list-cut="" className="rounded-[13px] p-3.5 text-[14px] text-muted-foreground" style={{ background: "var(--ds-surface3)", lineHeight: 1.4 }}>
+              {listCut.upcomingUntil && <p>{t("schedule.cutUpcoming", { date: new Date(listCut.upcomingUntil).toLocaleDateString(getLocale(), { day: "numeric", month: "long" }) })}</p>}
+              {listCut.pastSince && <p>{t("schedule.cutPast", { date: new Date(listCut.pastSince).toLocaleDateString(getLocale(), { day: "numeric", month: "long" }) })}</p>}
+              <button
+                type="button"
+                onClick={() => setListCap((n) => n + 800)}
+                className="mt-2 min-h-[44px] w-full rounded-[12px] border border-border bg-card px-3 text-[15px] font-semibold text-foreground"
+              >
+                {t("schedule.cutLoadMore")}
+              </button>
+            </div>
+          )}
         </div>
       )}
         </>

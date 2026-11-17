@@ -14,7 +14,7 @@ AI-generated lesson summaries, in-app chat with students, and Google Calendar sy
 
 ACCOUNT FOR REVIEW
 Email: oksana.chopak+review@gmail.com
-Password: Review2026!
+Password: <зберігається у власниці — у репозиторії паролів немає (17.11); встав перед відправкою на ревʼю>
 (акаунт живий — ним щодня логіниться CI-смоук; роль: самостійний репетитор.
 Демо-дані — учні/уроки/оплати — наповнюються браузерною сесією, див. чат)
 This account is a tutor with sample students, lessons and payments so you can see
@@ -60,7 +60,7 @@ chat, Google Calendar).
 
 TEST ACCOUNT (App access → All functionality):
 Email: oksana.chopak+review@gmail.com
-Password: Review2026!
+Password: <зберігається у власниці — у репозиторії паролів немає (17.11); встав перед відправкою на ревʼю>
 (акаунт живий — ним щодня логіниться CI-смоук; роль: самостійний репетитор.
 Демо-дані — учні/уроки/оплати — наповнюються браузерною сесією, див. чат)
 Password: <встав сюди>

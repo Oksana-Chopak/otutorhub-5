@@ -13,7 +13,7 @@ import {
 import { Crown, Mail, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { uk } from "date-fns/locale";
+import { dateFnsLocale } from "@/lib/locale";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -217,7 +217,7 @@ export default function SubscriptionRequestsPage() {
                         </p>
                         <p className="text-[14px]" style={{ color: "var(--sub,#62677E)", marginTop: 2 }}>
                           {format(new Date(r.created_at), "d MMM yyyy, HH:mm", {
-                            locale: uk,
+                            locale: dateFnsLocale(),
                           })}{" "}
                           · {r.plan.toUpperCase()} · {Number(r.price)}
                         </p>

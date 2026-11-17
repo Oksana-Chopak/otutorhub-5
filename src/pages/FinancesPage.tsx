@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 
 import { PageFAB } from "@/components/PageFAB";
 import { supabase } from "@/integrations/supabase/client";
+import { readAllPages } from "@/lib/pagedRead";
 import { updateLessonDetailsSafe, updateLessonDetailsSafeEach } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
 import {
@@ -220,12 +221,38 @@ const Tab = ({ active, onClick, label, count }: { active: boolean; onClick: () =
 
 
 /** M2: підсумки за рік неповні — кажемо це прямо, з точним числом. */
+/**
+ * Стеля читання «Фінансів» за рік (17.11). Було 500 рядків одним запитом: самостійній
+ * репетиторці цього вистачало на пів року, а школі на 150 учнів — на три тижні, і далі
+ * «Учні винні» показувало 0 при сотнях тисяч боргу в базі. Тепер читаємо сторінками
+ * (API віддає не більше 1000 рядків за раз) до цієї стелі; понад неї — чесний банер.
+ */
+const FIN_CAP = 5000;
+
+/** Учасники групових уроків — частинами по 200 id (довгий список не влазить в адресу запиту). */
+async function participantsOf(lessonIds: string[], onlyUnpaid = false): Promise<Map<string, any[]>> {
+  const byLesson = new Map<string, any[]>();
+  for (let i = 0; i < lessonIds.length; i += 200) {
+    let q = (supabase.from("lesson_participants_visible" as any) as any)
+      .select("id, lesson_id, student_id, student_price, student_payment_status, student_paid_at")
+      .in("lesson_id", lessonIds.slice(i, i + 200));
+    if (onlyUnpaid) q = q.eq("student_payment_status", "unpaid");
+    const { data } = await q;
+    ((data ?? []) as any[]).forEach((pp) => {
+      const arr = byLesson.get(pp.lesson_id) ?? [];
+      arr.push(pp);
+      byLesson.set(pp.lesson_id, arr);
+    });
+  }
+  return byLesson;
+}
+
 function TruncatedYearBanner({ n }: { n: { lessons: number; groups: number; tx: number } }) {
   const { t } = useTranslation();
   const worst = Math.max(n.lessons, n.groups, n.tx);
   return (
     <div role="status" className="mb-4 rounded-[14px] border border-amber-300 bg-amber-50 px-4 py-3">
-      <p className="text-[14px] font-semibold text-amber-900">{t("finances.truncatedTitle", { shown: 500, total: worst })}</p>
+      <p className="text-[14px] font-semibold text-amber-900">{t("finances.truncatedTitle", { shown: FIN_CAP, total: worst })}</p>
       <p className="mt-1 text-[14px] text-amber-900/85">{t("finances.truncatedBody")}</p>
     </div>
   );
@@ -424,14 +451,13 @@ export default function FinancesPage() {
         // pulled separately below. lessons_visible already hub-scopes managers (source
         // hub/NULL) and masks money per role.
         const run = (withFee: boolean, withCarried: boolean = false) => {
-          let q = supabase
+          const build = () => { let q = supabase
             .from("lessons_visible")
             .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") + (withCarried ? ", carried_over" : "") as any)
             .not("student_id", "is", null)
-            .gte("starts_at", oneYearAgo)
-            .limit(500);
-          if (isManager) q = (q as any).neq("source", "independent");
-          return q.order("starts_at", { ascending: false });
+            .gte("starts_at", oneYearAgo);
+          if (isManager) q = (q as any).neq("source", "independent"); return q; };
+          return readAllPages<any>((from, to) => build().order("starts_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP });
         };
         // Migration 20260721000000 adds is_cancellation_fee to lessons_visible; until
         // Lovable applies it the column 400s — retry without it so Finances (frontend
@@ -450,32 +476,22 @@ export default function FinancesPage() {
       // PostgREST embed reads the base table — it would 42501 for everyone).
       (async () => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
-        let q = supabase
+        const build = () => { let q = supabase
           .from("lessons")
           .select("id, subject, starts_at, status, tutor_id, group_id")
           .not("group_id", "is", null)
-          .gte("starts_at", oneYearAgo)
-          .limit(500);
-        if (isManager) q = (q as any).neq("source", "independent");
-        const { data: gl, error } = await q.order("starts_at", { ascending: false });
+          .gte("starts_at", oneYearAgo);
+        if (isManager) q = (q as any).neq("source", "independent"); return q; };
+        const { data: gl, error } = await readAllPages<any>((from, to) => build().order("starts_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP });
         if (error || !gl || gl.length === 0) return { data: gl ?? [], error };
-        const { data: parts } = await (supabase.from("lesson_participants_visible" as any) as any)
-          .select("id, lesson_id, student_id, student_price, student_payment_status, student_paid_at")
-          .in("lesson_id", (gl as any[]).map((l) => l.id));
-        const byLesson = new Map<string, any[]>();
-        ((parts ?? []) as any[]).forEach((p) => {
-          const arr = byLesson.get(p.lesson_id) ?? [];
-          arr.push(p);
-          byLesson.set(p.lesson_id, arr);
-        });
+        const byLesson = await participantsOf((gl as any[]).map((l) => l.id));
         const pay = await groupPayoutsOf((gl as any[]).map((l) => l.id));
         return { data: (gl as any[]).map((l) => ({ ...l, ...(pay.get(l.id) ?? {}), lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
       })(),
-      supabase
-        .from("student_wallet_transactions" as any)
+      readAllPages<any>((from, to) => (supabase
+        .from("student_wallet_transactions" as any) as any)
         .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
-        .order("created_at", { ascending: false })
-        .limit(500),
+        .order("created_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP }),
       supabase
         .from("student_wallet_balances" as any)
         .select("tutor_id, student_id, lessons_balance, amount_balance"),
@@ -496,15 +512,14 @@ export default function FinancesPage() {
       (async () => {
         const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         const run = (withFee: boolean, withCarried: boolean = false) => {
-          let q = supabase
+          const build = () => { let q = supabase
             .from("lessons_visible")
             .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") + (withCarried ? ", carried_over" : "") as any)
             .not("student_id", "is", null)
             .lt("starts_at", edge)
-            .eq("student_payment_status", "unpaid")
-            .limit(500);
-          if (isManager) q = (q as any).neq("source", "independent");
-          return q.order("starts_at", { ascending: false });
+            .eq("student_payment_status", "unpaid");
+          if (isManager) q = (q as any).neq("source", "independent"); return q; };
+          return readAllPages<any>((from, to) => build().order("starts_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP });
         };
         const res = await run(true, true);
         if (!res.error) return res;
@@ -516,26 +531,16 @@ export default function FinancesPage() {
          різницею, якої не видно. */
       (async () => {
         const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
-        let q = supabase
+        const build = () => { let q = supabase
           .from("lessons")
           .select("id, subject, starts_at, status, tutor_id, group_id")
           .not("group_id", "is", null)
           .lt("starts_at", edge)
-          .eq("status", "completed")
-          .limit(500);
-        if (isManager) q = (q as any).neq("source", "independent");
-        const { data: gl, error } = await q.order("starts_at", { ascending: false });
+          .eq("status", "completed");
+        if (isManager) q = (q as any).neq("source", "independent"); return q; };
+        const { data: gl, error } = await readAllPages<any>((from, to) => build().order("starts_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP });
         if (error || !gl || gl.length === 0) return { data: gl ?? [], error };
-        const { data: parts } = await (supabase.from("lesson_participants_visible" as any) as any)
-          .select("id, lesson_id, student_id, student_price, student_payment_status, student_paid_at")
-          .in("lesson_id", (gl as any[]).map((l) => l.id))
-          .eq("student_payment_status", "unpaid");
-        const byLesson = new Map<string, any[]>();
-        ((parts ?? []) as any[]).forEach((pp) => {
-          const arr = byLesson.get(pp.lesson_id) ?? [];
-          arr.push(pp);
-          byLesson.set(pp.lesson_id, arr);
-        });
+        const byLesson = await participantsOf((gl as any[]).map((l) => l.id), true);
         const pay = await groupPayoutsOf((gl as any[]).map((l) => l.id));
         return { data: (gl as any[]).map((l) => ({ ...l, ...(pay.get(l.id) ?? {}), lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
       })(),
@@ -569,8 +574,8 @@ export default function FinancesPage() {
         .select("id", { count: "exact", head: true });
       const [ci, cg, ct] = await Promise.all([countInd, countGrp, countTx]);
       const n = { lessons: ci.count ?? 0, groups: cg.count ?? 0, tx: ct.count ?? 0 };
-      const hit = (lessonsData?.length ?? 0) >= 500 || (groupLessonsData?.length ?? 0) >= 500 || (txData?.length ?? 0) >= 500;
-      setTruncatedYear(hit && (n.lessons > 500 || n.groups > 500 || n.tx > 500) ? n : null);
+      const hit = (lessonsData?.length ?? 0) >= FIN_CAP || (groupLessonsData?.length ?? 0) >= FIN_CAP || (txData?.length ?? 0) >= FIN_CAP;
+      setTruncatedYear(hit && (n.lessons > FIN_CAP || n.groups > FIN_CAP || n.tx > FIN_CAP) ? n : null);
     }
 
     /* Вікно оборотів (останній рік, 500 рядків) + доповнення по боргу поза ним.

@@ -697,6 +697,9 @@ export const sv: LocaleTranslations = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    cutUpcoming: "Visar lektioner till {{date}} — det finns fler efter det.",
+    cutPast: "Tidigare lektioner visas från {{date}}.",
+    cutLoadMore: "Visa fler lektioner",
     copyLessonStatus: "Lektionsstatus",
     copyStudentPayStatus: "Elevens betalning",
     copyPayoutStatus: "Utbetalningsstatus",

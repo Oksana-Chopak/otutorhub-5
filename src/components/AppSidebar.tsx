@@ -48,6 +48,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useMyHub } from "@/hooks/useMyHub";
 import { supabase } from "@/integrations/supabase/client";
+import { askIsSuperadmin } from "@/hooks/useIsSuperadmin";
 import { UserAvatar } from "@/components/UserAvatar";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import {
@@ -161,8 +162,8 @@ export function AppSidebar() {
     /* Аудит 02.09: без .catch відхилений проміс лишав пункт /admin схованим
        назавжди — власниця платформи не бачила власної адмінки після одного
        мережевого збою. Хук useIsSuperadmin цей catch має; копія в сайдбарі — ні. */
-    (supabase as any).rpc("is_superadmin")
-      .then(({ data }: { data: unknown }) => { if (active) setIsSuperadmin(data === true); })
+    askIsSuperadmin(user.id)
+      .then((value) => { if (active) setIsSuperadmin(value); })
       .catch(() => { if (active) setIsSuperadmin(false); });
     return () => { active = false; };
   }, [user?.id]);

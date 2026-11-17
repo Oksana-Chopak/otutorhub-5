@@ -45,9 +45,105 @@ const TABLES = [
   "tutor_streaks",
   "tutor_badges",
   "user_telegram_links",
+  /* 17.11 — СЛІПА ЗОНА: список складено 05.09 і відтоді не поповнювався, а таблиць стало
+     втричі більше. У бекап не потрапляла ВСЯ модель школи (hubs / hub_managers / hub_members),
+     посилання й заявки на оплату, запити учнів, нотатки, доступні години, словник предметів,
+     відписки від розсилок. Після «DELETE без WHERE» це було б невідновно. Нижче — усе, що є
+     бізнес-даними; те, що свідомо НЕ бекапиться, названо в NOT_BACKED_UP з причиною, і
+     `backup-coverage.test.ts` падає, якщо зʼявиться таблиця, якої немає в жодному зі списків. */
+  "hubs",
+  "hub_managers",
+  "hub_members",
+  "hub_join_invites",
+  "hub_leads",
+  "tutor_student_pairs",
+  "payment_links",
+  "payment_claims",
+  "lesson_change_requests",
+  "lesson_feedback",
+  "lesson_attachments",
+  "lesson_tutor_notes",
+  "lesson_reminders",
+  "lesson_payment_reminders",
+  "lifecycle_messages",
+  "homework_done",
+  "manager_notes",
+  "manager_audit_log",
+  "tutor_notes",
+  "tutor_student_notes",
+  "tutor_availability_weekly",
+  "tutor_availability_overrides",
+  "availability_requests",
+  "tutor_referral_requests",
+  "subscription_requests",
+  "feedback_submissions",
+  "student_intake_quiz",
+  "student_rewards",
+  "pro_bonus_ledger",
+  "referral_codes",
+  "subjects",
+  "subject_canon",
+  "feature_flags",
+  "chat_reads",
+  "chat_message_attachments",
+  "chat_message_reactions",
+  "marketing_campaigns",
+  "marketing_unsubscribes",
+  "marketing_unsubscribe_tokens",
+  "email_unsubscribe_tokens",
+  "suppressed_emails",
 ] as const;
 
+/** Свідомо НЕ в бекапі: назва → чому. Нова таблиця мусить стати або в TABLES, або сюди. */
+export const NOT_BACKED_UP: Record<string, string> = {
+  ai_calls: "журнал викликів AI, живе 90 днів",
+  app_events: "події аналітики продукту — відновні з поведінки, не дані людей",
+  paywall_events: "події аналітики пейволу",
+  landing_funnel_daily: "добові лічильники лендінгу",
+  landing_handoffs: "естафета з лендінгу, живе годину",
+  error_log: "журнал помилок",
+  job_runs: "журнал запусків кронів, живе 30 днів",
+  rate_limit_hits: "лічильники частоти, живуть добу",
+  email_send_log: "журнал листів",
+  email_send_state: "службовий стан черги листів",
+  notifications: "дзвіночок: шумні й відновні, сам урок і гроші — у своїх таблицях",
+  tutor_daily_digests: "журнал надісланих дайджестів",
+  telegram_bot_state: "зсув бота — після відновлення виставляється сам",
+  device_push_tokens: "пристрій реєструється заново при відкритті застосунку",
+  push_subscriptions: "браузер підписується заново при відкритті застосунку",
+  google_calendar_tokens: "секрети доступу до календаря — не тримаємо копій; людина підключає календар заново",
+  google_oauth_exchange_codes: "одноразові коди, живуть хвилини",
+  pending_invite_tokens: "одноразові ключі запрошень — запрошення надсилається заново",
+};
+
 const PAGE = 1000;
+/**
+ * Первинний ключ таблиць, де він не `id` — ним упорядковуються сторінки читання.
+ * Тест `backup-coverage` звіряє: кожна таблиця з `TABLES` або має колонку `id` у `types.ts`,
+ * або записана тут, і кожна колонка звідси справді є в таблиці.
+ */
+export const ORDER_KEY: Record<string, string[]> = {
+  chat_message_reactions: ["message_id", "user_id", "emoji"],
+  feature_flags: ["key"],
+  homework_done: ["lesson_id", "student_id"],
+  hub_managers: ["hub_id", "user_id"],
+  hub_members: ["hub_id", "user_id"],
+  lesson_details: ["lesson_id"],
+  lesson_tutor_notes: ["lesson_id"],
+  marketing_unsubscribe_tokens: ["token"],
+  marketing_unsubscribes: ["email"],
+  platform_admins: ["user_id"],
+  profile_contacts: ["user_id"],
+  profile_financial_contacts: ["user_id"],
+  student_details: ["user_id"],
+  subject_canon: ["norm"],
+  tutor_details: ["user_id"],
+  tutor_streaks: ["tutor_id"],
+  tutor_student_notes: ["tutor_id", "student_id"],
+  tutor_student_pairs: ["tutor_id", "student_id"],
+  tutor_workspace_settings: ["tutor_id"],
+};
+
 const RETENTION_DAYS = 30;
 const BUCKET = "db-backups";
 
@@ -69,15 +165,18 @@ Deno.serve(withJob("db-backup", async (req) => {
   const startedAt = new Date();
   const dump: Record<string, unknown[]> = {};
   const skipped: Record<string, string> = {};
+  const mismatched: Record<string, string> = {};
 
   for (const table of TABLES) {
     const rows: unknown[] = [];
     try {
       for (let from = 0; ; from += PAGE) {
-        const { data, error } = await supabase
-          .from(table)
-          .select("*")
-          .range(from, from + PAGE - 1);
+        // 17.11: сторінки БЕЗ порядку база може віддати з перекриттям — у таблиці понад 1000
+        // рядків частина рядків потрапила б у копію двічі, а частина не потрапила б узагалі.
+        // Порядок — за первинним ключем таблиці (`ORDER_KEY`, типово `id`).
+        let q = supabase.from(table).select("*");
+        for (const col of ORDER_KEY[table] ?? ["id"]) q = q.order(col, { ascending: true });
+        const { data, error } = await q.range(from, from + PAGE - 1);
         if (error) throw error;
         rows.push(...(data ?? []));
         if (!data || data.length < PAGE) break;
@@ -86,6 +185,12 @@ Deno.serve(withJob("db-backup", async (req) => {
         if (rows.length >= 200_000) break;
       }
       dump[table] = rows;
+      // Звірка з базою: скільки рядків у таблиці насправді. Розбіжність лягає у сам файл і у
+      // відповідь функції (її читає нічний нагляд) — копія не видає себе за повну.
+      const { count, error: cntErr } = await supabase.from(table).select("*", { count: "exact", head: true });
+      if (!cntErr && typeof count === "number" && Math.abs(count - rows.length) > Math.max(5, Math.round(count * 0.01))) {
+        mismatched[table] = `у базі ${count}, у копії ${rows.length}`;
+      }
     } catch (e) {
       // Одна зникла/перейменована таблиця не має валити ВЕСЬ бекап —
       // фіксуємо пропуск у самому файлі, він видимий при перевірці.
@@ -98,6 +203,7 @@ Deno.serve(withJob("db-backup", async (req) => {
     project: "otutorhub",
     tables_included: Object.keys(dump),
     tables_skipped: skipped,
+    tables_row_mismatch: mismatched,
     row_counts: Object.fromEntries(Object.entries(dump).map(([k, v]) => [k, v.length])),
     data: dump,
   };
@@ -153,6 +259,10 @@ Deno.serve(withJob("db-backup", async (req) => {
       tables: Object.keys(dump).length,
       rows: Object.values(payload.row_counts).reduce((a, b) => a + (b as number), 0),
       skipped,
+      // лічильники для нічного нагляду: «пропущено таблиць» і «копія розійшлась із базою»
+      tables_skipped: Object.keys(skipped).length,
+      tables_mismatched: Object.keys(mismatched).length,
+      mismatched,
       retention_removed: removed,
     }),
     { headers: { "Content-Type": "application/json" } },

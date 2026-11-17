@@ -60,7 +60,8 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
-import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency, countLessonsMissingPrice, moneyReadIsPartial, DASHBOARD_MONEY_CAP, DASHBOARD_OLD_DEBT_CAP } from "@/lib/financials";
+import { readAllPages } from "@/lib/pagedRead";
+import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency, countLessonsMissingPrice, moneyReadIsPartial, DASHBOARD_LESSONS_CAP, DASHBOARD_MONEY_CAP, DASHBOARD_OLD_DEBT_CAP } from "@/lib/financials";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -512,6 +513,7 @@ export default function DashboardPage() {
     // New user with no roles yet — don't load — show empty state
     if (roles.length === 0) { setLoading(false); return; }
 
+    let listCut = false;
     const [
       { data: lessonsData, error: lessonsError },
       { data: profilesData },
@@ -531,17 +533,40 @@ export default function DashboardPage() {
           let q = supabase
             .from("lessons_visible")
             .select(("id, tutor_id, student_id, group_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source, is_cancellation_fee" + (withCarried ? ", carried_over" : "")) as any)
-            .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())  // last 30 days
-            .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())  // next 14 days
-            .limit(150);
+            ;
           if (isManager) q = (q as any).neq("source", "independent");
-          return q.order("starts_at", { ascending: true });
+          return q;
         };
-        const res = await run(true);
-        if (!res.error) return { ...res, data: ((res.data ?? []) as any[]).filter((l) => l.carried_over !== true) };
-        return run(false);
+        /* 17.11, обʼємна перевірка (школа на 150 учнів, 180 уроків на тиждень): одне читання
+           «−30…+14 днів, перші 150 від найстарішого» віддавало уроки місячної давності, а до
+           сьогоднішніх не доходило — «Мій день» казав «0 уроків сьогодні · вільний день» при 30
+           уроках у розкладі. Тепер два читання: СЬОГОДНІ Й НАЙБЛИЖЧІ (від початку дня вперед,
+           найближчий перший) і НЕДАВНІ МИНУЛІ (найсвіжіший перший). Сьогоднішній день
+           потрапляє в перше читання за побудовою, скільки б уроків не було позаду. */
+        const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+        const both = async (withCarried: boolean) => {
+          const [up, past] = await Promise.all([
+            run(withCarried)
+              .gte("starts_at", dayStart.toISOString())
+              .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())
+              .order("starts_at", { ascending: true }).order("id")
+              .limit(DASHBOARD_LESSONS_CAP),
+            run(withCarried)
+              .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+              .lt("starts_at", dayStart.toISOString())
+              .order("starts_at", { ascending: false }).order("id")
+              .limit(DASHBOARD_LESSONS_CAP),
+          ]);
+          // список уперся у стелю — лічильники, що рахуються з нього («Очікують оплати»), неповні
+          listCut = (up.data ?? []).length >= DASHBOARD_LESSONS_CAP || (past.data ?? []).length >= DASHBOARD_LESSONS_CAP;
+          return { data: [...((up.data ?? []) as any[]), ...((past.data ?? []) as any[])], error: up.error ?? past.error };
+        };
+        const res = await both(true);
+        if (!res.error) return { ...res, data: res.data.filter((l) => l.carried_over !== true) };
+        return both(false);
       })(),
-      supabase.from("profiles").select("id, first_name, last_name").limit(300),
+      // 17.11: було «перші 300 людей» — у школі більшій за це імена решти зникали
+      readAllPages<any>((from, to) => supabase.from("profiles").select("id, first_name, last_name").order("id").range(from, to), { cap: 5000 }),
       supabase.from("user_roles").select("user_id, role"),
       isManager
         ? supabase.from("availability_requests").select("id").eq("status", "open")
@@ -561,14 +586,16 @@ export default function DashboardPage() {
         const mStart = new Date();
         mStart.setMonth(mStart.getMonth() - 5, 1);
         mStart.setHours(0, 0, 0, 0);
-        let q = supabase
-          .from("lessons_visible")
-          .select("id, tutor_id, student_id, starts_at, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, source, is_cancellation_fee")
-          .gte("starts_at", mStart.toISOString())
-          .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())
-          .limit(DASHBOARD_MONEY_CAP);
-        if (isManager) q = (q as any).neq("source", "independent");
-        return q.order("starts_at", { ascending: false });
+        const until = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+        return readAllPages<any>((from, to) => {
+          let q = supabase
+            .from("lessons_visible")
+            .select("id, tutor_id, student_id, starts_at, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, source, is_cancellation_fee")
+            .gte("starts_at", mStart.toISOString())
+            .lte("starts_at", until);
+          if (isManager) q = (q as any).neq("source", "independent");
+          return q.order("starts_at", { ascending: false }).order("id").range(from, to);
+        }, { cap: DASHBOARD_MONEY_CAP });
       })(),
       (() => {
         // 01.11 (Рада 26.10, п. 3 — «три правди про борг»): «Мій день» дивився лише
@@ -583,7 +610,7 @@ export default function DashboardPage() {
           .neq("student_payment_status", "paid")
           .limit(DASHBOARD_OLD_DEBT_CAP);
         if (isManager) q = (q as any).neq("source", "independent");
-        return q.order("starts_at", { ascending: false });
+        return q.order("starts_at", { ascending: false }).order("id");
       })(),
     ]);
 
@@ -632,7 +659,7 @@ export default function DashboardPage() {
     ).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
     setLessons(uniqueLessons);
     setMoneyLessons(((moneyLessonsData ?? []) as any[]) as LessonRow[]);
-    setDebtPartial(moneyReadIsPartial({ money: (moneyLessonsData ?? []).length, oldDebts: (oldDebtsData ?? []).length }));
+    setDebtPartial(listCut || moneyReadIsPartial({ money: (moneyLessonsData ?? []).length, oldDebts: (oldDebtsData ?? []).length }));
     const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
     /* 11.11: прибуток на дашборді не рахував групові уроки взагалі — ні оплат учасників,
        ні виплати репетитору, тож «Мій день» і «Фінанси» показували різний прибуток тій
@@ -1243,6 +1270,10 @@ export default function DashboardPage() {
     [lessons, nowMs, groupUnpaidLessonIds]
   );
 
+  // 17.11: у великій школі список уроків упирається у стелю, і число з нього — нижня межа.
+  // Тоді воно чесно показується як «852+», а поруч стоїть рядок «повна цифра — у Фінансах».
+  const pendingCountLabel = debtPartial ? `${pendingPayments.length}+` : String(pendingPayments.length);
+
   /* Важіль 2 (аудит шляхів 24.09): «Нагадати — там, де видно борг, і на
      ЛЮДИНУ, а не на урок». Дашборд показував агрегат «N уроків не оплачено» і
      вів у «Фінанси» — три екрани до дії, яку обіцяє лендінг. Тепер найбільші
@@ -1706,7 +1737,7 @@ export default function DashboardPage() {
         key: "pending-payments",
         icon: TrendingUp,
         tone: "warning" as const,
-        title: t("dashboardExtra.pendingPaymentsTitle", { count: pendingPayments.length }),
+        title: t("dashboardExtra.pendingPaymentsTitle", { count: pendingCountLabel }),
         description: t("dashboardExtra.pendingPaymentsDesc"),
         to: "/finances",
         cta: t("dashboardExtra.pendingPaymentsCta"),
@@ -1827,6 +1858,7 @@ export default function DashboardPage() {
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
     pendingPayments.length,
+    pendingCountLabel,
     profiles, // №9: імʼя учня в задачі про скасування
     seriesBeyondIds, // №14: серія триває за вікном → задачі нема
   ]);
@@ -1980,7 +2012,7 @@ export default function DashboardPage() {
                     className="tap-44 inline-flex items-center gap-1 font-medium text-amber-700 underline-offset-2 hover:underline dark:text-amber-400"
                   >
                     <Clock className="h-3.5 w-3.5" />
-                    {t("dashboardExtra.pendingPaymentsTitle", { count: pendingPayments.length })}
+                    {t("dashboardExtra.pendingPaymentsTitle", { count: pendingCountLabel })}
                   </Link>
                 )}
               </p>
@@ -2678,7 +2710,7 @@ export default function DashboardPage() {
                 </p>
                 {pendingPayments.length > 0 && (
                   <span className="text-[14px] font-semibold" style={{ color: "var(--warning-text,#B45309)" }}>
-                    {t("finances.lessonsCount", { count: pendingPayments.length })}
+                    {debtPartial ? pendingCountLabel : t("finances.lessonsCount", { count: pendingPayments.length })}
                   </span>
                 )}
               </div>
@@ -2778,7 +2810,7 @@ export default function DashboardPage() {
                       style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal-text,#1a7a6c)", minHeight: 44 }}
                       onClick={() => navigate("/finances?tab=debts")}
                     >
-                      {t("dashboard.showAll", { count: pendingPayments.length })} →
+                      {t("dashboard.showAll", { count: pendingCountLabel })} →
                     </button>
                   )}
                 </div>

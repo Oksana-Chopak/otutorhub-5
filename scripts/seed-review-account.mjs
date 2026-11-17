@@ -9,6 +9,7 @@
  * Ідемпотентно: повторний запуск нічого не дублює.
  */
 import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 
 const URL = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -42,7 +43,7 @@ async function ensureStudent(s) {
   let u = await findUser(s.email);
   if (!u) {
     const { data, error } = await db.auth.admin.createUser({
-      email: s.email, password: "DemoStud2026!", email_confirm: true,
+      email: s.email, password: randomUUID() + "Aa1!", email_confirm: true, // 17.11: випадковий — цими учнями ніхто не входить
       user_metadata: { full_name: s.name },
     });
     if (error) throw error;

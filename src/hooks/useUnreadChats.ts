@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { coalesce } from "@/lib/coalesce";
 
 /**
  * Returns total number of chat threads with at least one unread message
@@ -19,7 +20,7 @@ export function useUnreadChats(): number {
     const myId = user.id;
     let cancelled = false;
 
-    const compute = async () => {
+    const count1 = async (): Promise<number> => {
       // Threads where user participates. RLS already enforces:
       //  - manager → all threads
       //  - tutor/student → only threads where they are tutor_id or student_id.
@@ -34,10 +35,7 @@ export function useUnreadChats(): number {
         student_id: string;
         last_message_at: string | null;
       }>;
-      if (threadList.length === 0) {
-        if (!cancelled) setCount(0);
-        return;
-      }
+      if (threadList.length === 0) return 0;
 
       const ids = threadList.map((t) => t.id);
       const { data: reads } = await supabase
@@ -58,10 +56,14 @@ export function useUnreadChats(): number {
           unread += 1;
         }
       }
-      if (!cancelled) setCount(unread);
+      return unread;
     };
+    const compute = async () => { const n = await count1(); if (!cancelled) setCount(n); };
 
-    compute();
+    /* 17.11: лічильник стоїть у трьох місцях одразу (бічне меню, нижня навігація, оболонка) —
+       перший підрахунок робимо ОДИН на всіх (і памʼятаємо 3 с), а не три однакові пари запитів.
+       Перерахунки від нових повідомлень ідуть як і раніше, без памʼяті. */
+    void coalesce(`unread-chats:${myId}`, count1, 3000).then((n) => { if (!cancelled) setCount(n); }).catch(() => {});
 
     // Coalesce message bursts into one recompute. A manager receives EVERY chat message
     // app-wide over realtime (RLS lets them see all threads), so firing the full

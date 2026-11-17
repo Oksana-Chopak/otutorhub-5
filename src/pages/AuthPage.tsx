@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { safeInternalPath } from "@/lib/safePath";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
 import { rememberSignupRole } from "@/components/ClaimTutorRoleDialog";
@@ -216,7 +217,7 @@ export default function AuthPage() {
   // and other deep-linked flows can bring the user back after auth. Same-origin
   // relative paths only.
   const nextParam = searchParams.get("next");
-  const nextPath = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
+  const nextPath = safeInternalPath(nextParam);
 
   useEffect(() => {
     if (!authLoading && user) navigate(nextPath, { replace: true });

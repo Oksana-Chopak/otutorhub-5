@@ -1,3 +1,4 @@
+import { uk as dfUk, sv as dfSv, enGB as dfEn } from "date-fns/locale";
 import i18n from "@/i18n";
 
 /**
@@ -8,4 +9,11 @@ import i18n from "@/i18n";
 export function getLocale(): string {
   const lang = (i18n.language || "uk").split("-")[0];
   return lang === "sv" ? "sv-SE" : lang === "en" ? "en-GB" : "uk-UA";
+}
+
+/** Локаль date-fns за мовою застосунку (17.11: дати в запитах на перенесення й заявках були
+    завжди українською, навіть в англійському та шведському інтерфейсі). */
+export function dateFnsLocale() {
+  const lang = (i18n.language || "uk").split("-")[0];
+  return lang === "sv" ? dfSv : lang === "en" ? dfEn : dfUk;
 }

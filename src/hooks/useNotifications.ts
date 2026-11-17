@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { coalesce } from "@/lib/coalesce";
 
 export interface AppNotification {
   id: string;
@@ -22,12 +23,13 @@ export function useNotifications() {
 
   const load = useCallback(async () => {
     if (!user) { setLoading(false); return; }
-    const { data, error } = await db
+    // дзвіночок стоїть у двох шапках (телефон і компʼютер) — один запит на обидві
+    const { data, error } = await coalesce(`notifications:${user.id}`, () => db
       .from("notifications")
       .select("id, type, title, body, link, read, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(30)) as { data: unknown[] | null; error: unknown };
     /* Аудит 03.09: помилка ігнорувалась, і дзвіночок для ВСІХ персон писав
        «Сповіщень немає» там, де читання просто не пройшло. Тепер список не
        затирається порожнім, а стан помилки видно. */

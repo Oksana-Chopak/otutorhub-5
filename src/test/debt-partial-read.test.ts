@@ -25,7 +25,9 @@ describe("неповне читання грошей", () => {
   });
 
   it("стеля в запиті і стеля в перевірці — одне число", () => {
-    expect(page).toMatch(/\.limit\(DASHBOARD_MONEY_CAP\)/);
+    // 17.11: вікно грошей читається сторінками (API віддає не більше 1000 рядків за раз),
+    // тож стеля тепер — у readAllPages, але це те саме число, що й у перевірці.
+    expect(page).toMatch(/\{ cap: DASHBOARD_MONEY_CAP \}/);
     expect(page).toMatch(/\.limit\(DASHBOARD_OLD_DEBT_CAP\)/);
     expect(page, "рішення рахує спільний предикат, а не копія умови").toMatch(/moneyReadIsPartial\(\{/);
     expect(page, "своїх чисел сторінка не тримає").not.toMatch(/\.limit\(2000\)|\.limit\(500\)\s*;[\s\S]{0,80}neq\("source"/);

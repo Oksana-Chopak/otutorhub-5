@@ -577,7 +577,8 @@ describe("матеріали учня · хронологія, розгорну�
       expect(hero, "напис без адреси читався як «тут мусить бути список»")
         .toMatch(/<Link\s+to="\/finances\?tab=debts"/);
       expect(hero, "скарга була саме про число біля напису")
-        .toMatch(/t\("dashboardExtra\.pendingPaymentsTitle", \{ count: pendingPayments\.length \}\)/);
+        // 17.11: число — `pendingCountLabel` («852+», коли список уперся у стелю, інакше саме число)
+        .toMatch(/t\("dashboardExtra\.pendingPaymentsTitle", \{ count: pendingCountLabel \}\)/);
       expect(hero, "мертвого <span> із самою назвою більше немає")
         .not.toMatch(/<span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400">/);
     });

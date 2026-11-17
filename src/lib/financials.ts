@@ -218,7 +218,10 @@ export function countLessonsMissingPrice(
  *
  * Числа живуть поруч із предикатом, щоб у запиті й у перевірці стояло те саме.
  */
-export const DASHBOARD_MONEY_CAP = 2000;
+/** «Мій день»: скільки уроків читаємо вперед (від початку сьогодні) і скільки — назад. */
+export const DASHBOARD_LESSONS_CAP = 400;
+/** Грошове вікно «Мого дня» (6 місяців) — читається сторінками по 1000 до цієї стелі. */
+export const DASHBOARD_MONEY_CAP = 6000;
 export const DASHBOARD_OLD_DEBT_CAP = 500;
 
 export function moneyReadIsPartial(counts: { money: number; oldDebts: number }): boolean {

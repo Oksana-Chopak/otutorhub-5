@@ -203,10 +203,14 @@ Deno.serve(withJob("scheduled-notifications", async (req) => {
     todayStart.setHours(0, 0, 0, 0);
 
     // ── 4. Streak at risk (tutors with streak > 2, no lesson today) ──────
-    const { data: streakRows } = await db
+    // 17.11: «серії» на дашборді репетиторки сховані з 01.11 (SHOW_GAMIFICATION = false), а пуш
+    // «серія під загрозою» далі йшов щовечора — сповіщення про те, чого людина не бачить.
+    // Вимикач один із дашбордом за змістом: повернули серії на екран — повернули й пуш.
+    const STREAK_NUDGES = false;
+    const { data: streakRows } = STREAK_NUDGES ? await db
       .from("tutor_streaks")
       .select("tutor_id, current_streak")
-      .gt("current_streak", 2);
+      .gt("current_streak", 2) : { data: [] as { tutor_id: string; current_streak: number }[] };
 
     for (const row of streakRows ?? []) {
       const { count } = await db

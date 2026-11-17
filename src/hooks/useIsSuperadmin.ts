@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { coalesce } from "@/lib/coalesce";
+
+/** Одна відповідь на всіх, хто питає (хук стоїть у пʼяти місцях + бічне меню); памʼятаємо 60 с. */
+export function askIsSuperadmin(uid: string): Promise<boolean> {
+  return coalesce(`is_superadmin:${uid}`, async () => {
+    // cast: is_superadmin потрапляє у згенеровані типи лише після міграції
+    const { data, error } = await (supabase as any).rpc("is_superadmin");
+    if (error) throw error;
+    return data === true;
+  }, 60_000);
+}
 
 /**
  * Чи є поточний користувач суперадміном платформи (`platform_admins`).
@@ -24,11 +35,9 @@ export function useIsSuperadmin(): { isSuperadmin: boolean; loading: boolean } {
   useEffect(() => {
     if (!uid) { setState({ uid: null, value: false }); return; }
     let active = true;
-    // cast: is_superadmin потрапляє у згенеровані типи лише після міграції
-    (supabase as any)
-      .rpc("is_superadmin")
-      .then(({ data }: { data: unknown }) => {
-        if (active) setState({ uid, value: data === true });
+    askIsSuperadmin(uid)
+      .then((value) => {
+        if (active) setState({ uid, value });
       })
       // Аудит 01.09: без catch відхилений проміс лишав loading=true назавжди,
       // а прапор — false: модерація чатів тихо вимикалась назовсім.
