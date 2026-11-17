@@ -214,6 +214,14 @@ describe("оболонка: один запит замість кількох о
     expect(read("src/hooks/useLastReminders.ts")).toMatch(/coalesce\(/);
   });
 
+  it("велика школа проходиться в CI після кожного пушу — і до репетиції відновлення", () => {
+    const wf = read(".github/workflows/walks.yml");
+    expect(wf).toMatch(/node scripts\/local-stack\/volume-walk\.mjs/);
+    expect(wf.indexOf("volume-walk.mjs")).toBeLessThan(wf.indexOf("backup-restore.mjs drill"));
+    const seed = read("scripts/local-stack/big-school.sql");
+    expect(seed, "уроки щодня — інакше в неділю «сьогодні» порожнє і прохід нічого не доводить").toMatch(/r\.rn % 7/);
+  });
+
   it("стенд обрізає відповіді так само, як прод (1000 рядків) — інакше обʼємні дефекти на ньому невидимі", () => {
     expect(read("scripts/local-stack/up.sh")).toMatch(/db-max-rows\s*=\s*1000/);
   });
