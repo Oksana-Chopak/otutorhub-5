@@ -23,6 +23,8 @@ export interface PayLinkIssue {
   telegram: boolean;
   email: boolean;
   has_requisites?: boolean;
+  /** 21.11: урок репетитора школи — реквізити задаються в профілі школи, не в картці учня. */
+  school?: boolean;
   student_first_name: string;
   tutor_name: string;
 }

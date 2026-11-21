@@ -1023,7 +1023,18 @@ export default function SchedulePage() {
   // Tabs: "lessons" (default) and "availability" — only for tutors/managers
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  /* 21.11 (рішення власниці п. 4): в учня ОДИН розклад — його власний (перенести, скасувати,
+     а тепер і «Попросити урок» по вільних годинах репетитора). Цей, загальний, учню більше не
+     показується: будь-яке старе посилання сюди веде туди ж, з тим самим уроком (?lesson=). */
   useEffect(() => {
+    if (!isPureStudent) return;
+    navigate(`/student/schedule${window.location.search}`, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPureStudent]);
+  useEffect(() => {
+    // учня переводимо в його розклад З УСІМА параметрами — тут їх не чіпаємо, інакше
+    // setSearchParams нижче перебив би перехід (останній перехід виграє)
+    if (isPureStudent) return;
     const v = searchParams.get("view");
     if (v === "list" || v === "week") setView(v);
     const f = searchParams.get("filter");
@@ -1036,17 +1047,26 @@ export default function SchedulePage() {
       setQuickStudentId(searchParams.get("student"));
       setQuickTutorId(searchParams.get("tutor"));
       {
-        // 11.11: тут стояло new Date() — урок із посилання («запланувати урок»,
-        // картка запуску школи) народжувався «зараз, о 14:29». Як і FAB: наступна повна година.
-        const d = new Date();
-        d.setMinutes(0, 0, 0);
-        d.setHours(d.getHours() + 1);
-        setQuickSlot(d);
+        // 21.11 (рішення власниці п. 4): «Учень просить урок» приносить час, який він обрав
+        // (?at=<ISO>) — форма відкривається одразу з ним. Минулий чи зіпсований — як FAB.
+        const at = searchParams.get("at");
+        const asked = at ? new Date(at) : null;
+        if (asked && Number.isFinite(asked.getTime()) && asked.getTime() > Date.now()) {
+          setQuickSlot(asked);
+        } else {
+          // 11.11: тут стояло new Date() — урок із посилання («запланувати урок»,
+          // картка запуску школи) народжувався «зараз, о 14:29». Як і FAB: наступна повна година.
+          const d = new Date();
+          d.setMinutes(0, 0, 0);
+          d.setHours(d.getHours() + 1);
+          setQuickSlot(d);
+        }
       }
       const n = new URLSearchParams(searchParams);
       n.delete("create");
       n.delete("tutor");
       n.delete("student");
+      n.delete("at");
       setSearchParams(n, { replace: true });
     }
     // 27.09: сповіщення ведуть В ОБʼЄКТ — «конспект із запису готовий» і

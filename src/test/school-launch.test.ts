@@ -268,12 +268,16 @@ describe("віральність у шляху школи (11.11, третій �
     expect(from).toBeGreaterThan(0);
     const form = people.slice(from, to);
     expect(form).not.toMatch(/<Select\b|<SelectTrigger|<Label\b/);
-    expect(form).toMatch(/<select\s+id="add-tutor-tutor"/);
-    expect(form).toMatch(/data-subject-chip/);
-    expect(form).toMatch(/minHeight: 48/);          // предмет-кнопка — повноцінна зона дотику
-    expect(form).toMatch(/height: 58/);             // поле репетитора — як у формі уроку
+    // 21.11: поля пари винесено в ОДИН компонент — він же стоїть у формі «Новий учень»
+    expect(form).toMatch(/<PairFields\s+idPrefix="add-tutor"/);
+    const pair = readFileSync("src/components/PairFields.tsx", "utf8");
+    expect(pair).not.toMatch(/<Select\b|<SelectTrigger|<Label\b/);
+    expect(pair).toMatch(/<select\s+id=\{`\$\{idPrefix\}-tutor`\}/);
+    expect(pair).toMatch(/data-subject-chip/);
+    expect(pair).toMatch(/minHeight: 48/);          // предмет-кнопка — повноцінна зона дотику
+    expect(pair).toMatch(/height: 58/);             // поле репетитора — як у формі уроку
     // гроші: ціну учня не підставляємо зі ставки репетитора (інваріант маржі)
-    expect(form).not.toMatch(/price:\s*String\(tutorRate/);
+    expect(pair).not.toMatch(/price:\s*String\(rate/);
     // форма «Нова людина» — теж без старих підписів і з перемикачем ролі на токенах теми
     const add = people.slice(people.indexOf("PERSON BOTTOM SHEET"), people.indexOf("<Sheet open={!!selectedPerson}"));
     expect(add.length).toBeGreaterThan(500);

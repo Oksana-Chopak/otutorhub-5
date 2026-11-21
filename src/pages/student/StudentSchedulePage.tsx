@@ -12,6 +12,11 @@ import { useTranslation } from "react-i18next";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { ErrorState } from "@/components/ErrorState";
 import { studentLessonsFilter } from "@/lib/studentLessons";
+import { pairsRel } from "@/lib/pairsRel";
+import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
+import { AskLessonSheet } from "@/components/AskLessonSheet";
+import { FindTutorDialog } from "@/components/FindTutorDialog";
+import { HandHeart } from "lucide-react";
 
 interface Lesson {
   id: string;
@@ -48,6 +53,11 @@ export default function StudentSchedulePage() {
      розкладом бачив порожній календар і вірив йому. */
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  /* 21.11 (рішення власниці п. 4): «Попросити урок» — тут, у розкладі учня. Репетитори —
+     з уроків І з пар (учень, якому школа вже призначила репетитора, ще без жодного уроку). */
+  const [tutors, setTutors] = useState<Array<{ id: string; name: string }>>([]);
+  const [myName, setMyName] = useState("");
+  const [ask, setAsk] = useState<{ tutorId: string; tutorName: string; at: Date } | null>(null);
 
   const statusLabel: Record<string, string> = {
     scheduled: t("studentPages.statusScheduled"),
@@ -78,15 +88,24 @@ export default function StudentSchedulePage() {
         .filter((l) => l.carried_over !== true);
       if (error) { setLoadError(true); setLoading(false); return; }
       setLoadError(false);
-      const tutorIds = Array.from(new Set(data.map((l) => l.tutor_id)));
-      const { data: profiles } = tutorIds.length
-        ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
-        : { data: [] as any[] };
+      const lessonTutorIds = Array.from(new Set(data.map((l) => l.tutor_id)));
+      // пари учня: репетитор, з яким уроків ще не було, теж той, кого можна попросити
+      const pairsRes = await supabase.from(await pairsRel()).select("tutor_id").eq("student_id", user.id);
+      const pairTutorIds = ((pairsRes.data ?? []) as Array<{ tutor_id: string }>).map((r) => r.tutor_id);
+      const tutorIds = Array.from(new Set([...lessonTutorIds, ...pairTutorIds])).filter((id) => id && id !== user.id);
+      const [{ data: profiles }, { data: me }] = await Promise.all([
+        tutorIds.length
+          ? supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from("profiles").select("first_name, last_name").eq("id", user.id).maybeSingle(),
+      ]);
       const map: Record<string, string> = {};
       (profiles ?? []).forEach((p: any) => {
         map[p.id] = `${p.first_name} ${p.last_name}`.trim();
       });
       setLessons(data.map((l) => ({ ...l, tutor_name: map[l.tutor_id] })));
+      setTutors(tutorIds.map((id) => ({ id, name: map[id] || t("roles.tutor") })));
+      setMyName(`${(me as any)?.first_name ?? ""} ${(me as any)?.last_name ?? ""}`.trim());
       setLoading(false);
     })();
   }, [user?.id, reloadKey]);
@@ -240,10 +259,54 @@ export default function StudentSchedulePage() {
             <TabsTrigger value="upcoming" className="h-10">{t("studentPagesExtra.upcoming", { count: upcoming.length })}</TabsTrigger>
             <TabsTrigger value="past" className="h-10">{t("studentPagesExtra.pastSchedule", { count: past.length })}</TabsTrigger>
           </TabsList>
-          <TabsContent value="upcoming" className="mt-4">{renderList(upcoming)}</TabsContent>
+          <TabsContent value="upcoming" className="mt-4">
+            {renderList(upcoming)}
+            {!loading && !loadError && (
+              <section data-ask-lesson="" aria-labelledby="ask-lesson-title" className="mt-6 space-y-3">
+                <div>
+                  <h2 id="ask-lesson-title" style={{ fontFamily: D, fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)" }}>
+                    {t("askLesson.sectionTitle")}
+                  </h2>
+                  <p style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>
+                    {t(tutors.length ? "askLesson.sectionHint" : "askLesson.noTutorHint")}
+                  </p>
+                </div>
+                {tutors.length === 0 ? (
+                  <FindTutorDialog
+                    trigger={
+                      <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-[13px] text-[15px] font-bold"
+                        style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", border: "none", cursor: "pointer" }}>
+                        <HandHeart size={18} /> {t("dashboard.btnRequestTutor")}
+                      </button>
+                    }
+                  />
+                ) : (
+                  tutors.map((tu) => (
+                    <TutorAvailabilityView key={tu.id} tutorId={tu.id} tutorName={tu.name}
+                      onPickSlot={(at) => setAsk({ tutorId: tu.id, tutorName: tu.name, at })}
+                      onPickOther={() => {
+                        // своя година: завтра на наступну рівну годину від «зараз»
+                        const d = new Date(); d.setDate(d.getDate() + 1); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
+                        setAsk({ tutorId: tu.id, tutorName: tu.name, at: d });
+                      }} />
+                  ))
+                )}
+              </section>
+            )}
+          </TabsContent>
           <TabsContent value="past" className="mt-4">{renderList(past)}</TabsContent>
         </Tabs>
       </div>
+      {ask && (
+        <AskLessonSheet
+          open={!!ask}
+          onOpenChange={(o) => { if (!o) setAsk(null); }}
+          tutorId={ask.tutorId}
+          tutorName={ask.tutorName}
+          initialAt={ask.at}
+          studentName={myName}
+        />
+      )}
     </>
   );
 }

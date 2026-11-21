@@ -49,6 +49,7 @@ import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { SchoolSetupCard } from "@/components/SchoolSetupCard";
 import { useMyHub } from "@/hooks/useMyHub";
 import { PaymentClaimsCard } from "@/components/PaymentClaimsCard";
+import { pickManagerFocus, remindedWithin } from "@/lib/managerFocus";
 import { AfterLessonSheet, type QueueLesson } from "@/components/AfterLessonSheet";
 import { ActionItemsCard } from "@/components/ActionItemsCard";
 import { StreakCard } from "@/components/StreakCard";
@@ -228,6 +229,12 @@ export default function DashboardPage() {
   const [feedbackNewCount, setFeedbackNewCount] = useState(0);
   const { isSuperadmin } = useIsSuperadmin();
   const [studentsWithoutTutor, setStudentsWithoutTutor] = useState(0);
+  // 21.11 (рішення власниці п. 3): «учень без репетитора» — одним дотиком у форму пари
+  const [firstStudentWithoutTutor, setFirstStudentWithoutTutor] = useState<string | null>(null);
+  // заявки зі сторінки школи (`my_hub_public_page`), ще не опрацьовані
+  const [schoolLeads, setSchoolLeads] = useState<Array<{ id: string; name: string; contact: string; subject: string | null }>>([]);
+  // заявки «я оплатив» (картка сама їх читає; тут — лише чи вони є)
+  const [claimsCount, setClaimsCount] = useState(0);
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
@@ -350,6 +357,20 @@ export default function DashboardPage() {
       icon: "🔥",
     });
   }, [streak?.current_streak, user?.id, isTutor, gamificationLoading]);
+  /* 21.11 (рішення власниці п. 3): нова заявка зі сторінки школи — одна з головних дій
+     «Мого дня» менеджера (досі її було видно лише в профілі й у дзвіночку). Функції може
+     ще не бути в базі — тоді заявок просто немає. */
+  useEffect(() => {
+    if (!user || !isManager) return;
+    let alive = true;
+    void (supabase.rpc as any)("my_hub_public_page").then(({ data, error }: { data: { leads?: unknown } | null; error: unknown }) => {
+      if (!alive || error || !data) return;
+      const leads = Array.isArray(data.leads) ? (data.leads as Array<{ id: string; name: string; contact: string; subject: string | null; status: string }>) : [];
+      setSchoolLeads(leads.filter((l) => l.status === "new").map(({ id, name, contact, subject }) => ({ id, name, contact, subject })));
+    }, () => {});
+    return () => { alive = false; };
+  }, [user?.id, isManager, dataVersion]);
+
   const [referralInvitedCount, setReferralInvitedCount] = useState(0);
   useEffect(() => {
     if (!user || !isIndependentTutor) return;
@@ -733,7 +754,9 @@ export default function DashboardPage() {
       ((ratesData ?? []) as Array<{ student_id: string }>).forEach((r) =>
         linkedStudentIds.add(r.student_id)
       );
-      setStudentsWithoutTutor(studentIds.filter((id) => !linkedStudentIds.has(id)).length);
+      const unassigned = studentIds.filter((id) => !linkedStudentIds.has(id));
+      setStudentsWithoutTutor(unassigned.length);
+      setFirstStudentWithoutTutor(unassigned[0] ?? null);
     }
 
     if (isStudent && !isManager && !isTutor) {
@@ -1799,9 +1822,26 @@ export default function DashboardPage() {
         tone: "destructive" as const,
         title: t("dashboardExtra.studentsWithoutTutorTitle", { count: studentsWithoutTutor }),
         description: t("dashboardExtra.studentsWithoutTutorDesc"),
-        // Аудит 05.09: задача про УЧНЯ висаджувала на вкладку репетиторів
-        to: "/people?tab=students",
+        // Аудит 05.09: задача про УЧНЯ висаджувала на вкладку репетиторів.
+        // 21.11: одним дотиком — одразу у форму пари першого такого учня.
+        to: firstStudentWithoutTutor ? `/people?assign=${firstStudentWithoutTutor}` : "/people?tab=students",
         cta: t("dashboardExtra.studentsWithoutTutorCta"),
+      });
+    }
+    // 4б. 21.11: нова заявка зі сторінки школи → форма «Новий учень», уже заповнена
+    if (isManager && schoolLeads.length > 0) {
+      schoolLeads.slice(0, 3).forEach((l) => {
+        const q = new URLSearchParams({ add: "student", name: l.name, contact: l.contact, lead: l.id });
+        if (l.subject) q.set("subject", l.subject);
+        tasks.push({
+          key: `school-lead-${l.id}`,
+          icon: HandHeart,
+          tone: "destructive" as const,
+          title: t("managerFocus.leadTitle", { name: l.name }),
+          description: [l.subject, l.contact].filter(Boolean).join(" · "),
+          to: `/people?${q.toString()}`,
+          cta: t("schoolPageCard.leadAdd"),
+        });
       });
     }
     // 5. Lessons without meeting link (manager; репетитор має свій пункт у гілці вище)
@@ -1866,6 +1906,8 @@ export default function DashboardPage() {
     feedbackNewCount,
     isSuperadmin,
     studentsWithoutTutor,
+    firstStudentWithoutTutor,
+    schoolLeads,
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
     pendingPayments.length,
@@ -1873,6 +1915,13 @@ export default function DashboardPage() {
     profiles, // №9: імʼя учня в задачі про скасування
     seriesBeyondIds, // №14: серія триває за вікном → задачі нема
   ]);
+
+  // 21.11 (рішення власниці п. 3): одна головна дія менеджера — гроші й люди
+  const managerFocus = useMemo(
+    () => (isManager ? pickManagerFocus(smartTasks, (p) => remindedWithin(lastRemindedAt(p.studentId, p.tutorId), nowMs)) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isManager, smartTasks, nowMs, lastRemindedAt],
+  );
 
   // №1 (ідеї 01.09): ОДНА картка розумної задачі для обох гілок (менеджер і
   // репетитор) — раніше JSX жив лише в менеджерській, і чотири задачі
@@ -2103,6 +2152,20 @@ export default function DashboardPage() {
                 {t("dashboardExtra.trialEndingCta")}
               </button>
             </div>
+          )}
+          {/* 21.11 (рішення власниці п. 3): «Мій день» менеджера починається з грошей і людей.
+              Спершу — заявки «я оплатив» (гроші вже прийшли, лишилось підтвердити); коли їх
+              немає — ОДНА найтерміновіша справа з однією дією: кому нагадати про борг → учень
+              без репетитора → нова заявка. Решта — у «Що зробити далі» нижче, без повтору. */}
+          {/* без обгортки: коли нема ні заявок, ні справи, тут немає жодного вузла (і відступу) */}
+          {isManager && <PaymentClaimsCard onCount={setClaimsCount} />}
+          {isManager && claimsCount === 0 && managerFocus && (
+            <section data-manager-focus="" aria-label={t("managerFocus.title")}>
+              <p className="mb-2 text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
+                {t("managerFocus.title")}
+              </p>
+              {renderSmartTaskCard(managerFocus)}
+            </section>
           )}
           {(isTutor || isManager) && (
             <DayBlock
@@ -2389,13 +2452,10 @@ export default function DashboardPage() {
           )}
 
           {/* Notes — ALWAYS directly under the bubbles, nowhere else (manager). */}
+          {/* Заявки «я оплатив» менеджера (важіль 4) — 21.11 переїхали на самий верх «Мого дня». */}
           {isManager && (
             <div className="mt-4 space-y-3">
               <TutorNotesCard />
-              {/* Важіль 4: заявки «я оплатив» від учнів школи — менеджеру, бо
-                  гроші школи записує він (хабовому репетитору wallet_topup
-                  цього не дозволяє). */}
-              <PaymentClaimsCard />
             </div>
           )}
 
@@ -3018,7 +3078,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   ) : (
-                    smartTasks.map(renderSmartTaskCard)
+                    smartTasks.filter((tk) => tk.key !== managerFocus?.key || claimsCount > 0).map(renderSmartTaskCard)
                   )}
                   <TelegramLinkCard />
                 </div>

@@ -37,6 +37,8 @@ interface PayView {
   total?: number;
   currency?: string;
   requisites?: string | null;
+  /** 21.11: урок репетитора школи — гроші отримує школа; реквізити теж її. */
+  school_name?: string | null;
   pending_claim?: boolean;
   last_claim?: { status: "pending" | "confirmed" | "rejected"; amount: number; currency: string; created_at: string; resolved_at: string | null } | null;
   next_lesson?: { date: string; subject: string | null } | null;
@@ -198,6 +200,9 @@ export default function PayLinkPage() {
         {view.requisites ? (
           <div className="mt-5">
             <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t("payLink.requisites")}</p>
+            {view.school_name && (
+              <p className="mt-1 text-[14px] font-semibold text-foreground">{t("payLink.paySchool", { school: view.school_name })}</p>
+            )}
             <div className="mt-2 flex items-start gap-2">
               <div className="min-w-0 flex-1 rounded-[14px] bg-secondary px-4 py-3 text-[15px] whitespace-pre-line break-words">{view.requisites}</div>
               <button type="button" onClick={copyReq} aria-label={t("payLink.copyRequisites")}

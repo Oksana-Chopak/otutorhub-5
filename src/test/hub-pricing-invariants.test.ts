@@ -24,10 +24,14 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     const people = readFileSync(join(root, "pages/PeoplePage.tsx"), "utf8");
     const assign = readFileSync(join(root, "components/AssignTutorDialog.tsx"), "utf8");
     const banned = /price:\s*[A-Za-z.]*price\s*\|\|\s*\(?\s*tutorRate/;
+    // 21.11: поля пари — один компонент для форми пари і форми «Новий учень»
+    const pair = readFileSync(join(root, "components/PairFields.tsx"), "utf8");
     expect(banned.test(people)).toBe(false);
     expect(banned.test(assign)).toBe(false);
+    expect(banned.test(pair)).toBe(false);
     // і взагалі жодного String(tutorRate) у значенні price-поля
     expect(/price:[^,\n]*tutorRate/.test(people)).toBe(false);
+    expect(/price:[^,\n]*\brate\b/.test(pair), "PairFields: ціна учня зі ставки репетитора").toBe(false);
   });
 
   // РОЗТЯЖКА №2: у ЖОДНОМУ файлі src грошові поля не підмінюють одне одного.

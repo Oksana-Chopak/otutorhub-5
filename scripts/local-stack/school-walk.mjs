@@ -137,7 +137,11 @@ async function main() {
   await dlg.getByLabel("Ім'я").fill("Ірина"); await dlg.getByLabel("Прізвище").fill("Коваль");
   await dlg.getByLabel("Електронна пошта").fill(E.tutor);
   const custom = dlg.getByPlaceholder("Або впиши свій предмет…"); await custom.fill("Іспанська мова"); await custom.press("Enter");
-  await dlg.getByRole("button", { name: "Додати", exact: true }).last().click(); await wait(3000);
+  // 21.11 (рішення власниці п. 2): після «Додати» одразу форма ставки, запрошення — після неї
+  await dlg.getByRole("button", { name: "Додати й задати ставку" }).click(); await wait(3000);
+  await s.see(/Налаштування репетитора[\s\S]*Іспанська мова/, "форма ставки нового репетитора з його предметом");
+  await s.page.getByPlaceholder("напр. 350").first().fill("300");
+  await s.page.getByRole("button", { name: "Зберегти", exact: true }).click(); await wait(2500);
   await s.see(new RegExp(`Школа «${SCHOOL}» запрошує`), "запрошення називає школу");
   ok(step);
 
@@ -379,7 +383,79 @@ async function schoolPage() {
   await guest.browser.close(); await ow.browser.close(); ok(step);
 }
 
-main().then(existingStudent).then(schoolPage).then(() => {
+async function decisions2111() {
+  // ── 9. рішення власниці 21.11 («1–5 так»): мінімум вікон, застосунок веде сам ──
+  const { spawnSync } = await import("node:child_process");
+  const q = (sql) => spawnSync("psql", ["-X", "-q", "-At", "-d", process.env.STACK_DB || "stackdb", "-c", sql], { encoding: "utf8" }).stdout.trim();
+  const ow = await session();
+  await ow.loginAs(E.owner);
+
+  step = "9а реквізити школи: менеджер вписує в профілі → учениця бачить, куди платити";
+  await ow.go("/profile", 4500);
+  await ow.see(/Реквізити для оплати/, "картка «Реквізити для оплати» в профілі менеджера");
+  await ow.page.locator("#school-payment-details").fill("IBAN UA21 3223 1300 0002 6007 2335 6600 1\nФОП Лінгва");
+  await ow.page.locator("#school-payment").getByRole("button", { name: "Зберегти" }).click(); await wait(2000);
+  if (!q(`SELECT payment_details FROM hubs WHERE name = '${SCHOOL}'`).includes("UA21")) throw new Error(`[${step}] реквізити не записались у школу`);
+  const st = await session();
+  await st.loginAs(E.s1);
+  await st.go("/student/payments", 5000);
+  await st.see(new RegExp(`Школа «${SCHOOL}»[\\s\\S]*UA21 3223`), "реквізити школи в «Оплатах» учениці");
+  await st.shot("2111-student-school-requisites");
+  ok(step);
+
+  step = "9б «Новий учень» — одна форма: репетитор, предмет, ціна → запрошення → урок з обома";
+  await ow.go("/people?add=student", 3500);
+  let dlg = ow.page.getByRole("dialog");
+  await dlg.getByLabel("Ім'я").fill("Олег"); await dlg.getByLabel("Прізвище").fill("Одна-Форма");
+  await dlg.getByLabel("Телефон").fill("+380631110022");
+  if (!(await dlg.locator("#new-student-tutor").inputValue())) throw new Error(`[${step}] єдиний репетитор школи не обрався сам`);
+  await dlg.locator("#new-student-price").fill("450");
+  await dlg.getByRole("button", { name: "Додати й поставити урок" }).click(); await wait(3500);
+  const sid = q(`SELECT id FROM profiles WHERE first_name = 'Олег' AND last_name = 'Одна-Форма' ORDER BY created_at DESC LIMIT 1`);
+  if (q(`SELECT price_per_lesson::int || ' ' || source FROM student_rates WHERE student_id = '${sid}'`) !== "450 hub") throw new Error(`[${step}] пара учня не записалась (450, школа)`);
+  await ow.page.getByRole("button", { name: /Запланувати перший урок з Олег/ }).click(); await wait(4500);
+  await ow.see(/Олег Одна-Форма[\s\S]*450/, "форма уроку одразу з новим учнем і його ціною");
+  await ow.page.getByRole("button", { name: "Створити урок" }).last().click(); await wait(3500);
+  if (q(`SELECT count(*) FROM lessons WHERE student_id = '${sid}'`) !== "1") throw new Error(`[${step}] перший урок не створено`);
+  ok(step);
+
+  step = "9в «Мій день» менеджера починається з грошей і людей";
+  await ow.go("/dashboard", 6000);
+  const focus = ow.page.locator("[data-manager-focus]");
+  // у школі є учні без репетитора (Дарина, Наталя з заявки) — значить, є і головна справа дня
+  if (!(await focus.count())) throw new Error(`[${step}] немає картки «Найважливіше зараз»`);
+  const box = await focus.boundingBox();
+  if (!box || box.y > 520) throw new Error(`[${step}] «Найважливіше зараз» не на першому екрані (y=${box?.y})`);
+  await ow.shot("2111-manager-day");
+  ok(step);
+
+  step = "9г учениця просить урок у своєму розкладі → репетиторка відкриває форму з нею і цим часом";
+  await st.go("/schedule", 4000);
+  if (!/\/student\/schedule/.test(st.page.url())) throw new Error(`[${step}] учениця лишилась у загальному розкладі: ${st.page.url()}`);
+  await st.see(/Попросити урок/, "«Попросити урок» у розкладі учениці");
+  const slot = st.page.locator("[data-slot]").first();
+  if (await slot.count()) await slot.click(); else await st.page.locator("[data-ask-other]").first().click();
+  await wait(1200);
+  await st.page.getByRole("button", { name: "Попросити", exact: true }).click(); await wait(2500);
+  const link = q(`SELECT n.link FROM notifications n JOIN profile_contacts c ON c.user_id = n.user_id WHERE n.type LIKE 'lesson_ask_%' AND c.email = '${E.tutor}' ORDER BY n.created_at DESC LIMIT 1`)
+    || q(`SELECT n.link FROM notifications n JOIN auth.users u ON u.id = n.user_id WHERE n.type LIKE 'lesson_ask_%' AND u.email = '${E.tutor}' ORDER BY n.created_at DESC LIMIT 1`);
+  if (!/^\/schedule\?create=1&student=[0-9a-f-]{36}&at=/.test(link)) throw new Error(`[${step}] прохання не дійшло до репетиторки або веде не у форму уроку: «${link}»`);
+  const tu = await session();
+  await tu.loginAs(E.tutor);
+  await tu.go(link, 5000);
+  const hh = new Date(decodeURIComponent(link.split("at=")[1])).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Kyiv" });
+  await tu.see(new RegExp(`${hh}[\\s\\S]*Соломія`), `форма уроку з ученицею і часом ${hh}`);
+  await tu.shot("2111-tutor-lesson-from-ask");
+  await tu.browser.close(); await st.browser.close();
+  ok(step);
+
+  // 9ґ «новий репетитор → одразу форма ставки → запрошення» — це крок 3б вище (і А1 у roles-walk):
+  // другого репетитора в цю школу не додаємо, бо наступні проходи (часові пояси, клавіатура)
+  // ставлять урок у школі з ОДНИМ репетитором.
+  await ow.browser.close();
+}
+
+main().then(existingStudent).then(schoolPage).then(decisions2111).then(() => {
   if (problems.length) { console.log("\n❌ збої під час проходу:\n" + [...new Set(problems)].join("\n")); process.exit(1); }
   console.log("\n✅ прохід «перша школа» — без збоїв бази й помилок JS");
 }).catch((e) => { console.log("\n❌ " + (e?.message ?? e)); if (problems.length) console.log([...new Set(problems)].join("\n")); process.exit(1); });

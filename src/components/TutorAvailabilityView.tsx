@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, CalendarClock, ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
 import i18nInstance from "@/i18n";
 import {
   WEEKDAYS_FULL_UK,
@@ -19,24 +19,32 @@ import {
 import { useTimeZones } from "@/hooks/useTimeZones";
 import { deviceTimeZone, sameClock, zoneLabel } from "@/lib/timeZone";
 import { TimeZoneNote } from "@/components/TimeZoneNote";
+import { getLocale } from "@/lib/locale";
 
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface TutorCalendarProps {
   tutorId: string;
   tutorName: string;
+  /** 21.11 (рішення власниці п. 4): учень обирає вільну годину — і одразу просить урок.
+      Тоді години — кнопками по днях (зона дотику 44px), а не дрібною сіткою на 7 стовпців. */
+  onPickSlot?: (at: Date) => void;
+  /** Разом з onPickSlot: «попросити урок на інший час». Кнопка живе в самій картці й стає
+      головною, коли вільних годин немає (тоді це єдина дія). */
+  onPickOther?: () => void;
 }
 
 const DAYS_AHEAD = 14;
 const SLOT_MINUTES = 60;
 
 /**
- * Read-only календар вільних годин репетитора для учня.
- * Учень НЕ може створювати уроки чи надсилати запити —
- * він лише бачить, коли його репетитор вільний, а далі домовляється
- * з репетитором у чаті. Уроки створює тільки репетитор або менеджер.
+ * Календар вільних годин репетитора для учня.
+ * Учень НЕ створює уроків — їх ставить лише репетитор або менеджер. Але з 21.11 він може
+ * одним дотиком по вільній годині ПОПРОСИТИ урок (`onPickSlot`): репетитор отримує
+ * сповіщення, а дотик по ньому відкриває форму уроку вже з цим учнем і цим часом.
  */
-export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps) {
+export function TutorAvailabilityView({ tutorId, tutorName, onPickSlot, onPickOther }: TutorCalendarProps) {
+  const pick = !!onPickSlot;
   const [loading, setLoading] = useState(true);
   const [weekly, setWeekly] = useState<WeeklyRow[]>([]);
   const [overrides, setOverrides] = useState<OverrideRow[]>([]);
@@ -135,7 +143,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             {t("tutorAvailability.title", { name: tutorName })}
           </h3>
           <p className="text-[14px] text-muted-foreground">
-            {t("tutorAvailability.next14")}
+            {t(pick ? "askLesson.next14Pick" : "tutorAvailability.next14")}
           </p>
           {converted && tutorTz && (
             <div className="mt-1">
@@ -175,15 +183,42 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : !hasWeekly && !hasPositiveOverride ? (
-        <p className="text-center text-sm text-muted-foreground py-6">
-          {hasAnySchedule
+        <p className={pick ? "text-[14px] text-muted-foreground" : "text-center text-sm text-muted-foreground py-6"}>
+          {pick
+            ? t("askLesson.noHoursPick")
+            : hasAnySchedule
             ? t("tutorAvailability.noHours")
             : t("tutorAvailability.notSet")}
         </p>
       ) : !hasAnySlotInView ? (
-        <p className="text-center text-sm text-muted-foreground py-6">
-          {t("tutorAvailability.noSlotsThisWeek")}
+        <p className={pick ? "text-[14px] text-muted-foreground" : "text-center text-sm text-muted-foreground py-6"}>
+          {t(pick ? "askLesson.noSlotsPick" : "tutorAvailability.noSlotsThisWeek")}
         </p>
+      ) : onPickSlot ? (
+        <ul data-pick-slots="" className="space-y-3" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {days.filter((d) => d.slots.length > 0).map(({ date, slots }) => (
+            <li key={date.toISOString()}>
+              <p className="text-[14px] font-semibold text-foreground">
+                {date.toLocaleDateString(getLocale(), { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+              <div className="mt-1.5 flex flex-wrap gap-2">
+                {slots.map((s) => (
+                  <button
+                    key={s.start}
+                    type="button"
+                    data-slot=""
+                    onClick={() => onPickSlot(buildLocalDate(date, s.start))}
+                    aria-label={t("askLesson.slotAria", { time: minutesToHHMM(s.start) })}
+                    className="min-h-[44px] rounded-[12px] px-3.5 text-[15px] font-bold"
+                    style={{ border: "1.5px solid rgba(43,191,170,.45)", background: "var(--teal-l,#f0fdf9)", color: "var(--teal-text,#0F6E56)", cursor: "pointer" }}
+                  >
+                    {minutesToHHMM(s.start)}
+                  </button>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : (
         <div className="grid grid-cols-7 gap-1.5">
           {days.map(({ date, slots }) => {
@@ -221,6 +256,18 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
           })}
         </div>
       )}
+      {pick && onPickOther && !loading && (() => {
+        const none = !hasAnySlotInView;
+        return (
+          <button type="button" data-ask-other="" onClick={onPickOther}
+            className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-[13px] text-[15px] font-bold"
+            style={none
+              ? { background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", border: "none", cursor: "pointer" }
+              : { border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--ds-txt,#0f0f1a)", cursor: "pointer" }}>
+            <CalendarPlus className="h-[17px] w-[17px]" /> {t(none ? "askLesson.title" : "askLesson.otherTime")}
+          </button>
+        );
+      })()}
     </div>
   );
 }

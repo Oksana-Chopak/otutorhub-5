@@ -293,7 +293,11 @@ export function QuickLessonDialog({
       }));
 
       if (cancelled) return;
-      setStudents(rows);
+      // 21.11: учень, з яким прийшли (новий учень, прохання учня, чат), — першим у списку:
+      // обраний рядок не має ховатись під згином серед десятка інших.
+      setStudents(initialStudentId
+        ? [...rows.filter((r) => r.student_id === initialStudentId), ...rows.filter((r) => r.student_id !== initialStudentId)]
+        : rows);
       setGroups(groupRows);
       const last = localStorage.getItem(LAST_KEY);
       const initial =

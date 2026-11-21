@@ -33,6 +33,8 @@ interface Props {
   hubName?: string | null;
   /** Менеджер школи: учня ще треба прикріпити до репетитора — це й є наступний крок. */
   onAssignTutor?: () => void;
+  /** 21.11: пару вже заведено у формі «Новий учень» — урок одразу з цим репетитором. */
+  lessonTutorId?: string | null;
 }
 
 export function InviteLinkDialog({
@@ -47,6 +49,7 @@ export function InviteLinkDialog({
   emailSent = false,
   hubName,
   onAssignTutor,
+  lessonTutorId,
 }: Props) {
   const navigate = useNavigate();
   const [copiedLink, setCopiedLink] = useState(false);
@@ -245,7 +248,7 @@ export function InviteLinkDialog({
           ) : role === "student" && studentId ? (
             <>
               {/* A13: «Готово»-тупик → місток у ПЕРШИЙ урок з цим учнем (deep-link форми). */}
-              <button onClick={() => { onOpenChange(false); navigate(`/schedule?create=1&student=${studentId}`); }}
+              <button onClick={() => { onOpenChange(false); navigate(`/schedule?create=1&student=${studentId}${lessonTutorId ? `&tutor=${lessonTutorId}` : ""}`); }}
                 style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {personName
                   ? t("inviteLinkExtra.scheduleFirstLesson", { name: personName.split(" ")[0] })

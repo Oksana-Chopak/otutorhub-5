@@ -43,6 +43,8 @@ interface TutorPayInfo {
   tutor_name: string;
   currency: string;
   payment_details: string | null;
+  /** 21.11: гроші за уроки репетитора школи отримує школа — її назва і реквізити. */
+  school_name?: string | null;
 }
 
 export default function StudentPaymentsPage() {
@@ -227,13 +229,32 @@ export default function StudentPaymentsPage() {
           currency: (l as any).currency ?? payMap[l.tutor_id]?.currency ?? "UAH",
         }))
       );
+      /* 21.11 (рішення власниці п. 5): у школі учень платить ШКОЛІ — реквізити школи
+         стоять там, де в пари своїх немає. Функції може ще не бути в базі (SQL не
+         вставлено) — тоді як раніше: «Я оплатив(ла)» без реквізитів. */
+      const schoolMap: Record<string, { school: string; details: string }> = {};
+      if (tutorIds.length) {
+        try {
+          const { data: sch, error: schErr } = await (supabase.rpc as any)("my_school_payment_details");
+          if (!schErr) {
+            ((sch ?? []) as Array<{ tutor_id: string; school_name: string; payment_details: string }>).forEach((r) => {
+              if (r.payment_details?.trim()) schoolMap[r.tutor_id] = { school: r.school_name, details: r.payment_details };
+            });
+          }
+        } catch { /* немає функції — немає реквізитів школи */ }
+      }
       setTutorPayInfos(
-        tutorIds.map((id) => ({
-          tutor_id: id,
-          tutor_name: nameMap[id] ?? t("studentPages.tutorFallback"),
-          currency: payMap[id]?.currency ?? "UAH",
-          payment_details: payMap[id]?.payment_details ?? null,
-        }))
+        tutorIds.map((id) => {
+          const own = payMap[id]?.payment_details ?? null;
+          const school = schoolMap[id];
+          return {
+            tutor_id: id,
+            tutor_name: nameMap[id] ?? t("studentPages.tutorFallback"),
+            currency: payMap[id]?.currency ?? "UAH",
+            payment_details: own ?? school?.details ?? null,
+            school_name: own ? null : school?.school ?? null,
+          };
+        })
       );
       // 📦 Передплачені пакети: баланс гаманця по кожному репетитору
       try {
@@ -378,8 +399,15 @@ export default function StudentPaymentsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
-                        {tp.tutor_name} · {currencySymbol(tp.currency)} {tp.currency}
+                        {tp.school_name
+                          ? t("studentPagesExtra.schoolPayTo", { school: tp.school_name })
+                          : tp.tutor_name} · {currencySymbol(tp.currency)}{"\u00A0"}{tp.currency}
                       </p>
+                      {tp.school_name && (
+                        <p style={{ marginTop: 1, fontSize: 13, color: "var(--sub,#62677E)" }}>
+                          {t("studentPagesExtra.schoolTutorLine", { tutor: tp.tutor_name })}
+                        </p>
+                      )}
                       <p style={{ marginTop: 4, whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
                         {tp.payment_details}
                       </p>

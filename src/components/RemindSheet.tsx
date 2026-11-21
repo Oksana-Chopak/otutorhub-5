@@ -166,7 +166,7 @@ export function RemindSheet({
               <p className="mt-4 text-[13px] text-muted-foreground" style={{ lineHeight: 1.45 }}>
                 {t("payLink.howItWorks")}
                 {issue.has_requisites === false && (
-                  <> <span className="text-warning font-semibold">{t("payLink.noRequisites")}</span></>
+                  <> <span className="text-warning font-semibold">{t(issue.school ? "payLink.noRequisitesSchool" : "payLink.noRequisites")}</span></>
                 )}
               </p>
             </>

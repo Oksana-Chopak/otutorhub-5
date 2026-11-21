@@ -76,6 +76,7 @@ import { RemindDebtButton } from "@/components/RemindDebtButton";
 import { useLastReminders } from "@/hooks/useLastReminders";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
 import { TutorRateDialog } from "@/components/TutorRateDialog";
+import { PairFields, EMPTY_PAIR, availablePairSubjects, type PairTutor, type PairValue } from "@/components/PairFields";
 import { pairsRel } from "@/lib/pairsRel";
 
 interface Profile {
@@ -87,6 +88,19 @@ interface Profile {
   archived_at: string | null;
   created_at: string;
 }
+
+/** 21.11 (рішення власниці п. 1): форма «Новий учень» — ще й репетитор, предмет, ціна
+ *  і «одразу перший урок» (галочка стоїть сама: наступний крок майже завжди урок). */
+const blankAddForm = (role: AppRole) => ({
+  first_name: "",
+  last_name: "",
+  email: "",
+  phone: "",
+  role,
+  subjects: [] as string[],
+  pair: { ...EMPTY_PAIR } as PairValue,
+  firstLesson: true,
+});
 
 interface UserRow {
   id: string;
@@ -170,14 +184,13 @@ export default function PeoplePage() {
   // 15.11: школа відкриває «Людей» здебільшого заради учнів (їх десятки, репетиторів —
   // кілька) — список учнів і є першим екраном; решта вкладок на місці.
   const [activeRoleTab, setActiveRoleTab] = useState<"tutors" | "students" | "managers">("students");
-  const [addForm, setAddForm] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    role: "student" as AppRole,
-    subjects: [] as string[],
-  });
+  const [addForm, setAddForm] = useState(() => blankAddForm("student"));
+  // людина сама торкнулась вибору репетитора — більше нічого за неї не обираємо
+  const pairTouchedRef = useRef(false);
+  // предмет із заявки зі сторінки школи (?subject=) — щоб одразу знайти репетитора
+  const leadSubjectRef = useRef<string | null>(null);
+  // новий репетитор: запрошення показуємо ПІСЛЯ форми ставки (рішення власниці п. 2)
+  const inviteAfterRateRef = useRef<null | (() => void)>(null);
   const [adding, setAdding] = useState(false);
   const [invite, setInvite] = useState<{
     open: boolean;
@@ -187,6 +200,10 @@ export default function PeoplePage() {
     role: "student" | "tutor";
     studentId: string | null;
     emailSent: boolean;
+    /** 21.11: пару вже заведено у формі — наступний крок урок із цим репетитором, а не «призначити». */
+    lessonTutorId?: string | null;
+    /** пару ввели, але її не вдалось записати — форма пари відкриється з тими самими значеннями */
+    pairDraft?: PairValue | null;
   }>({ open: false, name: "", email: null, phone: null, role: "student", studentId: null, emailSent: false });
 
   // ✏️ Edit → the ONE canonical person form (PersonEditSheet, SF_A «Один потік»
@@ -226,7 +243,9 @@ export default function PeoplePage() {
   const pendingLeadRef = useRef<string | null>(null);
   const openAddSheet = (role: AppRole) => {
     pendingLeadRef.current = null;
-    setAddForm({ first_name: "", last_name: "", email: "", phone: "", role, subjects: [] });
+    leadSubjectRef.current = null;
+    pairTouchedRef.current = false;
+    setAddForm(blankAddForm(role));
     setAddOpen(true);
   };
 
@@ -545,15 +564,16 @@ export default function PeoplePage() {
       if (add === "student" && (leadName || leadContact)) {
         const sp = leadName.indexOf(" ");
         setAddForm({
+          ...blankAddForm("student"),
           first_name: sp > 0 ? leadName.slice(0, sp) : leadName,
           last_name: sp > 0 ? leadName.slice(sp + 1) : "",
           email: leadContact.includes("@") ? leadContact : "",
           phone: leadContact.includes("@") ? "" : leadContact,
-          role: "student",
-          subjects: [],
         });
         pendingLeadRef.current = searchParams.get("lead");
-        ["name", "contact", "lead"].forEach((k) => n.delete(k));
+        // 21.11: предмет заявки — репетитор, що його веде, обереться сам (якщо такий один)
+        leadSubjectRef.current = (searchParams.get("subject") ?? "").trim().slice(0, 60) || null;
+        ["name", "contact", "lead", "subject"].forEach((k) => n.delete(k));
       }
       if (add === "tutor") setActiveRoleTab("tutors");
       else setActiveRoleTab("students");
@@ -578,7 +598,12 @@ export default function PeoplePage() {
     const person = users.find((u) => u.id === pendingAssign.student);
     if (!person) return;
     setActiveRoleTab("students");
-    setAddTutorToStudent({ open: true, studentId: person.id, studentName: fullName(person), tutorId: pendingAssign.tutor, subject: "", price: "", currency: "UAH" });
+    setAddTutorToStudent({
+      open: true, studentId: person.id, studentName: fullName(person), tutorId: pendingAssign.tutor,
+      // 21.11: у репетитора лишився один предмет для цієї пари — обираємо його самі
+      subject: pendingAssign.tutor ? soleSubject(pendingAssign.tutor, person.id) : "",
+      price: "", currency: "UAH",
+    });
     setPendingAssign(null);
     const n = new URLSearchParams(searchParams);
     n.delete("assign"); n.delete("tutor"); n.delete("back");
@@ -787,6 +812,25 @@ export default function PeoplePage() {
       toast.error(t("people.invalidEmail"));
       return;
     }
+    // 21.11: пара у формі «Новий учень» — перевіряємо ДО створення людини, щоб не лишилось
+    // половини (учень є, а пари немає) через незаповнену ціну.
+    // Репетитора, якого застосунок обрав сам (у школі він один), без ціни НЕ вважаємо
+    // рішенням людини: учень додається як раніше, а наступний крок «призначити репетитора
+    // і ціну» відкриється з цим репетитором і предметом. Вимагати ціну за вибір, якого
+    // людина не робила, — це і є тупик.
+    const pairChosen = addForm.role === "student" && !!addForm.pair.tutorId;
+    const pairWanted = pairChosen && (pairTouchedRef.current || addForm.pair.price.trim() !== "");
+    const pair = pairWanted ? addForm.pair : null;
+    const pairDraftOnly = pairChosen && !pairWanted ? addForm.pair : null;
+    const pairPrice = pair ? Number.parseFloat(pair.price.replace(",", ".")) : NaN;
+    if (pair && !pair.subject) {
+      toast.error(t("people.selectSubject"));
+      return;
+    }
+    if (pair && (!Number.isFinite(pairPrice) || pairPrice < 0)) {
+      toast.error(t("people.enterValidPrice"));
+      return;
+    }
 
     setAdding(true);
     // 1. Створюємо ghost-профіль
@@ -819,7 +863,10 @@ export default function PeoplePage() {
           const { data, error } = await (supabase.rpc as any)("hub_invite_existing_student", { _email: email });
           if (!error && typeof data === "string") invited = data;
         }
-        if (invited === "sent") { toast.success(t("people.existingInvited")); setAddOpen(false); }
+        if (invited === "sent") {
+          toast.success(t("people.existingInvited"), pair ? { description: t("newStudentFlow.pairAfterJoin") } : undefined);
+          setAddOpen(false);
+        }
         else if (invited === "already_member") toast.message(t("people.existingAlreadyMember"));
         else toast.error(t("people.emailAlreadyRegistered"));
       } else {
@@ -851,9 +898,34 @@ export default function PeoplePage() {
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
     }
 
+    // 5. 21.11: репетитор, предмет і ціна — тим самим записом, що й форма пари
+    //    (student_rates; source='hub' ставить база для менеджера школи).
+    let pairOk: boolean | null = null;
+    if (pair) {
+      const { error: pairErr } = await supabase.from("student_rates").upsert(
+        {
+          tutor_id: pair.tutorId,
+          student_id: newId,
+          subject: pair.subject,
+          price_per_lesson: pairPrice,
+          currency: pair.currency || "UAH",
+        },
+        { onConflict: "tutor_id,student_id,subject" },
+      );
+      pairOk = !pairErr;
+      if (pairErr) {
+        console.error("Failed to add tutor to new student", pairErr);
+        toast.error(t("people.addTutorFailed"));
+      } else {
+        await ensureTutorSubject(pair.tutorId, pair.subject);
+      }
+    }
+
     setAdding(false);
-    toast.success(t("people.personAdded"));
     setAddOpen(false);
+    const name = `${fn} ${ln}`.trim();
+    const wantLesson = !!pair && pairOk === true && addForm.firstLesson;
+    const lessonHref = pair && pairOk ? `/schedule?create=1&student=${newId}&tutor=${pair.tutorId}` : null;
 
     // Auto-send email invite to students with email
     let emailSent = false;
@@ -864,29 +936,53 @@ export default function PeoplePage() {
       );
       if (!inviteErr && (inviteResp as any)?.success) {
         emailSent = true;
-        toast.success(t("people.inviteSent"));
       } else if (inviteErr) {
         console.warn("Auto-invite failed", inviteErr);
       }
     }
 
+    const finishLead = () => {
+      if (pendingLeadRef.current) {
+        const leadId = pendingLeadRef.current;
+        pendingLeadRef.current = null;
+        void (supabase.rpc as any)("resolve_hub_lead", { _id: leadId, _done: true }).then(() => {}, () => {});
+      }
+    };
+    const role = addForm.role;
+    setAddForm(blankAddForm("student"));
+    finishLead();
+    loadData();
+
+    // Учень із парою, запрошення вже на пошті, урок хочуть одразу — жодного проміжного
+    // вікна: прямо у форму уроку з уже обраними учнем і репетитором.
+    if (role === "student" && wantLesson && emailSent && lessonHref) {
+      toast.success(t("newStudentFlow.addedInvited", { name, email }));
+      navigate(lessonHref);
+      return;
+    }
+    toast.success(t("people.personAdded"));
+    if (emailSent) toast.success(t("people.inviteSent"));
+
     // Show invite dialog so the manager can copy/resend the registration link
-    setInvite({
+    const showInvite = () => setInvite({
       open: true,
-      name: `${fn} ${ln}`.trim(),
+      name,
       email: email || null,
       phone: phone || null,
-      role: addForm.role === "tutor" ? "tutor" : "student",
-      studentId: addForm.role === "student" ? newId : null,
+      role: role === "tutor" ? "tutor" : "student",
+      studentId: role === "student" ? newId : null,
       emailSent,
+      lessonTutorId: pair && pairOk ? pair.tutorId : null,
+      pairDraft: pair && pairOk === false ? pair : pairDraftOnly,
     });
-    setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student", subjects: [] });
-    if (pendingLeadRef.current) {
-      const leadId = pendingLeadRef.current;
-      pendingLeadRef.current = null;
-      void (supabase.rpc as any)("resolve_hub_lead", { _id: leadId, _done: true }).then(() => {}, () => {});
+    // 21.11 (рішення власниці п. 2): новий репетитор — одразу єдина форма ставки, з уже
+    // обраними предметами; запрошення — після неї (і коли форму закрили без ставки теж).
+    if (role === "tutor") {
+      inviteAfterRateRef.current = showInvite;
+      setTutorRate({ open: true, tutorId: newId, subject: null });
+      return;
     }
-    loadData();
+    showInvite();
   };
 
   const archivePerson = async (u: UserRow) => {
@@ -1038,6 +1134,48 @@ export default function PeoplePage() {
   const noRole = filteredUsers.filter((u) => !u.role);
   // Unfiltered tutors list for student-card pricing rows
   const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
+  // 21.11: поля пари (PairFields) — у формі «Додати репетитора до учня» і в «Новий учень»
+  const pairTutors = useMemo(
+    () => allTutors.filter((tu) => !tu.archived_at).map((tu) => ({ id: tu.id, name: fullName(tu), subjects: tu.subjects ?? [] })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allTutors],
+  );
+  const takenPairSubjects = (tutorId: string, studentId: string) =>
+    new Set(studentRates.filter((r) => r.tutor_id === tutorId && r.student_id === studentId).map((r) => r.subject));
+  const pairTutorRate = (tutorId: string, subject: string) => tutorSubjectRates[tutorId]?.[subject];
+  /** Предмет, який можна обрати за людину: у пари лишився рівно один. */
+  const soleSubject = (tutorId: string, studentId: string) => {
+    const left = availablePairSubjects(pairTutors.find((tu) => tu.id === tutorId), allSubjects, takenPairSubjects(tutorId, studentId));
+    return left.length === 1 ? left[0] : "";
+  };
+
+  /* 21.11 (рішення власниці п. 1): у формі «Новий учень» застосунок обирає сам, де вибору
+     насправді немає: репетитор у школі один — він; заявка зі сторінки школи називає предмет,
+     який веде рівно один репетитор, — він і цей предмет. Щойно людина сама торкнулась вибору
+     репетитора — більше нічого не підставляємо. Ціну НЕ підставляємо ніколи (маржа школи). */
+  useEffect(() => {
+    if (!addOpen || addForm.role !== "student" || pairTouchedRef.current || addForm.pair.tutorId) return;
+    const norm = (x: string) => x.replace(/\s+/g, " ").trim().toLowerCase();
+    const want = leadSubjectRef.current;
+    let pick: PairTutor | undefined;
+    let subject = "";
+    if (want) {
+      const teaching = pairTutors.filter((tu) => tu.subjects.some((sb) => norm(sb) === norm(want)));
+      if (teaching.length === 1) {
+        pick = teaching[0];
+        subject = pick.subjects.find((sb) => norm(sb) === norm(want)) ?? "";
+      }
+    }
+    if (!pick && pairTutors.length === 1) {
+      pick = pairTutors[0];
+      const left = availablePairSubjects(pick, allSubjects, new Set());
+      subject = (want && left.find((sb) => norm(sb) === norm(want))) || (left.length === 1 ? left[0] : "");
+    }
+    if (!pick) return;
+    const tid = pick.id;
+    setAddForm((f) => (f.pair.tutorId ? f : { ...f, pair: { ...f.pair, tutorId: tid, subject } }));
+  }, [addOpen, addForm.role, addForm.pair.tutorId, pairTutors, allSubjects]);
+
   const visiblePeopleCount = noRole.length + managers.length + tutors.length + students.length;
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => {
@@ -1452,7 +1590,15 @@ renderEmptyTab("managers")
         tutorId={tutorRate.tutorId}
         presetSubject={tutorRate.subject}
         focusGroup={tutorRate.group}
-        onOpenChange={(o) => setTutorRate((st) => ({ ...st, open: o }))}
+        onOpenChange={(o) => {
+          setTutorRate((st) => ({ ...st, open: o }));
+          // 21.11: новий репетитор — після форми ставки (збереженої чи закритої) запрошення
+          if (!o && inviteAfterRateRef.current) {
+            const show = inviteAfterRateRef.current;
+            inviteAfterRateRef.current = null;
+            show();
+          }
+        }}
         onSaved={() => loadData()}
       />
 
@@ -1562,125 +1708,16 @@ renderEmptyTab("managers")
               золотій картці, як у сусідній формі ціни. Жодного спливного списку: репетитор і
               валюта — рідний вибір телефона, який не залежить від клавіатури й розміру вікна. */}
           <div className="overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <label htmlFor="add-tutor-tutor" style={{ display: "block", marginBottom: 6, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>
-                {t("roles.tutor")}
-              </label>
-              <select
-                id="add-tutor-tutor"
-                value={addTutorToStudent.tutorId}
-                onChange={(e) => setAddTutorToStudent((s) => ({ ...s, tutorId: e.target.value, subject: "" }))}
-                style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "var(--ds-surface2,#fbfbfc)", border: "1.5px solid var(--ds-border,#eceef3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 17, color: addTutorToStudent.tutorId ? "var(--ds-txt,#0f0f1a)" : "var(--ds-muted,#6f7489)" }}
-              >
-                <option value="">{t("people.selectTutorPlaceholder")}</option>
-                {allTutors.map((tu) => (
-                  <option key={tu.id} value={tu.id}>{fullName(tu)}</option>
-                ))}
-              </select>
-            </div>
-            {addTutorToStudent.tutorId && (() => {
-              const tutor = allTutors.find((tu) => tu.id === addTutorToStudent.tutorId);
-              const tutorSubjects = tutor?.subjects ?? [];
-              const tSubjects = tutorSubjects.length > 0 ? tutorSubjects : allSubjects;
-              const takenSubjects = new Set(
-                studentRates
-                  .filter(
-                    (r) =>
-                      r.tutor_id === addTutorToStudent.tutorId &&
-                      r.student_id === addTutorToStudent.studentId,
-                  )
-                  .map((r) => r.subject),
-              );
-              const availableSubjects = tSubjects.filter((sb) => !takenSubjects.has(sb));
-              if (availableSubjects.length === 0) {
-                return (
-                  <p style={{ fontSize: 15, lineHeight: 1.45, color: "var(--sub,#62677E)", margin: 0 }}>
-                    {t("people.allSubjectsAdded")}
-                  </p>
-                );
-              }
-              const tutorRate = addTutorToStudent.subject
-                ? tutorSubjectRates[addTutorToStudent.tutorId]?.[addTutorToStudent.subject]
-                : undefined;
-              const sp = Number(addTutorToStudent.price);
-              const margin = tutorRate !== undefined && tutorRate > 0 && Number.isFinite(sp) && sp > 0 ? sp - tutorRate : null;
-              return (
-                <>
-                  <div>
-                    <div id="add-tutor-subject-label" style={{ marginBottom: 8, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: "var(--sub,#62677E)" }}>
-                      {t("people.labelSubject").replace(":", "")}
-                    </div>
-                    <div role="radiogroup" aria-labelledby="add-tutor-subject-label" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {availableSubjects.map((sb) => {
-                        const sel = sb === addTutorToStudent.subject;
-                        return (
-                          <button
-                            key={sb}
-                            type="button"
-                            role="radio"
-                            aria-checked={sel}
-                            data-subject-chip=""
-                            // FINANCE INVARIANT: ціну учня НІКОЛИ не префілимо ставкою
-                            // репетитора — цей префіл тихо зрівнював student_price з
-                            // tutor_payout і обнуляв маржу хаба по всіх нових парах.
-                            onClick={() => setAddTutorToStudent((s) => ({ ...s, subject: sb }))}
-                            style={{ minHeight: 48, padding: "0 16px", borderRadius: 14, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, border: sel ? "1.5px solid var(--teal,#2BBFAA)" : "1.5px solid var(--ds-border,#eceef3)", background: sel ? "var(--teal-l,#f0fdf9)" : "var(--ds-surface2,#fbfbfc)", color: sel ? "var(--teal-text,#0F6E56)" : "var(--ds-txt,#0f0f1a)" }}
-                          >
-                            {sb}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
-                    <label htmlFor="add-tutor-price" style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#7a5410", marginBottom: 8 }}>
-                      {t("people.priceForStudent", { currency: currencySymbol(addTutorToStudent.currency) })}
-                    </label>
-                    <div className="grid grid-cols-[1fr_7.5rem] gap-2">
-                      <Input
-                        id="add-tutor-price"
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="any"
-                        value={addTutorToStudent.price}
-                        onChange={(e) =>
-                          setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
-                        }
-                        placeholder={t("people.pricePlaceholder")}
-                        className="h-[52px] bg-card text-[18px] font-bold rounded-[13px]"
-                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-                      />
-                      <select
-                        aria-label={t("quickAddStudent.currency")}
-                        value={addTutorToStudent.currency}
-                        onChange={(e) => setAddTutorToStudent((s) => ({ ...s, currency: e.target.value }))}
-                        className="bg-card text-foreground"
-                        style={{ height: 52, borderRadius: 13, padding: "0 10px", border: "0.5px solid hsl(var(--input))", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16 }}
-                      >
-                        {CURRENCY_OPTIONS.map((c) => (
-                          <option key={c.code} value={c.code}>{c.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {tutorRate !== undefined && tutorRate > 0 && (
-                      <p style={{ margin: "10px 0 0", fontSize: 14, lineHeight: 1.45, color: "#7a5410" }}>
-                        {t("people.tutorRateForSubject")}{" "}
-                        <span style={{ fontWeight: 700 }}>{formatPrice(tutorRate, "UAH")}</span>
-                        {margin !== null && addTutorToStudent.currency === "UAH" && (
-                          <>
-                            {" · "}{t("people.hubMarginLabel")}{" "}
-                            <span style={{ fontWeight: 800, color: margin > 0 ? "#7a5410" : "#B42318" }}>
-                              {formatPrice(margin, "UAH")}
-                            </span>
-                          </>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </>
-              );
-            })()}
+            {/* 21.11: поля пари — один компонент і тут, і у формі «Новий учень» */}
+            <PairFields
+              idPrefix="add-tutor"
+              tutors={pairTutors}
+              fallbackSubjects={allSubjects}
+              takenSubjects={(tid) => takenPairSubjects(tid, addTutorToStudent.studentId)}
+              tutorRate={pairTutorRate}
+              value={addTutorToStudent}
+              onChange={(v) => setAddTutorToStudent((s) => ({ ...s, tutorId: v.tutorId, subject: v.subject, price: v.price, currency: v.currency }))}
+            />
           </div>
           <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
@@ -1748,18 +1785,21 @@ renderEmptyTab("managers")
         studentId={invite.studentId}
         emailSent={invite.emailSent}
         hubName={isManager ? myHub?.name ?? null : null}
-        onAssignTutor={isManager && invite.role === "student" && invite.studentId ? () => {
+        onAssignTutor={isManager && invite.role === "student" && invite.studentId && !invite.lessonTutorId ? () => {
           setActiveRoleTab("students");
+          // 21.11: пару ввели у формі, але запис не вдався — ті самі значення, без повторного вводу
+          const draft = invite.pairDraft ?? EMPTY_PAIR;
           setAddTutorToStudent({
             open: true,
             studentId: invite.studentId as string,
             studentName: invite.name,
-            tutorId: "",
-            subject: "",
-            price: "",
-            currency: "UAH",
+            tutorId: draft.tutorId,
+            subject: draft.subject,
+            price: draft.price,
+            currency: draft.currency || "UAH",
           });
         } : undefined}
+        lessonTutorId={invite.lessonTutorId ?? null}
       />
 
       {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
@@ -1767,13 +1807,13 @@ renderEmptyTab("managers")
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogContent aria-describedby={undefined} className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
               {/* Radix a11y (аудит 05.09): заголовок для скрінрідера — візуальний хедер лишається кастомним div-ом */}
-              <DialogTitle className="sr-only">{t("people.dialogAddTitle")}</DialogTitle>
+              <DialogTitle className="sr-only">{t(addForm.role === "student" ? "newStudentFlow.titleStudent" : addForm.role === "tutor" ? "newStudentFlow.titleTutor" : "people.dialogAddTitle")}</DialogTitle>
               <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
                 <div className="h-1 w-9 rounded-full bg-border" />
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("people.dialogAddTitle")}</div>
+                  <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t(addForm.role === "student" ? "newStudentFlow.titleStudent" : addForm.role === "tutor" ? "newStudentFlow.titleTutor" : "people.dialogAddTitle")}</div>
                   <div style={{ fontSize: 14, color: "var(--sub,#62677E)", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddDesc")}</div>
                 </div>
                 <button type="button" onClick={() => setAddOpen(false)} aria-label={t("common.close")}
@@ -1876,6 +1916,40 @@ renderEmptyTab("managers")
                     />
                   </div>
                 )}
+                {/* 21.11 (рішення власниці п. 1): «Новий учень» — одна форма замість чотирьох вікон.
+                    Репетитор, предмет і ціна — тими самими полями, що й форма пари (PairFields);
+                    галочка «одразу перший урок» веде прямо у форму уроку з обраними обома. */}
+                {addForm.role === "student" && pairTutors.length > 0 && (
+                  <div data-new-student-pair="" style={{ display: "flex", flexDirection: "column", gap: 14, paddingTop: 14, borderTop: "0.5px solid var(--border, #f0f1f5)" }}>
+                    <div>
+                      <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16, color: "var(--ds-txt,#0f0f1a)" }}>{t("newStudentFlow.pairTitle")}</div>
+                      <p style={{ margin: "2px 0 0", fontSize: 14, lineHeight: 1.4, color: "var(--sub,#62677E)" }}>{t("newStudentFlow.pairHint")}</p>
+                    </div>
+                    <PairFields
+                      idPrefix="new-student"
+                      tutors={pairTutors}
+                      fallbackSubjects={allSubjects}
+                      tutorRate={pairTutorRate}
+                      value={addForm.pair}
+                      onChange={(v) => { pairTouchedRef.current = true; setAddForm((f) => ({ ...f, pair: v })); }}
+                      tutorHint={t("newStudentFlow.tutorOptional")}
+                    />
+                    {addForm.pair.tutorId && addForm.pair.subject && (
+                      <label htmlFor="new-student-first-lesson" style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 48, padding: "4px 2px", cursor: "pointer" }}>
+                        <input
+                          id="new-student-first-lesson"
+                          type="checkbox"
+                          checked={addForm.firstLesson}
+                          onChange={(e) => setAddForm((f) => ({ ...f, firstLesson: e.target.checked }))}
+                          style={{ width: 22, height: 22, flexShrink: 0, accentColor: "#2BBFAA" }}
+                        />
+                        <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "var(--ds-txt,#0f0f1a)", lineHeight: 1.3 }}>
+                          {t("newStudentFlow.firstLesson")}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                )}
               </div>
               <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
                 <button type="button" onClick={() => setAddOpen(false)} disabled={adding}
@@ -1885,7 +1959,9 @@ renderEmptyTab("managers")
                 <button type="button" onClick={addPerson} disabled={adding}
                   style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: adding ? "default" : "pointer", opacity: adding ? 0.7 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   {adding && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {t("people.addBtn")}
+                  {addForm.role === "student" && addForm.pair.tutorId && addForm.pair.subject && addForm.pair.price.trim() !== "" && addForm.firstLesson
+                    ? t("newStudentFlow.addAndLesson")
+                    : addForm.role === "tutor" ? t("newStudentFlow.addTutorNext") : t("people.addBtn")}
                 </button>
               </div>
             </DialogContent>

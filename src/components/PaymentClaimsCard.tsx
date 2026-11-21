@@ -61,7 +61,11 @@ async function offerReferralOnce(tutorId: string) {
   }, 1800);
 }
 
-export function PaymentClaimsCard() {
+/**
+ * @param onCount 21.11: скільки заявок чекає — «Мій день» менеджера ставить картку на самий
+ *                верх і тоді не показує поруч другу «головну дію».
+ */
+export function PaymentClaimsCard({ onCount }: { onCount?: (n: number) => void } = {}) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const haptic = useHaptic();
@@ -95,6 +99,7 @@ export function PaymentClaimsCard() {
   }, [user?.id]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { onCount?.(claims.length); }, [claims.length, onCount]);
 
   const resolve = async (claim: Claim, confirm: boolean) => {
     setBusyId(claim.id);

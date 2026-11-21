@@ -64,9 +64,13 @@ describe("«Я оплатив» — заявка, а не оплата (важі
 
   it("дашборд: картка заявок є в незалежного і в менеджера, нотатки лишились під бульбашками", () => {
     const d = read("src/pages/DashboardPage.tsx");
-    expect((d.match(/<PaymentClaimsCard \/>/g) ?? []).length).toBe(2);
-    // 🔒 інваріант: нотатки ОДРАЗУ під бульбашками — картка заявок стоїть ПІСЛЯ них
+    // самостійна: картка заявок ПІСЛЯ нотаток (🔒 нотатки ОДРАЗУ під бульбашками)
+    expect((d.match(/<PaymentClaimsCard \/>/g) ?? []).length).toBe(1);
     expect(d).toMatch(/<TutorNotesCard \/>\s*\n\s*\{\/\* Важіль 4[\s\S]{0,300}?<PaymentClaimsCard \/>/);
+    // 21.11 (рішення власниці п. 3): менеджеру — на самому верху «Мого дня», над блоком дня
+    const mgr = d.indexOf("<PaymentClaimsCard onCount={setClaimsCount} />");
+    expect(mgr).toBeGreaterThan(0);
+    expect(mgr).toBeLessThan(d.indexOf("<DayBlock"));
   });
 
   it("сценарій бази є, відкочує себе і перевіряє обидві відмови", () => {

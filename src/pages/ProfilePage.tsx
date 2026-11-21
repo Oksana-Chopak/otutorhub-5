@@ -37,6 +37,7 @@ import { ContactEditDialog, type ContactFields } from "@/components/ContactEditD
 import { pairsRel } from "@/lib/pairsRel";
 import { SchoolRequestCard } from "@/components/SchoolRequestCard";
 import { SchoolPageCard } from "@/components/SchoolPageCard";
+import { SchoolPaymentCard } from "@/components/SchoolPaymentCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
@@ -602,6 +603,12 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* 21.11 (рішення власниці п. 5): куди платити школі — бачать учні школи
+                в «Оплатах» і батьки на сторінці оплати за посиланням */}
+            <div className="lg:col-span-2 [&>section]:mb-0 empty:hidden">
+              <SchoolPaymentCard />
             </div>
 
             {/* 11.11: сторінка школи для батьків («Записатись») + заявки з неї */}
