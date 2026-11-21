@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
+import { CURRENCY_OPTIONS, PAYOUT_CURRENCY, currencySymbol, formatPrice } from "@/lib/currency";
 
 export interface PairValue {
   tutorId: string;
@@ -148,12 +148,13 @@ export function PairFields({
             {rate !== undefined && rate > 0 && (
               <p style={{ margin: "10px 0 0", fontSize: 14, lineHeight: 1.45, color: "#7a5410" }}>
                 {t("people.tutorRateForSubject")}{" "}
-                <span style={{ fontWeight: 700 }}>{formatPrice(rate, "UAH")}</span>
-                {margin !== null && value.currency === "UAH" && (
+                <span style={{ fontWeight: 700 }}>{formatPrice(rate, PAYOUT_CURRENCY)}</span>
+                {/* маржа — лише коли учень платить у валюті школи: євро мінус гривні не рахуємо (21.11) */}
+                {margin !== null && value.currency === PAYOUT_CURRENCY && (
                   <>
                     {" · "}{t("people.hubMarginLabel")}{" "}
                     <span style={{ fontWeight: 800, color: margin > 0 ? "#7a5410" : "#B42318" }}>
-                      {formatPrice(margin, "UAH")}
+                      {formatPrice(margin, PAYOUT_CURRENCY)}
                     </span>
                   </>
                 )}
