@@ -158,6 +158,14 @@ describe("4. учень: один розклад", () => {
   });
 });
 
+describe("знайдено роботом 21.11", () => {
+  it("тост «урок проведено» без «+10 XP» і серій, поки гейміфікація вимкнена", () => {
+    const h = read("src/hooks/useLessonStatus.ts");
+    expect(h).toMatch(/GAMIFICATION_VISIBLE \? t\("dashboardExtra\.lessonCompletedToast"\) : t\("dashboardExtra\.lessonCompletedPlain"\)/);
+    expect(h).toMatch(/o\.streakCount && GAMIFICATION_VISIBLE/);
+  });
+});
+
 describe("5. школа: реквізити для оплати", () => {
   it("менеджер — у профілі; учень — у «Оплатах» з назвою школи; батьки — на сторінці оплати", () => {
     expect(read("src/pages/ProfilePage.tsx")).toMatch(/<SchoolPaymentCard \/>/);

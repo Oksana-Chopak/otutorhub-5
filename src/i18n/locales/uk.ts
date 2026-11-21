@@ -3018,6 +3018,7 @@ export const uk = {
     lessonsToday_few: "{{count}} уроки сьогодні",
     lessonsToday_many: "{{count}} уроків сьогодні",
     lessonCompletedToast: "+10 XP 🎯",
+    lessonCompletedPlain: "Урок проведено ✓",
     lessonCompletedStreak: "🔥 {{count}} днів поспіль!",
     lessonCompletedStreak_one: "🔥 {{count}} день поспіль!",
     lessonCompletedStreak_few: "🔥 {{count}} дні поспіль!",

@@ -14,6 +14,7 @@ import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { getRandomEmoji, THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { getLocale } from "@/lib/locale";
+import { GAMIFICATION_VISIBLE } from "@/lib/gamification";
 
 /**
  * C1: ЄДИНИЙ конвеєр статусу уроку (аудит B4). Одна дія — однакова
@@ -103,12 +104,16 @@ export function useLessonStatus() {
       haptic.success();
       burstConfetti(o.firstLesson ? { count: 40, originY: 40 } : undefined);
     }
+    // 21.11 (робот «кожна кнопка»): «+10 XP» і «N днів поспіль» — гейміфікація, яку вимкнено
+    // одним вимикачем (рада 26.10, рішення 01.11, 15.11); тост проведеного уроку її не обходить.
     toast.success(
-      o.firstLesson ? t("dashboardExtra.firstLessonToast") : t("dashboardExtra.lessonCompletedToast"),
+      o.firstLesson
+        ? t("dashboardExtra.firstLessonToast")
+        : GAMIFICATION_VISIBLE ? t("dashboardExtra.lessonCompletedToast") : t("dashboardExtra.lessonCompletedPlain"),
       {
         description: o.canMarkPay
           ? t("dashboardExtra.studentPaidQuestion")
-          : o.streakCount
+          : o.streakCount && GAMIFICATION_VISIBLE
             ? t("dashboardExtra.lessonCompletedStreak", { count: o.streakCount })
             : t("dashboardExtra.lessonCompletedGood"),
         duration: o.canMarkPay ? 6000 : 4000,

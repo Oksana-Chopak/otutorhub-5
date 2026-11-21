@@ -398,7 +398,7 @@ export default function StudentPaymentsPage() {
                 <li key={tp.tutor_id} style={{ borderRadius: 12, background: "var(--ds-surface2,#fbfbfc)", padding: "11px 13px" }}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
+                      <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "var(--warning-text,#9a6a12)" }}>
                         {tp.school_name
                           ? t("studentPagesExtra.schoolPayTo", { school: tp.school_name })
                           : tp.tutor_name} · {currencySymbol(tp.currency)}{"\u00A0"}{tp.currency}

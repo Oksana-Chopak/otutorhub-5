@@ -2961,6 +2961,7 @@ export const en: LocaleTranslations = {
     lessonsToday_few: "{{count}} lessons today",
     lessonsToday_other: "{{count}} lessons today",
     lessonCompletedToast: "+10 XP 🎯",
+    lessonCompletedPlain: "Lesson done ✓",
     lessonCompletedStreak: "🔥 {{count}} days in a row!",
     lessonCompletedStreak_one: "🔥 {{count}} day in a row!",
     lessonCompletedGood: "Great job! 💪",

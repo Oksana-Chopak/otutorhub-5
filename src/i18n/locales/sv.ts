@@ -2940,6 +2940,7 @@ export const sv: LocaleTranslations = {
     lessonsToday_few: "{{count}} lektioner idag",
     lessonsToday_other: "{{count}} lektioner idag",
     lessonCompletedToast: "+10 XP 🎯",
+    lessonCompletedPlain: "Lektionen genomförd ✓",
     lessonCompletedStreak: "🔥 {{count}} dagar i rad!",
     lessonCompletedStreak_one: "🔥 {{count}} dag i rad!",
     lessonCompletedGood: "Bra jobbat! 💪",
