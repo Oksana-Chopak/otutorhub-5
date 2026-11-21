@@ -5,6 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js/cors";
 import { createClient } from "npm:@supabase/supabase-js";
 import { withErrorLog } from "../_shared/errorLog.ts";
 import { loadTimeZones, readerZone, zoneTail } from "../_shared/personTime.ts";
+import { money, loadCurrencies } from "../_shared/money.ts";
 
 interface Body {
   lesson_id: string;
@@ -86,11 +87,15 @@ Deno.serve(withErrorLog("notify-cancellation-fee", async (req) => {
     const escapeHtml = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+    // 21.11: штраф — у валюті пари (учениця платить у євро → штраф у євро, не «₴»)
+    const cur = await loadCurrencies(admin, [{ tutor_id: body.tutor_id, student_id: body.student_id, subject: body.subject }]);
+    const feeText = cur.failed ? String(body.fee) : money(Number(body.fee), cur.of({ tutor_id: body.tutor_id, student_id: body.student_id, subject: body.subject }));
+
     const text =
       `⚠️ <b>${escapeHtml(studentName)}</b> скасував урок ` +
       `(${escapeHtml(body.subject)}, ${escapeHtml(when)}).\n\n` +
       `Згідно правила пізнього скасування нараховано ` +
-      `<b>${body.fee} ₴</b> до сплати.\n\n` +
+      `<b>${escapeHtml(feeText)}</b> до сплати.\n\n` +
       `<a href="https://otutorhub.com/finances">Перейти у Фінанси</a>`;
 
     const tg = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {

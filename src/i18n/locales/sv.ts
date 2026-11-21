@@ -1049,6 +1049,7 @@ export const sv: LocaleTranslations = {
     exportDownload: "Ladda ner CSV",
     marginByTutor: "Marginal per lärare",
     marginFormula: "(elevpris − utbetalning) / elevpris",
+    analyticsForeignNote: "Lektioner som betalas i {{curs}} ingår inte i den här analysen: utan växelkurs går de inte att jämföra med utbetalningar i {{school}}. Summorna finns i korten ovan.",
     noMarginData: "Data visas efter de första genomförda lektionerna med elevpris och utbetalning 📊",
     colLessonsCount: "Lektioner",
     colMargin: "Marginal",

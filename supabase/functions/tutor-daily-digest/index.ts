@@ -203,6 +203,7 @@ import { fetchAllRows } from "../_shared/fetchAll.ts";
 import { versionProbe } from "../_shared/build.ts";
 import { withJob } from "../_shared/jobRun.ts";
 import { loadTimeZones, readerZone, zoneLineIfNeeded } from "../_shared/personTime.ts";
+import { Money, money, loadCurrencies, PAYOUT_CURRENCY, DEFAULT_CURRENCY } from "../_shared/money.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -404,7 +405,7 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
   // усупереч моделі 04.09 (борг = проведене) і цифрі у «Фінансах».
   const { data: groupRaw, error: groupErr } = await fetchAllRows<any>((a, b) => sb
     .from("lessons")
-    .select("id, tutor_id, source, status, lesson_participants(student_id, student_price, student_payment_status)")
+    .select("id, tutor_id, source, status, lesson_participants(student_id, student_price, student_payment_status, currency)")
     .not("group_id", "is", null)
     .eq("status", "completed")
     .order("id", { ascending: true })
@@ -412,11 +413,18 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
   if (groupErr) console.error("digest: group money read failed", groupErr.message);
   // Гроші не прочитались ЦІЛКОМ — тоді жодних «✅ Всі оплати закриті» і
   // жодних неповних сум: чесний рядок «не вдалося перевірити».
-  const moneyFailed = !!(moneyErr || groupErr);
+  // 21.11: валюта боргу — валюта ПАРИ (student_rates), а не «завжди гривня»: два уроки по 14 €
+  // приходили власниці як «28 ₴». Не прочитали валюти — суми не показуємо взагалі.
+  const cur = await loadCurrencies(sb, moneyRaw ?? []);
+  const moneyFailed = !!(moneyErr || groupErr || cur.failed);
   const groupDebtRows = (groupRaw ?? []).flatMap((l: any) =>
     (l.lesson_participants ?? [])
       .filter((p: any) => (p.student_payment_status ?? "unpaid") === "unpaid" && Number(p.student_price ?? 0) > 0)
-      .map((p: any) => ({ tutor_id: l.tutor_id, source: l.source, student_id: p.student_id, price: Number(p.student_price) }))
+      .map((p: any) => ({
+        tutor_id: l.tutor_id, source: l.source, student_id: p.student_id, price: Number(p.student_price),
+        // учасник групи має власну валюту на своєму рядку; немає — валюта його пари з репетитором
+        currency: p.currency || cur.of({ tutor_id: l.tutor_id, student_id: p.student_id }),
+      }))
   );
 
   // Технічні помилки за добу — власниця дізнається з ранкового дайджеста,
@@ -735,27 +743,25 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
         if (myZoneLine) lines.push(myZoneLine);
       }
       // Тотали — ті самі предикати, що й у «Фінансах» (financials.ts), у межах школи.
-      const sd = (unpaidLessons ?? []).filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.student_price ?? 0), 0)
-        + groupDebtRows.filter(mine).reduce((a: number, r: any) => a + r.price, 0);
+      const sd = new Money();
+      for (const l of (unpaidLessons ?? []).filter(mine)) sd.add(detailOf(l)?.student_price, cur.of(l));
+      for (const r of groupDebtRows.filter(mine)) sd.add(r.price, r.currency);
       const po = payoutDueLessons.filter(mine).reduce((a: number, l: any) => a + Number(detailOf(l)?.tutor_payout ?? 0), 0);
       if (moneyFailed) lines.push(D.moneyUnavailable);
-      else if (sd > 0) lines.push(D.debt(`${sd} ₴`));
+      else if (sd.any) lines.push(D.debt(sd.text()));
       // 07.09 (запит власниці): менеджер бачив лише підсумок і не мав «рук».
       // Тепер — хто саме винен (ХАБОВІ борги: source ≠ independent, ті самі
       // предикати, що й у Фінансах) і кнопка «оплатив(ла)» на кожного: саме
       // менеджер закриває хабові борги — і в застосунку, і тут. Обробляє
       // telegram-poll (hpaid:), автор дії = власник chat_id з роллю manager.
-      const hubDebts = new Map<string, number>();
-      for (const l of (unpaidLessons ?? []).filter(mine)) {
-        hubDebts.set(l.student_id, (hubDebts.get(l.student_id) ?? 0) + Number(detailOf(l)?.student_price ?? 0));
-      }
-      for (const r of groupDebtRows.filter(mine)) {
-        hubDebts.set(r.student_id, (hubDebts.get(r.student_id) ?? 0) + r.price);
-      }
+      const hubDebts = new Map<string, Money>();
+      const hubDebt = (sid: string) => { let m = hubDebts.get(sid); if (!m) { m = new Money(); hubDebts.set(sid, m); } return m; };
+      for (const l of (unpaidLessons ?? []).filter(mine)) hubDebt(l.student_id).add(detailOf(l)?.student_price, cur.of(l));
+      for (const r of groupDebtRows.filter(mine)) hubDebt(r.student_id).add(r.price, r.currency);
       if (!moneyFailed && hubDebts.size > 0) {
         lines.push(D.mgrDebtors);
-        for (const [sid, amount] of Array.from(hubDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
-          lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
+        for (const [sid, amount] of Array.from(hubDebts.entries()).sort((a, b) => b[1].weight - a[1].weight).slice(0, 5)) {
+          lines.push(`• ${esc(studentName.get(sid))} — ${amount.text()}`);
           const nm = shortName(studentName.get(sid), D.btnName);
           keyboard.push([{ text: D.btnPaid(nm), callback_data: `hpaid:${sid}` }]);
         }
@@ -774,11 +780,11 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
         owed.set(l.tutor_id, cur);
       }
       if (!moneyFailed && po > 0 && owed.size > 0) {
-        lines.push(D.owe(`${po} ₴`));
+        lines.push(D.owe(money(po, PAYOUT_CURRENCY)));
         const sorted = Array.from(owed.entries()).sort((a, b) => b[1].sum - a[1].sum);
         for (const [tid, v] of sorted.slice(0, 5)) {
           const today = payoutDueTodayFor.has(tid) ? D.payoutToday : "";
-          lines.push(D.oweLine(esc(tutorName.get(tid)), `${v.sum} ₴`, v.n, D.lessons(v.n)) + today);
+          lines.push(D.oweLine(esc(tutorName.get(tid)), money(v.sum, PAYOUT_CURRENCY), v.n, D.lessons(v.n)) + today);
           const nm = shortName(tutorName.get(tid), D.btnTutorName);
           keyboard.push([{ text: D.btnPayoutPaid(nm), callback_data: `tpaid:${tid}` }]);
         }
@@ -840,12 +846,14 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
         }
         if (myZoneLine) lines.push(myZoneLine);
       }
-      const myDebts = new Map<string, number>();
+      const myDebts = new Map<string, Money>();
       // Кнопки «Оплачено» законні лише там, де репетитор САМ тоглить оплату —
       // тобто на незалежних уроках. Хабовий борг закриває менеджер.
       const debtIndependent = new Map<string, boolean>();
-      const noteDebt = (sid: string, amount: number, source: string) => {
-        myDebts.set(sid, (myDebts.get(sid) ?? 0) + amount);
+      const noteDebt = (sid: string, amount: number, source: string, currency: string) => {
+        let m = myDebts.get(sid);
+        if (!m) { m = new Money(); myDebts.set(sid, m); }
+        m.add(amount, currency);
         debtIndependent.set(sid, (debtIndependent.get(sid) ?? true) && source === "independent");
       };
       // 22.09 (аудит 18.09, підтверджено): тут не було фільтра за source, тож
@@ -857,10 +865,10 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       // «вибивати» гроші, які йому не належать. Борг учня перед школою — справа
       // менеджера, тож у дайджесті репетитора лишаються ЛИШЕ його власні учні.
       for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId && l.source === "independent")) {
-        noteDebt(l.student_id, Number(detailOf(l)?.student_price ?? 0), l.source);
+        noteDebt(l.student_id, Number(detailOf(l)?.student_price ?? 0), l.source, cur.of(l));
       }
       for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId && r.source === "independent")) {
-        noteDebt(r.student_id, r.price, r.source);
+        noteDebt(r.student_id, r.price, r.source, r.currency || DEFAULT_CURRENCY);
       }
       // Незалежному передоплата — головний спосіб отримати гроші наперед:
       // одна кнопка веде просто у форму. Хабовому не показуємо: його
@@ -875,10 +883,12 @@ Deno.serve(withJob("tutor-daily-digest", async (req) => {
       } else if (moneyFailed) {
         lines.push(D.moneyUnavailable);
       } else if (myDebts.size > 0) {
-        const total = Array.from(myDebts.values()).reduce((a, b) => a + b, 0);
-        lines.push(D.remind(`${total} ₴`));
-        for (const [sid, amount] of Array.from(myDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
-          lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
+        const total = new Money();
+        for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId && l.source === "independent")) total.add(detailOf(l)?.student_price, cur.of(l));
+        for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId && r.source === "independent")) total.add(r.price, r.currency);
+        lines.push(D.remind(total.text()));
+        for (const [sid, amount] of Array.from(myDebts.entries()).sort((a, b) => b[1].weight - a[1].weight).slice(0, 5)) {
+          lines.push(`• ${esc(studentName.get(sid))} — ${amount.text()}`);
           // Кнопки прямо в Telegram: «Нагадати» шле учневі TG + сповіщення в
           // застосунку; «Оплачено» закриває ВСІ борги цієї пари. Обробляє
           // telegram-poll (callback_query); автор дії = власник chat_id.

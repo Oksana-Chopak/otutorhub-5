@@ -27,9 +27,9 @@
 import { sendWebPush } from "./push.ts";
 import { payUrlFor } from "./payLink.ts";
 import { loadTimeZones, tzFor } from "./personTime.ts";
+import { Money, money, loadCurrencies, DEFAULT_CURRENCY } from "./money.ts";
 
 const RLOC: Record<string, string> = { uk: "uk-UA", en: "en-GB", sv: "sv-SE" };
-const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "£", SEK: "kr", PLN: "zł" };
 export type RemLang = "uk" | "en" | "sv";
 
 /** Тон повідомлення: від чого воно (ручне / до уроку / після / передоплата вичерпана). */
@@ -200,13 +200,21 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
   const fmtDate = (iso: string) => new Date(iso).toLocaleString(RLOC[lang], {
     timeZone: readerTz, day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit",
   });
-  const sym = (c?: string | null) => RSYM[c ?? "UAH"] ?? (c ?? "₴");
-  const total = fresh.reduce((s, l) => s + Number(l.student_price ?? 0), 0);
+  /* 21.11: валюту уроку визначає САМЕ ядро, а не той, хто його кличе. Крон валюту передавав,
+     а кнопка «Нагадати» в застосунку і кнопка в Telegram — ні, і тоді батьки учениці, що
+     платить 14 € за урок, отримували «14 ₴». Тепер, якщо валюти немає на вході, вона береться
+     з пари (як у застосунку). Не прочиталась — суми в тексті не показуємо взагалі: нагадування
+     без числа краще за нагадування з чужою валютою. */
+  const curLoad = fresh.some((l) => !l.currency)
+    ? await loadCurrencies(admin, fresh.map((l) => ({ tutor_id: tutorId, student_id: studentId, subject: l.subject })))
+    : null;
+  const curOf = (l: ReminderLesson) => l.currency ?? curLoad?.of({ tutor_id: tutorId, student_id: studentId, subject: l.subject }) ?? DEFAULT_CURRENCY;
+  const curKnown = !curLoad?.failed;
+  const totalBag = new Money();
+  for (const l of fresh) totalBag.add(l.student_price, curOf(l));
+  const sumOf = (l: ReminderLesson) => curKnown && Number(l.student_price ?? 0) > 0 ? money(Number(l.student_price), curOf(l)) : "";
   // Сума має сенс лише якщо валюта одна — інакше чесно не показуємо число.
-  const currencies = new Set(fresh.map((l) => l.currency ?? "UAH"));
-  const oneCurrency = currencies.size === 1;
-  const sumOf = (l: ReminderLesson) => Number(l.student_price ?? 0) > 0 ? `${Number(l.student_price)} ${sym(l.currency)}` : "";
-  const totalStr = total > 0 && oneCurrency ? `${total} ${sym(fresh[0].currency)}` : "";
+  const totalStr = curKnown && totalBag.any && totalBag.currencies.length === 1 ? totalBag.text() : "";
 
   // 13.10: магічне посилання на публічну сторінку «борг · реквізити · Я оплатив(ла)»
   // — у КОЖНОМУ нагадуванні, щоб відповісти можна було одним дотиком без входу.
@@ -263,7 +271,7 @@ export async function sendPaymentReminder(input: ReminderInput): Promise<Reminde
         idempotencyKey: `payment-reminder:${first.id}:${new Date().toISOString().slice(0, 13)}`,
         templateData: {
           studentName, tutorName, subject: first.subject ?? "—",
-          lessonDate: fmtDate(first.starts_at), amount: total, lessonsCount: fresh.length, lang,
+          lessonDate: fmtDate(first.starts_at), amountText: totalStr || undefined, lessonsCount: fresh.length, lang,
           payUrl: payUrl || undefined,
           registerUrl: registerUrl || undefined,
         },

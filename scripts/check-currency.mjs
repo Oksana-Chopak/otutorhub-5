@@ -79,6 +79,44 @@ if (uahArgHits.length > MAX_UAH_ARGS) {
   uahArgHits.forEach((h) => console.error("   " + h));
 }
 
+// ── СЕРВЕРНІ ПОВІДОМЛЕННЯ (21.11, скарга власниці) ───────────────────────────
+// «Мені в Telegram приходять борги від нової учениці 28 гривень, тоді як вона оплачує 14 євро
+// за урок». Ці ворота дивились лише в src/ — а дайджести, нагадування батькам і штраф за
+// скасування пишуться в supabase/functions, і там «₴» було вшите в кожен рядок із сумою.
+// Тепер знак валюти на сервері живе в ОДНОМУ файлі (`_shared/money.ts`), а сума завжди йде
+// з валютою пари. Виняток — ціна підписки Pro: вона в гривні рішенням власниці (02.09).
+const EDGE_OK = new Set([
+  "supabase/functions/_shared/money.ts",            // канон: знаки валют і форматування
+  "supabase/functions/liqpay-create-payment/index.ts", // опис платежу за підписку — гривня
+]);
+const EDGE_LINE_OK = /price\.(monthly|yearly)|amountText: '450/; // ціна Pro в листах · приклад для превʼю шаблона
+const edgeHits = [];
+function walkEdge(dir) {
+  for (const f of readdirSync(dir)) {
+    const p = join(dir, f);
+    const st = statSync(p);
+    if (st.isDirectory()) { if (!/node_modules/.test(p)) walkEdge(p); continue; }
+    if (!/\.(tsx|ts)$/.test(p) || EDGE_OK.has(p)) continue;
+    const src = stripComments(readFileSync(p, "utf8"));
+    src.split("\n").forEach((line, i) => {
+      const tl = line.trim();
+      if (!tl || EDGE_LINE_OK.test(line)) return;
+      if (/[₴€£]|\bгрн\b|(?<=[\d}]\s)грн/.test(line)) edgeHits.push(`${p}:${i + 1}: ${tl.slice(0, 110)}`);
+    });
+  }
+}
+walkEdge("supabase/functions");
+console.log(`═ Літеральні валюти в серверних функціях: ${edgeHits.length} ═`);
+if (edgeHits.length) {
+  console.error("⛔ Сума без валюти пари (знак вшитий у текст). Бери `money()` / `Money` з _shared/money.ts:");
+  edgeHits.forEach((h) => console.error("   " + h));
+}
+const edgeCanon = readFileSync("supabase/functions/_shared/money.ts", "utf8");
+if (!/[₴€£]/.test(stripComments(edgeCanon)) || !/export function money\(/.test(edgeCanon)) {
+  console.error("⛔ Сканер зламаний: у _shared/money.ts не видно знаків валют або функції money().");
+  process.exit(1);
+}
+
 // НЕПОРОЖНІСТЬ: зрізання коментарів не сміє перетворити ворота на зелену
 // заглушку. Якщо канон раптом не видно — це поломка сканера, не чистий код.
 const canon = stripComments(readFileSync("src/lib/currency.ts", "utf8"));
@@ -87,4 +125,4 @@ if (!/[₴€£]/.test(canon)) {
   process.exit(1);
 }
 
-process.exit(hits.length || uahArgHits.length > MAX_UAH_ARGS ? 1 : 0); // ГЕЙТ: нуль літеральних валют + UAH-ratchet лише вниз
+process.exit(hits.length || edgeHits.length || uahArgHits.length > MAX_UAH_ARGS ? 1 : 0); // ГЕЙТ: нуль літеральних валют + UAH-ratchet лише вниз

@@ -1,6 +1,7 @@
 // Sends Telegram payment reminders to students based on each tutor's Pro rules.
 // Should be invoked on a schedule (cron). Idempotent via lesson_payment_reminders log.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sym, Money, pickCurrency, type RateRow } from "../_shared/money.ts";
 import { payUrlFor } from "../_shared/payLink.ts";
 import { sendWebPush } from "../_shared/push.ts";
 import { decideDebtReminder, DEBT_INTERVAL_DAYS, buildDebtPairs, splitOtherHistory, type DebtRow } from "../_shared/debtCadence.ts";
@@ -90,8 +91,6 @@ const UNDELIVERED_TXT = {
 
 // ── i18n сповіщень: мова одержувача з profiles.preferred_language ──
 const RLOC: Record<string, string> = { uk: "uk-UA", en: "en-GB", sv: "sv-SE" };
-const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "£", SEK: "kr", PLN: "zł" };
-const rsym = (c?: string | null) => RSYM[c ?? "UAH"] ?? (c ?? "₴");
 const RT = {
   uk: {
     header: (t: string) => `💳 Повідомлення від ${t}`, tutor: "репетитор", sum: "Сума", subj: "Предмет", iPaid: "Я оплатив",
@@ -338,17 +337,39 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     const { data } = await supabase.from("student_wallet_transactions").select("tutor_id, student_id").eq("kind", "topup").in("student_id", need);
     for (const r of (data ?? []) as any[]) prepaidPairs.add(`${r.tutor_id}:${r.student_id}`);
   };
-  // Валюта пари — зі student_rates (у lessons такої колонки немає).
-  const curByPair = new Map<string, string>();
+  // Валюта уроку — канон `_shared/money.ts` (той самий, що у вʼю `lessons_visible`): чинна ціна
+  // пари, спершу на предмет уроку, інакше найновіша. До 21.11 тут брався БУДЬ-ЯКИЙ рядок пари,
+  // зокрема архівний: учень, якого перевели з гривні на євро, міг отримати суму зі старим знаком.
+  const ratesByPair = new Map<string, RateRow[]>();
+  const ratesLoaded = new Set<string>();
+  const ratesFailed = new Set<string>();
   const ensureCurrencies = async (ids: (string | null | undefined)[]) => {
-    const need = [...new Set(ids.filter(Boolean) as string[])];
+    const need = [...new Set(ids.filter(Boolean) as string[])].filter((id) => !ratesLoaded.has(id));
     if (!need.length) return;
-    const { data } = await supabase.from("student_rates").select("tutor_id, student_id, currency").in("student_id", need);
-    for (const r of data ?? []) {
-      const row = r as { tutor_id: string; student_id: string; currency?: string | null };
-      if (row.currency) curByPair.set(`${row.tutor_id}:${row.student_id}`, row.currency);
+    for (let i = 0; i < need.length; i += 200) {
+      const chunk = need.slice(i, i + 200);
+      const { data, error } = await supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, subject, currency, archived_at, created_at")
+        .in("student_id", chunk);
+      if (error) {
+        // Не прочитали — знак валюти не вигадуємо: сума піде числом без знака.
+        console.error("payment-reminders: валюти пар не прочитались", error.message);
+        for (const id of chunk) ratesFailed.add(id);
+        continue;
+      }
+      for (const id of chunk) { ratesLoaded.add(id); ratesFailed.delete(id); }
+      for (const r of (data ?? []) as RateRow[]) {
+        const k = `${r.tutor_id}:${r.student_id}`;
+        const list = ratesByPair.get(k);
+        if (list) list.push(r); else ratesByPair.set(k, [r]);
+      }
     }
   };
+  /** Код валюти уроку пари; `null` — валюти не прочитали (знак не показуємо). */
+  const curCode = (tutorId: string, studentId: string, subject?: string | null): string | null =>
+    ratesFailed.has(studentId) ? null : pickCurrency(ratesByPair.get(`${tutorId}:${studentId}`) ?? [], { subject });
+  const curSign = (code: string | null) => (code ? sym(code) : "").trim();
   await ensureLangs((lessons ?? []).map((l: { student_id?: string | null }) => l.student_id));
   await ensureCurrencies((lessons ?? []).map((l: { student_id?: string | null }) => l.student_id));
   for (const link of tgLinks ?? []) {
@@ -505,7 +526,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     // Compose message
     const lang = rlang(lesson.student_id);
     const T = RT[lang];
-    const cur = rsym(curByPair.get(`${lesson.tutor_id}:${lesson.student_id}`));
+    const cur = curSign(curCode(lesson.tutor_id, lesson.student_id, lesson.subject));
     const dateStr = whenFor(lesson.starts_at, lang, lesson.student_id, lesson.tutor_id);
     const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
     const price = Number(lesson.student_price ?? 0);
@@ -541,7 +562,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
   const { data: partsRaw } = await supabase
     .from("lesson_participants")
     .select(
-      "student_id, student_price, student_payment_status, lesson_id, lessons!inner(id, tutor_id, starts_at, status, subject, created_at)",
+      "student_id, student_price, student_payment_status, currency, lesson_id, lessons!inner(id, tutor_id, starts_at, status, subject, created_at)",
     )
     .neq("student_payment_status", "paid")
     .in("lessons.status", ["scheduled", "completed"])
@@ -608,7 +629,8 @@ Deno.serve(withJob("payment-reminders", async (req) => {
 
       const lang = rlang(p.student_id);
       const T = RT[lang];
-      const cur = rsym(curByPair.get(`${lesson.tutor_id}:${p.student_id}`));
+      // Учасник групи платить у валюті СВОГО рядка (так само рахує застосунок).
+      const cur = curSign(p.currency ? String(p.currency).toUpperCase() : curCode(lesson.tutor_id, p.student_id, lesson.subject));
       const dateStr = whenFor(lesson.starts_at, lang, p.student_id, lesson.tutor_id);
       const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
       const price = Number(p.student_price ?? 0);
@@ -649,14 +671,15 @@ Deno.serve(withJob("payment-reminders", async (req) => {
     // учні понад тисячу просто не отримували б нагадування (_shared/fetchAll.ts).
     const { data: debtRaw, error: debtErr } = await fetchAllRows<any>((a, b) => supabase
       .from("lessons")
-      .select("id, tutor_id, student_id, starts_at, status, lesson_details!inner(student_payment_status, student_price, is_cancellation_fee)")
+      .select("id, tutor_id, student_id, starts_at, status, subject, lesson_details!inner(student_payment_status, student_price, is_cancellation_fee)")
       .in("status", ["completed", "cancelled"])
       .neq("lesson_details.student_payment_status", "paid")
       .order("id", { ascending: true })
       .range(a, b));
     if (debtErr) throw new Error(debtErr.message);
 
-    type DebtRow = { tutor_id: string; student_id: string; lessonId: string; at: number; price: number };
+    // `subject` / `currency` — лише щоб скласти суму пари по валютах (уроки пари можуть бути в різних).
+    type DebtRow = { tutor_id: string; student_id: string; lessonId: string; at: number; price: number; subject?: string | null; currency?: string | null };
     const debtRows: DebtRow[] = [];
     for (const l of (debtRaw ?? []) as any[]) {
       const d = l.lesson_details ?? {};
@@ -670,13 +693,14 @@ Deno.serve(withJob("payment-reminders", async (req) => {
         lessonId: l.id,
         at: new Date(l.starts_at).getTime(),
         price,
+        subject: l.subject ?? null,
       });
     }
 
     // Групові борги: ціна й статус живуть на lesson_participants.
     const { data: gDebtRaw, error: gDebtErr } = await fetchAllRows<any>((a, b) => supabase
       .from("lesson_participants")
-      .select("id, student_id, student_price, student_payment_status, lesson_id, lessons!inner(id, tutor_id, starts_at, status)")
+      .select("id, student_id, student_price, student_payment_status, currency, lesson_id, lessons!inner(id, tutor_id, starts_at, status)")
       .neq("student_payment_status", "paid")
       .eq("lessons.status", "completed")
       .order("id", { ascending: true })
@@ -694,6 +718,7 @@ Deno.serve(withJob("payment-reminders", async (req) => {
         lessonId: g.lessons.id,
         at: new Date(g.lessons.starts_at).getTime(),
         price,
+        currency: g.currency ?? null,
       });
     }
 
@@ -776,10 +801,20 @@ Deno.serve(withJob("payment-reminders", async (req) => {
 
         const lang = rlang(pair.student_id);
         const T = RT[lang];
-        const cur = rsym(curByPair.get(key));
+        // Сума пари — по валютах: індивідуальний урок у валюті ціни пари, груповий — у валюті
+        // рядка учасника. Різні валюти в одне число не складаються («1 200 ₴ + 28 €»).
+        const bag = new Money();
+        let curUnknown = false;
+        for (const r of debtRows) {
+          if (r.tutor_id !== pair.tutor_id || r.student_id !== pair.student_id) continue;
+          const code = r.currency ? String(r.currency).toUpperCase() : curCode(r.tutor_id, r.student_id, r.subject);
+          if (!code) curUnknown = true;
+          bag.add(r.price, code);
+        }
         const tname = tutorName.get(pair.tutor_id) ?? T.tutor;
         const body = T.debt(pair.count, tname);
-        const sumLine = `${T.debtTotal}: ${pair.total} ${cur}`;
+        // Валюти не прочитали — число без знака, а не вигадана гривня.
+        const sumLine = `${T.debtTotal}: ${curUnknown ? String(pair.total) : bag.text()}`;
         const header = T.debtHeader(tname);
         // 13.10/01.11: у кожному автоматичному нагадуванні — коротке посилання на
         // сторінку «борг · реквізити · Я оплатив(ла)», щоб відповісти одним дотиком.

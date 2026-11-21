@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { safeHref } from "@/lib/safeUrl";
-import { formatPrice } from "@/lib/currency";
+import { formatPrice, PAYOUT_CURRENCY } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 
 export type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -393,7 +393,7 @@ function LessonCardImpl({
                 Якщо сторінка не завантажила payout — рядок не рендеримо взагалі:
                 краще відсутність цифри, ніж чужа цифра (баг «виплата = оплата», 10.06–01.08). */}
             {showPayoutRow && (
-              <PayRow currency={lesson.currency} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut")} pendLabel={t("lessonCard.toPayout")}
+              <PayRow currency={PAYOUT_CURRENCY} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut")} pendLabel={t("lessonCard.toPayout")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />
             )}
             {/* 04.09: для МЕНЕДЖЕРА відсутня виплата — не «нічого», а ПРОБЛЕМА, яку видно.

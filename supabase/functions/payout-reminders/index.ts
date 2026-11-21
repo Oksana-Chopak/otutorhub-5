@@ -6,6 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWebPush } from "../_shared/push.ts";
 import { withJob } from "../_shared/jobRun.ts";
 import { versionProbe } from "../_shared/build.ts";
+import { money, PAYOUT_CURRENCY } from "../_shared/money.ts";
 
 interface Sched {
   payout_frequency: string | null;
@@ -195,11 +196,11 @@ Deno.serve(withJob("payout-reminders", async (req) => {
     const lines = myPayable.map((id: string) => {
       const sum = sumBy.get(id) ?? 0;
       const cnt = cntBy.get(id) ?? 0;
-      return `• <b>${escapeHtml(nameById.get(id) ?? "репетитор")}</b> — ${sum.toLocaleString("uk-UA")} ₴ (${cnt} ур.)`;
+      return `• <b>${escapeHtml(nameById.get(id) ?? "репетитор")}</b> — ${money(sum, PAYOUT_CURRENCY)} (${cnt} ур.)`;
     });
     const plainLines = myPayable.map((id: string) => {
       const sum = sumBy.get(id) ?? 0;
-      return `${nameById.get(id) ?? "репетитор"} — ${sum.toLocaleString("uk-UA")} ₴`;
+      return `${nameById.get(id) ?? "репетитор"} — ${money(sum, PAYOUT_CURRENCY)}`;
     });
     const tgText = `💰 <b>Сьогодні виплати репетиторам</b>\n${lines.join("\n")}\n\nВідкрийте Фінанси, щоб позначити виплаченими.`;
     // Dedup: once per manager per day.

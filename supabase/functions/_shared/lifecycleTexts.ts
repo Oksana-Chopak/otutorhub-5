@@ -1,3 +1,4 @@
+import { sym } from "./money.ts";
 /**
  * Тексти ланцюжка листів/Telegram (13.10, пре-мортем: «зовсім немає ланцюжка,
  * яким би ми онбордили нових, просинали неактивних»).
@@ -55,8 +56,7 @@ export const KINDS: LifecycleKind[] = [
   "win_back", "unconfirmed_d1",
 ];
 
-const SYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", SEK: "kr", PLN: "zł", GBP: "£" };
-export const sym = (c?: string | null) => SYM[c ?? "UAH"] ?? (c ?? "₴");
+export { sym };
 /** 10200 → «10 200» (звичайний пробіл: у листах і Telegram він не ламається). */
 const fmtNum = (n: number) => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 const money = (n: number, c: string) => `${fmtNum(n)} ${sym(c)}`;

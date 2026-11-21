@@ -78,7 +78,8 @@ describe("дайджест і нагадування читають сторін
   });
 
   it("дайджест: збій читання грошей — не «✅ Всі оплати закриті», а чесний рядок", () => {
-    expect(digest).toMatch(/const moneyFailed = !!\(moneyErr \|\| groupErr\)/);
+    // 21.11: не прочитана валюта пар — теж «гроші не прочитались»: сума з чужою валютою гірша за чесне «не знаю»
+    expect(digest).toMatch(/const moneyFailed = !!\(moneyErr \|\| groupErr \|\| cur\.failed\)/);
     const tutor = digest.slice(digest.indexOf("} else if (isTutor) {"));
     const iFailed = tutor.indexOf("} else if (moneyFailed) {");
     const iAllPaid = tutor.indexOf("lines.push(D.allPaid)");

@@ -69,8 +69,8 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useGroupNames } from "@/hooks/useGroupNames";
-import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, isPrepaidAheadLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
-import { formatPrice} from "@/lib/currency";
+import { isBillableLesson, isStudentDebtLesson, isExpectedPaymentLesson, isPayoutDueLesson, isPrepaidAheadLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency, profitByCurrency } from "@/lib/financials";
+import { formatPrice, PAYOUT_CURRENCY, currencySymbol } from "@/lib/currency";
 import { useCoreLock } from "@/hooks/useCoreLock";
 import { RemindersRecoveredCard } from "@/components/RemindersRecoveredCard";
 import { pairsRel } from "@/lib/pairsRel";
@@ -1035,6 +1035,10 @@ export default function FinancesPage() {
     : null;
   const pendingIncome = periodStudentDebts.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
   const pendingExpense = periodPayoutDue.reduce((sum, l) => sum + Number(l.tutor_payout ?? 0), 0);
+  /** У яких валютах учні винні (валюта пари): від цього залежить, чи можна підписати суму «₴». */
+  const studentDebtCurrencies = Array.from(new Set(periodStudentDebts.map(
+    (l) => ((l as { currency?: string | null }).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? "UAH"),
+  )));
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
   // САМОЗВІРКА (замість ручних SQL-звірок власниці): раз на завантаження
@@ -1090,7 +1094,10 @@ export default function FinancesPage() {
        зашиті "UAH" в аргументах, і множити їх через бейдж немає за що. */
     const uah = (n: number) => formatPrice(n, "UAH");
     const bad: string[] = [];
-    if (!parity.inOk) bad.push(t("finances.parityMismatchIn", { db: uah(parity.inDb), app: uah(parity.inApp) }));
+    // борг учнів може бути в кількох валютах — тоді це контрольна сума без знака валюти
+    const plain = (n: number) => new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 2 }).format(n);
+    const oneCur = studentDebtCurrencies.length <= 1 && (studentDebtCurrencies[0] ?? PAYOUT_CURRENCY) === PAYOUT_CURRENCY;
+    if (!parity.inOk) bad.push(t("finances.parityMismatchIn", { db: oneCur ? uah(parity.inDb) : plain(parity.inDb), app: oneCur ? uah(parity.inApp) : plain(parity.inApp) }));
     if (!parity.outOk) bad.push(t("finances.parityMismatchOut", { db: uah(parity.outDb), app: uah(parity.outApp) }));
     if (bad.length === 0) return { ok: true, lines: [t("finances.parityOk")] };
     // Масив свідомо неповний — це не дефект грошей, і називати це розбіжністю
@@ -1098,7 +1105,25 @@ export default function FinancesPage() {
     if (parity.partial) return { ok: true, lines: [t("finances.parityPartial")] };
     return { ok: false, lines: bad };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parity, t]);
+  }, [parity, t, studentDebtCurrencies.join("|")]);
+
+  /* 21.11: аналітика школи ПОРІВНЮЄ оплату учня з виплатою репетиторові (націнка, маржа по
+     репетиторах, прибуток за тижнями). Виплата — у валюті школи, оплата — у валюті пари; урок з
+     оплатою в іншій валюті без курсу з виплатою не порівняти. Учениця з ціною 14 € і виплатою
+     300 ₴ давала «маржа −2042 %» і тижневий прибуток «14 − 300». Такі уроки в цю аналітику не
+     входять, і екран каже це словами (`analyticsForeignNote`); їхні гроші стоять у картках
+     угорі окремою сумою. */
+  const schoolCurBillable = useMemo(
+    () => billable.filter((l) =>
+      ((l as { currency?: string | null }).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? PAYOUT_CURRENCY) === PAYOUT_CURRENCY),
+    [billable, pairCurrencies],
+  );
+  const analyticsForeignCurs = useMemo(
+    () => [...new Set(billable
+      .map((l) => (l as { currency?: string | null }).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? PAYOUT_CURRENCY)
+      .filter((c) => c !== PAYOUT_CURRENCY))],
+    [billable, pairCurrencies],
+  );
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
   const hubMarkup = useMemo(() => {
@@ -1107,15 +1132,16 @@ export default function FinancesPage() {
        вибраного періоду. Націнка стрибала при перемиканні тижня/місяця.
        Тримаємо один зміст: націнка — по всьому завантаженому, як і було.
        Число з бази беремо лише для періоду «весь час», де вони збігаються. */
-    if (period === "all" && dbTotals && dbTotals.markup_income > 0) {
+    // Число з бази складає всі валюти разом — воно годиться лише коли інших валют немає.
+    if (period === "all" && dbTotals && dbTotals.markup_income > 0 && analyticsForeignCurs.length === 0) {
       return ((dbTotals.markup_income - dbTotals.markup_payout) / dbTotals.markup_income) * 100;
     }
-    return grossMarkupPct(billable);
-  }, [billable, dbTotals, period]);
+    return grossMarkupPct(schoolCurBillable);
+  }, [schoolCurBillable, analyticsForeignCurs, dbTotals, period]);
 
   const markupByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
-    billable.forEach((l) => {
+    schoolCurBillable.forEach((l) => {
       if (!groups[l.tutor_id]) groups[l.tutor_id] = [];
       groups[l.tutor_id].push(l);
     });
@@ -1129,7 +1155,7 @@ export default function FinancesPage() {
       .filter((r) => r.markup !== null)
       .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [billable, profiles]);
+  }, [schoolCurBillable, profiles]);
 
   const profitSparkline = useMemo(() => {
     const today = new Date();
@@ -1144,7 +1170,7 @@ export default function FinancesPage() {
       buckets.push({ key: s.toISOString().slice(0, 10), start: s, profit: 0 });
     }
     const firstStart = buckets[0].start.getTime();
-    billable.forEach((l) => {
+    schoolCurBillable.forEach((l) => {
       const ts = new Date(l.starts_at).getTime();
       if (ts < firstStart) return;
       const idx = Math.floor((ts - firstStart) / (7 * 24 * 3600 * 1000));
@@ -1163,7 +1189,7 @@ export default function FinancesPage() {
       buckets[idx].profit -= Number(l.tutor_payout);
     });
     return buckets.map((b) => ({ week: b.key, profit: b.profit }));
-  }, [billable, groupPayoutScoped]);
+  }, [schoolCurBillable, groupPayoutScoped]);
 
   const incomeByStudent = useMemo(() => {
     const map = new Map<string, number>();
@@ -2208,18 +2234,16 @@ export default function FinancesPage() {
      правильною валютою. Коли валют кілька — розклад «сума + сума» тим самим
      каноном, що вже діє для доходу самостійного: складати крони з гривнями не
      можна. Групові рядки виплат не несуть за побудовою. */
-  const payoutRowsForCur = [...periodBillable.filter((l) => l.kind !== "group"), ...periodGroupPayouts];
-  const payoutCurs = Array.from(new Set(
-    payoutRowsForCur.filter((l) => Number(l.tutor_payout ?? 0) > 0).map(rowCurrency),
-  ));
-  const payoutCur = payoutCurs.length <= 1 ? (payoutCurs[0] ?? "UAH") : null;
-  const paidPayoutByCur = sumByCurrency(
-    payoutRowsForCur.filter((l) => l.tutor_payout_status === "paid"),
-    (l) => Number(l.tutor_payout ?? 0), rowCurrency);
-  const duePayoutByCur = sumByCurrency(
-    periodPayoutDue, (l) => Number(l.tutor_payout ?? 0), rowCurrency);
-  const paidPayoutLabel = payoutCur ? formatPrice(totalExpense, payoutCur) : fmtCurList(paidPayoutByCur);
-  const duePayoutLabel = payoutCur ? formatPrice(pendingExpense, payoutCur) : fmtCurList(duePayoutByCur);
+  /* 21.11 (скарга власниці): правило 27.09 вище виявилось хибним для школи. Валюта ПАРИ — це
+     те, чим платить учень; ставка виплати репетиторові валюти не має й задається у валюті школи.
+     Учениця, що платить 14 € за урок, давала «Винні репетиторам €900 + 250 ₴», хоча школа винна
+     1 150 ₴. Рядки таблиці вже показували виплату у валюті школи — підсумки тепер теж. */
+  const paidPayoutLabel = formatPrice(totalExpense, PAYOUT_CURRENCY);
+  const duePayoutLabel = formatPrice(pendingExpense, PAYOUT_CURRENCY);
+  /* Прибуток школи по валютах: отримане від учнів (у їхніх валютах) мінус виплати (у валюті
+     школи). Одним числом його не показати без курсу — «14 € − 300 ₴» не дорівнює «−286 ₴». */
+  const profitByCur = profitByCurrency(incomeByCur, totalExpense, PAYOUT_CURRENCY);
+  const expectedByCur = sumByCurrency(periodExpected, (l) => Number(l.student_price ?? 0), rowCurrency);
 
   // By-student for Cockpit analytics
   const byStudentCockpit = useMemo(() => {
@@ -3306,7 +3330,7 @@ export default function FinancesPage() {
                 <SummaryStat
                   icon={ArrowDownLeft}
                   label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
-                  value={isIndependentTutor ? fmtCurList(incomeByCur) : formatPrice(totalIncome, "UAH")}
+                  value={fmtCurList(incomeByCur)}
                   tone="success"
                 />
                 {!isIndependentTutor && (
@@ -3316,8 +3340,8 @@ export default function FinancesPage() {
                   <SummaryStat
                     icon={TrendingUp}
                     label={t("finances.profit")}
-                    value={formatPrice(profit, "UAH")}
-                    tone={profit >= 0 ? "success" : "warning"}
+                    value={fmtCurList(profitByCur, PAYOUT_CURRENCY)}
+                    tone={profitByCur.every(([, v]) => v >= 0) ? "success" : "warning"}
                   />
                 )}
                 {/* Аудит 05.09: «Заборгованість 1 850» складала ДВІ протилежні речі
@@ -3335,7 +3359,7 @@ export default function FinancesPage() {
                     <SummaryStat
                       icon={DollarSign}
                       label={t("finances.studentsOweLabel")}
-                      value={formatPrice(pendingIncome, "UAH")}
+                      value={fmtCurList(pendingByCur)}
                       /* Жовтим світиться САМЕ та половина, що розійшлась. */
                       tone={parity && !parity.inOk ? "warning" : pendingIncome > 0 ? "warning" : "neutral"}
                     />
@@ -3352,9 +3376,7 @@ export default function FinancesPage() {
                   <SummaryStat
                     icon={Clock}
                     label={t("finances.expectedPayments")}
-                    value={isIndependentTutor
-                      ? fmtCurList(sumByCurrency(periodExpected, (l) => Number(l.student_price ?? 0), rowCurrency))
-                      : formatPrice(expectedIncome, "UAH")}
+                    value={fmtCurList(expectedByCur)}
                     tone="neutral"
                   />
                 )}
@@ -3441,7 +3463,7 @@ export default function FinancesPage() {
                 <span className="text-xl">⚠️</span>
                 <div>
                   <p className="text-[15px] font-bold" style={{ color: "var(--warning-text,#B45309)" }}>
-                    {t("finances.studentsOweBannerTitle", { sum: formatPrice((pendingIncome), "UAH")})}
+                    {t("finances.studentsOweBannerTitle", { sum: fmtCurList(pendingByCur) })}
                   </p>
                   <p className="text-[14px]" style={{ color: "var(--warning-text,#B45309)", opacity: 0.8 }}>
                     {t("finances.debtAwaiting", { count: periodStudentDebts.length })}
@@ -3601,10 +3623,10 @@ export default function FinancesPage() {
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
                   <span className="text-[14px] text-muted-foreground">
-                    {formatPrice(profitSparkline.reduce((s, b) => s + b.profit, 0), domCur)}
+                    {formatPrice(profitSparkline.reduce((s, b) => s + b.profit, 0), PAYOUT_CURRENCY)}
                   </span>
                 </div>
-                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline cur={domCur} data={profitSparkline} /></Suspense>
+                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline cur={PAYOUT_CURRENCY} data={profitSparkline} /></Suspense>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
@@ -3614,6 +3636,15 @@ export default function FinancesPage() {
                 <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie cur={incomeByStudent[0]?.cur ?? "UAH"} data={incomeByStudent} /></Suspense>
               </div>
             </div>
+          )}
+
+          {!isIndependentTutor && analyticsForeignCurs.length > 0 && (
+            <p className="mt-4 rounded-xl border border-border bg-card px-4 py-3 text-[14px] text-muted-foreground" data-testid="analytics-foreign-note">
+              {t("finances.analyticsForeignNote", {
+                curs: analyticsForeignCurs.map((c) => currencySymbol(c)).join(", "),
+                school: currencySymbol(PAYOUT_CURRENCY),
+              })}
+            </p>
           )}
 
           {!isIndependentTutor && markupByTutor.length > 0 && (
@@ -3661,14 +3692,14 @@ export default function FinancesPage() {
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
                 <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
-              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart cur={domCur}
+              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart cur={PAYOUT_CURRENCY}
                 tutorNames={Object.fromEntries(
                   Object.values(profiles).map((p) => [
                     p.id,
                     `${p.first_name} ${p.last_name}`.trim() || t("common.noName"),
                   ])
                 )}
-                lessons={tutorScoped.map((l) => ({
+                lessons={tutorScoped.filter((l) => rowCurrency(l) === PAYOUT_CURRENCY).map((l) => ({
                   starts_at: l.starts_at,
                   status: l.status,
                   tutor_id: l.tutor_id,

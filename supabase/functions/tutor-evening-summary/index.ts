@@ -11,6 +11,7 @@
 // 20260901120002_evening_summary.sql.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { withJob } from "../_shared/jobRun.ts";
+import { Money, PAYOUT_CURRENCY } from "../_shared/money.ts";
 
 const TZ = "Europe/Kyiv";
 const SUPABASE_URL = "https://kficbcjqcbhqhjimxfed.supabase.co";
@@ -67,13 +68,11 @@ type EtLang = keyof typeof ET;
 const etOf = (lang?: string | null): EtLang =>
   lang === "en" || lang === "sv" ? lang : "uk";
 
-const CUR_LABEL: Record<string, string> = { UAH: "грн", USD: "$", EUR: "€", GBP: "£", PLN: "zł", SEK: "kr" };
-function fmtMoney(byCur: Map<string, number>, locale: string): string {
-  const entries = Array.from(byCur.entries()).filter(([, v]) => v > 0)
-    .sort((a, b) => b[1] - a[1]);
-  return entries
-    .map(([c, v]) => `${Math.round(v).toLocaleString(locale)} ${CUR_LABEL[c] ?? c}`)
-    .join(" + ");
+/** Суми по валютах одним рядком — знаки валют зі спільного `_shared/money.ts`. */
+function fmtMoney(byCur: Map<string, number>, _locale: string): string {
+  const m = new Money();
+  for (const [c, v] of byCur) m.add(v, c);
+  return m.any ? m.text() : "";
 }
 
 async function sendTg(token: string, chatId: number, text: string): Promise<boolean> {
@@ -205,7 +204,9 @@ Deno.serve(withJob("tutor-evening-summary", async (req) => {
         ? Number(d?.student_price ?? 0)
         : Number(d?.tutor_payout ?? 0);
       if (amount <= 0) continue;
-      const cur = curOfPair.get(`${tutorId}:${l.student_id}`) ?? "UAH";
+      // 21.11: валюта пари — лише для власних учнів. Виплата школи — у валюті школи: учень, що
+      // платить школі в євро, не робить виплату репетиторові «300 €».
+      const cur = l.source === "independent" ? (curOfPair.get(`${tutorId}:${l.student_id}`) ?? "UAH") : PAYOUT_CURRENCY;
       byCur.set(cur, (byCur.get(cur) ?? 0) + amount);
     }
 

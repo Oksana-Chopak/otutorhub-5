@@ -63,12 +63,17 @@ describe("тижневий дайджест: «Зароблено» = ОТРИМ
        теж рахується правильно. */
     expect(d).toMatch(/const ownLessons = wLessons\.filter\(\(l: any\) => l\.source === "independent"\);/);
     expect(d).toMatch(/const hubLessons = wLessons\.filter\(\(l: any\) => l\.source !== "independent"\);/);
-    expect(d, "«зароблено» = свої оплати за свої уроки + виплати за хабові")
-      .toMatch(/const income = paidStudentIncome\(ownLessons\) \+ paidTutorPayout\(hubLessons\);/);
+    /* 21.11: ці дві половини більше не складаються в одне число — свої оплати йдуть у валютах
+       своїх учнів, виплати школи — у валюті школи (учениця з ціною 14 € давала «28 ₴»). Інваріант
+       той самий: ціна учня школи ніколи не стає «зароблено» хабового. */
+    expect(d, "«зароблено» = свої оплати за свої уроки, по валютах пар")
+      .toMatch(/const ownIncome = paidIncomeBag\(ownLessons\);/);
+    expect(d, "виплати за хабові — окремим рядком")
+      .toMatch(/const payoutsGot = paidTutorPayout\(hubLessons\);/);
     expect(d, "хабовому «очікують оплати» — його виплати, не борги учнів школі")
       .toMatch(/const pendingPayout = unpaidTutorPayout\(hubLessons\);/);
     expect(d, "борг учнів — лише зі СВОЇХ уроків, інакше це гроші школи")
-      .toMatch(/const debtTotal = unpaidStudentDebt\(ownDebts\);/);
+      .toMatch(/const debtTotal = debtBag\(ownDebts\);/);
     expect(d, "підпис рядка мусить відрізнятись — це різні гроші")
       .toMatch(/Отримано виплат/);
   });
@@ -80,7 +85,7 @@ describe("тижневий дайджест: «Зароблено» = ОТРИМ
     expect((d.match(/fetchAllRows</g) ?? []).length, "чотири платформених читання").toBe(4);
     expect((d.match(/\.order\("id"\)/g) ?? []).length,
       "кожне сторінкове читання мусить мати стабільний порядок").toBeGreaterThanOrEqual(3);
-    expect(d).toMatch(/const moneyReadFailed = !!\(lastWeekRes\.error \|\| unpaidRes\.error\);/);
+    expect(d).toMatch(/const moneyReadFailed = !!\(lastWeekRes\.error \|\| unpaidRes\.error \|\| cur\.failed\);/);
     expect(d, "нуль замість суми читався б як «усе закрито»")
       .toMatch(/if \(moneyReadFailed\) lines\.push/);
   });
@@ -139,13 +144,14 @@ describe("роль вирішує, що людина бачить (аудит 18
 describe("екран виплат більше не штампує гривню", () => {
   const f = () => read("src/pages/FinancesPage.tsx");
 
-  it("одна валюта — те саме число з правильним підписом; кілька — розклад", () => {
-    // Підрахунок живе на рівні СТОРІНКИ, тож ним користуються і хабовий, і менеджер.
+  it("виплати — у валюті ШКОЛИ, одним числом (21.11: правило 27.09 «валюта пари» скасовано)", () => {
+    /* 27.09 виплату підписували валютою пари. Для школи це неправда: ставка виплати валюти не має
+       й задається у валюті школи, а валюта пари — це те, чим платить учень. Учениця з ціною 14 €
+       давала «Винні репетиторам €900 + 250 ₴» замість 1 150 ₴. Константа одна на клієнт і сервер. */
     const s = f();
-    expect(s).toMatch(/const payoutCur = payoutCurs\.length <= 1 \? \(payoutCurs\[0\] \?\? "UAH"\) : null;/);
-    expect(s).toMatch(/const paidPayoutLabel = payoutCur \? formatPrice\(totalExpense, payoutCur\) : fmtCurList\(paidPayoutByCur\);/);
-    expect(s, "суму до виплати беремо ТИМ САМИМ предикатом, що й число поруч")
-      .toMatch(/duePayoutByCur = sumByCurrency\(\s*\n?\s*periodPayoutDue/);
+    expect(s).toMatch(/const paidPayoutLabel = formatPrice\(totalExpense, PAYOUT_CURRENCY\);/);
+    expect(s).toMatch(/const duePayoutLabel = formatPrice\(pendingExpense, PAYOUT_CURRENCY\);/);
+    expect(s).not.toMatch(/payoutCurs/);
   });
 
   it("жодного formatPrice(totalExpense|pendingExpense, \"UAH\") не лишилось — ні в хабового, ні в менеджера", () => {

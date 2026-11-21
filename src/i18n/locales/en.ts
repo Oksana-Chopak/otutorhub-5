@@ -1548,6 +1548,7 @@ export const en: LocaleTranslations = {
     exportDownload: "Download CSV",
     marginByTutor: "Margin by tutor",
     marginFormula: "(student price − payout) / student price",
+    analyticsForeignNote: "Lessons paid in {{curs}} are not included in these charts: without an exchange rate they can’t be compared with payouts in {{school}}. Their totals are in the cards above.",
     noMarginData: "Data will appear after the first completed lessons with a student price and payout 📊",
     colLessonsCount: "Lessons",
     colMargin: "Margin",

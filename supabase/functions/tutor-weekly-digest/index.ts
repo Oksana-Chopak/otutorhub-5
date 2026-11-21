@@ -4,12 +4,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { fetchAllRows } from "../_shared/fetchAll.ts";
 import {
   detailsOf,
-  paidStudentIncome,
   paidTutorPayout,
   unpaidTutorPayout,
-  unpaidStudentDebt,
 } from "../_shared/digestMoney.ts";
 import { withJob } from "../_shared/jobRun.ts";
+import { Money, money, loadCurrencies, PAYOUT_CURRENCY } from "../_shared/money.ts";
 import { versionProbe } from "../_shared/build.ts";
 
 const TZ = "Europe/Kyiv";
@@ -134,7 +133,7 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
      інакше сторінки перекриваються. */
   const lastWeekRes = await fetchAllRows<any>((a, b) => sb
     .from("lessons")
-    .select("id, tutor_id, student_id, source, lesson_details(student_price, student_payment_status, tutor_payout_status, tutor_payout)")
+    .select("id, tutor_id, student_id, subject, source, lesson_details(student_price, student_payment_status, tutor_payout_status, tutor_payout)")
     .eq("status", "completed")
     .gte("starts_at", from)
     .lt("starts_at", to)
@@ -156,7 +155,7 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
   // лягають перенесені борги з імпорту, 07.09). Раніше — лише completed.
   const unpaidRes = await fetchAllRows<any>((a, b) => sb
     .from("lessons")
-    .select("id, tutor_id, student_id, source, status, lesson_details!inner(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
+    .select("id, tutor_id, student_id, subject, source, status, lesson_details!inner(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
     .in("status", ["completed", "cancelled"])
     .eq("lesson_details.student_payment_status", "unpaid")
     .gt("lesson_details.student_price", 0)
@@ -165,7 +164,32 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
   const unpaidRaw = unpaidRes.data;
   /* Збій читання грошей НЕ перетворюється на «боргів немає» — це той самий
      інваріант, що врятував ранковий дайджест 22.09. */
-  const moneyReadFailed = !!(lastWeekRes.error || unpaidRes.error);
+  /* 21.11: валюта — з ПАРИ (student_rates), не «завжди гривня». Учениця, що платить 14 € за
+     урок, приходила власниці як «28 ₴». Суми в різних валютах не складаються в одне число. */
+  const cur = await loadCurrencies(sb, [...(lastWeekRes.data ?? []), ...(unpaidRaw ?? [])]);
+  const moneyReadFailed = !!(lastWeekRes.error || unpaidRes.error || cur.failed);
+  /** Оплачене учнями — по валютах пар. */
+  const paidIncomeBag = (rows: any[]) => {
+    const m = new Money();
+    for (const l of rows) { const d = detailsOf(l); if (d?.student_payment_status === "paid") m.add(d.student_price, cur.of(l)); }
+    return m;
+  };
+  /** Борг учнів — по валютах пар. */
+  const debtBag = (rows: any[]) => {
+    const m = new Money();
+    for (const l of rows) m.add(detailsOf(l)?.student_price, cur.of(l));
+    return m;
+  };
+  /** Борг кожного учня окремо, найбільші першими. */
+  const debtByStudent = (rows: any[]) => {
+    const by = new Map<string, Money>();
+    for (const l of rows) {
+      let m = by.get(l.student_id);
+      if (!m) { m = new Money(); by.set(l.student_id, m); }
+      m.add(detailsOf(l)?.student_price, cur.of(l));
+    }
+    return Array.from(by.entries()).sort((a, b) => b[1].weight - a[1].weight).slice(0, 4);
+  };
   const unpaid = (unpaidRaw ?? []).filter((l: any) => {
     const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
     return l.status === "completed" || d?.is_cancellation_fee === true;
@@ -232,27 +256,20 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
          неоплаченими. Ті самі гроші зʼявлялись нижче ще раз як «борги учнів»,
          тобто тиждень виглядав удвічі прибутковішим, ніж був. Тепер тут лише
          те, що СПРАВДІ отримано (дзеркало `paidIncome` у застосунку). */
-      const income = paidStudentIncome(wLessons);
+      const income = paidIncomeBag(wLessons);
       const wDebts = (unpaid ?? []).filter(mine);
-      const debtTotal = unpaidStudentDebt(wDebts);
+      const debtTotal = debtBag(wDebts);
       const debtStudents = new Set(wDebts.map((l: any) => l.student_id)).size;
 
       lines.push(`📊 <b>Тиждень ${label} — підсумки центру</b>`);
       lines.push("");
       lines.push(`🏫 Проведено: <b>${wLessons.length} уроків</b>`);
-      lines.push(`💰 Зароблено: <b>${income} ₴</b>`);
+      lines.push(`💰 Зароблено: <b>${income.text()}</b>`);
       if (debtStudents > 0) {
         lines.push("");
-        lines.push(`💳 Борги учнів: ${debtStudents} учнів · <b>${debtTotal} ₴</b>`);
-        const top = Array.from(
-          wDebts.reduce((m: Map<string, number>, l: any) => {
-            const k = l.student_id;
-            m.set(k, (m.get(k) ?? 0) + Number(detailsOf(l)?.student_price ?? 0));
-            return m;
-          }, new Map<string, number>())
-        ).sort((a, b) => b[1] - a[1]).slice(0, 4);
-        for (const [sid, amt] of top) {
-          lines.push(`  • ${esc(studentName.get(sid))} — ${amt} ₴`);
+        lines.push(`💳 Борги учнів: ${debtStudents} учнів · <b>${debtTotal.text()}</b>`);
+        for (const [sid, amt] of debtByStudent(wDebts)) {
+          lines.push(`  • ${esc(studentName.get(sid))} — ${amt.text()}`);
         }
       }
       lines.push("");
@@ -283,11 +300,12 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
       const hubLessons = wLessons.filter((l: any) => l.source !== "independent");
       const ownDebts = myDebts.filter((l: any) => l.source === "independent");
       // «Зароблено» = ОТРИМАНЕ: свої оплати за свої уроки + виплати за хабові.
-      const income = paidStudentIncome(ownLessons) + paidTutorPayout(hubLessons);
+      const ownIncome = paidIncomeBag(ownLessons);
+      const payoutsGot = paidTutorPayout(hubLessons);
       /* Хабовому «очікують оплати» — це НЕ борги учнів перед школою (чужі
          гроші), а його невиплачені виплати. */
       const pendingPayout = unpaidTutorPayout(hubLessons);
-      const debtTotal = unpaidStudentDebt(ownDebts);
+      const debtTotal = debtBag(ownDebts);
       const debtStudents = new Set(ownDebts.map((l: any) => l.student_id)).size;
       /* Прапорець лишається ЛИШЕ для формулювання рядка. Коли уроків немає
          зовсім, беремо рядок налаштувань, і «не знаю» = ХАБОВИЙ — безпечний
@@ -301,26 +319,20 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
       lines.push(`🎉 <b>Тиждень ${label}</b> — завершено!`);
       lines.push("");
       lines.push(`📚 Проведено: <b>${wLessons.length} уроків</b>`);
-      if (income > 0) {
-        lines.push(independent
-          ? `💰 Зароблено: <b>${income} ₴</b>`
-          : `💰 Отримано виплат: <b>${income} ₴</b>`);
-      }
+      // Свої оплати — у валютах своїх учнів; виплати школи — у валюті школи. Окремими рядками:
+      // це різні гроші, і в різних валютах вони в одне число не складаються.
+      if (ownIncome.any) lines.push(`💰 Зароблено: <b>${ownIncome.text()}</b>`);
+      if (payoutsGot > 0) lines.push(`💰 Отримано виплат: <b>${money(payoutsGot, PAYOUT_CURRENCY)}</b>`);
       if (!independent && pendingPayout > 0) {
-        lines.push(`⏳ Очікує виплати: <b>${pendingPayout} ₴</b>`);
+        lines.push(`⏳ Очікує виплати: <b>${money(pendingPayout, PAYOUT_CURRENCY)}</b>`);
       }
       if (debtStudents > 0) {
         lines.push("");
-        lines.push(`💳 Очікують оплати: ${debtStudents} учнів · <b>${debtTotal} ₴</b>`);
-        const top = Array.from(
-          myDebts.reduce((m: Map<string, number>, l: any) => {
-            const k = l.student_id;
-            m.set(k, (m.get(k) ?? 0) + Number(detailsOf(l)?.student_price ?? 0));
-            return m;
-          }, new Map<string, number>())
-        ).sort((a, b) => b[1] - a[1]).slice(0, 4);
-        for (const [sid, amt] of top) {
-          lines.push(`  • ${esc(studentName.get(sid))} — ${amt} ₴`);
+        lines.push(`💳 Очікують оплати: ${debtStudents} учнів · <b>${debtTotal.text()}</b>`);
+        // 21.11: список був по ВСІХ боргах репетитора, включно з учнями школи (чужі гроші) —
+        // а підсумок над ним лише по власних. Тепер список і підсумок — про одне й те саме.
+        for (const [sid, amt] of debtByStudent(ownDebts)) {
+          lines.push(`  • ${esc(studentName.get(sid))} — ${amt.text()}`);
         }
       }
       // 13.10: «нагадано за вас · повернуто після нагадувань» — доказ обіцянки продукту
@@ -332,7 +344,7 @@ Deno.serve(withJob("tutor-weekly-digest", async (req) => {
           const recovered = Number(rs?.recovered_sum ?? 0);
           if (times > 0) {
             lines.push("");
-            lines.push(`🔔 Нагадано за вас: <b>${times}</b>${recovered > 0 ? ` · 💸 повернуто після нагадувань: <b>${Math.round(recovered)} ₴</b>` : ""}`);
+            lines.push(`🔔 Нагадано за вас: <b>${times}</b>${recovered > 0 ? ` · 💸 повернуто після нагадувань: <b>${money(Math.round(recovered), rs?.currency)}</b>` : ""}`);
           }
         } catch { /* SQL ще не вставлено — рядка просто немає */ }
       }

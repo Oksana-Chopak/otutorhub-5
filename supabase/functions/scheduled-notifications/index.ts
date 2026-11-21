@@ -7,6 +7,7 @@
 // Auth: set CRON_SECRET in Supabase Edge Function secrets + GitHub Actions secrets.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { withJob } from "../_shared/jobRun.ts";
+import { Money, loadCurrencies, PAYOUT_CURRENCY } from "../_shared/money.ts";
 
 const UK_MONTHS = [
   "Січень","Лютий","Березень","Квітень","Травень","Червень",
@@ -17,15 +18,20 @@ const UK_MONTHS = [
 // MON-2: a hub tutor earns their tutor_payout (the hub's student_price is the HUB's
 // revenue, not the tutor's — showing student_price would leak/misreport hub margin).
 // An independent tutor owns the money, so they earn student_price.
-function tutorEarned(lessons: any[]): number {
-  return (lessons ?? []).reduce((sum: number, l: any) => {
+// 21.11: по валютах. Свої учні — у валюті пари (учениця платить 14 € → «14 €», а не «14 грн»);
+// виплата школи — у валюті школи. Різні валюти в одне число не складаються.
+function tutorEarned(lessons: any[], currencyOf: (l: any) => string): Money {
+  const m = new Money();
+  for (const l of lessons ?? []) {
     const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
-    if (!d) return sum;
+    if (!d) continue;
     if (l.source === "independent") {
-      return sum + (d.student_payment_status === "paid" ? Number(d.student_price ?? 0) : 0);
+      if (d.student_payment_status === "paid") m.add(d.student_price, currencyOf(l));
+    } else if (d.tutor_payout_status === "paid") {
+      m.add(d.tutor_payout, PAYOUT_CURRENCY);
     }
-    return sum + (d.tutor_payout_status === "paid" ? Number(d.tutor_payout ?? 0) : 0);
-  }, 0);
+  }
+  return m;
 }
 
 Deno.serve(withJob("scheduled-notifications", async (req) => {
@@ -137,7 +143,7 @@ Deno.serve(withJob("scheduled-notifications", async (req) => {
         // student_price + payout live on lesson_details (not lessons); source on lessons.
         const { data: lessons } = await db
           .from("lessons")
-          .select("id, source, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status)")
+          .select("id, tutor_id, student_id, subject, source, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status)")
           .eq("tutor_id", user_id)
           .eq("status", "completed")
           .gte("starts_at", monthStart)
@@ -146,13 +152,14 @@ Deno.serve(withJob("scheduled-notifications", async (req) => {
         const count = (lessons ?? []).length;
         if (count === 0) continue;
 
-        const income = tutorEarned(lessons ?? []);
+        const cur = await loadCurrencies(db, lessons ?? []);
+        const income = tutorEarned(lessons ?? [], cur.of);
 
         await upsertNotif(
           user_id,
           "monthly_recap",
           `📊 Твій ${monthName}: ${count} уроків`,
-          `Зароблено: ${income.toFixed(0)} грн. Подивись детальну аналітику`,
+          income.any && !cur.failed ? `Зароблено: ${income.text()}. Подивись детальну аналітику` : "Подивись детальну аналітику",
           "/finances",
         );
       }
@@ -173,7 +180,7 @@ Deno.serve(withJob("scheduled-notifications", async (req) => {
         // student_price + payout live on lesson_details (not lessons); source on lessons.
         const { data: wLessons } = await db
           .from("lessons")
-          .select("id, status, source, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status)")
+          .select("id, tutor_id, student_id, subject, status, source, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status)")
           .eq("tutor_id", user_id)
           .gte("starts_at", weekStart.toISOString())
           .lt("starts_at", weekEnd.toISOString());
@@ -182,14 +189,15 @@ Deno.serve(withJob("scheduled-notifications", async (req) => {
         const count = completed.length;
         if (count === 0) continue;
 
-        const income = tutorEarned(completed);
+        const curW = await loadCurrencies(db, completed);
+        const income = tutorEarned(completed, curW.of);
 
         await upsertNotif(
           user_id,
           "weekly_summary",
           `📈 Підсумок тижня: ${count} уроків`,
-          income > 0
-            ? `Зароблено ${income.toFixed(0)} грн за минулий тиждень 💪`
+          income.any && !curW.failed
+            ? `Зароблено ${income.text()} за минулий тиждень 💪`
             : `${count} уроків проведено — гарний результат!`,
           "/finances",
         );

@@ -1595,6 +1595,7 @@ export const uk = {
     exportDownload: "Завантажити CSV",
     marginByTutor: "Маржа по репетиторах",
     marginFormula: "(ціна учня − виплата) / ціна учня",
+    analyticsForeignNote: "Уроки з оплатою в {{curs}} у цю аналітику не входять: без курсу їх не порівняти з виплатами в {{school}}. Їхні суми — у картках угорі.",
     noMarginData: "Дані зʼявляться після перших завершених уроків із ціною учня та виплатою 📊",
     colLessonsCount: "Уроків",
     colMargin: "Маржа",

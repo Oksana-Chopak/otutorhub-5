@@ -10,6 +10,18 @@ export const CURRENCY_OPTIONS: { code: string; symbol: string; label: string }[]
   { code: "GBP", symbol: "£", label: "£ GBP" },
 ];
 
+/**
+ * ВАЛЮТА ВИПЛАТ РЕПЕТИТОРАМ ШКОЛИ (21.11, скарга власниці про учениця «14 € за урок»).
+ * Ставка виплати в базі — число без валюти (`tutor_subject_rates`, `tutor_details`): це валюта
+ * школи, сьогодні гривня. Валюта ПАРИ (`student_rates.currency`) стосується лише того, що платить
+ * учень. До 21.11 картка уроку й підсумки «Фінансів» підписували виплату валютою учня — і
+ * виплата 300 ₴ за урок учениці, що платить у євро, показувалась як «€300», а прибуток школи
+ * складав євро з гривнями в одне число. Правило:
+ *   гроші учня — у валюті пари; виплата — у валюті школи; різні валюти в одне число не зливаються.
+ * Серверне дзеркало — `supabase/functions/_shared/money.ts` → `PAYOUT_CURRENCY`.
+ */
+export const PAYOUT_CURRENCY = "UAH";
+
 const SYMBOLS: Record<string, string> = {
   UAH: "₴", USD: "$", EUR: "€", PLN: "zł", SEK: "kr",
   CZK: "Kč", GBP: "£", CHF: "₣", NOK: "kr", DKK: "kr",

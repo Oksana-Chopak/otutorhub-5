@@ -162,6 +162,26 @@ export function sumByCurrency<T>(
 }
 
 /**
+ * Прибуток школи ПО ВАЛЮТАХ (21.11): отримане від учнів — у валютах пар, виплати репетиторам —
+ * у валюті школи. Тож виплати віднімаються лише від «своєї» валюти, а решта валют лишається як є:
+ * 12 400 ₴ + 28 € отримано, 4 800 ₴ виплачено → «7 600 ₴ + 28 €». Одного числа тут немає й бути
+ * не може без курсу — і саме одне число («14 ₴») було помилкою.
+ * Валюта школи стоїть першою; нульові кошики відкидаються.
+ */
+export function profitByCurrency(
+  income: Array<[string, number]>,
+  payouts: number,
+  payoutCurrency: string,
+): Array<[string, number]> {
+  const by = new Map<string, number>();
+  for (const [c, v] of income) by.set(c, (by.get(c) ?? 0) + (Number(v) || 0));
+  by.set(payoutCurrency, (by.get(payoutCurrency) ?? 0) - (Number(payouts) || 0));
+  const out = [...by.entries()].filter(([, v]) => Math.abs(v) > 0.004);
+  out.sort((a, b) => (a[0] === payoutCurrency ? -1 : b[0] === payoutCurrency ? 1 : Math.abs(b[1]) - Math.abs(a[1])));
+  return out;
+}
+
+/**
  * Gross margin %: (income − payout) / income · 100 over rows that carry BOTH
  * sides of the money (price > 0 and payout > 0). null when not computable.
  */

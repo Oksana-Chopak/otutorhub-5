@@ -18,7 +18,9 @@ interface Props {
   tutorName?: string
   subject?: string
   lessonDate?: string
-  amount?: number
+  /** 21.11: сума ВЖЕ з валютою пари («28 €»). Число без валюти сюди не передається —
+      шаблон дописував до нього «₴» навіть тій, хто платить у євро. */
+  amountText?: string
   appName?: string
   /** 13.10: публічна сторінка «борг · реквізити · Я оплатив(ла)» без входу */
   payUrl?: string
@@ -80,7 +82,7 @@ function PaymentReminderEmail({
   tutorName,
   subject,
   lessonDate,
-  amount,
+  amountText,
   appName = 'oTutorHub',
   payUrl,
   registerUrl,
@@ -99,8 +101,8 @@ function PaymentReminderEmail({
             {subject ? <> уроку <strong>{subject}</strong></> : ' уроку'}
             {lessonDate ? <>, який відбувся {lessonDate}</> : ''}.
           </Text>
-          {amount && amount > 0 ? (
-            <Section style={amountBox}>Сума до сплати: {amount} ₴</Section>
+          {amountText ? (
+            <Section style={amountBox}>Сума до сплати: {amountText}</Section>
           ) : null}
           {payUrl ? (
             <Section style={{ margin: '18px 0 6px' }}>
@@ -143,7 +145,7 @@ export const template: TemplateEntry = {
     tutorName: 'Марія Іваненко',
     subject: 'Англійська мова',
     lessonDate: '15 квітня',
-    amount: 450,
+    amountText: '450 ₴',
     payUrl: 'https://otutorhub.com/pay/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
   },
 }

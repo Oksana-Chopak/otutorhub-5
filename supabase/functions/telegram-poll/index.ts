@@ -4,6 +4,7 @@ import { sendPaymentReminder, normLang } from "../_shared/paymentReminder.ts";
 import { versionProbe } from "../_shared/build.ts";
 import { withJob } from '../_shared/jobRun.ts'
 import { rateLimit } from '../_shared/rateLimit.ts';
+import { money, sym, PAYOUT_CURRENCY } from '../_shared/money.ts';
 
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
@@ -314,14 +315,14 @@ async function linkedWelcome(supabase: any, userId: string): Promise<string> {
     if (!s || !s.is_tutor) return fallback;
     const n = (v: unknown) => Number(v ?? 0);
     const cur = String(s.currency ?? 'UAH');
-    const symOf = (c: string) => (c === 'UAH' ? '₴' : c === 'EUR' ? '€' : c === 'USD' ? '$' : c);
-    const sym = symOf(cur);
+    const symOf = (c: string) => sym(c);
+    const curSym = symOf(cur);
     /* Борг по валютах, як у Фінансах: дві валюти — два числа, ніколи сума
        (15.10). Без розбивки з бази лишається єдине, що є, — debt_sum. */
     const byCur = (s.debt_by_cur && typeof s.debt_by_cur === 'object') ? s.debt_by_cur as Record<string, unknown> : null;
     const debtMoney = (): string => {
       const pairs = Object.entries(byCur ?? {}).filter(([, v]) => Number(v ?? 0) > 0);
-      if (pairs.length === 0) return `${Math.round(n(s.debt_sum))} ${sym}`;
+      if (pairs.length === 0) return `${Math.round(n(s.debt_sum))} ${curSym}`;
       return pairs
         .sort((a, b) => Number(b[1]) - Number(a[1]))
         .map(([c, v]) => `${Math.round(Number(v))} ${symOf(c)}`)
@@ -426,7 +427,7 @@ const CB = {
     claimRejected: "❌ Позначено «не бачу оплати». Учень отримав прохання перевірити переказ.",
     claimAlready: "Цю заявку вже вирішено раніше.",
     nopayout: "Цьому репетитору зараз нічого не винні ✅",
-    payoutDone: (n: number, s: number) => `✅ Виплату позначено: ${n} ур., ${s} ₴. Застосунок уже знає.`,
+    payoutDone: (n: number, s: string) => `✅ Виплату позначено: ${n} ур., ${s}. Застосунок уже знає.`,
   },
   en: {
     bad: "Unknown action", nolink: "Telegram is not linked to an account",
@@ -440,7 +441,7 @@ const CB = {
     claimRejected: "❌ Marked as «don’t see it». The student was asked to check the transfer.",
     claimAlready: "This claim was already resolved.",
     nopayout: "Nothing is owed to this tutor right now ✅",
-    payoutDone: (n: number, s: number) => `✅ Payout recorded: ${n} lessons, ${s} ₴. The app already knows.`,
+    payoutDone: (n: number, s: string) => `✅ Payout recorded: ${n} lessons, ${s}. The app already knows.`,
   },
   sv: {
     bad: "Okänd åtgärd", nolink: "Telegram är inte kopplat till kontot",
@@ -454,7 +455,7 @@ const CB = {
     claimRejected: "❌ Markerad «ser den inte». Eleven ombads kontrollera överföringen.",
     claimAlready: "Denna begäran är redan avgjord.",
     nopayout: "Inget att betala den här läraren just nu ✅",
-    payoutDone: (n: number, s: number) => `✅ Utbetalning noterad: ${n} lektioner, ${s} ₴. Appen vet redan.`,
+    payoutDone: (n: number, s: string) => `✅ Utbetalning noterad: ${n} lektioner, ${s}. Appen vet redan.`,
   },
 } as const;
 
@@ -650,7 +651,7 @@ async function handleDigestCallback(base: string, db: any, cq: any,
       before: { unpaid_lessons: ids, sum, hub_id: hm.hub_id },
       after: { status: 'paid', source: 'telegram_digest_button_manager', chat_id: chatId },
     });
-    await answerCb(base, cqId, L.payoutDone(ids.length, sum));
+    await answerCb(base, cqId, L.payoutDone(ids.length, money(sum, PAYOUT_CURRENCY)));
     return;
   }
 

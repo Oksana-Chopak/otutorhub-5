@@ -59,7 +59,7 @@ import { SkeletonHero, SkeletonList, SkeletonStatCards } from "@/components/Skel
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
-import { formatPrice } from "@/lib/currency";
+import { formatPrice, PAYOUT_CURRENCY } from "@/lib/currency";
 import { readAllPages } from "@/lib/pagedRead";
 import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency, countLessonsMissingPrice, moneyReadIsPartial, DASHBOARD_LESSONS_CAP, DASHBOARD_MONEY_CAP, DASHBOARD_OLD_DEBT_CAP } from "@/lib/financials";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
@@ -932,8 +932,8 @@ export default function DashboardPage() {
       }
     }
     if (value === "paid" && field === "tutor_payout_status" && lesson?.tutor_id) {
-      const currency = pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? "UAH";
-      const amount = formatPrice(lesson.tutor_payout, currency, { decimals: 0 });
+      // 21.11: виплата — у валюті школи, не у валюті учня (учениця платить у євро → «€300» репетиторові)
+      const amount = formatPrice(lesson.tutor_payout, PAYOUT_CURRENCY, { decimals: 0 });
       insertNotification({
         userId: lesson.tutor_id,
         type: "payout_confirmed",
@@ -1210,6 +1210,17 @@ export default function DashboardPage() {
     profitByCur.length === 0
       ? formatPrice(0, "UAH")
       : profitByCur.map(([c, v]) => formatPrice(v, c)).join(" + ");
+  /* 21.11 (скарга власниці): прибуток ШКОЛИ складав євро з гривнями в одне число — учениця, що
+     платить 14 € за урок, давала «Прибуток 14 ₴». Отримане в інших валютах тепер стоїть окремо,
+     а виплати (вони у валюті школи) віднімаються лише від «своєї» валюти: «7 600 ₴ + 28 €».
+     Коли всі учні платять у валюті школи, це те саме число, що й було. */
+  const managerProfitLabel = useMemo(() => {
+    const foreign = profitByCur.filter(([c]) => c !== PAYOUT_CURRENCY);
+    if (foreign.length === 0) return formatPrice(profit, PAYOUT_CURRENCY);
+    const home = profit - foreign.reduce((sum, [, v]) => sum + v, 0);
+    const parts: Array<[string, number]> = [[PAYOUT_CURRENCY, home], ...foreign];
+    return parts.filter(([, v]) => Math.abs(v) > 0.004).map(([c, v]) => formatPrice(v, c)).join(" + ");
+  }, [profitByCur, profit]);
 
   // Real month-over-month growth — no more hardcoded +12%
   const prevMonthProfit = useMemo(() => {
@@ -2289,7 +2300,7 @@ export default function DashboardPage() {
                     💰 {t("dashboard.cardProfit")}
                   </p>
                   <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
-                    {formatPrice(profit, "UAH")}
+                    {managerProfitLabel}
                   </p>
                   {profitGrowthPct !== null && (
                     <p className="mt-1 text-[14px] font-medium" style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
@@ -2339,7 +2350,7 @@ export default function DashboardPage() {
                   style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
                 >
                   <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
-                  <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
+                  <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{managerProfitLabel}</p>
                   <p className="mt-0.5 text-[14px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
                     {monthlyProfitBars.map((h, i) => (
