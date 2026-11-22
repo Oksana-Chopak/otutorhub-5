@@ -810,6 +810,7 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
+          payment_details: string | null
           public_about: string | null
           public_enabled: boolean
           public_slug: string | null
@@ -819,6 +820,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           name: string
+          payment_details?: string | null
           public_about?: string | null
           public_enabled?: boolean
           public_slug?: string | null
@@ -828,6 +830,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           name?: string
+          payment_details?: string | null
           public_about?: string | null
           public_enabled?: boolean
           public_slug?: string | null
@@ -3353,6 +3356,7 @@ export type Database = {
         Args: { _amount: number; _note?: string; _tutor_id: string }
         Returns: Json
       }
+      cron_due: { Args: { _job: string }; Returns: boolean }
       default_hub_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -3630,8 +3634,18 @@ export type Database = {
           id: string
         }[]
       }
+      my_hub_payment_details: { Args: never; Returns: string }
       my_hub_public_page: { Args: never; Returns: Json }
+      my_school_payment_details: {
+        Args: never
+        Returns: {
+          payment_details: string
+          school_name: string
+          tutor_id: string
+        }[]
+      }
       normalize_subject: { Args: { t: string }; Returns: string }
+      notification_link_is_safe: { Args: { _link: string }; Returns: boolean }
       notify_managers: {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
         Returns: number
@@ -3819,6 +3833,10 @@ export type Database = {
       set_lesson_tutor_payout_status_bulk: {
         Args: { _lesson_ids: string[]; _status: string }
         Returns: undefined
+      }
+      set_my_hub_payment_details: {
+        Args: { _details: string }
+        Returns: string
       }
       set_my_timezone: { Args: { _tz: string }; Returns: undefined }
       set_own_independent_workspace: { Args: never; Returns: undefined }
