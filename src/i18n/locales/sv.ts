@@ -1132,6 +1132,7 @@ export const sv: LocaleTranslations = {
     truncatedBody: "Intäkter, utgifter och vinst beräknas bara från den visade delen. Begränsa perioden för exakta siffror.",
     stornoNote: "Återföring av felaktig förskottsbetalning",
     totalsParityMismatch: "⚠️ Summorna stämmer inte. Visar databasens siffra — den är den korrekta. Händer det igen, kontakta supporten.",
+    totalsParityDetail: "⚠️ Summorna för ”{{period}}” stämmer inte — intäkter: databasen {{dbIn}}, skärmen {{appIn}}; utbetalningar: databasen {{dbOut}}, skärmen {{appOut}}. Korten visar databasens siffra. Skicka den här raden till supporten.",
     expectedPayments: "Förväntade betalningar",
     studentsOweLabel: "Elever är skyldiga",
     studentsOweBannerTitle: "Elever är skyldiga {{sum}}",

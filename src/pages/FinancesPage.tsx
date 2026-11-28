@@ -282,6 +282,7 @@ export default function FinancesPage() {
   const isLgUp = useMediaQuery("(min-width: 1024px)");
   const [rowsShown, setRowsShown] = useState(100);
   const [reloadKey, setReloadKey] = useState(0); // B22: рефетч після позначення оплат
+  const [loadedFromMs, setLoadedFromMs] = useState(0); // початок вікна, яким прочитано уроки
   const dataVersion = useDataVersion(); // C3
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -429,6 +430,9 @@ export default function FinancesPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    // Одне вікно «останній рік» на весь заход: ним читаються уроки, і ним же база
+    // рахує підсумок для звірки (28.11 — інакше «Все» порівнювало весь час із роком).
+    const windowFromMs = Date.now() - 365 * 24 * 60 * 60 * 1000;
     // SECURITY (financial-data isolation): a HUB tutor must NEVER receive student_price /
     // student-payment columns — that is the HUB's revenue, and student_price − tutor_payout
     // is the hub's margin (the tutor only earns their agreed tutor_payout). Those columns
@@ -446,7 +450,7 @@ export default function FinancesPage() {
       { data: oldGroupDebtData, error: ogErr },
     ] = await Promise.all([
       (async () => {
-        const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const oneYearAgo = new Date(windowFromMs).toISOString();
         // Individual (non-group) lessons only — group lessons have student_id=NULL and are
         // pulled separately below. lessons_visible already hub-scopes managers (source
         // hub/NULL) and masks money per role.
@@ -455,6 +459,9 @@ export default function FinancesPage() {
             .from("lessons_visible")
             .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") + (withCarried ? ", carried_over" : "") as any)
             .not("student_id", "is", null)
+            // як у базі (`finances_period_totals`: group_id IS NULL) — урок групи рахується
+            // лише рядками учасників, ніколи двічі
+            .is("group_id", null)
             .gte("starts_at", oneYearAgo);
           if (isManager) q = (q as any).neq("source", "independent"); return q; };
           return readAllPages<any>((from, to) => build().order("starts_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP });
@@ -475,7 +482,7 @@ export default function FinancesPage() {
       // base table's money columns are SELECT-revoked since 20260720000000, and a
       // PostgREST embed reads the base table — it would 42501 for everyone).
       (async () => {
-        const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const oneYearAgo = new Date(windowFromMs).toISOString();
         const build = () => { let q = supabase
           .from("lessons")
           .select("id, subject, starts_at, status, tutor_id, group_id")
@@ -510,14 +517,18 @@ export default function FinancesPage() {
          Читання СТРОГО доповнює вікно (`lt` проти `gte` вище), тож дублів за
          побудовою немає; неоплачених проведених уроків за визначенням мало. */
       (async () => {
-        const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const edge = new Date(windowFromMs).toISOString();
         const run = (withFee: boolean, withCarried: boolean = false) => {
           const build = () => { let q = supabase
             .from("lessons_visible")
             .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") + (withCarried ? ", carried_over" : "") as any)
             .not("student_id", "is", null)
+            .is("group_id", null)
             .lt("starts_at", edge)
-            .eq("student_payment_status", "unpaid");
+            // 28.11: борг ШКОЛИ перед репетитором — теж величина без періоду. Раніше сюди
+            // читались лише неоплачені учнем уроки, і невиплачена виплата за урок, старший
+            // за рік, зникала з «Винні репетиторам», хоч `manager_debts_summary()` її рахує.
+            .or("student_payment_status.eq.unpaid,and(tutor_payout_status.eq.unpaid,tutor_payout.gt.0)");
           if (isManager) q = (q as any).neq("source", "independent"); return q; };
           return readAllPages<any>((from, to) => build().order("starts_at", { ascending: false }).order("id").range(from, to), { cap: FIN_CAP });
         };
@@ -530,7 +541,7 @@ export default function FinancesPage() {
          `lesson_participants`, тож без цього читання стара група лишалась би
          різницею, якої не видно. */
       (async () => {
-        const edge = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const edge = new Date(windowFromMs).toISOString();
         const build = () => { let q = supabase
           .from("lessons")
           .select("id, subject, starts_at, status, tutor_id, group_id")
@@ -726,6 +737,7 @@ export default function FinancesPage() {
     setPairRateOptions(rateOptionsMap);
     setPairCurrencies(currencyMap);
     setSelected(new Set());
+    setLoadedFromMs(windowFromMs);
     setLoading(false);
   };
 
@@ -1003,35 +1015,82 @@ export default function FinancesPage() {
   // розбіжність із масивами показується як розбіжність, не ховається.
   type DbTotals = { paid_income: number; paid_expense: number; markup_income: number; markup_payout: number; billable_count: number; paid_count: number; income_by_currency: Record<string, number> };
   const [dbTotals, setDbTotals] = useState<DbTotals | null>(null);
+  /* ЗВІРКА «база ↔ екран» (переписано 28.11, скарга власниці: «⚠️ Підсумки розійшлись»).
+     Було: `|база − масив| > 1` рахувалось на КОЖЕН рендер. Два дефекти давали хибну тривогу:
+       1) позначив оплату → масив змінився одразу (так і має бути — миттєва реакція), а число
+          з бази ще старе → банер «розійшлись» на кожну позначену оплату;
+       2) період «Все»: база рахувала ВЕСЬ час, а екран читає останній рік → щойно школі
+          виповнюється рік, банер висить завжди.
+     Тепер порівнюється знімок: число екрана на момент, коли читали базу, з числом бази ЗА ТЕ
+     САМЕ вікно. Якщо уроки змінились, поки база відповідала, — звірки немає (null), а не тривога.
+     Справжня розбіжність показує обидва числа — щоб її можна було надіслати одним рядком. */
+  type TotalsParity = { ok: boolean; dbIn: number; appIn: number; dbOut: number; appOut: number };
+  const [totalsParityInfo, setTotalsParityInfo] = useState<TotalsParity | null>(null);
+  // Те саме число, але лише з уроків у вікні екрана: старіші за рік рядки на екрані — це
+  // лише борги (дочитані окремо), і в звірку оборотів вони не входять.
+  const inWindow = (l: LessonRow) => new Date(l.starts_at).getTime() >= loadedFromMs;
+  const arrTotalsRef = useRef({ income: 0, expense: 0, wIncome: 0, wExpense: 0 });
+  arrTotalsRef.current = {
+    income: arrIncome, expense: arrExpense,
+    wIncome: paidIncome(periodBillable.filter(inWindow)),
+    wExpense: paidExpense(periodBillable.filter(inWindow)) + paidExpense(periodGroupPayouts.filter(inWindow)),
+  };
+  const lessonsRef = useRef(lessons);
+  lessonsRef.current = lessons;
   useEffect(() => {
     if (loading || loadError) return;
     let alive = true;
     (async () => {
-      const fromIso = new Date(periodStart || 0).toISOString();
-      const { data, error } = await (supabase.rpc as any)("finances_period_totals", {
-        _from: fromIso, _tutor: tutorFilter === "all" ? null : tutorFilter,
-      });
+      const readTotals = async (fromMs: number): Promise<DbTotals | null> => {
+        const { data, error } = await (supabase.rpc as any)("finances_period_totals", {
+          _from: new Date(fromMs || 0).toISOString(), _tutor: tutorFilter === "all" ? null : tutorFilter,
+        });
+        if (error || !data) return null; // функція ще не в проді
+        const d = data as DbTotals;
+        return {
+          paid_income: Number(d.paid_income ?? 0), paid_expense: Number(d.paid_expense ?? 0),
+          markup_income: Number(d.markup_income ?? 0), markup_payout: Number(d.markup_payout ?? 0),
+          billable_count: Number(d.billable_count ?? 0),
+          paid_count: Number(d.paid_count ?? 0),
+          income_by_currency: (d.income_by_currency as Record<string, number>) ?? {},
+        };
+      };
+      const lessonsAtStart = lessonsRef.current;
+      const snap = { ...arrTotalsRef.current };
+      // Екран бачить уроки лише від `loadedFromMs`. Період, що починається раніше («Все»),
+      // для звірки читається ще раз — за вікном екрана; картка показує число за весь період.
+      const sameWindow = !loadedFromMs || periodStart >= loadedFromMs;
+      const [main, windowed] = await Promise.all([
+        readTotals(periodStart),
+        sameWindow ? Promise.resolve(null) : readTotals(loadedFromMs),
+      ]);
       if (!alive) return;
-      if (error || !data) { setDbTotals(null); return; } // функція ще не в проді
-      const d = data as DbTotals;
-      setDbTotals({
-        paid_income: Number(d.paid_income ?? 0), paid_expense: Number(d.paid_expense ?? 0),
-        markup_income: Number(d.markup_income ?? 0), markup_payout: Number(d.markup_payout ?? 0),
-        billable_count: Number(d.billable_count ?? 0),
-        paid_count: Number(d.paid_count ?? 0),
-        income_by_currency: (d.income_by_currency as Record<string, number>) ?? {},
+      setDbTotals(main);
+      const cmp = sameWindow ? main : windowed;
+      const app = sameWindow ? { income: snap.income, expense: snap.expense } : { income: snap.wIncome, expense: snap.wExpense };
+      if (!cmp || lessonsRef.current !== lessonsAtStart) { setTotalsParityInfo(null); return; }
+      setTotalsParityInfo({
+        ok: Math.abs(cmp.paid_income - app.income) <= 1 && Math.abs(cmp.paid_expense - app.expense) <= 1,
+        dbIn: cmp.paid_income, appIn: app.income, dbOut: cmp.paid_expense, appOut: app.expense,
       });
     })();
     return () => { alive = false; };
-  }, [loading, loadError, periodStart, tutorFilter]);
+  }, [loading, loadError, periodStart, tutorFilter, loadedFromMs]);
 
   const totalIncome = dbTotals ? dbTotals.paid_income : arrIncome;
   const totalExpense = dbTotals ? dbTotals.paid_expense : arrExpense;
   const profit = totalIncome - totalExpense;
   // Коли масив НЕ обрізаний, база і масив мусять збігатися. Якщо ні — це
   // дефект семантики (SQL ≠ TS), і ми хочемо його БАЧИТИ, а не отримати тихо.
-  const totalsParity = dbTotals && !truncatedYear
-    ? Math.abs(dbTotals.paid_income - arrIncome) <= 1 && Math.abs(dbTotals.paid_expense - arrExpense) <= 1
+  const totalsParity = totalsParityInfo && !truncatedYear ? totalsParityInfo.ok : null;
+  const totalsParityText = totalsParity === false && totalsParityInfo
+    ? t("finances.totalsParityDetail", {
+        dbIn: Math.round(totalsParityInfo.dbIn).toLocaleString("uk-UA"),
+        appIn: Math.round(totalsParityInfo.appIn).toLocaleString("uk-UA"),
+        dbOut: Math.round(totalsParityInfo.dbOut).toLocaleString("uk-UA"),
+        appOut: Math.round(totalsParityInfo.appOut).toLocaleString("uk-UA"),
+        period: period === "week" ? t("finances.periodWeekShort") : period === "month" ? t("finances.periodMonthShort") : t("finances.periodAllShort"),
+      })
     : null;
   const pendingIncome = periodStudentDebts.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
   const pendingExpense = periodPayoutDue.reduce((sum, l) => sum + Number(l.tutor_payout ?? 0), 0);
@@ -2457,8 +2516,8 @@ export default function FinancesPage() {
           <p className="text-[14px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
         </div>
         {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
-        {totalsParity === false && (
-          <p role="status" className="mb-3 text-[13px] text-amber-800">{t("finances.totalsParityMismatch")}</p>
+        {totalsParityText && (
+          <p role="status" data-testid="totals-parity-mismatch" className="mb-3 text-[13px] font-semibold text-warning">{totalsParityText}</p>
         )}
 
         {/* Period pills */}
@@ -3256,8 +3315,8 @@ export default function FinancesPage() {
           </p>
         </div>
         {truncatedYear && <TruncatedYearBanner n={truncatedYear} />}
-        {totalsParity === false && (
-          <p role="status" className="mb-3 text-[13px] text-amber-800">{t("finances.totalsParityMismatch")}</p>
+        {totalsParityText && (
+          <p role="status" data-testid="totals-parity-mismatch" className="mb-3 text-[13px] font-semibold text-warning">{totalsParityText}</p>
         )}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {!isIndependentTutor && tutorOptions.length > 1 && (

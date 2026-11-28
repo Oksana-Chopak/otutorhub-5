@@ -245,6 +245,25 @@ describe("екрани школи: гроші учня — у валюті па�
     for (const loc of ["uk", "en", "sv"]) expect(read(`src/i18n/locales/${loc}.ts`)).toMatch(/analyticsForeignNote: "/);
   });
 
+  it("звірка «база ↔ екран» порівнює те саме з тим самим і не кричить на позначену оплату (28.11)", () => {
+    /* Скарга власниці 28.11: «⚠️ Підсумки розійшлись». Звірка рахувалась на кожен рендер: позначив
+       оплату — екран змінився одразу, число з бази ще старе → тривога; період «Все» порівнював
+       увесь час у базі з останнім роком на екрані → тривога назавжди, щойно школі рік. */
+    const s = read("src/pages/FinancesPage.tsx");
+    expect(s, "знімок на момент читання бази, не порівняння на рендер").toMatch(/const snap = \{ \.\.\.arrTotalsRef\.current \};/);
+    expect(s, "невиплачена виплата за урок, старший за рік, теж дочитується — борг без періоду")
+      .toMatch(/student_payment_status\.eq\.unpaid,and\(tutor_payout_status\.eq\.unpaid,tutor_payout\.gt\.0\)/);
+    expect(s, "уроки змінились, поки база відповідала — звірки немає, а не тривога")
+      .toMatch(/if \(!cmp \|\| lessonsRef\.current !== lessonsAtStart\) \{ setTotalsParityInfo\(null\); return; \}/);
+    expect(s, "період ширший за вікно екрана звіряється за вікном екрана")
+      .toMatch(/sameWindow \? Promise\.resolve\(null\) : readTotals\(loadedFromMs\)/);
+    expect(s, "уроки читаються тим самим вікном, яке передається базі").toMatch(/setLoadedFromMs\(windowFromMs\)/);
+    expect(s).not.toMatch(/Math\.abs\(dbTotals\.paid_income - arrIncome\)/);
+    expect(s, "справжня розбіжність показує обидва числа").toMatch(/finances\.totalsParityDetail/);
+    expect(s).not.toMatch(/t\("finances\.totalsParityMismatch"\)/);
+    for (const loc of ["uk", "en", "sv"]) expect(read(`src/i18n/locales/${loc}.ts`)).toMatch(/totalsParityDetail: "[^"]*\{\{dbIn\}\}[^"]*\{\{appIn\}\}/);
+  });
+
   it("прохід «учениця платить у євро» біжить у CI після кожного пушу", () => {
     expect(read(".github/workflows/walks.yml")).toMatch(/node scripts\/local-stack\/currency-walk\.mjs/);
   });

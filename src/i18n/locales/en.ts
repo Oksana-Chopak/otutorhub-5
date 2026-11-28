@@ -1638,6 +1638,7 @@ export const en: LocaleTranslations = {
     stornoNote: "Reversal of an erroneous prepayment",
 
     totalsParityMismatch: "⚠️ Totals disagree. Showing the database figure — it is the accurate one. If this keeps happening, contact support.",
+    totalsParityDetail: "⚠️ Totals for “{{period}}” don’t match — income: database {{dbIn}}, screen {{appIn}}; payouts: database {{dbOut}}, screen {{appOut}}. The cards show the database figure. Please send this line to support.",
 
     expectedPayments: "Expected payments",
     studentsOweLabel: "Students owe",

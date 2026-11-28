@@ -62,6 +62,19 @@ if (sql("select count(*) from profiles where last_name = 'Єврова'") === "0
     PERFORM set_config('role', 'postgres', true);
   END $$;`);
 }
+// Урок, старший за рік: учениця оплатила, виплата репетиторці ще ні. Борг школи перед
+// репетитором — без періоду, тож він мусить бути у «Винні репетиторам» (28.11), а період «Все»
+// з таким уроком не має давати «⚠️ Підсумки розійшлись».
+sql(`DO $$
+DECLARE tut uuid := (SELECT id FROM auth.users WHERE email = '${tut}');
+        s uuid := (SELECT id FROM profiles WHERE last_name = 'Єврова' LIMIT 1); lid uuid;
+BEGIN
+  IF EXISTS (SELECT 1 FROM lessons WHERE tutor_id = tut AND starts_at < now() - interval '380 days') THEN RETURN; END IF;
+  INSERT INTO lessons (tutor_id, student_id, subject, starts_at, duration_minutes, status, source, created_by)
+  SELECT tut, s, (SELECT subject FROM student_rates WHERE tutor_id = tut AND student_id = s LIMIT 1), now() - interval '400 days', 60, 'completed', 'hub', tut
+  RETURNING id INTO lid;
+  UPDATE lesson_details SET student_price = 14, student_payment_status = 'paid', student_paid_at = now() - interval '399 days' WHERE lesson_id = lid;
+END $$;`);
 // Що в базі: борг у євро, борг у гривні, виплати до сплати (вони без валюти — валюта школи)
 const hubTutors = `(select tutor_id from tutor_workspace_settings where hub_id = (select hub_id from hub_managers hm join auth.users u on u.id = hm.user_id where u.email = '${mgr}'))`;
 const [eurDebt, uahDebt, payoutDue, payout1] = sql(`
@@ -96,6 +109,7 @@ async function session(email) {
       await wait(2500);
       return (await page.locator("body").innerText()).replace(/[\s  ]+/g, " ");
     },
+    page,
     close: () => ctx.close(),
   };
 }
@@ -127,6 +141,28 @@ must(x && x[0].includes("€14") && x[0].includes(`${n(payout1)} ₴`) && !x[0].
 t = await m.open("/dashboard");
 x = t.match(/ПРИБУТОК ([^ ]{1,14}(?: [^ ]{1,6}){0,5})/i);
 must(x && x[1].includes("€14") && !/^14 ₴/.test(x[1]), "«Мій день»: прибуток не складає євро з гривнями", x ? x[0] : t.slice(0, 200));
+
+// 2б. «⚠️ Підсумки розійшлись» (скарга власниці 28.11). Звірка «база ↔ екран» давала хибну
+// тривогу двічі: (1) на КОЖНУ позначену оплату — екран змінювався одразу, число з бази було ще
+// старе; (2) період «Все» порівнював увесь час у базі з останнім роком на екрані. Тут: оплачений
+// урок, старший за рік, + дотик «оплачено» на уроці учениці в євро — банера не має бути ні разу.
+await m.page.addInitScript(() => {
+  window.__parity = [];
+  setInterval(() => { const b = document.querySelector('[data-testid="totals-parity-mismatch"]'); const t = b ? b.textContent : (document.body?.innerText.match(/Підсумки[^\n]{0,160}розійшлись[^\n]{0,200}/) || [null])[0]; if (t && !window.__parity.includes(t)) window.__parity.push(t); }, 40);
+});
+await m.open("/finances");
+const pendBtn = m.page.locator("button", { hasText: /Очікує →/ }).first();
+const payBtn = (await pendBtn.count()) ? pendBtn : m.page.getByRole("button", { name: "Оплачено", exact: true }).first();
+must((await payBtn.count()) > 0, "«Фінанси»: є урок, який можна позначити оплаченим");
+if (await payBtn.count()) { await payBtn.click(); await wait(6000); }
+let seen = await m.page.evaluate(() => window.__parity);
+must(seen.length === 0, "«Фінанси»: позначена оплата не дає «⚠️ Підсумки розійшлись» (було — на кожну оплату)", seen[0]);
+await m.open("/finances");
+const allBtn = m.page.locator('button[aria-label="Все"]').first();
+must((await allBtn.count()) > 0, "«Фінанси»: є період «Все»");
+if (await allBtn.count()) { await allBtn.click(); await wait(5000); }
+seen = await m.page.evaluate(() => window.__parity);
+must(seen.length === 0, "«Фінанси», період «Все» зі старим оплаченим уроком: банера «Підсумки розійшлись» немає (було — завжди, щойно школі рік)", seen[0]);
 await m.close();
 
 // 3. Репетиторка школи: лише своя виплата у валюті школи, жодного «€» і жодної ціни учня

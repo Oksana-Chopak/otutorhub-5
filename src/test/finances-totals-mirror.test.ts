@@ -106,7 +106,8 @@ describe("finances_period_totals дзеркалить financials.ts", () => {
     expect(page).toMatch(/finances_period_totals/);
     expect(page).toMatch(/dbTotals \? dbTotals\.paid_income : arrIncome/);
     expect(page).toMatch(/totalsParity === false/);
-    expect(page).toMatch(/finances\.totalsParityMismatch/);
+    // 28.11: розбіжність показує обидва числа (база й екран) — рядок, який можна переслати
+    expect(page).toMatch(/finances\.totalsParityDetail/);
   });
 });
 
@@ -189,8 +190,11 @@ describe("самозвірка боргів: бейдж називає поло�
 describe("борг без періоду: клієнт дочитує дебіторку поза річним вікном", () => {
   it("є окреме читання, що СТРОГО доповнює вікно оборотів", () => {
     expect(page, "вікно оборотів лишається як було").toMatch(/\.gte\("starts_at", oneYearAgo\)/);
-    expect(page, "доповнення: старіше за межу І не оплачено")
-      .toMatch(/\.lt\("starts_at", edge\)\s*\n\s*\.eq\("student_payment_status", "unpaid"\)/);
+    // 28.11: «не оплачено» — з обох боків: учнем АБО школою репетиторові (виплата > 0).
+    expect(page, "доповнення: старіше за межу")
+      .toMatch(/\.lt\("starts_at", edge\)[\s\S]{0,420}\.or\("student_payment_status\.eq\.unpaid,and\(tutor_payout_status\.eq\.unpaid,tutor_payout\.gt\.0\)"\)/);
+    expect(page, "вікно й доповнення ділять ОДНУ межу — без щілини й без дублів")
+      .toMatch(/const edge = new Date\(windowFromMs\)\.toISOString\(\);/);
     expect(page, "групова половина боргу теж дочитується")
       .toMatch(/\.lt\("starts_at", edge\)\s*\n\s*\.eq\("status", "completed"\)/);
   });
